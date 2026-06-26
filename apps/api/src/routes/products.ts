@@ -20,4 +20,79 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// CREATE
+router.post('/', async (req, res, next) => {
+  try {
+    const { title, sku, price, inventoryQuantity, category, status } = req.body;
+
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    const newProduct = await Product.create({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+      title,
+      slug,
+      sku,
+      price: parseFloat(price),
+      inventoryQuantity: parseInt(inventoryQuantity, 10),
+      category,
+      status,
+    });
+
+    sendSuccess(res, newProduct, 'Product created successfully', 201);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// UPDATE
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, sku, price, inventoryQuantity, category, status } = req.body;
+
+    const product = await Product.findOneAndUpdate(
+      { _id: id, tenantId: req.auth!.tenantId, storeId: req.auth!.storeId },
+      {
+        title,
+        sku,
+        price: parseFloat(price),
+        inventoryQuantity: parseInt(inventoryQuantity, 10),
+        category,
+        status,
+      },
+      { new: true }
+    );
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    sendSuccess(res, product, 'Product updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const product = await Product.findOneAndDelete({ 
+      _id: id, 
+      tenantId: req.auth!.tenantId, 
+      storeId: req.auth!.storeId 
+    });
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    sendSuccess(res, null, 'Product deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

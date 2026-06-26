@@ -12,8 +12,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <AppSidebar collapsed={sidebarCollapsed} />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Topbar onToggleSidebar={() => setSidebarCollapsed((p) => !p)} />
-        <main className="flex-1 overflow-auto">
-          <div className="h-full">{children}</div>
+        <main className="flex-1 overflow-auto bg-muted/10 relative">
+          <div className="flex flex-col min-h-full">{children}</div>
         </main>
       </div>
     </div>

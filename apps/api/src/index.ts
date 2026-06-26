@@ -70,12 +70,15 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+import storeRoutes from './routes/store';
+
 // ============================================================
 // API Routes
 // ============================================================
 app.use('/api/admin/auth', authLimiter, authRoutes);
 app.use('/api/admin/dashboard', dashboardRoutes);
 app.use('/api/admin/staff', staffRoutes);
+app.use('/api/admin/store', storeRoutes);
 app.use('/api/admin/products', productsRoutes);
 app.use('/api/admin/orders', ordersRoutes);
 app.use('/api/admin/customers', customersRoutes);
