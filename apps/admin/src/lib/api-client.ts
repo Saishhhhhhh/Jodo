@@ -109,6 +109,9 @@ export const dashboardApi = {
 export const staffApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/staff', { params }),
   roles: () => apiClient.get('/admin/staff/roles'),
+  create: (data: Record<string, unknown>) => apiClient.post('/admin/staff', data),
+  update: (id: string, data: Record<string, unknown>) => apiClient.put(`/admin/staff/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/staff/${id}`),
 };
 
 export const productsApi = {
