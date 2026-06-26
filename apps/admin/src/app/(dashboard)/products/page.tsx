@@ -47,9 +47,9 @@ const columns: ColumnDef<Product>[] = [
     header: 'Price',
     cell: ({ row }) => {
       const price = parseFloat(row.getValue('price'));
-      const formatted = new Intl.NumberFormat('en-US', {
+      const formatted = new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'INR',
       }).format(price);
       return formatted;
     },
