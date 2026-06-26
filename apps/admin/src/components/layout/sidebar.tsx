@@ -187,9 +187,31 @@ export function AppSidebar({ collapsed }: SidebarProps) {
     );
   }
 
+  const allHrefs = React.useMemo(() => {
+    const hrefs: string[] = [];
+    NAV_ITEMS.forEach((item) => {
+      if (item.href) hrefs.push(item.href);
+      item.children?.forEach((child) => {
+        if (child.href) hrefs.push(child.href);
+      });
+    });
+    return hrefs;
+  }, []);
+
+  const bestMatch = React.useMemo(() => {
+    return allHrefs.reduce((best, href) => {
+      if (pathname === href || pathname.startsWith(`${href}/`)) {
+        if (!best || href.length > best.length) {
+          return href;
+        }
+      }
+      return best;
+    }, '');
+  }, [pathname, allHrefs]);
+
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
-    return pathname.startsWith(href);
+    return href === bestMatch;
   }
 
   function isGroupActive(item: NavItem) {
