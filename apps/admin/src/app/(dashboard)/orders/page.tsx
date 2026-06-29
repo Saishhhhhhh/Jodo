@@ -1,10 +1,29 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { 
+  MoreHorizontal, 
+  CreditCard, 
+  Truck, 
+  AlertCircle, 
+  Edit, 
+  Package 
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FulfillOrderDialog } from './[id]/fulfill-order-dialog';
 
 type Order = {
   _id: string;
@@ -14,95 +33,15 @@ type Order = {
   paymentStatus: string;
   fulfillmentStatus: string;
   fulfillments: any[];
+  items: any[];
   createdAt: string;
 };
 
-import Link from 'next/link';
-
-const columns: ColumnDef<Order>[] = [
-  { 
-    accessorKey: 'orderNumber', 
-    header: 'Order',
-    cell: ({ row }) => (
-      <span className="font-semibold">{row.getValue('orderNumber')}</span>
-    )
-  },
-  {
-    accessorKey: 'createdAt',
-    header: 'Date',
-    cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
-  },
-  { accessorKey: 'customerName', header: 'Customer' },
-  {
-    accessorKey: 'paymentStatus',
-    header: 'Payment',
-    cell: ({ row }) => {
-      const status = row.getValue('paymentStatus') as string;
-      return (
-        <Badge
-          variant={status === 'paid' ? 'default' : status === 'refunded' ? 'destructive' : 'secondary'}
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: 'fulfillmentStatus',
-    header: 'Fulfillment',
-    cell: ({ row }) => {
-      const status = row.getValue('fulfillmentStatus') as string;
-      return (
-        <Badge
-          variant={status === 'fulfilled' ? 'default' : 'secondary'}
-        >
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    id: 'tracking',
-    header: 'Tracking',
-    cell: ({ row }) => {
-      const fulfillments = row.original.fulfillments;
-      if (!fulfillments || fulfillments.length === 0) return <span className="text-muted-foreground">—</span>;
-      
-      const latest = fulfillments[fulfillments.length - 1];
-      if (latest.trackingUrl) {
-        return (
-          <a 
-            href={latest.trackingUrl} 
-            target="_blank" 
-            rel="noreferrer"
-            className="text-primary hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {latest.trackingNumber}
-          </a>
-        );
-      }
-      return <span>{latest.trackingNumber}</span>;
-    },
-  },
-  {
-    accessorKey: 'totalAmount',
-    header: 'Total',
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue('totalAmount'));
-      const formatted = new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-      }).format(amount);
-      return formatted;
-    },
-  },
-];
-
-import { useRouter } from 'next/navigation';
-
 export default function OrdersPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isFulfillDialogOpen, setIsFulfillDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders'],
@@ -111,6 +50,149 @@ export default function OrdersPage() {
       return res.data.data;
     },
   });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: string }) => 
+      ordersApi.update(id, { paymentStatus }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      toast.success('Order status updated successfully');
+    },
+    onError: () => {
+      toast.error('Failed to update order status');
+    },
+  });
+
+  const columns: ColumnDef<Order>[] = [
+    { 
+      accessorKey: 'orderNumber', 
+      header: 'Order',
+      cell: ({ row }) => (
+        <span className="font-semibold">{row.getValue('orderNumber')}</span>
+      )
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Date',
+      cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
+    },
+    { accessorKey: 'customerName', header: 'Customer' },
+    {
+      accessorKey: 'paymentStatus',
+      header: 'Payment',
+      cell: ({ row }) => {
+        const status = row.getValue('paymentStatus') as string;
+        return (
+          <Badge
+            variant={status === 'paid' ? 'default' : status === 'refunded' ? 'destructive' : 'secondary'}
+          >
+            {status}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: 'fulfillmentStatus',
+      header: 'Fulfillment',
+      cell: ({ row }) => {
+        const status = row.getValue('fulfillmentStatus') as string;
+        return (
+          <Badge
+            variant={status === 'fulfilled' ? 'default' : 'secondary'}
+          >
+            {status}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'tracking',
+      header: 'Tracking',
+      cell: ({ row }) => {
+        const fulfillments = row.original.fulfillments;
+        if (!fulfillments || fulfillments.length === 0) return <span className="text-muted-foreground">—</span>;
+        
+        const latest = fulfillments[fulfillments.length - 1];
+        if (latest.trackingUrl) {
+          return (
+            <a 
+              href={latest.trackingUrl} 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-primary hover:underline font-medium"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {latest.trackingNumber}
+            </a>
+          );
+        }
+        return <span className="font-mono text-xs">{latest.trackingNumber}</span>;
+      },
+    },
+    {
+      accessorKey: 'totalAmount',
+      header: 'Total',
+      cell: ({ row }) => {
+        const amount = parseFloat(row.getValue('totalAmount'));
+        const formatted = new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR',
+        }).format(amount);
+        return formatted;
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const order = row.original;
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push(`/orders/${order._id}`)}>
+                  <Edit className="mr-2 h-4 w-4" /> View Details
+                </DropdownMenuItem>
+                
+                {order.paymentStatus !== 'paid' && (
+                  <DropdownMenuItem 
+                    onClick={() => updateStatusMutation.mutate({ id: order._id, paymentStatus: 'paid' })}
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" /> Mark as Paid
+                  </DropdownMenuItem>
+                )}
+                
+                {order.paymentStatus === 'paid' && (
+                  <DropdownMenuItem 
+                    onClick={() => updateStatusMutation.mutate({ id: order._id, paymentStatus: 'refunded' })}
+                    disabled={updateStatusMutation.isPending}
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4" /> Refund Payment
+                  </DropdownMenuItem>
+                )}
+
+                {order.fulfillmentStatus !== 'fulfilled' && (
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setIsFulfillDialogOpen(true);
+                    }}
+                  >
+                    <Truck className="mr-2 h-4 w-4" /> Fulfill Order
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      }
+    }
+  ];
 
   return (
     <div className="p-6 animate-fade-in space-y-6">
@@ -127,6 +209,22 @@ export default function OrdersPage() {
         isLoading={isLoading} 
         onRowClick={(row) => router.push(`/orders/${row._id}`)}
       />
+
+      {selectedOrder && (
+        <FulfillOrderDialog
+          orderId={selectedOrder._id}
+          items={selectedOrder.items}
+          open={isFulfillDialogOpen}
+          onOpenChange={(open) => {
+            setIsFulfillDialogOpen(open);
+            if (!open) {
+              setSelectedOrder(null);
+              // Invalidate query to refresh the list since an order might have been fulfilled
+              queryClient.invalidateQueries({ queryKey: ['orders'] });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
