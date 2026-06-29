@@ -1,19 +1,72 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IOrderItem {
+  productId?: mongoose.Types.ObjectId;
+  sku: string;
+  title: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export interface IShippingAddress {
+  firstName: string;
+  lastName: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  phone?: string;
+}
+
 export interface IOrder extends Document {
   tenantId: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
   orderNumber: string;
   customerName: string;
   customerEmail: string;
+  
+  items: IOrderItem[];
+  shippingAddress?: IShippingAddress;
+  
+  subtotal: number;
+  taxTotal: number;
+  shippingTotal: number;
   totalAmount: number;
   currency: string;
+  
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   fulfillmentStatus: 'unfulfilled' | 'partial' | 'fulfilled' | 'returned';
   itemsCount: number;
+  
+  notes?: string;
+  
   createdAt: Date;
   updatedAt: Date;
 }
+
+const orderItemSchema = new Schema<IOrderItem>({
+  productId: { type: Schema.Types.ObjectId, ref: 'Product' },
+  sku: { type: String, required: true },
+  title: { type: String, required: true },
+  quantity: { type: Number, required: true, min: 1 },
+  price: { type: Number, required: true },
+  total: { type: Number, required: true },
+});
+
+const shippingAddressSchema = new Schema<IShippingAddress>({
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  address1: { type: String, required: true },
+  address2: { type: String },
+  city: { type: String, required: true },
+  state: { type: String, required: true },
+  zip: { type: String, required: true },
+  country: { type: String, required: true },
+  phone: { type: String },
+});
 
 const orderSchema = new Schema<IOrder>(
   {
@@ -22,8 +75,16 @@ const orderSchema = new Schema<IOrder>(
     orderNumber: { type: String, required: true },
     customerName: { type: String, required: true },
     customerEmail: { type: String, required: true },
+    
+    items: [orderItemSchema],
+    shippingAddress: shippingAddressSchema,
+    
+    subtotal: { type: Number, required: true, default: 0 },
+    taxTotal: { type: Number, required: true, default: 0 },
+    shippingTotal: { type: Number, required: true, default: 0 },
     totalAmount: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
+    
     paymentStatus: {
       type: String,
       enum: ['pending', 'paid', 'failed', 'refunded'],
@@ -35,6 +96,8 @@ const orderSchema = new Schema<IOrder>(
       default: 'unfulfilled',
     },
     itemsCount: { type: Number, required: true, min: 1 },
+    
+    notes: { type: String },
   },
   { timestamps: true }
 );

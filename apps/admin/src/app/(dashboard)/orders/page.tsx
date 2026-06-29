@@ -16,8 +16,18 @@ type Order = {
   createdAt: string;
 };
 
+import Link from 'next/link';
+
 const columns: ColumnDef<Order>[] = [
-  { accessorKey: 'orderNumber', header: 'Order' },
+  { 
+    accessorKey: 'orderNumber', 
+    header: 'Order',
+    cell: ({ row }) => (
+      <Link href={`/orders/${row.original._id}`} className="font-semibold hover:underline">
+        {row.getValue('orderNumber')}
+      </Link>
+    )
+  },
   {
     accessorKey: 'createdAt',
     header: 'Date',

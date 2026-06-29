@@ -173,10 +173,48 @@ async function seedDummyData(tenantId: any, storeId: any) {
   console.log(`✅ ${customers.length} Customers seeded.`);
 
   const orders = await Order.insertMany([
-    { tenantId: tenantId, storeId: storeId, orderNumber: 'ORD-1001', customerName: 'Alice Smith', customerEmail: 'alice@example.com', totalAmount: 125.00, paymentStatus: 'paid', fulfillmentStatus: 'fulfilled', itemsCount: 3 },
-    { tenantId: tenantId, storeId: storeId, orderNumber: 'ORD-1002', customerName: 'Bob Johnson', customerEmail: 'bob@example.com', totalAmount: 45.00, paymentStatus: 'pending', fulfillmentStatus: 'unfulfilled', itemsCount: 1 },
-    { tenantId: tenantId, storeId: storeId, orderNumber: 'ORD-1003', customerName: 'Diana Prince', customerEmail: 'diana@example.com', totalAmount: 850.50, paymentStatus: 'refunded', fulfillmentStatus: 'returned', itemsCount: 2 },
-    { tenantId: tenantId, storeId: storeId, orderNumber: 'ORD-1004', customerName: 'Eve Adams', customerEmail: 'eve@example.com', totalAmount: 199.99, paymentStatus: 'paid', fulfillmentStatus: 'unfulfilled', itemsCount: 1 },
+    {
+      tenantId, storeId, orderNumber: 'ORD-1001',
+      customerName: 'Alice Smith', customerEmail: 'alice@example.com',
+      items: [
+        { productId: products[0]._id, sku: 'TSH-001', title: 'Premium Cotton T-Shirt', quantity: 3, price: 29.99, total: 89.97 }
+      ],
+      shippingAddress: { firstName: 'Alice', lastName: 'Smith', address1: '123 Fashion Ave', city: 'Mumbai', state: 'MH', zip: '400001', country: 'India' },
+      subtotal: 89.97, taxTotal: 10.03, shippingTotal: 25.00, totalAmount: 125.00, currency: 'INR',
+      paymentStatus: 'paid', fulfillmentStatus: 'fulfilled', itemsCount: 3,
+      notes: 'Please leave package at the front door.'
+    },
+    {
+      tenantId, storeId, orderNumber: 'ORD-1002',
+      customerName: 'Bob Johnson', customerEmail: 'bob@example.com',
+      items: [
+        { productId: products[2]._id, sku: 'OC-003', title: 'Ergonomic Office Chair', quantity: 1, price: 149.50, total: 149.50 }
+      ],
+      shippingAddress: { firstName: 'Bob', lastName: 'Johnson', address1: '456 Tech Park', city: 'Bengaluru', state: 'KA', zip: '560001', country: 'India' },
+      subtotal: 149.50, taxTotal: 15.50, shippingTotal: 0.00, totalAmount: 165.00, currency: 'INR',
+      paymentStatus: 'pending', fulfillmentStatus: 'unfulfilled', itemsCount: 1
+    },
+    {
+      tenantId, storeId, orderNumber: 'ORD-1003',
+      customerName: 'Diana Prince', customerEmail: 'diana@example.com',
+      items: [
+        { productId: products[1]._id, sku: 'WH-002', title: 'Wireless Noise-Canceling Headphones', quantity: 2, price: 199.99, total: 399.98 }
+      ],
+      shippingAddress: { firstName: 'Diana', lastName: 'Prince', address1: '789 Justice Blvd', city: 'Delhi', state: 'DL', zip: '110001', country: 'India' },
+      subtotal: 399.98, taxTotal: 40.02, shippingTotal: 0.00, totalAmount: 440.00, currency: 'INR',
+      paymentStatus: 'refunded', fulfillmentStatus: 'returned', itemsCount: 2,
+      notes: 'Customer requested cancellation.'
+    },
+    {
+      tenantId, storeId, orderNumber: 'ORD-1004',
+      customerName: 'Eve Adams', customerEmail: 'eve@example.com',
+      items: [
+        { productId: products[3]._id, sku: 'CB-004', title: 'Organic Arabica Coffee Beans', quantity: 1, price: 18.00, total: 18.00 }
+      ],
+      shippingAddress: { firstName: 'Eve', lastName: 'Adams', address1: '321 Brew St', city: 'Pune', state: 'MH', zip: '411001', country: 'India' },
+      subtotal: 18.00, taxTotal: 2.00, shippingTotal: 5.00, totalAmount: 25.00, currency: 'INR',
+      paymentStatus: 'paid', fulfillmentStatus: 'unfulfilled', itemsCount: 1
+    }
   ]);
   console.log(`✅ ${orders.length} Orders seeded.`);
 
