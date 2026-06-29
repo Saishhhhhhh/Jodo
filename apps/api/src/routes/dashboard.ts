@@ -5,6 +5,8 @@ import mongoose from 'mongoose';
 import { Order } from '../models/Order';
 import { Product } from '../models/Product';
 import { Return } from '../models/Return';
+import { Store } from '../models/Store';
+import { AppPlugin } from '../models/AppPlugin';
 
 const router = Router();
 
@@ -20,6 +22,9 @@ router.get('/summary', async (req: Request, res: Response) => {
     const tenantId = new mongoose.Types.ObjectId(req.auth!.tenantId);
     const storeId = new mongoose.Types.ObjectId(req.auth!.storeId);
 
+    // Fetch store configuration
+    const store = await Store.findOne({ tenantId, _id: storeId });
+
     // Fetch all store orders, active products, and returns
     const orders = await Order.find({ tenantId, storeId }).sort({ createdAt: -1 });
     const returns = await Return.find({ tenantId, storeId });
@@ -29,6 +34,24 @@ router.get('/summary', async (req: Request, res: Response) => {
       status: 'active',
       inventoryQuantity: { $lte: 10 }
     });
+
+    const productCount = await Product.countDocuments({ tenantId, storeId });
+    const paymentPlugin = await AppPlugin.findOne({ tenantId, storeId, status: 'active', name: /Razorpay|Stripe|Paypal/i });
+
+    // Determine checklist states dynamically
+    const hasShipping = store?.settings?.shippingZonesConfigured || false;
+    const hasNotifications = store?.settings?.emailNotificationsConfigured || false;
+    const hasDomain = !!store?.primaryDomain;
+
+    const setupSteps = [
+      { label: 'Connect MongoDB database', done: true, path: '#' },
+      { label: 'Configure store details', done: !!store && store.name !== 'My Store' && store.name !== 'New Store', path: '/settings' },
+      { label: 'Add a product', done: productCount > 0, path: '/products' },
+      { label: 'Set up payment method', done: !!paymentPlugin, path: '/settings/payments' },
+      { label: 'Configure shipping zones', done: hasShipping, path: '/settings/shipping' },
+      { label: 'Set up email notifications', done: hasNotifications, path: '/settings' },
+      { label: 'Connect a domain', done: hasDomain, path: '/settings' },
+    ];
 
     // 1. Calculations
     const totalRevenueValue = orders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
@@ -145,6 +168,7 @@ router.get('/summary', async (req: Request, res: Response) => {
       },
       recentOrders: recentOrdersMapped,
       salesByDay: salesByDayData,
+      setupSteps,
     };
 
     sendSuccess(res, summaryData);

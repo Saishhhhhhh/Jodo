@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   DollarSign,
   ShoppingCart,
@@ -25,11 +27,20 @@ import { MetricCard } from '@/components/dashboard/metric-card';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { dashboardApi } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { DashboardSummary } from '@jodo/shared';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'summary'],
     queryFn: async () => {
@@ -223,34 +234,53 @@ export default function DashboardPage() {
                 description="Orders will appear here once customers start purchasing."
               />
             ) : (
-              <div className="space-y-2">
-                {data!.recentOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="flex items-center gap-3 rounded-lg p-2 hover:bg-accent/40 transition-colors cursor-pointer"
-                  >
-                    <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
-                      <ShoppingCart className="h-3.5 w-3.5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">#{order.orderNumber}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {order.customerName}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-medium">
-                        {formatCurrency(order.total, order.currency)}
-                      </p>
-                      <Badge
-                        variant={order.paymentStatus === 'paid' ? 'success' : 'warning'}
-                        className="text-[10px] mt-0.5"
+              <div className="border border-zinc-800 rounded-xl overflow-hidden bg-card">
+                <Table>
+                  <TableHeader className="bg-muted/30 border-b border-zinc-800">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-xs text-zinc-400 font-semibold py-3">Order</TableHead>
+                      <TableHead className="text-xs text-zinc-400 font-semibold py-3">Customer</TableHead>
+                      <TableHead className="text-xs text-zinc-400 font-semibold py-3">Payment</TableHead>
+                      <TableHead className="text-xs text-zinc-400 font-semibold py-3">Fulfillment</TableHead>
+                      <TableHead className="text-xs text-zinc-400 font-semibold py-3 text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data!.recentOrders.map((order) => (
+                      <TableRow 
+                        key={order._id} 
+                        onClick={() => router.push(`/orders/${order._id}`)}
+                        className="hover:bg-muted/10 border-b border-zinc-800/60 last:border-0 cursor-pointer transition-colors"
                       >
-                        {order.paymentStatus}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                        <TableCell className="font-semibold text-sm py-3.5">
+                          #{order.orderNumber}
+                        </TableCell>
+                        <TableCell className="text-sm py-3.5">
+                          {order.customerName}
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                          <Badge
+                            variant={order.paymentStatus === 'paid' ? 'default' : order.paymentStatus === 'refunded' ? 'destructive' : 'secondary'}
+                            className="text-[10px] capitalize font-medium py-0 px-2"
+                          >
+                            {order.paymentStatus}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                          <Badge
+                            variant={order.fulfillmentStatus === 'fulfilled' ? 'default' : 'secondary'}
+                            className="text-[10px] capitalize font-medium py-0 px-2"
+                          >
+                            {order.fulfillmentStatus}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-sm text-emerald-400 py-3.5">
+                          {formatCurrency(order.totalAmount, order.currency)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
@@ -264,43 +294,62 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2.5">
-              {SETUP_ITEMS.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/30 transition-colors"
-                >
-                  <div
-                    className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
-                      item.done
-                        ? 'bg-green-500/15 text-green-500'
-                        : 'border border-border text-muted-foreground'
-                    }`}
-                  >
-                    {item.done && (
-                      <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
-                        <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                      </svg>
-                    )}
-                  </div>
-                  <span
-                    className={`text-sm ${item.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-              <div className="mt-3 pt-3 border-t border-border">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>1 of {SETUP_ITEMS.length} completed</span>
-                  <span className="font-medium text-primary">14% done</span>
-                </div>
-                <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all duration-500"
-                    style={{ width: `${(1 / SETUP_ITEMS.length) * 100}%` }}
-                  />
-                </div>
-              </div>
+              {(() => {
+                const steps = data?.setupSteps || SETUP_ITEMS;
+                const completedCount = steps.filter(item => item.done).length;
+                const percentage = Math.round((completedCount / steps.length) * 100);
+
+                return (
+                  <>
+                    {steps.map((item) => {
+                      const rowContent = (
+                        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/30 transition-colors w-full cursor-pointer">
+                          <div
+                            className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 ${
+                              item.done
+                                ? 'bg-green-500/15 text-green-500'
+                                : 'border border-border text-muted-foreground'
+                            }`}
+                          >
+                            {item.done && (
+                              <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                              </svg>
+                            )}
+                          </div>
+                          <span
+                            className={`text-sm ${item.done ? 'text-zinc-500 line-through' : 'text-foreground font-medium'}`}
+                          >
+                            {item.label}
+                          </span>
+                        </div>
+                      );
+
+                      if (item.path && item.path !== '#') {
+                        return (
+                          <Link key={item.label} href={item.path} className="block">
+                            {rowContent}
+                          </Link>
+                        );
+                      }
+
+                      return <div key={item.label}>{rowContent}</div>;
+                    })}
+                    <div className="mt-3 pt-3 border-t border-zinc-800">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{completedCount} of {steps.length} completed</span>
+                        <span className="font-semibold text-indigo-400">{percentage}% done</span>
+                      </div>
+                      <div className="mt-2 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div
+                          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
@@ -343,12 +392,12 @@ function EmptyState({
   );
 }
 
-const SETUP_ITEMS = [
-  { label: 'Connect MongoDB database', done: true },
-  { label: 'Configure store details', done: false },
-  { label: 'Add a product', done: false },
-  { label: 'Set up payment method', done: false },
-  { label: 'Configure shipping zones', done: false },
-  { label: 'Set up email notifications', done: false },
-  { label: 'Connect a domain', done: false },
+const SETUP_ITEMS: { label: string; done: boolean; path: string }[] = [
+  { label: 'Connect MongoDB database', done: true, path: '#' },
+  { label: 'Configure store details', done: false, path: '/settings' },
+  { label: 'Add a product', done: false, path: '/products' },
+  { label: 'Set up payment method', done: false, path: '/settings/payments' },
+  { label: 'Configure shipping zones', done: false, path: '/settings/shipping' },
+  { label: 'Set up email notifications', done: false, path: '/settings' },
+  { label: 'Connect a domain', done: false, path: '/settings' },
 ];

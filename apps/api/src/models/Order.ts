@@ -65,6 +65,7 @@ export interface IOrder extends Document {
   
   createdAt: Date;
   updatedAt: Date;
+  status: 'open' | 'archived' | 'cancelled';
 }
 
 const orderItemSchema = new Schema<IOrderItem>({
@@ -141,6 +142,11 @@ const orderSchema = new Schema<IOrder>(
       type: String, 
       enum: ['under_review', 'approved', 'cancelled'], 
       default: 'under_review' 
+    },
+    status: {
+      type: String,
+      enum: ['open', 'archived', 'cancelled'],
+      default: 'open',
     },
   },
   { timestamps: true }

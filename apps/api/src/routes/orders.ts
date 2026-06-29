@@ -40,7 +40,7 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const { paymentStatus, fulfillmentStatus, notes, fraudStatus } = req.body;
+    const { paymentStatus, fulfillmentStatus, notes, fraudStatus, status } = req.body;
 
     const order = await Order.findOne({
       _id: req.params.id,
@@ -56,6 +56,7 @@ router.put('/:id', async (req, res, next) => {
     if (fulfillmentStatus) order.fulfillmentStatus = fulfillmentStatus;
     if (notes !== undefined) order.notes = notes;
     if (fraudStatus) order.fraudStatus = fraudStatus;
+    if (status) order.status = status;
 
     await order.save();
     sendSuccess(res, order, 'Order updated successfully');
