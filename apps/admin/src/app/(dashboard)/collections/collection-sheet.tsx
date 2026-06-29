@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useQuery } from '@tanstack/react-query';
-import { UploadCloud, X, Link as LinkIcon, Package, Check } from 'lucide-react';
+import { UploadCloud, X, Link as LinkIcon, Package, Check, Search } from 'lucide-react';
 
 import {
   Sheet,
@@ -61,6 +61,7 @@ export function CollectionSheet({
   const isEditing = !!collection;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
 
   // Fetch products to allow manual association
   const { data: products } = useQuery({
@@ -106,6 +107,7 @@ export function CollectionSheet({
         });
       }
       setShowUrlInput(false);
+      setProductSearch('');
     }
   }, [open, collection, form]);
 
@@ -141,7 +143,13 @@ export function CollectionSheet({
     }
     form.setValue('products', current, { shouldDirty: true });
   };
-
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    return products.filter((prod: any) =>
+      prod.title.toLowerCase().includes(productSearch.toLowerCase()) ||
+      prod.sku.toLowerCase().includes(productSearch.toLowerCase())
+    );
+  }, [products, productSearch]);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-[540px] overflow-y-auto">
@@ -326,9 +334,34 @@ export function CollectionSheet({
                 </p>
               </div>
 
-              {products && products.length > 0 ? (
+              {/* Product search box */}
+              {products && products.length > 0 && (
+                <div className="flex items-center gap-2 bg-card rounded-md border px-2.5 py-1.5 shadow-sm">
+                  <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search products by title or SKU..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground"
+                  />
+                  {productSearch && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 text-muted-foreground hover:text-foreground"
+                      onClick={() => setProductSearch('')}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {filteredProducts.length > 0 ? (
                 <div className="border rounded-md divide-y max-h-[180px] overflow-y-auto bg-card pr-1">
-                  {products.map((prod: any) => {
+                  {filteredProducts.map((prod: any) => {
                     const isChecked = selectedProducts.includes(prod._id);
                     return (
                       <div key={prod._id} className="flex items-center justify-between p-2.5 hover:bg-muted/30">
@@ -354,7 +387,7 @@ export function CollectionSheet({
                 </div>
               ) : (
                 <div className="text-center p-6 border border-dashed rounded-lg text-xs text-muted-foreground">
-                  No products available to add.
+                  {productSearch ? 'No products match search query.' : 'No products available to add.'}
                 </div>
               )}
             </div>

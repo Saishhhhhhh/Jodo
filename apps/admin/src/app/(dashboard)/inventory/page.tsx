@@ -8,7 +8,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Pencil, Search } from 'lucide-react';
+import { Pencil, Search, Package } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,12 @@ type InventoryItem = {
   available: number;
   committed: number;
   status: string;
+  product?: {
+    title: string;
+    imageUrl?: string;
+    category?: string;
+    vendor?: string;
+  } | null;
 };
 
 export default function InventoryPage() {
@@ -85,13 +91,38 @@ export default function InventoryPage() {
     return data.filter(
       (item: InventoryItem) =>
         item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.locationName.toLowerCase().includes(searchTerm.toLowerCase())
+        item.locationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.product?.title || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [data, searchTerm]);
 
   const columns = useMemo<ColumnDef<InventoryItem>[]>(
     () => [
-      { accessorKey: 'sku', header: 'SKU' },
+      {
+        accessorKey: 'product',
+        header: 'Product',
+        cell: ({ row }) => {
+          const item = row.original;
+          const prod = item.product;
+          return (
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-md border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                {prod?.imageUrl ? (
+                  <img src={prod.imageUrl} alt={prod.title} className="h-full w-full object-cover" />
+                ) : (
+                  <Package className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-semibold text-sm truncate">{prod?.title || 'Unknown Product'}</span>
+                <span className="text-[11px] text-muted-foreground truncate">
+                  SKU: <span className="font-mono">{item.sku}</span> {prod?.vendor ? `• ${prod.vendor}` : ''}
+                </span>
+              </div>
+            </div>
+          );
+        },
+      },
       { accessorKey: 'locationName', header: 'Location' },
       {
         accessorKey: 'status',
@@ -176,7 +207,7 @@ export default function InventoryPage() {
         <Search className="h-4 w-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Filter by SKU or Location..."
+          placeholder="Filter by Product, SKU or Location..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
@@ -190,7 +221,7 @@ export default function InventoryPage() {
           <DialogHeader>
             <DialogTitle>Adjust Stock</DialogTitle>
             <DialogDescription>
-              Update inventory levels for SKU <span className="font-semibold">{selectedItem?.sku}</span> at{' '}
+              Update inventory levels for <span className="font-semibold">{selectedItem?.product?.title || 'product'}</span> (SKU: {selectedItem?.sku}) at{' '}
               <span className="font-semibold">{selectedItem?.locationName}</span>.
             </DialogDescription>
           </DialogHeader>

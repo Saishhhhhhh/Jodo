@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { InventoryItem } from '../models/InventoryItem';
+import { Product } from '../models/Product';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -12,9 +13,30 @@ router.get('/', async (req, res, next) => {
     const inventory = await InventoryItem.find({
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }).lean();
 
-    sendSuccess(res, inventory);
+    // Fetch all products to match by SKU
+    const products = await Product.find({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    }).select('title sku imageUrl category vendor').lean();
+
+    const productMap = new Map(products.map(p => [p.sku, p]));
+
+    const inventoryWithProducts = inventory.map(item => {
+      const product = productMap.get(item.sku);
+      return {
+        ...item,
+        product: product ? {
+          title: product.title,
+          imageUrl: product.imageUrl,
+          category: product.category,
+          vendor: product.vendor,
+        } : null
+      };
+    });
+
+    sendSuccess(res, inventoryWithProducts);
   } catch (error) {
     next(error);
   }
