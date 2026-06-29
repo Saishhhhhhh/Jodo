@@ -182,7 +182,13 @@ async function seedDummyData(tenantId: any, storeId: any) {
       shippingAddress: { firstName: 'Alice', lastName: 'Smith', address1: '123 Fashion Ave', city: 'Mumbai', state: 'MH', zip: '400001', country: 'India' },
       subtotal: 89.97, taxTotal: 10.03, shippingTotal: 25.00, totalAmount: 125.00, currency: 'INR',
       paymentStatus: 'paid', fulfillmentStatus: 'fulfilled', itemsCount: 3,
-      notes: 'Please leave package at the front door.'
+      notes: 'Please leave package at the front door.',
+      riskScore: 12, riskLevel: 'low',
+      riskIndicators: [
+        { indicator: 'CVV Check', severity: 'low', message: 'Card verification value (CVV) is correct.' },
+        { indicator: 'Location Match', severity: 'low', message: 'Billing and shipping address locations are within the expected range.' }
+      ],
+      fraudStatus: 'approved'
     },
     {
       tenantId, storeId, orderNumber: 'ORD-1002',
@@ -192,7 +198,14 @@ async function seedDummyData(tenantId: any, storeId: any) {
       ],
       shippingAddress: { firstName: 'Bob', lastName: 'Johnson', address1: '456 Tech Park', city: 'Bengaluru', state: 'KA', zip: '560001', country: 'India' },
       subtotal: 149.50, taxTotal: 15.50, shippingTotal: 0.00, totalAmount: 165.00, currency: 'INR',
-      paymentStatus: 'pending', fulfillmentStatus: 'unfulfilled', itemsCount: 1
+      paymentStatus: 'pending', fulfillmentStatus: 'unfulfilled', itemsCount: 1,
+      riskScore: 88, riskLevel: 'high',
+      riskIndicators: [
+        { indicator: 'Anonymous Proxy', severity: 'high', message: 'Order was placed using an anonymous web proxy or VPN service.' },
+        { indicator: 'Billing Name Mismatch', severity: 'medium', message: 'Cardholder name does not match the customer billing name.' },
+        { indicator: 'Location Mismatch', severity: 'high', message: 'IP address location is 3,000 miles away from the shipping address.' }
+      ],
+      fraudStatus: 'under_review'
     },
     {
       tenantId, storeId, orderNumber: 'ORD-1003',
@@ -203,7 +216,12 @@ async function seedDummyData(tenantId: any, storeId: any) {
       shippingAddress: { firstName: 'Diana', lastName: 'Prince', address1: '789 Justice Blvd', city: 'Delhi', state: 'DL', zip: '110001', country: 'India' },
       subtotal: 399.98, taxTotal: 40.02, shippingTotal: 0.00, totalAmount: 440.00, currency: 'INR',
       paymentStatus: 'refunded', fulfillmentStatus: 'returned', itemsCount: 2,
-      notes: 'Customer requested cancellation.'
+      notes: 'Customer requested cancellation.',
+      riskScore: 5, riskLevel: 'low',
+      riskIndicators: [
+        { indicator: 'CVV Check', severity: 'low', message: 'Card verification value (CVV) is correct.' }
+      ],
+      fraudStatus: 'approved'
     },
     {
       tenantId, storeId, orderNumber: 'ORD-1004',
@@ -213,7 +231,13 @@ async function seedDummyData(tenantId: any, storeId: any) {
       ],
       shippingAddress: { firstName: 'Eve', lastName: 'Adams', address1: '321 Brew St', city: 'Pune', state: 'MH', zip: '411001', country: 'India' },
       subtotal: 18.00, taxTotal: 2.00, shippingTotal: 5.00, totalAmount: 25.00, currency: 'INR',
-      paymentStatus: 'paid', fulfillmentStatus: 'unfulfilled', itemsCount: 1
+      paymentStatus: 'paid', fulfillmentStatus: 'unfulfilled', itemsCount: 1,
+      riskScore: 42, riskLevel: 'medium',
+      riskIndicators: [
+        { indicator: 'Payment Attempts', severity: 'medium', message: 'Multiple checkout attempts (3 attempts) before a successful payment.' },
+        { indicator: 'Billing Address Check', severity: 'low', message: 'Billing zip code matches the credit card registered address.' }
+      ],
+      fraudStatus: 'under_review'
     }
   ]);
   console.log(`✅ ${orders.length} Orders seeded.`);

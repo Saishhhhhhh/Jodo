@@ -29,6 +29,12 @@ export interface IFulfillment {
   createdAt: Date;
 }
 
+export interface IRiskIndicator {
+  indicator: string;
+  severity: 'low' | 'medium' | 'high';
+  message: string;
+}
+
 export interface IOrder extends Document {
   tenantId: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
@@ -51,6 +57,11 @@ export interface IOrder extends Document {
   itemsCount: number;
   
   notes?: string;
+  
+  riskScore?: number;
+  riskLevel?: 'low' | 'medium' | 'high';
+  riskIndicators?: IRiskIndicator[];
+  fraudStatus?: 'under_review' | 'approved' | 'cancelled';
   
   createdAt: Date;
   updatedAt: Date;
@@ -85,6 +96,12 @@ const fulfillmentSchema = new Schema<IFulfillment>({
   createdAt: { type: Date, default: Date.now },
 });
 
+const riskIndicatorSchema = new Schema<IRiskIndicator>({
+  indicator: { type: String, required: true },
+  severity: { type: String, enum: ['low', 'medium', 'high'], required: true },
+  message: { type: String, required: true },
+});
+
 const orderSchema = new Schema<IOrder>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
@@ -116,6 +133,15 @@ const orderSchema = new Schema<IOrder>(
     itemsCount: { type: Number, required: true, min: 1 },
     
     notes: { type: String },
+    
+    riskScore: { type: Number, default: 0 },
+    riskLevel: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
+    riskIndicators: [riskIndicatorSchema],
+    fraudStatus: { 
+      type: String, 
+      enum: ['under_review', 'approved', 'cancelled'], 
+      default: 'under_review' 
+    },
   },
   { timestamps: true }
 );
