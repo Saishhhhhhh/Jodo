@@ -20,6 +20,7 @@ import { InventoryItem } from '../models/InventoryItem';
 import { Discount } from '../models/Discount';
 import { AppPlugin } from '../models/AppPlugin';
 import { AuditLog } from '../models/AuditLog';
+import { Review } from '../models/Review';
 import { PERMISSIONS, SYSTEM_ROLES } from '@jodo/shared';
 
 const SEED_EMAIL = process.env.ADMIN_SEED_EMAIL || 'admin@jodo.dev';
@@ -152,6 +153,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
   await InventoryItem.deleteMany({});
   await Discount.deleteMany({});
   await AppPlugin.deleteMany({});
+  await Review.deleteMany({});
 
   const products = await Product.insertMany([
     { tenantId: tenantId, storeId: storeId, title: 'Premium Cotton T-Shirt', slug: 'cotton-tshirt', status: 'active', price: 29.99, compareAtPrice: 39.99, sku: 'TSH-001', inventoryQuantity: 150, category: 'Apparel', vendor: 'Jodo Apparel', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=120&auto=format&fit=crop&q=60' },
@@ -200,7 +202,66 @@ async function seedDummyData(tenantId: any, storeId: any) {
     { tenantId: tenantId, storeId: storeId, name: 'Mailchimp Sync', developer: 'Mailchimp', version: '3.1.5', status: 'installed', description: 'Sync customers and orders to Mailchimp lists.' },
     { tenantId: tenantId, storeId: storeId, name: 'Advanced SEO', developer: 'SEO Pro', version: '1.0.0', status: 'disabled', description: 'Automated SEO tag generation.' },
   ]);
-  console.log(`✅ ${apps.length} Apps seeded.\n`);
+  console.log(`✅ ${apps.length} Apps seeded.`);
+
+  const reviews = await Review.insertMany([
+    {
+      tenantId,
+      storeId,
+      productId: products[1]._id, // Headphones
+      rating: 5,
+      authorName: 'Sanjay Kumar',
+      authorEmail: 'sanjay@example.com',
+      title: 'Outstanding Sound Quality!',
+      body: 'I have been using these noise-canceling headphones for a week now, and the sound isolation is incredibly clean. Battery life easily lasts 30 hours. Highly recommended!',
+      status: 'approved',
+    },
+    {
+      tenantId,
+      storeId,
+      productId: products[0]._id, // T-Shirt
+      rating: 4,
+      authorName: 'Rohan Sharma',
+      authorEmail: 'rohan@example.com',
+      title: 'Very comfortable, slightly loose fit',
+      body: 'The fabric is extremely soft and breathable. Good for summers. It fits slightly looser than expected, but overall a great buy.',
+      status: 'approved',
+    },
+    {
+      tenantId,
+      storeId,
+      productId: products[2]._id, // Office Chair
+      rating: 5,
+      authorName: 'Priya Patel',
+      authorEmail: 'priya@example.com',
+      title: 'Saved my back during long work hours',
+      body: 'Excellent lumbar support! Adjustable armrests and back tilt work perfectly. Very sturdy build.',
+      status: 'pending',
+    },
+    {
+      tenantId,
+      storeId,
+      productId: products[1]._id, // Headphones
+      rating: 1,
+      authorName: 'Spam Bot',
+      authorEmail: 'spambot@marketing-spam.ru',
+      title: 'CHEAP WATCHES ONLINE CLICK HERE',
+      body: 'Buy replica watches for cheap prices on our storefront now, instant delivery guaranteed!',
+      status: 'spam',
+    },
+    {
+      tenantId,
+      storeId,
+      productId: products[3]._id, // Coffee Beans
+      rating: 3,
+      authorName: 'Amit Verma',
+      authorEmail: 'amit@example.com',
+      title: 'Decent aroma, bit dark roasted',
+      body: 'The flavor profile is nice, but it was roasted slightly darker than expected. Good for strong espressos.',
+      status: 'approved',
+    },
+  ]);
+  console.log(`✅ ${reviews.length} Product Reviews seeded.\n`);
 
   // Seed AuditLogs
   const adminUser = await User.findOne({ email: SEED_EMAIL });

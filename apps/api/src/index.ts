@@ -22,6 +22,7 @@ import appsRoutes from './routes/apps';
 import auditLogsRoutes from './routes/audit-logs';
 import collectionsRoutes from './routes/collections';
 import giftCardsRoutes from './routes/gift-cards';
+import reviewsRoutes from './routes/reviews';
 
 const app = express();
 
@@ -91,6 +92,7 @@ app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);
 app.use('/api/admin/collections', collectionsRoutes);
 app.use('/api/admin/gift-cards', giftCardsRoutes);
+app.use('/api/admin/reviews', reviewsRoutes);
 
 // ============================================================
 // Error Handling
