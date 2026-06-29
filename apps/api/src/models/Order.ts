@@ -21,6 +21,14 @@ export interface IShippingAddress {
   phone?: string;
 }
 
+export interface IFulfillment {
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl?: string;
+  notifyCustomer: boolean;
+  createdAt: Date;
+}
+
 export interface IOrder extends Document {
   tenantId: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
@@ -30,6 +38,7 @@ export interface IOrder extends Document {
   
   items: IOrderItem[];
   shippingAddress?: IShippingAddress;
+  fulfillments?: IFulfillment[];
   
   subtotal: number;
   taxTotal: number;
@@ -68,6 +77,14 @@ const shippingAddressSchema = new Schema<IShippingAddress>({
   phone: { type: String },
 });
 
+const fulfillmentSchema = new Schema<IFulfillment>({
+  carrier: { type: String, required: true },
+  trackingNumber: { type: String, required: true },
+  trackingUrl: { type: String },
+  notifyCustomer: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const orderSchema = new Schema<IOrder>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
@@ -78,6 +95,7 @@ const orderSchema = new Schema<IOrder>(
     
     items: [orderItemSchema],
     shippingAddress: shippingAddressSchema,
+    fulfillments: [fulfillmentSchema],
     
     subtotal: { type: Number, required: true, default: 0 },
     taxTotal: { type: Number, required: true, default: 0 },

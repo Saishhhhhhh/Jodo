@@ -63,4 +63,46 @@ router.put('/:id', async (req, res, next) => {
   }
 });
 
+router.post('/:id/fulfill', async (req, res, next) => {
+  try {
+    const { carrier, trackingNumber, trackingUrl, notifyCustomer } = req.body;
+
+    if (!carrier || !trackingNumber) {
+      return sendError(res, 'Carrier and tracking number are required', 400);
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    });
+
+    if (!order) {
+      return sendError(res, 'Order not found', 404);
+    }
+
+    if (!order.fulfillments) {
+      order.fulfillments = [];
+    }
+
+    order.fulfillments.push({
+      carrier,
+      trackingNumber,
+      trackingUrl,
+      notifyCustomer,
+      createdAt: new Date(),
+    });
+
+    order.fulfillmentStatus = 'fulfilled';
+
+    await order.save();
+    
+    // In a real application, you would send an email here if notifyCustomer is true
+    
+    sendSuccess(res, order, 'Order fulfilled successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
