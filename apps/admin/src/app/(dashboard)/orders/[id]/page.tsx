@@ -5,12 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api-client';
 import Link from 'next/link';
-import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer } from 'lucide-react';
+import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { FulfillOrderDialog } from './fulfill-order-dialog';
+import { CreateReturnSheet } from './create-return-sheet';
 
 export default function OrderDetailsPage() {
   const { id } = useParams() as { id: string };
@@ -20,6 +21,7 @@ export default function OrderDetailsPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState('');
   const [isFulfillDialogOpen, setIsFulfillDialogOpen] = useState(false);
+  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['orders', id],
@@ -62,24 +64,32 @@ export default function OrderDetailsPage() {
   return (
     <div className="p-6 animate-fade-in space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">{order.orderNumber}</h1>
-            <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'} className="capitalize">
-              {order.paymentStatus}
-            </Badge>
-            <Badge variant={order.fulfillmentStatus === 'fulfilled' ? 'default' : 'secondary'} className="capitalize">
-              {order.fulfillmentStatus}
-            </Badge>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight">{order.orderNumber}</h1>
+              <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'} className="capitalize">
+                {order.paymentStatus}
+              </Badge>
+              <Badge variant={order.fulfillmentStatus === 'fulfilled' ? 'default' : 'secondary'} className="capitalize">
+                {order.fulfillmentStatus}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Placed on {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Placed on {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-          </p>
         </div>
+        {order.fulfillmentStatus !== 'returned' && (
+          <Button variant="outline" size="sm" onClick={() => setIsReturnDialogOpen(true)} className="flex items-center gap-1.5 font-medium">
+            <RotateCcw className="h-4 w-4" />
+            Return Items
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -294,6 +304,14 @@ export default function OrderDetailsPage() {
           items={order.items}
           open={isFulfillDialogOpen}
           onOpenChange={setIsFulfillDialogOpen}
+        />
+      )}
+
+      {order && (
+        <CreateReturnSheet
+          order={order}
+          open={isReturnDialogOpen}
+          onOpenChange={setIsReturnDialogOpen}
         />
       )}
     </div>
