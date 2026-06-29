@@ -20,6 +20,7 @@ import inventoryRoutes from './routes/inventory';
 import discountsRoutes from './routes/discounts';
 import appsRoutes from './routes/apps';
 import auditLogsRoutes from './routes/audit-logs';
+import collectionsRoutes from './routes/collections';
 
 const app = express();
 
@@ -87,6 +88,7 @@ app.use('/api/admin/inventory', inventoryRoutes);
 app.use('/api/admin/discounts', discountsRoutes);
 app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);
+app.use('/api/admin/collections', collectionsRoutes);
 
 // ============================================================
 // Error Handling

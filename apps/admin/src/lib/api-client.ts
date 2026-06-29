@@ -149,3 +149,10 @@ export const storeApi = {
 export const auditLogsApi = {
   list: () => apiClient.get('/admin/audit-logs'),
 };
+
+export const collectionsApi = {
+  list: () => apiClient.get('/admin/collections'),
+  create: (data: any) => apiClient.post('/admin/collections', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/collections/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/collections/${id}`),
+};
