@@ -123,6 +123,8 @@ export const productsApi = {
 
 export const ordersApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/orders', { params }),
+  get: (id: string) => apiClient.get(`/admin/orders/${id}`),
+  update: (id: string, data: any) => apiClient.put(`/admin/orders/${id}`, data),
 };
 
 export const customersApi = {

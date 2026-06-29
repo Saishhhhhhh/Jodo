@@ -23,9 +23,7 @@ const columns: ColumnDef<Order>[] = [
     accessorKey: 'orderNumber', 
     header: 'Order',
     cell: ({ row }) => (
-      <Link href={`/orders/${row.original._id}`} className="font-semibold hover:underline">
-        {row.getValue('orderNumber')}
-      </Link>
+      <span className="font-semibold">{row.getValue('orderNumber')}</span>
     )
   },
   {
@@ -76,7 +74,11 @@ const columns: ColumnDef<Order>[] = [
   },
 ];
 
+import { useRouter } from 'next/navigation';
+
 export default function OrdersPage() {
+  const router = useRouter();
+
   const { data, isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
@@ -94,7 +96,12 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data || []} isLoading={isLoading} />
+      <DataTable 
+        columns={columns} 
+        data={data || []} 
+        isLoading={isLoading} 
+        onRowClick={(row) => router.push(`/orders/${row._id}`)}
+      />
     </div>
   );
 }

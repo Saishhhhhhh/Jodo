@@ -62,7 +62,7 @@ export default function OrderDetailsPage() {
   };
 
   return (
-    <div className="p-6 animate-fade-in space-y-6 pb-20 max-w-5xl mx-auto">
+    <div className="p-6 animate-fade-in space-y-6 pb-12">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
