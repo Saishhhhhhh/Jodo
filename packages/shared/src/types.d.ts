@@ -120,3 +120,19 @@ export interface AuditLog extends BaseDocument {
     ip?: string;
     userAgent?: string;
 }
+export interface Campaign extends BaseDocument {
+    tenantId: string;
+    storeId: string;
+    name: string;
+    type: 'email' | 'sms' | 'push' | 'whatsapp';
+    status: 'draft' | 'scheduled' | 'active' | 'completed';
+    budget?: number;
+    spend: number;
+    metrics: {
+        impressions: number;
+        clicks: number;
+        conversions: number;
+    };
+    startDate: string;
+    endDate?: string;
+}
