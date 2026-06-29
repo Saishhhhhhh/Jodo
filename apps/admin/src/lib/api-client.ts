@@ -142,6 +142,9 @@ export const inventoryApi = {
 
 export const discountsApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/discounts', { params }),
+  create: (data: any) => apiClient.post('/admin/discounts', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/discounts/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/discounts/${id}`),
 };
 
 export const appsApi = {

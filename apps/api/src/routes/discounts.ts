@@ -19,5 +19,85 @@ router.get('/', async (req, res, next) => {
     next(error);
   }
 });
+router.post('/', async (req, res, next) => {
+  try {
+    const { code, type, value, status } = req.body;
+    
+    // Check if code already exists for this store
+    const existing = await Discount.findOne({
+      storeId: req.auth!.storeId,
+      code: code.toUpperCase()
+    });
+    
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Discount code already exists', code: 'VALIDATION_ERROR' }
+      });
+    }
+
+    const discount = await Discount.create({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+      code: code.toUpperCase(),
+      type,
+      value,
+      status: status || 'active'
+    });
+
+    sendSuccess(res, discount, 201);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { code, type, value, status } = req.body;
+    const discount = await Discount.findOneAndUpdate(
+      { _id: req.params.id, storeId: req.auth!.storeId },
+      { 
+        $set: { 
+          ...(code && { code: code.toUpperCase() }),
+          ...(type && { type }),
+          ...(value !== undefined && { value }),
+          ...(status && { status })
+        } 
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!discount) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Discount not found', code: 'NOT_FOUND' }
+      });
+    }
+
+    sendSuccess(res, discount);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const discount = await Discount.findOneAndDelete({
+      _id: req.params.id,
+      storeId: req.auth!.storeId,
+    });
+
+    if (!discount) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Discount not found', code: 'NOT_FOUND' }
+      });
+    }
+
+    sendSuccess(res, { message: 'Discount deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;
