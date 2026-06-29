@@ -24,6 +24,7 @@ import collectionsRoutes from './routes/collections';
 import giftCardsRoutes from './routes/gift-cards';
 import reviewsRoutes from './routes/reviews';
 import returnsRoutes from './routes/returns';
+import segmentsRoutes from './routes/segments';
 
 const app = express();
 
@@ -95,6 +96,7 @@ app.use('/api/admin/collections', collectionsRoutes);
 app.use('/api/admin/gift-cards', giftCardsRoutes);
 app.use('/api/admin/reviews', reviewsRoutes);
 app.use('/api/admin/returns', returnsRoutes);
+app.use('/api/admin/customers/segments', segmentsRoutes);
 
 // ============================================================
 // Error Handling

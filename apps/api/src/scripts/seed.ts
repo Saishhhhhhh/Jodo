@@ -22,6 +22,7 @@ import { AppPlugin } from '../models/AppPlugin';
 import { AuditLog } from '../models/AuditLog';
 import { Review } from '../models/Review';
 import { Return } from '../models/Return';
+import { CustomerSegment } from '../models/CustomerSegment';
 import { PERMISSIONS, SYSTEM_ROLES } from '@jodo/shared';
 
 const SEED_EMAIL = process.env.ADMIN_SEED_EMAIL || 'admin@jodo.dev';
@@ -156,6 +157,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
   await AppPlugin.deleteMany({});
   await Review.deleteMany({});
   await Return.deleteMany({});
+  await CustomerSegment.deleteMany({});
 
   const products = await Product.insertMany([
     { tenantId: tenantId, storeId: storeId, title: 'Premium Cotton T-Shirt', slug: 'cotton-tshirt', status: 'active', price: 29.99, compareAtPrice: 39.99, sku: 'TSH-001', inventoryQuantity: 150, category: 'Apparel', vendor: 'Jodo Apparel', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=120&auto=format&fit=crop&q=60' },
@@ -271,6 +273,46 @@ async function seedDummyData(tenantId: any, storeId: any) {
     ]);
     console.log(`✅ ${returns.length} Returns seeded.`);
   }
+
+  const segments = await CustomerSegment.insertMany([
+    {
+      tenantId,
+      storeId,
+      name: 'VIP Club',
+      description: 'Customers who have spent ₹1,000 or more in total.',
+      rules: [
+        { field: 'totalSpent', operator: 'gte', value: 1000 }
+      ]
+    },
+    {
+      tenantId,
+      storeId,
+      name: 'Loyal Buyers',
+      description: 'Customers who have placed 5 or more orders.',
+      rules: [
+        { field: 'ordersCount', operator: 'gte', value: 5 }
+      ]
+    },
+    {
+      tenantId,
+      storeId,
+      name: 'Inactive Accounts',
+      description: 'Customer accounts set as inactive.',
+      rules: [
+        { field: 'status', operator: 'eq', value: 'inactive' }
+      ]
+    },
+    {
+      tenantId,
+      storeId,
+      name: 'New Signups',
+      description: 'Newly registered customer accounts with no orders yet.',
+      rules: [
+        { field: 'ordersCount', operator: 'eq', value: 0 }
+      ]
+    }
+  ]);
+  console.log(`✅ ${segments.length} Customer Segments seeded.`);
 
   const inventoryItems = await InventoryItem.insertMany([
     { tenantId: tenantId, storeId: storeId, sku: 'TSH-001', locationName: 'Main Warehouse', onHand: 150, available: 140, committed: 10, status: 'in_stock' },

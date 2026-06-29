@@ -183,3 +183,10 @@ export const returnsApi = {
   create: (data: any) => apiClient.post('/admin/returns', data),
   update: (id: string, data: any) => apiClient.put(`/admin/returns/${id}`, data),
 };
+
+export const customerSegmentsApi = {
+  list: () => apiClient.get('/admin/customers/segments'),
+  get: (id: string) => apiClient.get(`/admin/customers/segments/${id}`),
+  create: (data: any) => apiClient.post('/admin/customers/segments', data),
+  delete: (id: string) => apiClient.delete(`/admin/customers/segments/${id}`),
+};
