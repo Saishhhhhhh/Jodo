@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { FulfillOrderDialog } from './fulfill-order-dialog';
 
 export default function OrderDetailsPage() {
   const { id } = useParams() as { id: string };
@@ -18,6 +19,7 @@ export default function OrderDetailsPage() {
   
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState('');
+  const [isFulfillDialogOpen, setIsFulfillDialogOpen] = useState(false);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['orders', id],
@@ -47,10 +49,6 @@ export default function OrderDetailsPage() {
 
   const handleMarkAsPaid = () => {
     updateMutation.mutate({ paymentStatus: 'paid' });
-  };
-
-  const handleFulfill = () => {
-    updateMutation.mutate({ fulfillmentStatus: 'fulfilled' });
   };
 
   const handleSaveNotes = () => {
@@ -96,11 +94,39 @@ export default function OrderDetailsPage() {
                 <h2 className="font-semibold text-lg">{order.fulfillmentStatus === 'fulfilled' ? 'Fulfilled' : 'Unfulfilled'}</h2>
               </div>
               {order.fulfillmentStatus !== 'fulfilled' && (
-                <Button size="sm" onClick={handleFulfill} disabled={updateMutation.isPending}>
+                <Button size="sm" onClick={() => setIsFulfillDialogOpen(true)}>
                   Fulfill Order
                 </Button>
               )}
             </div>
+            
+            {order.fulfillments && order.fulfillments.length > 0 && (
+              <div className="bg-blue-50/50 dark:bg-blue-900/10 border-b p-4 space-y-3">
+                {order.fulfillments.map((fulfillment: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-primary" />
+                      <span className="font-medium">Fulfilled</span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground capitalize">{fulfillment.carrier}</span>
+                    </div>
+                    {fulfillment.trackingUrl ? (
+                      <a 
+                        href={fulfillment.trackingUrl} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-primary font-medium hover:underline flex items-center gap-1"
+                      >
+                        {fulfillment.trackingNumber}
+                      </a>
+                    ) : (
+                      <span className="font-medium">{fulfillment.trackingNumber}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <div className="p-0">
               <table className="w-full text-sm">
                 <tbody>
@@ -249,6 +275,15 @@ export default function OrderDetailsPage() {
 
         </div>
       </div>
+      
+      {order && (
+        <FulfillOrderDialog 
+          orderId={order._id}
+          items={order.items}
+          open={isFulfillDialogOpen}
+          onOpenChange={setIsFulfillDialogOpen}
+        />
+      )}
     </div>
   );
 }

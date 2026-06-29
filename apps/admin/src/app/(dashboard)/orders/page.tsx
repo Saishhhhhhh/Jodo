@@ -13,6 +13,7 @@ type Order = {
   totalAmount: number;
   paymentStatus: string;
   fulfillmentStatus: string;
+  fulfillments: any[];
   createdAt: string;
 };
 
@@ -58,6 +59,30 @@ const columns: ColumnDef<Order>[] = [
           {status}
         </Badge>
       );
+    },
+  },
+  {
+    id: 'tracking',
+    header: 'Tracking',
+    cell: ({ row }) => {
+      const fulfillments = row.original.fulfillments;
+      if (!fulfillments || fulfillments.length === 0) return <span className="text-muted-foreground">—</span>;
+      
+      const latest = fulfillments[fulfillments.length - 1];
+      if (latest.trackingUrl) {
+        return (
+          <a 
+            href={latest.trackingUrl} 
+            target="_blank" 
+            rel="noreferrer"
+            className="text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {latest.trackingNumber}
+          </a>
+        );
+      }
+      return <span>{latest.trackingNumber}</span>;
     },
   },
   {

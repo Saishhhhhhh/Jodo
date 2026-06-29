@@ -84,7 +84,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'All Orders', href: '/orders', icon: ShoppingCart },
       { label: 'Draft Orders', href: '/orders/draft', icon: FileText },
       { label: 'Returns', href: '/returns', icon: RotateCcw },
-      { label: 'Fulfillments', href: '/fulfillments', icon: Truck },
+      { label: 'Shipping Labels', href: '/shipping-labels', icon: Truck },
       { label: 'Fraud Review', href: '/fraud', icon: ShieldAlert },
     ],
   },
