@@ -157,3 +157,10 @@ export const collectionsApi = {
   update: (id: string, data: any) => apiClient.put(`/admin/collections/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/collections/${id}`),
 };
+
+export const giftCardsApi = {
+  list: () => apiClient.get('/admin/gift-cards'),
+  create: (data: any) => apiClient.post('/admin/gift-cards', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/gift-cards/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/gift-cards/${id}`),
+};
