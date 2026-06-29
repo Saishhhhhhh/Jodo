@@ -4,24 +4,24 @@ import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { returnsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetDescription 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { Package, RotateCcw } from 'lucide-react';
 
@@ -42,7 +42,7 @@ type SelectedItem = {
 
 export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnSheetProps) {
   const queryClient = useQueryClient();
-  
+
   // Selected items configuration state
   const [selectedItems, setSelectedItems] = useState<Record<string, SelectedItem>>({});
   const [refundAmount, setRefundAmount] = useState(0);
@@ -125,7 +125,7 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const itemsArray = Object.values(selectedItems);
-    
+
     if (itemsArray.length === 0) {
       toast.error('Please select at least one item to return');
       return;
@@ -160,7 +160,7 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
           {/* Select Items List */}
           <div className="space-y-4">
             <Label className="text-sm font-semibold">Select items to return</Label>
-            
+
             <div className="space-y-4">
               {order.items?.map((item: any, idx: number) => {
                 const isSelected = !!selectedItems[item.sku];
@@ -168,8 +168,8 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
                   <div key={idx} className={`p-4 border rounded-xl space-y-3 bg-card transition-all ${isSelected ? 'border-primary ring-1 ring-primary/20' : ''}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <Checkbox 
-                          id={`chk-${item.sku}`} 
+                        <Checkbox
+                          id={`chk-${item.sku}`}
                           checked={isSelected}
                           onCheckedChange={(checked) => handleToggleItem(item, checked === true)}
                           className="mt-1"
@@ -200,7 +200,7 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
                         {/* Qty Selector */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">Quantity to return</Label>
-                          <Input 
+                          <Input
                             type="number"
                             min={1}
                             max={item.quantity}
@@ -212,7 +212,7 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
                         {/* Reason Selector */}
                         <div className="space-y-1.5">
                           <Label className="text-xs">Reason</Label>
-                          <Select 
+                          <Select
                             value={selectedItems[item.sku].reason}
                             onValueChange={(val) => handleReasonChange(item.sku, val)}
                           >
@@ -224,7 +224,7 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
                               <SelectItem value="defective">Defective / Damaged</SelectItem>
                               <SelectItem value="wrong_item">Wrong Item Sent</SelectItem>
                               <SelectItem value="did_not_like">Customer Disliked</SelectItem>
-                              <SelectItem value="other">Other reason</SelectItem>
+                              <SelectItem value="other">Other Reason</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -238,10 +238,10 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
 
           {/* Pricing Refund Amount */}
           <div className="space-y-2 border-t pt-4">
-            <Label htmlFor="refund" className="text-sm font-semibold">Refund amount ({order.currency || 'INR'})</Label>
+            <Label htmlFor="refund" className="text-sm font-semibold">Refund Amount ({order.currency || 'INR'})</Label>
             <div className="flex relative">
               <span className="absolute left-3 top-2.5 text-sm font-medium text-muted-foreground">{order.currency || 'INR'}</span>
-              <Input 
+              <Input
                 id="refund"
                 type="number"
                 min={0}
