@@ -131,6 +131,7 @@ export const customersApi = {
 
 export const inventoryApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory', { params }),
+  update: (id: string, data: any) => apiClient.put(`/admin/inventory/${id}`, data),
 };
 
 export const discountsApi = {

@@ -23,7 +23,7 @@ router.get('/', async (req, res, next) => {
 // CREATE
 router.post('/', async (req, res, next) => {
   try {
-    const { title, sku, price, inventoryQuantity, category, status } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, barcode, status } = req.body;
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -33,9 +33,13 @@ router.post('/', async (req, res, next) => {
       title,
       slug,
       sku,
+      barcode,
       price: parseFloat(price),
+      compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
       inventoryQuantity: parseInt(inventoryQuantity, 10),
       category,
+      vendor,
+      imageUrl,
       status,
     });
 
@@ -49,16 +53,20 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, sku, price, inventoryQuantity, category, status } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, barcode, status } = req.body;
 
     const product = await Product.findOneAndUpdate(
       { _id: id, tenantId: req.auth!.tenantId, storeId: req.auth!.storeId },
       {
         title,
         sku,
+        barcode,
         price: parseFloat(price),
+        compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
         inventoryQuantity: parseInt(inventoryQuantity, 10),
         category,
+        vendor,
+        imageUrl,
         status,
       },
       { new: true }
