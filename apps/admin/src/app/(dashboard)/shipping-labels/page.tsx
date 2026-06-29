@@ -1,14 +1,15 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Truck, Package } from 'lucide-react';
+import { FulfillOrderDialog } from '../orders/[id]/fulfill-order-dialog';
 
 type Order = {
   _id: string;
@@ -18,61 +19,15 @@ type Order = {
   paymentStatus: string;
   fulfillmentStatus: string;
   itemsCount: number;
+  items: any[];
   createdAt: string;
 };
 
-const columns: ColumnDef<Order>[] = [
-  { 
-    accessorKey: 'orderNumber', 
-    header: 'Order',
-    cell: ({ row }) => (
-      <span className="font-semibold">{row.getValue('orderNumber')}</span>
-    )
-  },
-  {
-    accessorKey: 'createdAt',
-    header: 'Date',
-    cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
-  },
-  { accessorKey: 'customerName', header: 'Customer' },
-  {
-    accessorKey: 'itemsCount',
-    header: 'Items',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        <Package className="h-4 w-4" />
-        {row.getValue('itemsCount')}
-      </div>
-    ),
-  },
-  {
-    accessorKey: 'fulfillmentStatus',
-    header: 'Status',
-    cell: ({ row }) => {
-      const status = row.getValue('fulfillmentStatus') as string;
-      return (
-        <Badge variant={status === 'unfulfilled' ? 'destructive' : 'secondary'} className="capitalize">
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      return (
-        <div className="text-right">
-          <Button size="sm" variant="outline">
-            Create Label
-          </Button>
-        </div>
-      );
-    }
-  }
-];
-
 export default function ShippingLabelsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isFulfillDialogOpen, setIsFulfillDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders-shipping'],
@@ -83,6 +38,64 @@ export default function ShippingLabelsPage() {
       return allOrders.filter((o: any) => o.fulfillmentStatus !== 'fulfilled');
     },
   });
+
+  const columns: ColumnDef<Order>[] = [
+    { 
+      accessorKey: 'orderNumber', 
+      header: 'Order',
+      cell: ({ row }) => (
+        <span className="font-semibold">{row.getValue('orderNumber')}</span>
+      )
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Date',
+      cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
+    },
+    { accessorKey: 'customerName', header: 'Customer' },
+    {
+      accessorKey: 'itemsCount',
+      header: 'Items',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1.5 text-muted-foreground">
+          <Package className="h-4 w-4" />
+          {row.getValue('itemsCount')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'fulfillmentStatus',
+      header: 'Status',
+      cell: ({ row }) => {
+        const status = row.getValue('fulfillmentStatus') as string;
+        return (
+          <Badge variant={status === 'unfulfilled' ? 'destructive' : 'secondary'} className="capitalize">
+            {status}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const order = row.original;
+        return (
+          <div className="text-right" onClick={(e) => e.stopPropagation()}>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => {
+                setSelectedOrder(order);
+                setIsFulfillDialogOpen(true);
+              }}
+            >
+              Create Label
+            </Button>
+          </div>
+        );
+      }
+    }
+  ];
 
   return (
     <div className="p-6 animate-fade-in space-y-6">
@@ -112,6 +125,23 @@ export default function ShippingLabelsPage() {
           data={data || []} 
           isLoading={isLoading} 
           onRowClick={(row) => router.push(`/orders/${row._id}`)}
+        />
+      )}
+
+      {selectedOrder && (
+        <FulfillOrderDialog
+          orderId={selectedOrder._id}
+          items={selectedOrder.items}
+          open={isFulfillDialogOpen}
+          onOpenChange={(open) => {
+            setIsFulfillDialogOpen(open);
+            if (!open) {
+              setSelectedOrder(null);
+              // Invalidate both lists to ensure data consistency
+              queryClient.invalidateQueries({ queryKey: ['orders-shipping'] });
+              queryClient.invalidateQueries({ queryKey: ['orders'] });
+            }
+          }}
         />
       )}
     </div>

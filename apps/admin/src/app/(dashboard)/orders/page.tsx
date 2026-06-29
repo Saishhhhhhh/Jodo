@@ -15,7 +15,8 @@ import {
   Truck, 
   AlertCircle, 
   Edit, 
-  Package 
+  Package,
+  Printer
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -184,6 +185,12 @@ export default function OrdersPage() {
                     }}
                   >
                     <Truck className="mr-2 h-4 w-4" /> Fulfill Order
+                  </DropdownMenuItem>
+                )}
+
+                {order.fulfillmentStatus === 'fulfilled' && (
+                  <DropdownMenuItem onClick={() => window.open(`/print-label/${order._id}`, '_blank')}>
+                    <Printer className="mr-2 h-4 w-4" /> Print Shipping Label
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

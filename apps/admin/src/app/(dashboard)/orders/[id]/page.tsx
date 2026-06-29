@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api-client';
 import Link from 'next/link';
-import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText } from 'lucide-react';
+import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -110,18 +110,30 @@ export default function OrderDetailsPage() {
                       <span className="text-muted-foreground">•</span>
                       <span className="text-muted-foreground capitalize">{fulfillment.carrier}</span>
                     </div>
-                    {fulfillment.trackingUrl ? (
-                      <a 
-                        href={fulfillment.trackingUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-primary font-medium hover:underline flex items-center gap-1"
+                    <div className="flex items-center gap-3">
+                      {fulfillment.trackingUrl ? (
+                        <a 
+                          href={fulfillment.trackingUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="text-primary font-medium hover:underline flex items-center gap-1"
+                        >
+                          {fulfillment.trackingNumber}
+                        </a>
+                      ) : (
+                        <span className="font-medium">{fulfillment.trackingNumber}</span>
+                      )}
+                      <span className="text-zinc-300">|</span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                        onClick={() => window.open(`/print-label/${order._id}`, '_blank')}
                       >
-                        {fulfillment.trackingNumber}
-                      </a>
-                    ) : (
-                      <span className="font-medium">{fulfillment.trackingNumber}</span>
-                    )}
+                        <Printer className="h-3.5 w-3.5" />
+                        Print Label
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
