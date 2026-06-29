@@ -30,8 +30,8 @@ interface CreateSegmentDialogProps {
 }
 
 type Rule = {
-  field: 'totalSpent' | 'ordersCount' | 'status';
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'ne';
+  field: 'totalSpent' | 'ordersCount' | 'status' | 'tags';
+  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'ne' | 'contains';
   value: string;
 };
 
@@ -79,6 +79,8 @@ export function CreateSegmentDialog({ open, onOpenChange }: CreateSegmentDialogP
         const nextField = val as Rule['field'];
         if (nextField === 'status') {
           return { field: nextField, operator: 'eq', value: 'active' };
+        } else if (nextField === 'tags') {
+          return { field: nextField, operator: 'contains', value: 'wholesale' };
         } else {
           return { field: nextField, operator: 'gte', value: '100' };
         }
@@ -172,6 +174,7 @@ export function CreateSegmentDialog({ open, onOpenChange }: CreateSegmentDialogP
                           <SelectItem value="totalSpent">Total Spent</SelectItem>
                           <SelectItem value="ordersCount">Orders Placed</SelectItem>
                           <SelectItem value="status">Account Status</SelectItem>
+                          <SelectItem value="tags">Customer Tag</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -190,6 +193,11 @@ export function CreateSegmentDialog({ open, onOpenChange }: CreateSegmentDialogP
                             <>
                               <SelectItem value="eq">Equals</SelectItem>
                               <SelectItem value="ne">Not Equals</SelectItem>
+                            </>
+                          ) : rule.field === 'tags' ? (
+                            <>
+                              <SelectItem value="contains">Contains Tag</SelectItem>
+                              <SelectItem value="ne">Does Not Contain</SelectItem>
                             </>
                           ) : (
                             <>
@@ -219,6 +227,15 @@ export function CreateSegmentDialog({ open, onOpenChange }: CreateSegmentDialogP
                             <SelectItem value="inactive">Inactive</SelectItem>
                           </SelectContent>
                         </Select>
+                      ) : rule.field === 'tags' ? (
+                        <Input 
+                          type="text"
+                          className="h-9 text-xs"
+                          value={rule.value}
+                          onChange={(e) => handleRuleChange(idx, 'value', e.target.value)}
+                          placeholder="e.g. wholesale"
+                          required
+                        />
                       ) : (
                         <Input 
                           type="number"

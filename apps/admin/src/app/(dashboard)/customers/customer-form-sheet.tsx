@@ -22,7 +22,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { User, Phone, Mail, ShieldAlert } from 'lucide-react';
+import { User, Phone, Mail, Tag } from 'lucide-react';
 
 interface CustomerFormSheetProps {
   customer: any | null; // Null in add mode
@@ -40,6 +40,7 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
+  const [tagsString, setTagsString] = useState('');
 
   // Load initial details if editing
   useEffect(() => {
@@ -50,12 +51,14 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
         setEmail(customer.email || '');
         setPhone(customer.phone || '');
         setStatus(customer.status || 'active');
+        setTagsString(customer.tags ? customer.tags.join(', ') : '');
       } else {
         setFirstName('');
         setLastName('');
         setEmail('');
         setPhone('');
         setStatus('active');
+        setTagsString('');
       }
     }
   }, [open, customer]);
@@ -69,6 +72,8 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      // Invalidate segments too since tags changed
+      queryClient.invalidateQueries({ queryKey: ['segments-list'] });
       toast.success(isEditMode ? 'Customer updated successfully' : 'Customer created successfully');
       onOpenChange(false);
     },
@@ -84,12 +89,19 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
       return;
     }
 
+    // Parse comma separated tags
+    const tags = tagsString
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+
     mutation.mutate({
       firstName,
       lastName,
       email,
       phone: phone || undefined,
       status,
+      tags,
     });
   };
 
@@ -166,6 +178,22 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Tags Field */}
+            <div className="space-y-1.5">
+              <Label htmlFor="tags" className="text-xs font-semibold text-zinc-400">Customer Tags (Comma-separated)</Label>
+              <div className="relative flex">
+                <Tag className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <Input 
+                  id="tags" 
+                  placeholder="wholesale, vip, local-buyer" 
+                  className="pl-9"
+                  value={tagsString} 
+                  onChange={(e) => setTagsString(e.target.value)}
+                />
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1">Tags let you manually classify and dynamic-segment customer cohorts.</p>
             </div>
 
             {/* Status Field */}

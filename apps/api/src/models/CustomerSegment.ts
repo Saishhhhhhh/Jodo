@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ISegmentRule {
-  field: 'totalSpent' | 'ordersCount' | 'status' | 'createdAt';
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'ne';
+  field: 'totalSpent' | 'ordersCount' | 'status' | 'createdAt' | 'tags';
+  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'ne' | 'contains';
   value: any;
 }
 
@@ -19,12 +19,12 @@ export interface ICustomerSegment extends Document {
 const segmentRuleSchema = new Schema<ISegmentRule>({
   field: { 
     type: String, 
-    enum: ['totalSpent', 'ordersCount', 'status', 'createdAt'], 
+    enum: ['totalSpent', 'ordersCount', 'status', 'createdAt', 'tags'], 
     required: true 
   },
   operator: { 
     type: String, 
-    enum: ['gt', 'lt', 'eq', 'gte', 'lte', 'ne'], 
+    enum: ['gt', 'lt', 'eq', 'gte', 'lte', 'ne', 'contains'], 
     required: true 
   },
   value: { type: Schema.Types.Mixed, required: true },

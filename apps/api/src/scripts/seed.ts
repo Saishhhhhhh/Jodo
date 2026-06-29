@@ -169,10 +169,10 @@ async function seedDummyData(tenantId: any, storeId: any) {
   console.log(`✅ ${products.length} Products seeded.`);
 
   const customers = await Customer.insertMany([
-    { tenantId: tenantId, storeId: storeId, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', ordersCount: 2, totalSpent: 125.00, status: 'active' },
-    { tenantId: tenantId, storeId: storeId, firstName: 'Bob', lastName: 'Johnson', email: 'bob@example.com', ordersCount: 5, totalSpent: 850.50, status: 'active' },
-    { tenantId: tenantId, storeId: storeId, firstName: 'Charlie', lastName: 'Brown', email: 'charlie@example.com', ordersCount: 0, totalSpent: 0, status: 'inactive' },
-    { tenantId: tenantId, storeId: storeId, firstName: 'Diana', lastName: 'Prince', email: 'diana@example.com', ordersCount: 12, totalSpent: 2450.00, status: 'active' },
+    { tenantId: tenantId, storeId: storeId, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', ordersCount: 2, totalSpent: 125.00, status: 'active', tags: ['local'] },
+    { tenantId: tenantId, storeId: storeId, firstName: 'Bob', lastName: 'Johnson', email: 'bob@example.com', ordersCount: 5, totalSpent: 850.50, status: 'active', tags: ['wholesale', 'vip'] },
+    { tenantId: tenantId, storeId: storeId, firstName: 'Charlie', lastName: 'Brown', email: 'charlie@example.com', ordersCount: 0, totalSpent: 0, status: 'inactive', tags: [] },
+    { tenantId: tenantId, storeId: storeId, firstName: 'Diana', lastName: 'Prince', email: 'diana@example.com', ordersCount: 12, totalSpent: 2450.00, status: 'active', tags: ['vip'] },
   ]);
   console.log(`✅ ${customers.length} Customers seeded.`);
 
@@ -309,6 +309,15 @@ async function seedDummyData(tenantId: any, storeId: any) {
       description: 'Newly registered customer accounts with no orders yet.',
       rules: [
         { field: 'ordersCount', operator: 'eq', value: 0 }
+      ]
+    },
+    {
+      tenantId,
+      storeId,
+      name: 'Wholesale Accounts',
+      description: 'Customers tagged with the "wholesale" status.',
+      rules: [
+        { field: 'tags', operator: 'contains', value: 'wholesale' }
       ]
     }
   ]);

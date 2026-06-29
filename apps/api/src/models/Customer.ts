@@ -10,6 +10,7 @@ export interface ICustomer extends Document {
   ordersCount: number;
   totalSpent: number;
   status: 'active' | 'inactive';
+  tags?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +26,7 @@ const customerSchema = new Schema<ICustomer>(
     ordersCount: { type: Number, default: 0 },
     totalSpent: { type: Number, default: 0 },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+    tags: { type: [String], default: [] },
   },
   { timestamps: true }
 );

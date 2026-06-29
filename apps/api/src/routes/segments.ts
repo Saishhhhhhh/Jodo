@@ -26,6 +26,15 @@ function buildMongoQuery(rules: any[], tenantId: any, storeId: any) {
       }
     }
 
+    if (field === 'tags') {
+      if (operator === 'ne') {
+        query['tags'] = { $ne: parsedValue };
+      } else {
+        query['tags'] = parsedValue;
+      }
+      return;
+    }
+
     if (operator === 'eq') {
       query[field] = parsedValue;
     } else {
