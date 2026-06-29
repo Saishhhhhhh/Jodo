@@ -173,3 +173,10 @@ export const reviewsApi = {
   update: (id: string, data: any) => apiClient.put(`/admin/reviews/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/reviews/${id}`),
 };
+
+export const returnsApi = {
+  list: () => apiClient.get('/admin/returns'),
+  get: (id: string) => apiClient.get(`/admin/returns/${id}`),
+  create: (data: any) => apiClient.post('/admin/returns', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/returns/${id}`, data),
+};

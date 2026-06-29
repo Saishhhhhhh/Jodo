@@ -21,6 +21,7 @@ import { Discount } from '../models/Discount';
 import { AppPlugin } from '../models/AppPlugin';
 import { AuditLog } from '../models/AuditLog';
 import { Review } from '../models/Review';
+import { Return } from '../models/Return';
 import { PERMISSIONS, SYSTEM_ROLES } from '@jodo/shared';
 
 const SEED_EMAIL = process.env.ADMIN_SEED_EMAIL || 'admin@jodo.dev';
@@ -154,6 +155,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
   await Discount.deleteMany({});
   await AppPlugin.deleteMany({});
   await Review.deleteMany({});
+  await Return.deleteMany({});
 
   const products = await Product.insertMany([
     { tenantId: tenantId, storeId: storeId, title: 'Premium Cotton T-Shirt', slug: 'cotton-tshirt', status: 'active', price: 29.99, compareAtPrice: 39.99, sku: 'TSH-001', inventoryQuantity: 150, category: 'Apparel', vendor: 'Jodo Apparel', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=120&auto=format&fit=crop&q=60' },
@@ -241,6 +243,34 @@ async function seedDummyData(tenantId: any, storeId: any) {
     }
   ]);
   console.log(`✅ ${orders.length} Orders seeded.`);
+
+  const ord1003 = orders.find(o => o.orderNumber === 'ORD-1003');
+  if (ord1003) {
+    const returns = await Return.insertMany([
+      {
+        tenantId,
+        storeId,
+        orderId: ord1003._id,
+        orderNumber: ord1003.orderNumber,
+        customerName: ord1003.customerName,
+        customerEmail: ord1003.customerEmail,
+        items: [
+          {
+            productId: products[1]._id,
+            sku: 'WH-002',
+            title: 'Wireless Noise-Canceling Headphones',
+            quantity: 2,
+            price: 199.99,
+            reason: 'did_not_like',
+          }
+        ],
+        status: 'received',
+        refundAmount: 399.98,
+        notes: 'Customer returned as they wanted a different model.',
+      }
+    ]);
+    console.log(`✅ ${returns.length} Returns seeded.`);
+  }
 
   const inventoryItems = await InventoryItem.insertMany([
     { tenantId: tenantId, storeId: storeId, sku: 'TSH-001', locationName: 'Main Warehouse', onHand: 150, available: 140, committed: 10, status: 'in_stock' },

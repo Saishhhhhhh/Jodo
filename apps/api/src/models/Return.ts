@@ -16,12 +16,12 @@ export interface IReturn extends Document {
   orderNumber: string;
   customerName: string;
   customerEmail: string;
-  
+
   items: IReturnItem[];
   status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected';
   refundAmount: number;
   notes?: string;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,7 +47,7 @@ const returnSchema = new Schema<IReturn>(
     orderNumber: { type: String, required: true },
     customerName: { type: String, required: true },
     customerEmail: { type: String, required: true },
-    
+
     items: [returnItemSchema],
     status: {
       type: String,
@@ -60,4 +60,4 @@ const returnSchema = new Schema<IReturn>(
   { timestamps: true }
 );
 
-export const Return = mongoose.models.Return || mongoose.model<IReturn>('Return', returnSchema);
+export const Return = mongoose.models.Return || mongoose.model<IReturn>('Returns', returnSchema);
