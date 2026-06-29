@@ -7,7 +7,7 @@ import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash, Package } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,8 @@ type Product = {
   inventoryQuantity: number;
   status: string;
   category: string;
+  imageUrl?: string;
+  vendor?: string;
 };
 
 export default function ProductsPage() {
@@ -101,16 +103,52 @@ export default function ProductsPage() {
 
   const columns = useMemo<ColumnDef<Product>[]>(
     () => [
-      { accessorKey: 'title', header: 'Title' },
+      {
+        accessorKey: 'title',
+        header: 'Product',
+        cell: ({ row }) => {
+          const product = row.original;
+          return (
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-md border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                {product.imageUrl ? (
+                  <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover" />
+                ) : (
+                  <Package className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="font-semibold text-sm truncate">{product.title}</span>
+                <span className="text-[11px] text-muted-foreground truncate">
+                  {product.category || 'Uncategorized'} {product.vendor ? `• ${product.vendor}` : ''}
+                </span>
+              </div>
+            </div>
+          );
+        },
+      },
       { accessorKey: 'sku', header: 'SKU' },
-      { accessorKey: 'category', header: 'Category' },
       {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
           const status = row.getValue('status') as string;
+          let badgeVariant: 'default' | 'secondary' | 'outline' = 'secondary';
+          let customClass = '';
+
+          if (status === 'active') {
+            badgeVariant = 'default';
+            customClass = 'bg-green-500/10 text-green-600 hover:bg-green-500/15 border-none';
+          } else if (status === 'draft') {
+            badgeVariant = 'secondary';
+            customClass = 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/15 border-none';
+          } else if (status === 'archived') {
+            badgeVariant = 'outline';
+            customClass = 'text-muted-foreground border-muted';
+          }
+
           return (
-            <Badge variant={status === 'active' ? 'default' : 'secondary'}>
+            <Badge variant={badgeVariant} className={`text-xs capitalize font-medium ${customClass}`}>
               {status}
             </Badge>
           );
@@ -121,7 +159,13 @@ export default function ProductsPage() {
         header: 'Inventory',
         cell: ({ row }) => {
           const qty = row.getValue('inventoryQuantity') as number;
-          return <span className={qty === 0 ? 'text-destructive' : ''}>{qty} in stock</span>;
+          let stockColor = 'text-green-600 font-medium';
+          if (qty === 0) {
+            stockColor = 'text-destructive font-semibold';
+          } else if (qty < 15) {
+            stockColor = 'text-amber-600 font-medium';
+          }
+          return <span className={`text-xs ${stockColor}`}>{qty} in stock</span>;
         },
       },
       {
@@ -184,7 +228,7 @@ export default function ProductsPage() {
       <DataTable columns={columns} data={data || []} isLoading={isLoading} />
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-[425px]">
+        <SheetContent className="sm:max-w-[520px] overflow-y-auto">
           <SheetHeader className="mb-6">
             <SheetTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</SheetTitle>
           </SheetHeader>
