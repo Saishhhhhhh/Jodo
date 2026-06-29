@@ -145,3 +145,7 @@ export const storeApi = {
   get: () => apiClient.get('/admin/store'),
   update: (data: Record<string, unknown>) => apiClient.put('/admin/store', data),
 };
+
+export const auditLogsApi = {
+  list: () => apiClient.get('/admin/audit-logs'),
+};

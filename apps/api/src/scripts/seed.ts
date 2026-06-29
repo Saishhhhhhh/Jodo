@@ -19,6 +19,7 @@ import { Customer } from '../models/Customer';
 import { InventoryItem } from '../models/InventoryItem';
 import { Discount } from '../models/Discount';
 import { AppPlugin } from '../models/AppPlugin';
+import { AuditLog } from '../models/AuditLog';
 import { PERMISSIONS, SYSTEM_ROLES } from '@jodo/shared';
 
 const SEED_EMAIL = process.env.ADMIN_SEED_EMAIL || 'admin@jodo.dev';
@@ -200,6 +201,57 @@ async function seedDummyData(tenantId: any, storeId: any) {
     { tenantId: tenantId, storeId: storeId, name: 'Advanced SEO', developer: 'SEO Pro', version: '1.0.0', status: 'disabled', description: 'Automated SEO tag generation.' },
   ]);
   console.log(`✅ ${apps.length} Apps seeded.\n`);
+
+  // Seed AuditLogs
+  const adminUser = await User.findOne({ email: SEED_EMAIL });
+  if (adminUser) {
+    await AuditLog.deleteMany({});
+    await AuditLog.insertMany([
+      {
+        tenantId,
+        storeId,
+        actorUserId: adminUser._id,
+        actorType: 'user',
+        action: 'settings.update',
+        resourceType: 'StoreSettings',
+        resourceId: storeId.toString(),
+        before: { name: 'My Old Store', defaultCurrency: 'USD' },
+        after: { name: 'Jodo Commerce', defaultCurrency: 'INR' },
+        ip: '127.0.0.1',
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+        createdAt: new Date(Date.now() - 3600000 * 2),
+      },
+      {
+        tenantId,
+        storeId,
+        actorUserId: adminUser._id,
+        actorType: 'user',
+        action: 'product.create',
+        resourceType: 'Product',
+        resourceId: 'prod-999',
+        before: {},
+        after: { title: 'Premium Cotton T-Shirt', price: 29.99, sku: 'TSH-001' },
+        ip: '127.0.0.1',
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+        createdAt: new Date(Date.now() - 3600000 * 24),
+      },
+      {
+        tenantId,
+        storeId,
+        actorUserId: adminUser._id,
+        actorType: 'user',
+        action: 'auth.login',
+        resourceType: 'Session',
+        resourceId: 'session-1234',
+        before: {},
+        after: { email: SEED_EMAIL, device: 'MacBook Pro' },
+        ip: '127.0.0.1',
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+        createdAt: new Date(Date.now() - 3600000 * 48),
+      },
+    ]);
+    console.log('✅ Audit Logs seeded.\n');
+  }
 }
 
 seed().catch((err) => {
