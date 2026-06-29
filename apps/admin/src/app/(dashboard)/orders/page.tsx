@@ -36,6 +36,7 @@ type Order = {
   fulfillments: any[];
   items: any[];
   createdAt: string;
+  status?: string;
 };
 
 export default function OrdersPage() {
@@ -83,6 +84,10 @@ export default function OrdersPage() {
       header: 'Payment',
       cell: ({ row }) => {
         const status = row.getValue('paymentStatus') as string;
+        const orderStatus = row.original.status as string;
+        if (orderStatus === 'cancelled') {
+          return <Badge variant="destructive">Cancelled</Badge>;
+        }
         return (
           <Badge
             variant={status === 'paid' ? 'default' : status === 'refunded' ? 'destructive' : 'secondary'}
@@ -97,6 +102,10 @@ export default function OrdersPage() {
       header: 'Fulfillment',
       cell: ({ row }) => {
         const status = row.getValue('fulfillmentStatus') as string;
+        const orderStatus = row.original.status as string;
+        if (orderStatus === 'cancelled') {
+          return <span className="text-muted-foreground">—</span>;
+        }
         return (
           <Badge
             variant={status === 'fulfilled' ? 'default' : 'secondary'}
@@ -159,7 +168,7 @@ export default function OrdersPage() {
                   <Edit className="mr-2 h-4 w-4" /> View Details
                 </DropdownMenuItem>
                 
-                {order.paymentStatus !== 'paid' && (
+                {order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
                   <DropdownMenuItem 
                     onClick={() => updateStatusMutation.mutate({ id: order._id, paymentStatus: 'paid' })}
                     disabled={updateStatusMutation.isPending}
@@ -168,7 +177,7 @@ export default function OrdersPage() {
                   </DropdownMenuItem>
                 )}
                 
-                {order.paymentStatus === 'paid' && (
+                {order.paymentStatus === 'paid' && order.status !== 'cancelled' && (
                   <DropdownMenuItem 
                     onClick={() => updateStatusMutation.mutate({ id: order._id, paymentStatus: 'refunded' })}
                     disabled={updateStatusMutation.isPending}
@@ -177,7 +186,7 @@ export default function OrdersPage() {
                   </DropdownMenuItem>
                 )}
 
-                {order.fulfillmentStatus !== 'fulfilled' && (
+                {order.fulfillmentStatus !== 'fulfilled' && order.status !== 'cancelled' && (
                   <DropdownMenuItem 
                     onClick={() => {
                       setSelectedOrder(order);
@@ -188,9 +197,29 @@ export default function OrdersPage() {
                   </DropdownMenuItem>
                 )}
 
-                {order.fulfillmentStatus === 'fulfilled' && (
+                {order.fulfillmentStatus === 'fulfilled' && order.status !== 'cancelled' && (
                   <DropdownMenuItem onClick={() => window.open(`/print-label/${order._id}`, '_blank')}>
                     <Printer className="mr-2 h-4 w-4" /> Print Shipping Label
+                  </DropdownMenuItem>
+                )}
+                
+                {order.status !== 'cancelled' && (
+                  <DropdownMenuItem 
+                    className="text-destructive hover:text-destructive focus:text-destructive"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to cancel this order?')) {
+                        // Assuming we have an updateStatusMutation but wait, updateStatusMutation only passes paymentStatus right now!
+                        // Let's use ordersApi directly here or update the mutation.
+                        ordersApi.update(order._id, { status: 'cancelled' })
+                          .then(() => {
+                            queryClient.invalidateQueries({ queryKey: ['orders'] });
+                            toast.success('Order cancelled successfully');
+                          })
+                          .catch(() => toast.error('Failed to cancel order'));
+                      }
+                    }}
+                  >
+                    <AlertCircle className="mr-2 h-4 w-4" /> Cancel Order
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

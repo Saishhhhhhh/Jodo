@@ -53,6 +53,12 @@ export default function OrderDetailsPage() {
     updateMutation.mutate({ paymentStatus: 'paid' });
   };
 
+  const handleCancelOrder = () => {
+    if (window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+      updateMutation.mutate({ status: 'cancelled' });
+    }
+  };
+
   const handleSaveNotes = () => {
     updateMutation.mutate({ notes: notesValue });
   };
@@ -72,6 +78,11 @@ export default function OrderDetailsPage() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">{order.orderNumber}</h1>
+              {order.status === 'cancelled' && (
+                <Badge variant="destructive" className="capitalize">
+                  Cancelled
+                </Badge>
+              )}
               <Badge variant={order.paymentStatus === 'paid' ? 'default' : 'secondary'} className="capitalize">
                 {order.paymentStatus}
               </Badge>
@@ -84,12 +95,19 @@ export default function OrderDetailsPage() {
             </p>
           </div>
         </div>
-        {order.fulfillmentStatus !== 'returned' && (
-          <Button variant="outline" size="sm" onClick={() => setIsReturnDialogOpen(true)} className="flex items-center gap-1.5 font-medium">
-            <RotateCcw className="h-4 w-4" />
-            Return Items
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {order.status !== 'cancelled' && (
+            <Button variant="outline" size="sm" onClick={handleCancelOrder} className="flex items-center gap-1.5 font-medium text-destructive hover:bg-destructive/10">
+              Cancel Order
+            </Button>
+          )}
+          {order.fulfillmentStatus !== 'returned' && order.status !== 'cancelled' && (
+            <Button variant="outline" size="sm" onClick={() => setIsReturnDialogOpen(true)} className="flex items-center gap-1.5 font-medium">
+              <RotateCcw className="h-4 w-4" />
+              Return Items
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

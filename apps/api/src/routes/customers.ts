@@ -71,7 +71,7 @@ router.post('/', async (req, res, next) => {
  */
 router.put('/:id', async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phone, status } = req.body;
+    const { firstName, lastName, email, phone, status, loyaltyPoints, walletBalance } = req.body;
 
     const customer = await Customer.findOne({
       _id: req.params.id,
@@ -100,6 +100,8 @@ router.put('/:id', async (req, res, next) => {
     if (lastName) customer.lastName = lastName;
     if (phone !== undefined) customer.phone = phone;
     if (status) customer.status = status;
+    if (loyaltyPoints !== undefined) customer.loyaltyPoints = loyaltyPoints;
+    if (walletBalance !== undefined) customer.walletBalance = walletBalance;
 
     await customer.save();
     sendSuccess(res, customer, 'Customer updated successfully');

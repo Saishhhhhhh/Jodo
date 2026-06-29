@@ -9,6 +9,8 @@ export interface ICustomer extends Document {
   phone?: string;
   ordersCount: number;
   totalSpent: number;
+  loyaltyPoints: number;
+  walletBalance: number;
   status: 'active' | 'inactive';
   tags?: string[];
   createdAt: Date;
@@ -25,6 +27,8 @@ const customerSchema = new Schema<ICustomer>(
     phone: { type: String },
     ordersCount: { type: Number, default: 0 },
     totalSpent: { type: Number, default: 0 },
+    loyaltyPoints: { type: Number, default: 0 },
+    walletBalance: { type: Number, default: 0 },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     tags: { type: [String], default: [] },
   },

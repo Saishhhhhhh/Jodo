@@ -40,8 +40,8 @@ const defaultValues: Partial<StoreSettingsFormValues> = {
   city: 'San Francisco',
   state: 'CA',
   zip: '94105',
-  country: 'US',
-  currency: 'USD',
+  country: 'United States',
+  currency: 'INR',
   timezone: 'America/Los_Angeles',
 };
 
@@ -389,11 +389,11 @@ export default function SettingsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="USD">USD ($)</SelectItem>
-                              <SelectItem value="CAD">CAD ($)</SelectItem>
+                              <SelectItem value="INR">INR (₹)</SelectItem>
+                              <SelectItem value="USD">USD</SelectItem>
+                              <SelectItem value="CAD">CAD</SelectItem>
                               <SelectItem value="EUR">EUR (€)</SelectItem>
                               <SelectItem value="GBP">GBP (£)</SelectItem>
-                              <SelectItem value="INR">INR (₹)</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
