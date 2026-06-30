@@ -7,7 +7,7 @@ import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Pencil, Trash, Package } from 'lucide-react';
+import { Plus, MoreHorizontal, Pencil, Trash, Package, Download } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +33,11 @@ type Product = {
   category: string;
   imageUrl?: string;
   vendor?: string;
+  material?: string;
+  dimensions?: string;
+  weight?: number;
+  assemblyRequired?: boolean;
+  galleryImages?: string[];
 };
 
 export default function ProductsPage() {
@@ -99,6 +104,52 @@ export default function ProductsPage() {
     } else {
       createMutation.mutate(formData);
     }
+  };
+
+  const handleExportCSV = () => {
+    const productsToExport = data || [];
+    
+    // Define the headers including the new furniture fields
+    const headers = [
+      'Title', 'SKU', 'Price', 'Inventory', 'Status', 'Category', 'Vendor', 
+      'Material', 'Dimensions', 'Weight (kg)', 'Assembly Required',
+      'Main Image', 'Gallery Images'
+    ];
+    
+    // Map the products to an array of arrays
+    const csvRows = productsToExport.map((p: Product) => [
+      `"${p.title || ''}"`,
+      `"${p.sku || ''}"`,
+      p.price || 0,
+      p.inventoryQuantity || 0,
+      `"${p.status || ''}"`,
+      `"${p.category || ''}"`,
+      `"${p.vendor || ''}"`,
+      `"${p.material || ''}"`,
+      `"${p.dimensions || ''}"`,
+      p.weight || 0,
+      p.assemblyRequired ? 'Yes' : 'No',
+      `"${p.imageUrl || ''}"`,
+      `"${(p.galleryImages || []).join(';')}"`
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...csvRows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'products_export.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Products exported to CSV');
   };
 
   const columns = useMemo<ColumnDef<Product>[]>(
@@ -220,9 +271,14 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Products</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage your catalog</p>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" /> Add Product
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       <DataTable columns={columns} data={data || []} isLoading={isLoading} />

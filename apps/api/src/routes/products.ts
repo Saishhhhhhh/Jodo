@@ -23,7 +23,7 @@ router.get('/', async (req, res, next) => {
 // CREATE
 router.post('/', async (req, res, next) => {
   try {
-    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, barcode, status } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, barcode, status, material, dimensions, weight, assemblyRequired } = req.body;
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -40,7 +40,12 @@ router.post('/', async (req, res, next) => {
       category,
       vendor,
       imageUrl,
+      galleryImages: galleryImages || [],
       status,
+      material,
+      dimensions,
+      weight: weight ? parseFloat(weight) : undefined,
+      assemblyRequired: assemblyRequired === true || assemblyRequired === 'true',
     });
 
     sendSuccess(res, newProduct, 'Product created successfully', 201);
@@ -53,7 +58,7 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, barcode, status } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, barcode, status, material, dimensions, weight, assemblyRequired } = req.body;
 
     const product = await Product.findOneAndUpdate(
       { _id: id, tenantId: req.auth!.tenantId, storeId: req.auth!.storeId },
@@ -67,7 +72,12 @@ router.put('/:id', async (req, res, next) => {
         category,
         vendor,
         imageUrl,
+        galleryImages: galleryImages || [],
         status,
+        material,
+        dimensions,
+        weight: weight ? parseFloat(weight) : undefined,
+        assemblyRequired: assemblyRequired === true || assemblyRequired === 'true',
       },
       { new: true }
     );

@@ -15,6 +15,7 @@ import {
   FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { UploadCloud, X, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 
 const formSchema = z.object({
@@ -27,20 +28,28 @@ const formSchema = z.object({
   category: z.string().min(2, { message: 'Category is required.' }),
   vendor: z.string().optional().default(''),
   imageUrl: z.string().optional().default(''),
+  galleryImages: z.array(z.string()).default([]),
   status: z.enum(['draft', 'active', 'archived']),
+  material: z.string().optional().default(''),
+  dimensions: z.string().optional().default(''),
+  weight: z.coerce.number().min(0).optional(),
+  assemblyRequired: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface ProductFormProps {
   initialData?: any;
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: any) => void;
   isLoading?: boolean;
 }
 
 export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [showGalleryUrlInput, setShowGalleryUrlInput] = useState(false);
+  const [galleryUrlValue, setGalleryUrlValue] = useState('');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -54,7 +63,12 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       category: initialData?.category || '',
       vendor: initialData?.vendor || '',
       imageUrl: initialData?.imageUrl || '',
+      galleryImages: initialData?.galleryImages || [],
       status: initialData?.status || 'active',
+      material: initialData?.material || '',
+      dimensions: initialData?.dimensions || '',
+      weight: initialData?.weight ?? 0,
+      assemblyRequired: initialData?.assemblyRequired ?? false,
     },
   });
 
@@ -77,9 +91,60 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
     fileInputRef.current?.click();
   };
 
+  const handleGalleryFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    
+    const currentImages = field.value || [];
+    let processedCount = 0;
+    const newImages: string[] = [];
+
+    Array.from(files).forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`File ${file.name} exceeds 5MB limit.`);
+        processedCount++;
+        if (processedCount === files.length) {
+          field.onChange([...currentImages, ...newImages]);
+        }
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        newImages.push(reader.result as string);
+        processedCount++;
+        if (processedCount === files.length) {
+          field.onChange([...currentImages, ...newImages]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const triggerGalleryFileSelect = () => {
+    galleryFileInputRef.current?.click();
+  };
+
+  const removeGalleryImage = (index: number, field: any) => {
+    const newImages = [...field.value];
+    newImages.splice(index, 1);
+    field.onChange(newImages);
+  };
+  
+  const addGalleryUrl = (field: any) => {
+    if (galleryUrlValue.trim()) {
+      field.onChange([...(field.value || []), galleryUrlValue.trim()]);
+      setGalleryUrlValue('');
+      setShowGalleryUrlInput(false);
+    }
+  };
+
+  const handleFormSubmit = (values: FormValues) => {
+    onSubmit(values);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pr-1">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pr-1">
         <FormField
           control={form.control}
           name="title"
@@ -305,6 +370,170 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
               </FormItem>
             )}
           />
+
+        </div>
+
+        <FormField
+          control={form.control}
+          name="galleryImages"
+          render={({ field }) => (
+            <FormItem className="space-y-2 mt-4">
+              <FormLabel>Gallery Images</FormLabel>
+              <FormControl>
+                <div className="space-y-4">
+                  <input
+                    type="file"
+                    multiple
+                    ref={galleryFileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => handleGalleryFileChange(e, field)}
+                  />
+
+                  {field.value && field.value.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {field.value.map((url: string, idx: number) => (
+                        <div key={idx} className="relative rounded-lg border bg-muted/30 p-2 flex items-center justify-center h-[120px] group overflow-hidden">
+                          <img
+                            src={url}
+                            alt={`Gallery ${idx + 1}`}
+                            className="max-h-[110px] max-w-full rounded-md object-contain"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute right-1 top-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeGalleryImage(idx, field)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div
+                      onClick={triggerGalleryFileSelect}
+                      className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-muted/30 hover:border-primary/45 transition-colors flex-1"
+                    >
+                      <UploadCloud className="h-5 w-5 text-muted-foreground" />
+                      <p className="text-xs font-semibold text-muted-foreground mt-1">Upload Images</p>
+                    </div>
+
+                    {!showGalleryUrlInput ? (
+                      <div
+                        onClick={() => setShowGalleryUrlInput(true)}
+                        className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-muted/30 hover:border-primary/45 transition-colors flex-1"
+                      >
+                        <LinkIcon className="h-5 w-5 text-muted-foreground" />
+                        <p className="text-xs font-semibold text-muted-foreground mt-1">Add from URL</p>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed rounded-lg p-2 flex flex-col items-center justify-center gap-2 flex-1">
+                        <Input
+                          placeholder="Image URL"
+                          className="h-8 text-xs"
+                          value={galleryUrlValue}
+                          onChange={(e) => setGalleryUrlValue(e.target.value)}
+                        />
+                        <div className="flex gap-2 w-full">
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="h-7 text-xs flex-1"
+                            onClick={() => addGalleryUrl(field)}
+                          >
+                            Add
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs flex-1"
+                            onClick={() => {
+                              setShowGalleryUrlInput(false);
+                              setGalleryUrlValue('');
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="pt-2 pb-2">
+          <h3 className="text-sm font-medium border-b pb-2 mb-4">Furniture Specifications</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="material"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Material</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Solid Oak Wood" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dimensions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dimensions</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. 72 x 36 x 30 inches" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <FormField
+              control={form.control}
+              name="weight"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Weight (kg)</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.1" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="assemblyRequired"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-8 h-[36px]">
+                  <div className="space-y-0.5">
+                    <FormLabel>Assembly Required</FormLabel>
+                  </div>
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-primary"
+                      checked={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         <div className="pt-4 flex justify-end">

@@ -14,6 +14,11 @@ export interface IProduct extends Document {
   category: string;
   vendor: string;
   imageUrl?: string;
+  galleryImages?: string[];
+  material?: string;
+  dimensions?: string;
+  weight?: number;
+  assemblyRequired?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +38,11 @@ const productSchema = new Schema<IProduct>(
     category: { type: String, default: 'Uncategorized' },
     vendor: { type: String, default: '' },
     imageUrl: { type: String },
+    galleryImages: [{ type: String }],
+    material: { type: String },
+    dimensions: { type: String },
+    weight: { type: Number },
+    assemblyRequired: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -93,7 +93,10 @@ export function CollectionSheet({
           description: collection.description || '',
           imageUrl: collection.imageUrl || '',
           type: collection.type || 'manual',
-          products: collection.products?.map((p: any) => typeof p === 'string' ? p : p._id) || [],
+          products: collection.products?.map((p: any) => {
+            const id = typeof p === 'string' ? p : (p?._id || p?.id);
+            return id ? String(id) : '';
+          }).filter(Boolean) || [],
           status: collection.status || 'active',
         });
       } else {
@@ -362,14 +365,15 @@ export function CollectionSheet({
               {filteredProducts.length > 0 ? (
                 <div className="border rounded-md divide-y max-h-[180px] overflow-y-auto bg-card pr-1">
                   {filteredProducts.map((prod: any) => {
-                    const isChecked = selectedProducts.includes(prod._id);
+                    const prodId = String(prod._id || prod.id);
+                    const isChecked = selectedProducts.includes(prodId);
                     return (
-                      <div key={prod._id} className="flex items-center justify-between p-2.5 hover:bg-muted/30">
+                      <div key={prodId} className="flex items-center justify-between p-2.5 hover:bg-muted/30">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Checkbox
-                            id={`prod-${prod._id}`}
+                            id={`prod-${prodId}`}
                             checked={isChecked}
-                            onCheckedChange={(checked) => handleProductToggle(prod._id, !!checked)}
+                            onCheckedChange={(checked) => handleProductToggle(prodId, !!checked)}
                           />
                           <div className="h-7 w-7 rounded border bg-muted flex items-center justify-center overflow-hidden shrink-0">
                             {prod.imageUrl ? (
