@@ -193,3 +193,10 @@ export const customerSegmentsApi = {
   create: (data: any) => apiClient.post('/admin/customers/segments', data),
   delete: (id: string) => apiClient.delete(`/admin/customers/segments/${id}`),
 };
+
+export const campaignsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/campaigns', { params }),
+  create: (data: any) => apiClient.post('/admin/campaigns', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/campaigns/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/campaigns/${id}`),
+};
