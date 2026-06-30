@@ -81,6 +81,19 @@ export default function MarketingEmailPage() {
     setCampaigns(prev => prev.filter(c => c.id !== id));
   };
 
+  const updateStatus = (id: number, newStatus: string) => {
+    setCampaigns(prev => prev.map(c => {
+      if (c.id === id) {
+        return { 
+          ...c, 
+          status: newStatus,
+          sentDate: newStatus === 'Sent' ? 'Just now' : newStatus === 'Scheduled' ? 'Tomorrow' : null
+        };
+      }
+      return c;
+    }));
+  };
+
   return (
     <div className="flex-1 space-y-8 p-6 md:p-8 pt-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -261,6 +274,18 @@ export default function MarketingEmailPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>Edit campaign</DropdownMenuItem>
+                            {campaign.status === 'Draft' && (
+                              <DropdownMenuItem onClick={() => updateStatus(campaign.id, 'Scheduled')}>
+                                <CalendarClock className="h-4 w-4 mr-2" />
+                                Schedule
+                              </DropdownMenuItem>
+                            )}
+                            {(campaign.status === 'Draft' || campaign.status === 'Scheduled') && (
+                              <DropdownMenuItem onClick={() => updateStatus(campaign.id, 'Sent')}>
+                                <Send className="h-4 w-4 mr-2" />
+                                Send now
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => duplicateCampaign(campaign)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Duplicate
