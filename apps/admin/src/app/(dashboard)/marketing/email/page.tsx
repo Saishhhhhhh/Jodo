@@ -25,6 +25,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 // Initial Mock Data
 const initialCampaigns = [
@@ -47,6 +49,18 @@ export default function MarketingEmailPage() {
   const [campaigns, setCampaigns] = React.useState(initialCampaigns);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('All');
+  
+  const [editingCampaign, setEditingCampaign] = React.useState<{id: number, name: string} | null>(null);
+  const [newName, setNewName] = React.useState('');
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+  const [newCampaignForm, setNewCampaignForm] = React.useState({ name: '', subject: '' });
+
+  const handleRename = () => {
+    if (!editingCampaign || !newName.trim()) return;
+    setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? { ...c, name: newName.trim() } : c));
+    setEditingCampaign(null);
+  };
 
   const filteredCampaigns = React.useMemo(() => {
     let result = campaigns;
@@ -58,6 +72,23 @@ export default function MarketingEmailPage() {
     }
     return result;
   }, [campaigns, searchQuery, activeTab]);
+
+  const handleCreateSubmit = () => {
+    if (!newCampaignForm.name.trim()) return;
+    const newId = campaigns.length > 0 ? Math.max(...campaigns.map(c => c.id)) + 1 : 1;
+    const newCampaign = {
+      id: newId,
+      name: newCampaignForm.name.trim(),
+      status: 'Draft',
+      sentDate: null,
+      openRate: null,
+      clickRate: null,
+      sales: 0
+    };
+    setCampaigns([newCampaign, ...campaigns]);
+    setIsCreateModalOpen(false);
+    setNewCampaignForm({ name: '', subject: '' });
+  };
 
   const createCampaign = (name: string = 'New Email Campaign') => {
     const newId = campaigns.length > 0 ? Math.max(...campaigns.map(c => c.id)) + 1 : 1;
@@ -103,7 +134,7 @@ export default function MarketingEmailPage() {
           <p className="text-muted-foreground mt-1">Design, send, and track beautiful email campaigns.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button onClick={() => createCampaign()}>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Create campaign
           </Button>
@@ -273,7 +304,10 @@ export default function MarketingEmailPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit campaign</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setEditingCampaign({ id: campaign.id, name: campaign.name }); setNewName(campaign.name); }}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Rename campaign
+                            </DropdownMenuItem>
                             {campaign.status === 'Draft' && (
                               <DropdownMenuItem onClick={() => updateStatus(campaign.id, 'Scheduled')}>
                                 <CalendarClock className="h-4 w-4 mr-2" />
@@ -336,6 +370,65 @@ export default function MarketingEmailPage() {
           </div>
         </div>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={!!editingCampaign} onOpenChange={(open) => !open && setEditingCampaign(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename campaign</DialogTitle>
+            <DialogDescription>Enter a new name for your email campaign.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="mt-2"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingCampaign(null)}>Cancel</Button>
+            <Button onClick={handleRename}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Campaign Dialog */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create new campaign</DialogTitle>
+            <DialogDescription>Setup your new email marketing campaign.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="campaign-name">Campaign Name</Label>
+              <Input
+                id="campaign-name"
+                placeholder="e.g. Summer Sale 2026"
+                value={newCampaignForm.name}
+                onChange={(e) => setNewCampaignForm(prev => ({ ...prev, name: e.target.value }))}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="campaign-subject">Email Subject Line (Optional)</Label>
+              <Input
+                id="campaign-subject"
+                placeholder="e.g. 50% Off Summer Essentials!"
+                value={newCampaignForm.subject}
+                onChange={(e) => setNewCampaignForm(prev => ({ ...prev, subject: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateSubmit}>Create Campaign</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

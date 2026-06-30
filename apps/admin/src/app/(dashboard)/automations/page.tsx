@@ -25,6 +25,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Pencil } from 'lucide-react';
 
 // Initial Mock Data
 const initialWorkflows = [
@@ -56,6 +59,15 @@ export default function AutomationsPage() {
   const [workflows, setWorkflows] = React.useState(initialWorkflows);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('all');
+
+  const [editingWorkflow, setEditingWorkflow] = React.useState<{id: number, name: string} | null>(null);
+  const [newName, setNewName] = React.useState('');
+
+  const handleRename = () => {
+    if (!editingWorkflow || !newName.trim()) return;
+    setWorkflows(prev => prev.map(w => w.id === editingWorkflow.id ? { ...w, name: newName.trim() } : w));
+    setEditingWorkflow(null);
+  };
 
   const filteredWorkflows = React.useMemo(() => {
     let result = workflows;
@@ -215,7 +227,10 @@ export default function AutomationsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit workflow</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setEditingWorkflow({ id: workflow.id, name: workflow.name }); setNewName(workflow.name); }}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Rename workflow
+                            </DropdownMenuItem>
                             <DropdownMenuItem>View runs</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             {workflow.status === 'Active' ? (
@@ -299,6 +314,30 @@ export default function AutomationsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={!!editingWorkflow} onOpenChange={(open) => !open && setEditingWorkflow(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename workflow</DialogTitle>
+            <DialogDescription>Enter a new name for your automation workflow.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="mt-2"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingWorkflow(null)}>Cancel</Button>
+            <Button onClick={handleRename}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

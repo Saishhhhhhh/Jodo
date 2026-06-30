@@ -16,9 +16,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
-// Mock Data
-const currentTheme = {
+// Initial Mock Data
+const initialCurrentTheme = {
   name: 'Dawn',
   version: '13.0.1',
   status: 'Live',
@@ -26,13 +29,69 @@ const currentTheme = {
   thumbnail: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop'
 };
 
-const themeLibrary = [
+const initialThemeLibrary = [
   { id: 1, name: 'Sense', version: '11.0.0', lastSaved: 'Saved 2 days ago', active: false },
   { id: 2, name: 'Craft', version: '10.2.1', lastSaved: 'Saved last week', active: false },
   { id: 3, name: 'Dawn Backup', version: '12.0.0', lastSaved: 'Saved a month ago', active: false },
 ];
 
 export default function ChannelsOnlinePage() {
+  const [activeTheme, setActiveTheme] = React.useState(initialCurrentTheme);
+  const [library, setLibrary] = React.useState(initialThemeLibrary);
+  const [editingTheme, setEditingTheme] = React.useState<{id: number | 'active', name: string} | null>(null);
+  const [newName, setNewName] = React.useState('');
+
+  const openRenameDialog = (id: number | 'active', currentName: string) => {
+    setEditingTheme({ id, name: currentName });
+    setNewName(currentName);
+  };
+
+  const handleRename = () => {
+    if (!editingTheme || !newName.trim()) return;
+    
+    if (editingTheme.id === 'active') {
+      setActiveTheme(prev => ({ ...prev, name: newName.trim() }));
+    } else {
+      setLibrary(prev => prev.map(t => t.id === editingTheme.id ? { ...t, name: newName.trim() } : t));
+    }
+    setEditingTheme(null);
+  };
+
+  const addTheme = () => {
+    setLibrary(prev => [{ id: Date.now(), name: 'New Custom Theme', version: '1.0.0', lastSaved: 'Just now', active: false }, ...prev]);
+  };
+
+  const publishTheme = (id: number) => {
+    const themeToPublish = library.find(t => t.id === id);
+    if (!themeToPublish) return;
+    
+    const oldActiveTheme = {
+       id: Date.now(),
+       name: activeTheme.name,
+       version: activeTheme.version,
+       lastSaved: 'Just now',
+       active: false
+    };
+
+    setActiveTheme({
+      name: themeToPublish.name,
+      version: themeToPublish.version,
+      status: 'Live',
+      lastSaved: 'Just now',
+      thumbnail: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop' // keeping placeholder thumbnail
+    });
+
+    setLibrary(prev => [oldActiveTheme, ...prev.filter(t => t.id !== id)]);
+  };
+
+  const duplicateTheme = (theme: any) => {
+    setLibrary(prev => [{ ...theme, id: Date.now(), name: `${theme.name} (Copy)` }, ...prev]);
+  };
+
+  const removeTheme = (id: number) => {
+    setLibrary(prev => prev.filter(t => t.id !== id));
+  };
+
   return (
     <div className="flex-1 space-y-8 p-6 md:p-8 pt-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -62,7 +121,7 @@ export default function ChannelsOnlinePage() {
             <Card className="overflow-hidden border-2 border-primary/20">
               <div
                 className="h-[300px] w-full bg-muted bg-cover bg-center border-b"
-                style={{ backgroundImage: `url(${currentTheme.thumbnail})` }}
+                style={{ backgroundImage: `url(${activeTheme.thumbnail})` }}
               >
                 <div className="w-full h-full bg-black/10 flex items-center justify-center backdrop-blur-[2px] transition-all hover:backdrop-blur-none" />
               </div>
@@ -70,13 +129,13 @@ export default function ChannelsOnlinePage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h4 className="text-lg font-bold">{currentTheme.name}</h4>
+                      <h4 className="text-lg font-bold">{activeTheme.name}</h4>
                       <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20">
-                        {currentTheme.status}
+                        {activeTheme.status}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Version {currentTheme.version} • {currentTheme.lastSaved}
+                      Version {activeTheme.version} • {activeTheme.lastSaved}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -88,7 +147,7 @@ export default function ChannelsOnlinePage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem>Preview</DropdownMenuItem>
-                        <DropdownMenuItem>Rename</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openRenameDialog('active', activeTheme.name)}>Rename</DropdownMenuItem>
                         <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         <DropdownMenuItem>Download theme file</DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -107,10 +166,15 @@ export default function ChannelsOnlinePage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold tracking-tight">Theme Library</h3>
-              <Button variant="outline" size="sm">Add theme</Button>
+              <Button variant="outline" size="sm" onClick={() => addTheme()}>Add theme</Button>
             </div>
             <div className="grid gap-4">
-              {themeLibrary.map((theme) => (
+              {library.length === 0 && (
+                <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
+                  No themes in library. Click "Add theme" to create one.
+                </div>
+              )}
+              {library.map((theme) => (
                 <Card key={theme.id}>
                   <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center space-x-4">
@@ -133,14 +197,14 @@ export default function ChannelsOnlinePage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuItem>Preview</DropdownMenuItem>
-                          <DropdownMenuItem>Rename</DropdownMenuItem>
-                          <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openRenameDialog(theme.id, theme.name)}>Rename</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => duplicateTheme(theme)}>Duplicate</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-rose-500">Remove</DropdownMenuItem>
+                          <DropdownMenuItem className="text-rose-500" onClick={() => removeTheme(theme.id)}>Remove</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <Button variant="outline">Customize</Button>
-                      <Button variant="secondary">Publish</Button>
+                      <Button variant="secondary" onClick={() => publishTheme(theme.id)}>Publish</Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -211,6 +275,30 @@ export default function ChannelsOnlinePage() {
           </Card>
         </div>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={!!editingTheme} onOpenChange={(open) => !open && setEditingTheme(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename theme</DialogTitle>
+            <DialogDescription>Enter a new name for this theme.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="mt-2"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTheme(null)}>Cancel</Button>
+            <Button onClick={handleRename}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
