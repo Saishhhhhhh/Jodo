@@ -32,49 +32,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 
-// Mock Data
-const kpiData = {
-  sold: 4850,
-  margin: 62.5,
-  deadStock: 14500,
-  returns: 1.8
-};
-
-// Volume vs Margin (Top Products)
-const topPerformers = [
-  { name: 'Ergo Chair', volume: 850, margin: 68 },
-  { name: 'Pro Keyboard', volume: 620, margin: 45 },
-  { name: 'Desk Mat', volume: 1200, margin: 75 },
-  { name: 'Monitor Arm', volume: 430, margin: 55 },
-  { name: 'Webcam', volume: 590, margin: 40 },
-];
-
-// Variant Performance
-const variantData = [
-  { name: 'Black / Medium', value: 45 },
-  { name: 'Space Gray / Large', value: 30 },
-  { name: 'White / Small', value: 15 },
-  { name: 'Silver / One Size', value: 10 },
-];
-const COLORS = ['hsl(var(--primary))', '#8b5cf6', '#10b981', '#f59e0b'];
-
-// Inventory Health (Stock vs Velocity)
-const inventoryHealth = [
-  { name: 'T-Shirt', stock: 120, velocity: 45 },
-  { name: 'Hoodie', stock: 15, velocity: 30 },
-  { name: 'Cap', stock: 45, velocity: 15 },
-  { name: 'Socks', stock: 200, velocity: 150 },
-  { name: 'Jacket', stock: 5, velocity: 2 },
-];
-
-const profitMatrix = [
-  { id: 1, name: 'Premium Cotton T-Shirt', category: 'Apparel', cogs: 450, price: 1200, margin: 62.5, stock: 450 },
-  { id: 2, name: 'Wireless Headphones', category: 'Electronics', cogs: 3500, price: 8900, margin: 60.6, stock: 45 },
-  { id: 3, name: 'Ergonomic Office Chair', category: 'Furniture', cogs: 4200, price: 12500, margin: 66.4, stock: 12 },
-  { id: 4, name: 'Smart Fitness Watch', category: 'Electronics', cogs: 1800, price: 5400, margin: 66.6, stock: 89 },
-  { id: 5, name: 'Organic Coffee Beans', category: 'Food', cogs: 250, price: 800, margin: 68.7, stock: 210 },
-];
-
 const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
 const formatNumber = (value: number) => value.toLocaleString();
 
@@ -98,6 +55,8 @@ const tooltipItemStyle = {
   fontWeight: 600,
 };
 
+const COLORS = ['hsl(var(--primary))', '#8b5cf6', '#10b981', '#f59e0b'];
+
 // Custom Pie Chart Label
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -113,7 +72,47 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 };
 
 export default function AnalyticsProductsPage() {
-  const [dateRange, setDateRange] = useState('30d');
+  const [dateRange, setDateRange] = React.useState('30d');
+
+  const { kpiData, topPerformers, variantData, inventoryHealth, profitMatrix } = React.useMemo(() => {
+    const m = dateRange === '7d' ? 0.25 : dateRange === '90d' ? 3 : dateRange === '12m' ? 12 : dateRange === 'ytd' ? 6 : 1;
+    
+    return {
+      kpiData: {
+        sold: Math.floor(4850 * m),
+        margin: dateRange === '7d' ? 61.2 : dateRange === '90d' ? 63.8 : dateRange === '12m' ? 64.1 : 62.5,
+        deadStock: Math.floor(14500 * (1 / (m > 0 ? Math.sqrt(m) : 1))),
+        returns: dateRange === '7d' ? 1.2 : dateRange === '90d' ? 2.1 : dateRange === '12m' ? 2.4 : 1.8
+      },
+      topPerformers: [
+        { name: 'Ergo Chair', volume: Math.floor(850 * m), margin: 68 },
+        { name: 'Pro Keyboard', volume: Math.floor(620 * m), margin: 45 },
+        { name: 'Desk Mat', volume: Math.floor(1200 * m), margin: 75 },
+        { name: 'Monitor Arm', volume: Math.floor(430 * m), margin: 55 },
+        { name: 'Webcam', volume: Math.floor(590 * m), margin: 40 },
+      ],
+      variantData: [
+        { name: 'Black / Medium', value: dateRange === '7d' ? 50 : 45 },
+        { name: 'Space Gray / Large', value: 30 },
+        { name: 'White / Small', value: dateRange === '7d' ? 10 : 15 },
+        { name: 'Silver / One Size', value: 10 },
+      ],
+      inventoryHealth: [
+        { name: 'T-Shirt', stock: 120, velocity: Math.floor(45 * m) },
+        { name: 'Hoodie', stock: 15, velocity: Math.floor(30 * m) },
+        { name: 'Cap', stock: 45, velocity: Math.floor(15 * m) },
+        { name: 'Socks', stock: 200, velocity: Math.floor(150 * m) },
+        { name: 'Jacket', stock: 5, velocity: Math.floor(2 * m) },
+      ],
+      profitMatrix: [
+        { id: 1, name: 'Premium Cotton T-Shirt', category: 'Apparel', cogs: 450, price: 1200, margin: 62.5, stock: Math.floor(450 - (20 * m)) },
+        { id: 2, name: 'Wireless Headphones', category: 'Electronics', cogs: 3500, price: 8900, margin: 60.6, stock: Math.floor(45 - (2 * m)) },
+        { id: 3, name: 'Ergonomic Office Chair', category: 'Furniture', cogs: 4200, price: 12500, margin: 66.4, stock: Math.max(0, Math.floor(12 - m)) },
+        { id: 4, name: 'Smart Fitness Watch', category: 'Electronics', cogs: 1800, price: 5400, margin: 66.6, stock: Math.max(0, Math.floor(89 - (5 * m))) },
+        { id: 5, name: 'Organic Coffee Beans', category: 'Food', cogs: 250, price: 800, margin: 68.7, stock: Math.floor(210 - (10 * m)) },
+      ]
+    };
+  }, [dateRange]);
 
   return (
     <div className="flex-1 space-y-6 p-6 md:p-8 pt-6">
@@ -278,40 +277,48 @@ export default function AnalyticsProductsPage() {
             <CardDescription>Sales distribution across top variant attributes.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px] w-full mt-2 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Tooltip 
-                    contentStyle={tooltipStyle}
-                    itemStyle={tooltipItemStyle}
-                    formatter={(value: number) => [`${value}%`, 'Share']}
-                  />
-                  <Pie
-                    data={variantData}
-                    cx="50%"
-                    cy="40%"
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                    outerRadius={90}
-                    fill="#8884d8"
-                    dataKey="value"
-                    stroke="hsl(var(--background))"
-                    strokeWidth={2}
-                  >
-                    {variantData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Legend 
-                    layout="vertical"
-                    verticalAlign="bottom" 
-                    align="center"
-                    iconType="circle"
-                    formatter={(value) => <span className="text-foreground font-medium">{value}</span>}
-                    wrapperStyle={{ fontSize: '13px', paddingBottom: '10px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className="flex flex-col h-[350px] w-full items-center justify-center">
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip 
+                      contentStyle={tooltipStyle}
+                      itemStyle={tooltipItemStyle}
+                      formatter={(value: number) => [`${value}%`, 'Share']}
+                    />
+                    <Pie
+                      data={variantData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      outerRadius={95}
+                      fill="#8884d8"
+                      dataKey="value"
+                      stroke="hsl(var(--background))"
+                      strokeWidth={2}
+                    >
+                      {variantData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full mt-6">
+                <ul className="flex flex-col space-y-2.5 text-sm w-[80%] mx-auto">
+                  {variantData.map((entry, index) => (
+                    <li key={`item-${index}`} className="flex items-center">
+                      <span 
+                        className="w-3 h-3 rounded-full mr-3 shrink-0" 
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }} 
+                      />
+                      <span className="text-muted-foreground font-medium">{entry.name}</span>
+                      <span className="ml-auto font-semibold text-foreground">{entry.value}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </CardContent>
         </Card>

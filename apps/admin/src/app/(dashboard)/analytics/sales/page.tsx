@@ -32,31 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-// Mock Data
-const salesData = [
-  { date: 'Jun 1', sales: 4000, orders: 24 },
-  { date: 'Jun 5', sales: 3000, orders: 13 },
-  { date: 'Jun 10', sales: 5000, orders: 38 },
-  { date: 'Jun 15', sales: 2780, orders: 39 },
-  { date: 'Jun 20', sales: 6890, orders: 48 },
-  { date: 'Jun 25', sales: 4390, orders: 38 },
-  { date: 'Jun 30', sales: 8490, orders: 63 },
-];
 
-const channelData = [
-  { name: 'Online Store', value: 45000 },
-  { name: 'Shop App', value: 15000 },
-  { name: 'POS', value: 8000 },
-  { name: 'Social', value: 5000 },
-];
-
-const topProducts = [
-  { id: 1, name: 'Premium Cotton T-Shirt', variant: 'Black / M', sales: 12450, orders: 342 },
-  { id: 2, name: 'Wireless Headphones', variant: 'Silver', sales: 8930, orders: 124 },
-  { id: 3, name: 'Ergonomic Office Chair', variant: 'Charcoal', sales: 6500, orders: 45 },
-  { id: 4, name: 'Smart Fitness Watch', variant: 'Midnight', sales: 5400, orders: 89 },
-  { id: 5, name: 'Organic Coffee Beans', variant: '1kg / Whole', sales: 4200, orders: 210 },
-];
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
 const formatNumber = (value: number) => value.toLocaleString();
@@ -82,7 +58,60 @@ const tooltipItemStyle = {
 };
 
 export default function AnalyticsSalesPage() {
-  const [dateRange, setDateRange] = useState('30d');
+  const [dateRange, setDateRange] = React.useState('30d');
+
+  const { salesData, channelData, topProducts, kpiData } = React.useMemo(() => {
+    const m = dateRange === '7d' ? 0.25 : dateRange === '90d' ? 3 : dateRange === '12m' ? 12 : dateRange === 'ytd' ? 6 : 1;
+    return {
+      kpiData: {
+        sales: 45231.89 * m,
+        orders: Math.floor(2350 * m),
+        aov: dateRange === '7d' ? 82.10 : dateRange === '90d' ? 86.20 : 84.50,
+        conversion: dateRange === '7d' ? 3.1 : dateRange === '90d' ? 3.4 : 3.24
+      },
+      salesData: dateRange === '7d' ? [
+        { date: 'Mon', sales: 4000, orders: 24 },
+        { date: 'Tue', sales: 3000, orders: 13 },
+        { date: 'Wed', sales: 5000, orders: 38 },
+        { date: 'Thu', sales: 2780, orders: 39 },
+        { date: 'Fri', sales: 6890, orders: 48 },
+        { date: 'Sat', sales: 4390, orders: 38 },
+        { date: 'Sun', sales: 8490, orders: 63 },
+      ] : dateRange === '90d' ? [
+        { date: 'Apr', sales: 120000, orders: 1200 },
+        { date: 'May', sales: 180000, orders: 1450 },
+        { date: 'Jun', sales: 150000, orders: 1300 },
+      ] : dateRange === '12m' || dateRange === 'ytd' ? [
+        { date: 'Jan', sales: 110000, orders: 1100 },
+        { date: 'Feb', sales: 95000, orders: 950 },
+        { date: 'Mar', sales: 125000, orders: 1250 },
+        { date: 'Apr', sales: 140000, orders: 1400 },
+        { date: 'May', sales: 180000, orders: 1800 },
+        { date: 'Jun', sales: 160000, orders: 1600 },
+      ] : [
+        { date: 'Jun 1', sales: 12000, orders: 120 },
+        { date: 'Jun 5', sales: 18000, orders: 145 },
+        { date: 'Jun 10', sales: 15000, orders: 130 },
+        { date: 'Jun 15', sales: 22000, orders: 180 },
+        { date: 'Jun 20', sales: 31000, orders: 250 },
+        { date: 'Jun 25', sales: 28000, orders: 220 },
+        { date: 'Jun 30', sales: 42000, orders: 310 },
+      ],
+      channelData: [
+        { name: 'Online Store', value: Math.floor(45000 * m) },
+        { name: 'Shop App', value: Math.floor(15000 * m) },
+        { name: 'POS', value: Math.floor(8000 * m) },
+        { name: 'Social', value: Math.floor(5000 * m) },
+      ],
+      topProducts: [
+        { id: 1, name: 'Premium Cotton T-Shirt', variant: 'Black / M', sales: Math.floor(12450 * m), orders: Math.floor(342 * m) },
+        { id: 2, name: 'Wireless Headphones', variant: 'Silver', sales: Math.floor(8930 * m), orders: Math.floor(124 * m) },
+        { id: 3, name: 'Ergonomic Office Chair', variant: 'Charcoal', sales: Math.floor(6500 * m), orders: Math.floor(45 * m) },
+        { id: 4, name: 'Smart Fitness Watch', variant: 'Midnight', sales: Math.floor(5400 * m), orders: Math.floor(89 * m) },
+        { id: 5, name: 'Organic Coffee Beans', variant: '1kg / Whole', sales: Math.floor(4200 * m), orders: Math.floor(210 * m) },
+      ]
+    };
+  }, [dateRange]);
 
   return (
     <div className="flex-1 space-y-6 p-6 md:p-8 pt-6">
@@ -120,7 +149,7 @@ export default function AnalyticsSalesPage() {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹45,231.89</div>
+            <div className="text-2xl font-bold">{formatCurrency(kpiData.sales)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center font-medium">
               <span className="text-emerald-500 flex items-center mr-1">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -144,7 +173,7 @@ export default function AnalyticsSalesPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2,350</div>
+            <div className="text-2xl font-bold">+{formatNumber(kpiData.orders)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center font-medium">
               <span className="text-emerald-500 flex items-center mr-1">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -168,7 +197,7 @@ export default function AnalyticsSalesPage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹84.50</div>
+            <div className="text-2xl font-bold">₹{kpiData.aov.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center font-medium">
               <span className="text-rose-500 flex items-center mr-1">
                 <ArrowDownRight className="h-3 w-3 mr-1" />
@@ -192,7 +221,7 @@ export default function AnalyticsSalesPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3.24%</div>
+            <div className="text-2xl font-bold">{kpiData.conversion}%</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center font-medium">
               <span className="text-emerald-500 flex items-center mr-1">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
