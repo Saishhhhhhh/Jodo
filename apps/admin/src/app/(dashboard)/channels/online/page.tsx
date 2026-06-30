@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { 
-  ExternalLink, 
-  MoreHorizontal, 
-  Paintbrush, 
-  Lock, 
-  Gauge, 
-  Eye, 
+import {
+  ExternalLink,
+  MoreHorizontal,
+  Paintbrush,
+  Lock,
+  Gauge,
+  Eye,
   Settings,
   MoreVertical,
   Laptop
@@ -60,7 +60,7 @@ export default function ChannelsOnlinePage() {
           <section className="space-y-4">
             <h3 className="text-xl font-semibold tracking-tight">Current Theme</h3>
             <Card className="overflow-hidden border-2 border-primary/20">
-              <div 
+              <div
                 className="h-[300px] w-full bg-muted bg-cover bg-center border-b"
                 style={{ backgroundImage: `url(${currentTheme.thumbnail})` }}
               >

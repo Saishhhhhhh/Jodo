@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { 
-  Plus, 
-  Workflow, 
-  Search, 
-  Play, 
-  Pause, 
+import {
+  Plus,
+  Workflow,
+  Search,
+  Play,
+  Pause,
   MoreHorizontal,
   Zap,
   Mail,
@@ -122,7 +122,7 @@ export default function AutomationsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Content Column */}
         <div className="lg:col-span-3 space-y-8">
-          
+
           <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-2">
               <TabsTrigger value="all">All Automations</TabsTrigger>
@@ -146,10 +146,10 @@ export default function AutomationsPage() {
               </div>
               <div className="relative w-64 hidden sm:block">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="search" 
-                  placeholder="Search workflows..." 
-                  className="pl-8 bg-muted/50 border-none" 
+                <Input
+                  type="search"
+                  placeholder="Search workflows..."
+                  className="pl-8 bg-muted/50 border-none"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -185,12 +185,12 @@ export default function AutomationsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={
-                            workflow.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' : 
-                            workflow.status === 'Paused' ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20' : 
-                            'bg-muted text-muted-foreground'
+                            workflow.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' :
+                              workflow.status === 'Paused' ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20' :
+                                'bg-muted text-muted-foreground'
                           }
                         >
                           {workflow.status === 'Active' && <Play className="h-3 w-3 mr-1 fill-current" />}
@@ -239,8 +239,8 @@ export default function AutomationsPage() {
             <h3 className="text-xl font-semibold tracking-tight">Discover Templates</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredTemplates.map((template) => (
-                <Card 
-                  key={template.id} 
+                <Card
+                  key={template.id}
                   className="hover:shadow-md transition-shadow cursor-pointer border-dashed border-2 bg-muted/10 hover:bg-muted/30"
                   onClick={() => createWorkflow(template.name, template.icon, 'text-primary', 'bg-primary/10', template.type)}
                 >
@@ -266,7 +266,7 @@ export default function AutomationsPage() {
               ))}
             </div>
           </div>
-          
+
         </div>
 
         {/* Sidebar Column */}
