@@ -20,6 +20,26 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// GET SINGLE
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findOne({
+      _id: id,
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    });
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    sendSuccess(res, product);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // CREATE
 router.post('/', async (req, res, next) => {
   try {

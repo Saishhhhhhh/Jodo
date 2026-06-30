@@ -15,14 +15,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { ProductForm } from '@/components/products/product-form';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 type Product = {
   _id: string;
@@ -43,8 +37,7 @@ type Product = {
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data, isLoading } = useQuery({
@@ -66,25 +59,7 @@ export default function ProductsPage() {
     );
   }, [data, searchQuery]);
 
-  const createMutation = useMutation({
-    mutationFn: (newProduct: any) => productsApi.create(newProduct),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsSheetOpen(false);
-      toast.success('Product created successfully');
-    },
-    onError: () => toast.error('Failed to create product'),
-  });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => productsApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsSheetOpen(false);
-      toast.success('Product updated successfully');
-    },
-    onError: () => toast.error('Failed to update product'),
-  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => productsApi.delete(id),
@@ -96,13 +71,11 @@ export default function ProductsPage() {
   });
 
   const handleCreate = () => {
-    setEditingProduct(null);
-    setIsSheetOpen(true);
+    router.push('/products/new');
   };
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product);
-    setIsSheetOpen(true);
+    router.push(`/products/${product._id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -111,13 +84,6 @@ export default function ProductsPage() {
     }
   };
 
-  const handleSubmit = (formData: any) => {
-    if (editingProduct) {
-      updateMutation.mutate({ id: editingProduct._id, data: formData });
-    } else {
-      createMutation.mutate(formData);
-    }
-  };
 
   const handleExportCSV = () => {
     const productsToExport = filteredData || [];
@@ -185,7 +151,10 @@ export default function ProductsPage() {
         cell: ({ row }) => {
           const product = row.original;
           return (
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer group-hover:text-primary transition-colors"
+              onClick={() => router.push(`/products/${product._id}`)}
+            >
               <div className="h-10 w-10 rounded-md border bg-muted flex items-center justify-center overflow-hidden shrink-0 relative">
                 {product.imageUrl ? (
                   <>
@@ -208,7 +177,7 @@ export default function ProductsPage() {
                 )}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-semibold text-sm truncate">{product.title}</span>
+                <span className="font-semibold text-sm truncate hover:underline">{product.title}</span>
                 <span className="text-[11px] text-muted-foreground truncate">
                   {product.category || 'Uncategorized'} {product.vendor ? `• ${product.vendor}` : ''}
                 </span>
@@ -334,19 +303,6 @@ export default function ProductsPage() {
       </div>
 
       <DataTable columns={columns} data={filteredData} isLoading={isLoading} />
-
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-[520px] overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>{editingProduct ? 'Edit Product' : 'Add Product'}</SheetTitle>
-          </SheetHeader>
-          <ProductForm
-            initialData={editingProduct}
-            onSubmit={handleSubmit}
-            isLoading={createMutation.isPending || updateMutation.isPending}
-          />
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
