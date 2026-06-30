@@ -7,7 +7,8 @@ import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Pencil, Trash, Package, Download } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, MoreHorizontal, Pencil, Trash, Package, Download, Search } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +45,7 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['products'],
@@ -52,6 +54,17 @@ export default function ProductsPage() {
       return res.data.data;
     },
   });
+
+  const filteredData = useMemo(() => {
+    if (!data) return [];
+    if (!searchQuery.trim()) return data;
+    const query = searchQuery.toLowerCase();
+    return data.filter((p: Product) => 
+      p.title?.toLowerCase().includes(query) || 
+      p.sku?.toLowerCase().includes(query) ||
+      p.category?.toLowerCase().includes(query)
+    );
+  }, [data, searchQuery]);
 
   const createMutation = useMutation({
     mutationFn: (newProduct: any) => productsApi.create(newProduct),
@@ -107,31 +120,43 @@ export default function ProductsPage() {
   };
 
   const handleExportCSV = () => {
-    const productsToExport = data || [];
+    const productsToExport = filteredData || [];
     
-    // Define the headers including the new furniture fields
+    const formatCurrency = (amount: number) => {
+      return `"${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount)}"`;
+    };
+
+    const escapeCsv = (val: string | undefined | null) => {
+      if (!val || val.trim() === '') return '"-"'; // Clean minimal look for empty cells
+      return `"${String(val).replace(/"/g, '""')}"`;
+    };
+
+    // Define cleaner headers
     const headers = [
-      'Title', 'SKU', 'Price', 'Inventory', 'Status', 'Category', 'Vendor', 
-      'Material', 'Dimensions', 'Weight (kg)', 'Assembly Required',
-      'Main Image', 'Gallery Images'
+      'Product Name', 'SKU', 'Price', 'Stock Level', 'Status', 'Category', 'Vendor', 
+      'Material', 'Dimensions', 'Weight', 'Assembly',
+      'Main Image URL', 'Gallery Images'
     ];
     
     // Map the products to an array of arrays
-    const csvRows = productsToExport.map((p: Product) => [
-      `"${p.title || ''}"`,
-      `"${p.sku || ''}"`,
-      p.price || 0,
-      p.inventoryQuantity || 0,
-      `"${p.status || ''}"`,
-      `"${p.category || ''}"`,
-      `"${p.vendor || ''}"`,
-      `"${p.material || ''}"`,
-      `"${p.dimensions || ''}"`,
-      p.weight || 0,
-      p.assemblyRequired ? 'Yes' : 'No',
-      `"${p.imageUrl || ''}"`,
-      `"${(p.galleryImages || []).join(';')}"`
-    ]);
+    const csvRows = productsToExport.map((p: Product) => {
+      const status = p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : '';
+      return [
+        escapeCsv(p.title),
+        escapeCsv(p.sku),
+        formatCurrency(p.price || 0),
+        p.inventoryQuantity || 0,
+        escapeCsv(status),
+        escapeCsv(p.category),
+        escapeCsv(p.vendor),
+        escapeCsv(p.material),
+        escapeCsv(p.dimensions),
+        p.weight ? `"${p.weight} kg"` : '"-"',
+        escapeCsv(p.assemblyRequired ? 'Yes' : 'No'),
+        escapeCsv(p.imageUrl),
+        escapeCsv((p.galleryImages || []).join(' ; '))
+      ];
+    });
     
     // Combine headers and rows
     const csvContent = [
@@ -161,9 +186,23 @@ export default function ProductsPage() {
           const product = row.original;
           return (
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-md border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+              <div className="h-10 w-10 rounded-md border bg-muted flex items-center justify-center overflow-hidden shrink-0 relative">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover" />
+                  <>
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.title} 
+                      className="h-full w-full object-cover" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.classList.remove('hidden');
+                        }
+                      }}
+                    />
+                    <Package className="h-5 w-5 text-muted-foreground hidden absolute" />
+                  </>
                 ) : (
                   <Package className="h-5 w-5 text-muted-foreground" />
                 )}
@@ -281,7 +320,20 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data || []} isLoading={isLoading} />
+      <div className="flex items-center">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search products by title, SKU, or category..."
+            className="pl-8 bg-muted/50 border-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <DataTable columns={columns} data={filteredData} isLoading={isLoading} />
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="sm:max-w-[520px] overflow-y-auto">

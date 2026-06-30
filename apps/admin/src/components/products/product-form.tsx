@@ -181,6 +181,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                         src={field.value}
                         alt="Product Preview"
                         className="max-h-[150px] max-w-full rounded-md object-contain"
+                        referrerPolicy="no-referrer"
                       />
                       <Button
                         type="button"
@@ -398,6 +399,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                             src={url}
                             alt={`Gallery ${idx + 1}`}
                             className="max-h-[110px] max-w-full rounded-md object-contain"
+                            referrerPolicy="no-referrer"
                           />
                           <Button
                             type="button"

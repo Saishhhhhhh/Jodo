@@ -174,8 +174,8 @@ export default function AutomationsPage() {
                     <TableHead className="w-[300px]">Name</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Trigger</TableHead>
-                    <TableHead className="text-right">Total Runs</TableHead>
-                    <TableHead className="text-right">Last Run</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Total Runs</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Last Run</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -216,7 +216,7 @@ export default function AutomationsPage() {
                       <TableCell className="text-right font-medium">
                         {workflow.runs.toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground text-sm">
+                      <TableCell className="text-right text-muted-foreground text-sm whitespace-nowrap">
                         {workflow.lastRun}
                       </TableCell>
                       <TableCell className="text-right">
@@ -301,8 +301,8 @@ export default function AutomationsPage() {
                   ) : (
                     <XCircle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5" />
                   )}
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">{activity.workflow}</p>
+                  <div className="space-y-1 mt-0.5">
+                    <p className="text-sm font-medium leading-tight">{activity.workflow}</p>
                     <p className="text-xs text-muted-foreground">{activity.time}</p>
                   </div>
                 </div>
