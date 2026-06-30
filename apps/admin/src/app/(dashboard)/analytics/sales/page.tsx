@@ -9,7 +9,7 @@ import {
   MoreHorizontal,
   TrendingUp,
   CreditCard,
-  DollarSign,
+  IndianRupee,
   Package,
   Users
 } from 'lucide-react';
@@ -58,7 +58,7 @@ const topProducts = [
   { id: 5, name: 'Organic Coffee Beans', variant: '1kg / Whole', sales: 4200, orders: 210 },
 ];
 
-const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
+const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
 const formatNumber = (value: number) => value.toLocaleString();
 
 // Common tooltip styles for shadcn-like feel in both light/dark modes
@@ -117,10 +117,10 @@ export default function AnalyticsSalesPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">₹45,231.89</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center font-medium">
               <span className="text-emerald-500 flex items-center mr-1">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
@@ -168,7 +168,7 @@ export default function AnalyticsSalesPage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$84.50</div>
+            <div className="text-2xl font-bold">₹84.50</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center font-medium">
               <span className="text-rose-500 flex items-center mr-1">
                 <ArrowDownRight className="h-3 w-3 mr-1" />
@@ -221,7 +221,7 @@ export default function AnalyticsSalesPage() {
           <CardContent>
             <div className="h-[380px] w-full mt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={salesData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                <AreaChart data={salesData} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
                   <defs>
                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
@@ -234,21 +234,21 @@ export default function AnalyticsSalesPage() {
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
-                    dy={10}
+                    dy={15}
                   />
                   <YAxis 
-                    width={65}
+                    width={70}
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value}`}
-                    dx={-10}
+                    tickFormatter={(value) => `₹${value}`}
+                    dx={-5}
                   />
                   <Tooltip 
                     contentStyle={tooltipStyle}
                     labelStyle={tooltipLabelStyle}
                     itemStyle={tooltipItemStyle}
-                    formatter={(value: number) => [`$${value}`, 'Sales']}
+                    formatter={(value: number) => [`₹${value}`, 'Sales']}
                   />
                   <Area 
                     type="monotone" 
@@ -272,31 +272,31 @@ export default function AnalyticsSalesPage() {
           <CardContent>
             <div className="h-[380px] w-full mt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={channelData} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 20 }}>
+                <BarChart data={channelData} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" opacity={0.5} />
                   <XAxis 
                     type="number" 
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value/1000}k`}
-                    dy={10}
+                    tickFormatter={(value) => `₹${value/1000}k`}
+                    dy={15}
                   />
                   <YAxis 
-                    width={80}
+                    width={100}
                     dataKey="name" 
                     type="category" 
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }}
-                    dx={-10}
+                    dx={-5}
                   />
                   <Tooltip 
                     cursor={{ fill: 'hsl(var(--muted))' }}
                     contentStyle={tooltipStyle}
                     labelStyle={tooltipLabelStyle}
                     itemStyle={tooltipItemStyle}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Sales']}
+                    formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                     {channelData.map((entry, index) => (
