@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Heart, ShoppingBag, Star, StarHalf } from 'lucide-react';
 
 export interface Product {
@@ -53,32 +54,32 @@ export default function ProductCard({ product }: ProductCardProps) {
       </button>
 
       {/* ── Product Image ── */}
-      <div className="relative w-full aspect-[4/3] bg-white flex items-center justify-center p-6">
-        <div className="relative w-full h-full max-h-[180px]">
-          <Image
-            src={product.imageUrl}
-            alt={product.title}
-            fill
-            className="object-contain transition-transform duration-500 group-hover:scale-105"
-            unoptimized
-          />
-        </div>
-      </div>
+      <Link href={`/products/${product.id}`} className="relative w-full aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden group/image cursor-pointer">
+        <Image
+          src={product.imageUrl}
+          alt={product.title}
+          fill
+          className="object-cover transition-transform duration-700 group-hover/image:scale-105"
+          unoptimized
+        />
+      </Link>
 
       {/* ── Product Info ── */}
-      <div className="flex flex-col flex-grow px-6 pb-6 pt-2">
+      <div className="flex flex-col flex-grow px-5 pb-5 pt-4">
         {/* Brand */}
-        <span className="text-[#888888] text-[12px] font-bold tracking-widest uppercase mb-2">
+        <span className="text-[#888888] text-[11px] font-bold tracking-[0.15em] uppercase mb-1.5">
           {product.brand}
         </span>
         
         {/* Title */}
-        <h3 className="text-[#111111] font-semibold text-[15px] leading-snug mb-3 line-clamp-2 min-h-[44px]">
-          {product.title}
-        </h3>
+        <Link href={`/products/${product.id}`} className="group-hover/title:text-gray-600 transition-colors cursor-pointer">
+          <h3 className="text-[#111111] font-semibold text-[15px] leading-snug mb-1.5 line-clamp-2 hover:underline">
+            {product.title}
+          </h3>
+        </Link>
         
         {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-5 mt-auto">
+        <div className="flex items-center gap-1.5 mb-4">
           <div className="flex items-center gap-0.5">
             {renderStars(product.rating)}
           </div>
@@ -88,8 +89,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
         
         {/* Price */}
-        <div className="text-[#111111] font-bold text-[18px]">
-          ${product.price.toFixed(2)}
+        <div className="text-[#111111] font-bold text-[18px] mt-auto">
+          ₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div>
 
