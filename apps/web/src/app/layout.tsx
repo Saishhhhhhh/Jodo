@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body style={{ fontFamily: "'Rubik', system-ui, sans-serif" }}>
+      <body className="overflow-x-hidden w-full relative" style={{ fontFamily: "'Rubik', system-ui, sans-serif" }}>
         <Navbar />
         <main>{children}</main>
         <Footer />

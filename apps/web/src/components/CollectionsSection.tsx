@@ -1,177 +1,111 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowUpRight, Flame } from 'lucide-react';
+import { ArrowUpRight, ArrowRight } from 'lucide-react';
+
+const collections = [
+  {
+    id: 'home-decor',
+    title: 'Home\nDecor',
+    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'bedroom',
+    title: 'Bedroom',
+    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=85',
+    items: '3 items',
+  },
+  {
+    id: 'chairs',
+    title: 'Chairs',
+    image: 'https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'tables',
+    title: 'Tables',
+    image: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&w=800&q=80',
+  }
+];
 
 export default function CollectionsSection() {
+  // By default, the second item (index 1) is active/expanded
+  const [activeIndex, setActiveIndex] = useState(1);
+
   return (
-    <section className="w-full bg-[#FFFFFF] py-[80px] font-sans">
-      {/* Scaled down max-width for better viewport fitting */}
-      <div className="max-w-[1280px] mx-auto px-5 md:px-10 xl:px-[40px] relative">
+    <section className="w-full bg-transparent py-16 font-sans">
+      <div className="max-w-[1400px] mx-auto px-5 md:px-10">
         
-        {/* ── BACKGROUND EDITORIAL GRID LINES ── */}
-        <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block">
-          {/* 25% Line - Passes through text */}
-          <div className="absolute top-0 bottom-[-160px] w-[1px] bg-[#EAE5DF]" style={{ left: 'calc(25% - 10px)' }} />
-          {/* 50% Line - Main Gap center */}
-          <div className="absolute top-0 bottom-[-160px] w-[1px] bg-[#EAE5DF]" style={{ left: '50%' }} />
-          {/* Horizontal Line at Section Bottom */}
-          <div className="absolute left-0 right-0 h-[1px] bg-[#EAE5DF]" style={{ bottom: '-80px' }} />
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10">
+          <h2 className="text-[#111111] font-bold text-[32px] tracking-tight">
+            Explore Collections
+          </h2>
+          
+          <Link 
+            href="/shop" 
+            className="group flex items-center gap-2 text-sm font-semibold text-[#666666] hover:text-[#111111] transition-colors"
+          >
+            Explore all
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
 
-        {/* ── MAIN GRID ── */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-          
-          {/* ========================================== */}
-          {/* ROW 1 (Hero & Bedroom) */}
-          {/* ========================================== */}
-          
-          {/* ── HERO IMAGE (Top Left) ── */}
-          <div className="relative w-full h-[380px]">
-            {/* Sharp bottom-right corner (0px) so the circular puzzle bite is perfectly clean */}
-            <div className="absolute inset-0 overflow-hidden shadow-sm" style={{ borderRadius: '24px 24px 0 24px' }}>
-              <Image
-                src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=85"
-                alt="2026 New Collection"
-                fill
-                className="object-cover transition-transform duration-500 hover:scale-105"
-                unoptimized
-              />
-              {/* Floating Pill */}
-              <div
-                className="absolute bottom-6 left-6 flex items-center gap-2 px-5 py-3 rounded-full z-20 shadow-md"
-                style={{ backgroundColor: 'rgba(255,255,255,0.98)' }}
+        {/* Expanding Accordion Grid */}
+        <div 
+          className="flex flex-col md:flex-row w-full h-[500px] gap-4 md:gap-5"
+          onMouseLeave={() => setActiveIndex(1)} // Revert to default on mouse leave
+        >
+          {collections.map((c, index) => {
+            const isActive = index === activeIndex;
+            
+            return (
+              <Link
+                key={c.id}
+                href={`/shop/${c.id}`}
+                onMouseEnter={() => setActiveIndex(index)}
+                className={`relative rounded-[24px] overflow-hidden cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] group ${
+                  isActive ? 'flex-[2.5] md:flex-[2.5]' : 'flex-1 md:flex-1'
+                }`}
               >
-                <Flame className="w-4 h-4 text-[#E6CCA0]" />
-                <span className="text-[#111111] font-bold text-[13px]">2026 New Collection</span>
-              </div>
-            </div>
+                {/* Background Image */}
+                <Image
+                  src={c.image}
+                  alt={c.title.replace('\n', ' ')}
+                  fill
+                  className={`object-cover transition-transform duration-1000 ${isActive ? 'scale-105' : 'scale-100'}`}
+                  unoptimized
+                />
+                
+                {/* Gradient Overlay for Text Readability */}
+                <div className={`absolute inset-0 bg-gradient-to-t transition-opacity duration-700 ${isActive ? 'from-black/60 via-black/0' : 'from-black/80 via-black/20'} to-transparent opacity-80`} />
 
-            {/* ── THE CENTRAL PUZZLE CIRCLE ── */}
-            {/* Centered perfectly in the 40px grid gap! */}
-            <div 
-              className="absolute z-30 flex items-center justify-center pointer-events-none hidden lg:flex"
-              style={{ 
-                top: '100%', 
-                left: '100%', 
-                marginTop: '20px', // half of gap-10 (40px)
-                marginLeft: '20px', // half of gap-10 (40px)
-                transform: 'translate(-50%, -50%)' 
-              }}
-            >
-              {/* White Cutout Mask (160px) bridging the 3 sharp image corners */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#ffffff] rounded-full w-[160px] h-[160px]" />
-              
-              {/* Spinning Text Badge - Scaled up proportionally to leave a tighter white ring */}
-              <div className="relative flex items-center justify-center w-[130px] h-[130px] pointer-events-auto cursor-pointer group">
-                <svg
-                  viewBox="0 0 100 100"
-                  className="absolute inset-0 w-full h-full animate-[spin_20s_linear_infinite]"
+                {/* Optional Items Tag (Top Left) */}
+                {c.items && (
+                  <div className="absolute top-6 left-6 bg-white text-[#F05E51] font-bold text-[13px] px-3.5 py-1.5 rounded-md shadow-sm">
+                    {c.items}
+                  </div>
+                )}
+
+                {/* Collection Title (Bottom Left) */}
+                <h3 className="absolute bottom-6 left-6 text-white font-bold text-[32px] leading-[1.1] whitespace-pre-line z-10">
+                  {c.title}
+                </h3>
+
+                {/* Hover Arrow Button (Bottom Right) */}
+                <div 
+                  className={`absolute bottom-6 right-6 w-12 h-12 bg-white rounded-full flex items-center justify-center transition-all duration-500 shadow-lg z-10 ${
+                    isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}
                 >
-                  <path id="circle-path-center" d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="none" />
-                  <text fontSize="9.5" fontWeight="700" fill="#111111" letterSpacing="1.5">
-                    <textPath href="#circle-path-center">JODO • BRINGING SPACES TOGETHER • JODO • BRINGING SPACES TOGETHER • </textPath>
-                  </text>
-                </svg>
-                {/* Center Button */}
-                <div
-                  className="relative z-10 w-[48px] h-[48px] rounded-full flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:rotate-45"
-                  style={{ backgroundColor: '#E6CCA0' }}
-                >
-                  <ArrowUpRight className="w-5 h-5 stroke-[2.5px]" />
+                  <ArrowUpRight className="w-5 h-5 text-[#C9A87C] stroke-[2.5px]" />
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── HEADING & BEDROOM (Top Right) ── */}
-          <div className="flex flex-col justify-between h-[380px]">
-            {/* Heading */}
-            <div className="flex items-start justify-between">
-              <h2 className="font-bold text-[#111111] leading-[1.05] text-[40px] xl:text-[46px] max-w-[340px]">
-                Customize the New Jodo Collection
-              </h2>
-            </div>
-
-            {/* Bedroom Image - Sharp bottom-left corner for the perfect bite */}
-            <Link
-              href="/shop/bedroom"
-              className="relative block w-full overflow-hidden group shadow-sm"
-              style={{ borderRadius: '24px 24px 24px 0', height: '180px' }}
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1000&q=85"
-                alt="Bedroom"
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/70 via-[#111111]/5 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
-              <span className="absolute bottom-6 right-6 text-[#FFFFFF] font-bold text-[22px] tracking-[0.08em] uppercase drop-shadow-md z-10">
-                Bedroom
-              </span>
-            </Link>
-          </div>
-
-          {/* ========================================== */}
-          {/* ROW 2 (Text & Kitchen/Living) */}
-          {/* ========================================== */}
-
-          {/* ── TEXT CONTENT (Bottom Left) ── */}
-          <div className="flex flex-col pr-12 pt-6">
-            <h3 className="text-[#111111] font-bold text-[32px] leading-[1.1] mb-4">
-              Synory's New Collection Has Everything for a Chic and Cozy Upgrade
-            </h3>
-            <p className="text-[#666666] font-medium text-[16px] leading-relaxed max-w-[460px]">
-              Give your space a chic and cozy upgrade! From soft linens to stylish decor,
-              find everything you need for that perfect blend of comfort and elegance.
-            </p>
-          </div>
-
-          {/* ── KITCHEN & LIVING ROOM (Bottom Right) ── */}
-          <div className="grid grid-cols-2 gap-10 items-start w-full">
-
-            {/* Kitchen - Sharp top-left corner for the perfect bite */}
-            <Link
-              href="/shop/kitchen"
-              className="relative block overflow-hidden group shadow-sm w-full"
-              style={{ borderRadius: '0 24px 24px 24px', height: '240px' }}
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=85"
-                alt="Kitchen"
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/70 via-[#111111]/5 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
-              <span className="absolute bottom-6 left-0 w-full text-center text-[#FFFFFF] font-bold text-[20px] tracking-[0.08em] uppercase drop-shadow-md z-10">
-                Kitchen
-              </span>
-            </Link>
-
-            {/* Living Room - Staggered downward and scaled for balance */}
-            <Link
-              href="/shop/living-room"
-              className="relative block overflow-hidden group shadow-sm w-full mt-12"
-              style={{ borderRadius: '24px', height: '260px' }}
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=85"
-                alt="Living Room"
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                unoptimized
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111111]/70 via-[#111111]/5 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
-              <span className="absolute bottom-6 left-0 w-full text-center text-[#FFFFFF] font-bold text-[20px] tracking-[0.08em] uppercase drop-shadow-md z-10">
-                Living Room
-              </span>
-            </Link>
-
-          </div>
-
+              </Link>
+            );
+          })}
         </div>
+        
       </div>
     </section>
   );
