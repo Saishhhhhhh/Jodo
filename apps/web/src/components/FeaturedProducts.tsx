@@ -109,7 +109,7 @@ async function fetchProductsFromAdminPanel(): Promise<Product[]> {
     const json = await res.json();
     
     if (json.success && Array.isArray(json.data)) {
-      return json.data.map((p: any) => ({
+      return json.data.map((p: { _id: string; vendor?: string; title: string; price: number; imageUrl?: string }) => ({
         id: p._id,
         brand: p.vendor || 'JODO',
         title: p.title,
@@ -121,7 +121,7 @@ async function fetchProductsFromAdminPanel(): Promise<Product[]> {
     }
 
     return fallbackProducts;
-  } catch (error) {
+  } catch {
     return fallbackProducts;
   }
 }

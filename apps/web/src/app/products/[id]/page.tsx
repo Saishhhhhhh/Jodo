@@ -156,7 +156,7 @@ async function getProductById(id: string): Promise<ProductData | null> {
         return json.data as ProductData;
       }
     }
-  } catch (error) {
+  } catch {
     console.warn("Backend unavailable, falling back to database snapshot.");
   }
   

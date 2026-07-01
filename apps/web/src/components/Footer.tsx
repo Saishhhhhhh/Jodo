@@ -76,7 +76,7 @@ export default function Footer() {
               />
             </Link>
               <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">
-                Crafting comfort and shaping style. Premium furniture and home decor that transforms every space into a place you'll love.
+                Crafting comfort and shaping style. Premium furniture and home decor that transforms every space into a place you&apos;ll love.
               </p>
               <div className="space-y-2.5 text-sm text-white/80 font-medium">
                 <div className="flex items-center gap-2.5">
