@@ -9,41 +9,41 @@ interface SearchOverlayProps {
 }
 
 const TRENDING_SEARCHES = [
-  'Nike Air Max',
-  'Adidas Ultraboost',
-  'Puma RS-X',
-  'Oversized T-Shirts',
-  'Summer Collection'
+  'Living Room',
+  'Office Chairs',
+  'Dining Tables',
+  'Minimalist Design',
+  'Outdoor Furniture'
 ];
 
 const SUGGESTED_PRODUCTS = [
   {
-    id: 1,
-    name: 'Nike Dunk Low Retro',
-    brand: 'Nike',
-    price: '$110',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop'
+    id: '6a438dfe74b049d5bc53d51c',
+    name: 'Velvet Accent Sofa',
+    brand: 'Plush Designs',
+    price: '$1450',
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80'
   },
   {
-    id: 2,
-    name: 'Adidas Samba OG',
-    brand: 'Adidas',
-    price: '$100',
-    image: 'https://images.unsplash.com/photo-1518002171953-a080ee817e1f?q=80&w=600&auto=format&fit=crop'
+    id: '6a438dfe74b049d5bc53d51a',
+    name: 'Modern Oak Dining Table',
+    brand: 'Jodo Living',
+    price: '$899',
+    image: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80'
   },
   {
-    id: 3,
-    name: 'New Balance 550',
-    brand: 'New Balance',
-    price: '$120',
-    image: 'https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=600&auto=format&fit=crop'
+    id: '6a438dfe74b049d5bc53d522',
+    name: 'Mid-Century TV Stand',
+    brand: 'RetroHome',
+    price: '$399',
+    image: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&auto=format&fit=crop&q=80'
   },
   {
-    id: 4,
-    name: 'Nike Air Force 1',
-    brand: 'Nike',
-    price: '$115',
-    image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=600&auto=format&fit=crop'
+    id: '6a438dfe74b049d5bc53d51d',
+    name: 'Minimalist Nightstand',
+    brand: 'Jodo Living',
+    price: '$145',
+    image: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80'
   }
 ];
 
@@ -129,7 +129,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             <h3 className="text-lg font-medium text-gray-900 uppercase tracking-wider mb-6">Suggested Products</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {SUGGESTED_PRODUCTS.map((product) => (
-                <Link href={`/product/${product.id}`} key={product.id} className="group cursor-pointer">
+                <Link href={`/products/${product.id}`} key={product.id} className="group cursor-pointer">
                   <div className="relative aspect-square mb-4 bg-gray-100 rounded-lg overflow-hidden">
                     <Image
                       src={product.image}
