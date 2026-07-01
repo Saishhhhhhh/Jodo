@@ -152,8 +152,7 @@ export default function ProductsPage() {
           const product = row.original;
           return (
             <div 
-              className="flex items-center gap-3 cursor-pointer group-hover:text-primary transition-colors"
-              onClick={() => router.push(`/products/${product._id}`)}
+              className="flex items-center gap-3 transition-colors"
             >
               <div className="h-10 w-10 rounded-md border bg-muted flex items-center justify-center overflow-hidden shrink-0 relative">
                 {product.imageUrl ? (
@@ -246,7 +245,7 @@ export default function ProductsPage() {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
+                <Button variant="ghost" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -302,7 +301,12 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filteredData} isLoading={isLoading} />
+      <DataTable 
+        columns={columns} 
+        data={filteredData} 
+        isLoading={isLoading} 
+        onRowClick={(row) => router.push(`/products/${row._id}`)}
+      />
     </div>
   );
 }

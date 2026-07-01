@@ -58,7 +58,7 @@ export default function ProductDetailsPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6 animate-fade-in">
+    <div className="p-6 w-full space-y-6 animate-fade-in">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={() => router.push('/products')}>
           <ChevronLeft className="h-4 w-4" />
