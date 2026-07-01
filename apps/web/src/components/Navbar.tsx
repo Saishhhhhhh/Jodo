@@ -4,9 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, ShoppingBag, ChevronDown, User, Heart } from 'lucide-react';
 import { useState } from 'react';
+import SearchOverlay from './SearchOverlay';
 
 export default function Navbar() {
   const [cartCount] = useState(0);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
     <header className="w-full bg-white sticky top-0 z-50 h-[72px]">
@@ -60,7 +62,7 @@ export default function Navbar() {
           </Link>
 
           {/* Search */}
-          <button className="text-[#1C1A17] hover:text-terracotta transition-colors" aria-label="Search">
+          <button onClick={() => setIsSearchOpen(true)} className="text-[#1C1A17] hover:text-terracotta transition-colors" aria-label="Search">
             <Search className="w-5 h-5" strokeWidth={2} />
           </button>
 
@@ -76,6 +78,7 @@ export default function Navbar() {
         </div>
 
       </div>
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }
