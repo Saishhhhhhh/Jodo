@@ -2,6 +2,7 @@ import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
 import FeaturesBar from "@/components/FeaturesBar";
 import CollectionsSection from "@/components/CollectionsSection";
+import FeaturedProducts from "@/components/FeaturedProducts";
 
 export default function HomePage() {
   return (
@@ -17,6 +18,9 @@ export default function HomePage() {
 
       {/* New Collection + Room Categories */}
       <CollectionsSection />
+
+      {/* Featured Products */}
+      <FeaturedProducts />
     </div>
   );
 }
