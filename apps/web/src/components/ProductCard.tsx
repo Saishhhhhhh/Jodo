@@ -18,30 +18,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // Generate stars based on rating
-  const renderStars = (rating: number) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<Star key={i} className="w-[14px] h-[14px] fill-[#FDB022] text-[#FDB022]" />);
-      } else if (i === fullStars && hasHalfStar) {
-        stars.push(
-          <div key={i} className="relative w-[14px] h-[14px]">
-            <Star className="absolute inset-0 w-[14px] h-[14px] text-[#FDB022]" />
-            <div className="absolute inset-0 overflow-hidden w-1/2">
-              <Star className="w-[14px] h-[14px] fill-[#FDB022] text-[#FDB022]" />
-            </div>
-          </div>
-        );
-      } else {
-        stars.push(<Star key={i} className="w-[14px] h-[14px] text-[#E5E7EB]" />);
-      }
-    }
-    return stars;
-  };
 
   return (
     <div className="group relative flex flex-col gap-3 w-full">
