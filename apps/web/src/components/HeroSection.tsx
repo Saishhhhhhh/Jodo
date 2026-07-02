@@ -37,7 +37,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="px-4 lg:px-6 pt-0 pb-12">
+    <section className="px-4 lg:px-6 py-0">
       {/* ── HERO CONTAINER ── */}
       <div
         className="relative w-full overflow-hidden flex flex-col"

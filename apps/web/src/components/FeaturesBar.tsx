@@ -25,7 +25,7 @@ const features = [
 
 export default function FeaturesBar() {
   return (
-    <section className="w-full py-10 bg-white">
+    <section className="w-full py-0 bg-white">
       <div className="max-w-[1400px] mx-auto px-5 md:px-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {features.map(({ Icon, title, description }) => (

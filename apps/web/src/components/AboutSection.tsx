@@ -5,7 +5,7 @@ import { ArrowUpRight, Star } from 'lucide-react';
 
 export default function AboutSection() {
   return (
-    <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-20 lg:py-32 overflow-hidden">
+    <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-0 overflow-hidden">
       
       {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 bg-white -z-10" />

@@ -131,7 +131,7 @@ export default async function FeaturedProducts() {
   const products = await fetchProductsFromAdminPanel();
 
   return (
-    <section className="w-full bg-transparent py-12 font-sans">
+    <section className="w-full bg-transparent py-0 font-sans">
       <div className="max-w-[1400px] mx-auto px-5 md:px-10">
         
         {/* Header */}

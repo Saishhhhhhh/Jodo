@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function VideoSection() {
   return (
-    <section className="w-full bg-transparent pt-16 pb-0 font-sans">
+    <section className="w-full bg-transparent py-0 font-sans">
       <div className="max-w-[1400px] mx-auto px-5 md:px-10">
         <div 
           className="relative w-full overflow-hidden shadow-lg flex items-center justify-center" 

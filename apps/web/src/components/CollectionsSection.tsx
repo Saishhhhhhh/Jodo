@@ -35,7 +35,7 @@ export default function CollectionsSection() {
   }));
 
   return (
-    <section className="w-full px-5 md:px-10 py-10 md:py-16 font-sans">
+    <section className="w-full px-5 md:px-10 py-0 font-sans">
       <div className="max-w-[1400px] mx-auto bg-terracotta rounded-[32px] p-6 md:p-12 overflow-hidden shadow-2xl">
         
         {/* Header */}
