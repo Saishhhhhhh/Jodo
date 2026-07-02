@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Search, X, TrendingUp, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Search, TrendingUp, ArrowRight, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
