@@ -221,8 +221,8 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                 id: product._id,
                 brand: product.productDetails?.['Brand'] || product.vendor || 'Premium',
                 title: product.title,
-                rating: parseFloat(product.productDetails?.['Product Rating'] || '4.5'),
-                reviews: Math.floor(Math.random() * 200) + 50, // Mock reviews since not in schema
+                rating: parseFloat((product.productDetails as any)?.['Product Rating'] || '4.5'),
+                reviews: 120, // Static mock reviews to prevent hydration mismatch
                 price: product.price,
                 imageUrl: product.imageUrl || `https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80`
               };
