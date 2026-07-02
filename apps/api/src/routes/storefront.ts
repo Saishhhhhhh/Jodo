@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/products', async (req, res, next) => {
   try {
-    const products = await Product.find({}).sort({ createdAt: -1 }).limit(10);
+    const products = await Product.find({}).sort({ createdAt: -1 }).limit(100);
     sendSuccess(res, products);
   } catch (error) {
     next(error);
