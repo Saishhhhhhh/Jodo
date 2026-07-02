@@ -24,12 +24,12 @@ const POPULAR_PRODUCTS = [
   {
     id: 'prod-2',
     name: 'Sleeping Pillow | Set of 2 | Height Adjustable | Standard Size 27X16 inch | Soft & Fluffy | Free Extra Filling 300 Grms | White & Grey',
-    image: 'https://images.unsplash.com/photo-1584100936595-c0654b355040?w=400&auto=format&fit=crop&q=80'
+    image: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=400&auto=format&fit=crop&q=80'
   },
   {
     id: 'prod-3',
     name: 'Sleeping Pillow | Set of 4 | Height Adjustable | Standard Size 27X16 inch | Soft & Fluffy | Free Extra Filling 600 Gms | White & Grey',
-    image: 'https://images.unsplash.com/photo-1584101004128-0a6f44619f71?w=400&auto=format&fit=crop&q=80'
+    image: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=400&auto=format&fit=crop&q=80'
   }
 ];
 
@@ -38,7 +38,7 @@ const POPULAR_CATEGORIES = [
     title: 'Mattress',
     items: [
       { name: 'Wakefit Mattress', image: 'https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=400&auto=format&fit=crop&q=80' },
-      { name: 'Wakefit Plus Mattress', image: 'https://images.unsplash.com/photo-1505692952047-1a9ea08cd28b?w=400&auto=format&fit=crop&q=80' },
+      { name: 'Wakefit Plus Mattress', image: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=400&auto=format&fit=crop&q=80' },
       { name: 'Mattress Protector', image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&auto=format&fit=crop&q=80' },
       { name: 'Dual Comfort Mattress', image: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&auto=format&fit=crop&q=80' }
     ]
