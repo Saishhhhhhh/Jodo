@@ -98,7 +98,7 @@ async function fetchProductsFromAdminPanel(): Promise<Product[]> {
   ];
 
   try {
-    const res = await fetch('http://localhost:4000/api/admin/products', {
+    const res = await fetch('http://localhost:4000/api/storefront/products', {
       cache: 'no-store',
     });
 
@@ -121,7 +121,8 @@ async function fetchProductsFromAdminPanel(): Promise<Product[]> {
     }
 
     return fallbackProducts;
-  } catch {
+  } catch (error) {
+    console.error("Failed to fetch products from storefront API:", error);
     return fallbackProducts;
   }
 }
@@ -137,7 +138,7 @@ export default async function FeaturedProducts() {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <h2 className="text-[#111111] font-bold text-[32px] tracking-tight">
-            Featured Products
+            Featured Products 
           </h2>
           
           <Link 

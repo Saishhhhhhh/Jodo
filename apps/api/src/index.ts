@@ -26,6 +26,8 @@ import reviewsRoutes from './routes/reviews';
 import returnsRoutes from './routes/returns';
 import segmentsRoutes from './routes/segments';
 import campaignsRoutes from './routes/campaigns';
+import storefrontRoutes from './routes/storefront';
+
 const app = express();
 
 // ============================================================
@@ -98,6 +100,7 @@ app.use('/api/admin/reviews', reviewsRoutes);
 app.use('/api/admin/returns', returnsRoutes);
 app.use('/api/admin/customers/segments', segmentsRoutes);
 app.use('/api/admin/campaigns', campaignsRoutes);
+app.use('/api/storefront', storefrontRoutes);
 // ============================================================
 // Error Handling
 // ============================================================
