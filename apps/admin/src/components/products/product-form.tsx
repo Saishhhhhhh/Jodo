@@ -34,6 +34,16 @@ const formSchema = z.object({
   dimensions: z.string().optional().default(''),
   weight: z.coerce.number().min(0).optional(),
   assemblyRequired: z.boolean().default(false),
+  shortDescription: z.string().optional().default(''),
+  longDescription: z.string().optional().default(''),
+  emiAvailable: z.boolean().default(false),
+  emiStartingFrom: z.coerce.number().optional(),
+  additionalOffersStr: z.string().optional().default(''),
+  assemblyFee: z.coerce.number().optional(),
+  careAndMaintenance: z.string().optional().default(''),
+  warrantyTerms: z.string().optional().default(''),
+  productDetailsStr: z.string().optional().default(''),
+  specificationsStr: z.string().optional().default(''),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -69,6 +79,16 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       dimensions: initialData?.dimensions || '',
       weight: initialData?.weight ?? 0,
       assemblyRequired: initialData?.assemblyRequired ?? false,
+      shortDescription: initialData?.shortDescription || '',
+      longDescription: initialData?.longDescription || '',
+      emiAvailable: initialData?.emiAvailable ?? false,
+      emiStartingFrom: initialData?.emiStartingFrom ?? undefined,
+      additionalOffersStr: initialData?.additionalOffers?.join('\\n') || '',
+      assemblyFee: initialData?.assemblyFee ?? undefined,
+      careAndMaintenance: initialData?.careAndMaintenance || '',
+      warrantyTerms: initialData?.warrantyTerms || '',
+      productDetailsStr: initialData?.productDetails ? JSON.stringify(initialData.productDetails, null, 2) : '',
+      specificationsStr: initialData?.specifications ? JSON.stringify(initialData.specifications, null, 2) : '',
     },
   });
 
@@ -139,7 +159,12 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   };
 
   const handleFormSubmit = (values: FormValues) => {
-    onSubmit(values);
+    const parsedValues: any = { ...values };
+    parsedValues.additionalOffers = values.additionalOffersStr ? values.additionalOffersStr.split('\\n').map(s => s.trim()).filter(Boolean) : [];
+    try { parsedValues.productDetails = values.productDetailsStr ? JSON.parse(values.productDetailsStr) : {}; } catch(e) {}
+    try { parsedValues.specifications = values.specificationsStr ? JSON.parse(values.specificationsStr) : []; } catch(e) {}
+    
+    onSubmit(parsedValues);
   };
 
   return (
@@ -457,6 +482,49 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 />
               </div>
             </div>
+
+            {/* Rich Details Card */}
+            <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
+              <h3 className="font-semibold text-lg border-b pb-3 mb-4">Rich Details (Pepperfry Layout)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="shortDescription" render={({ field }) => (
+                  <FormItem><FormLabel>Short Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form.control} name="emiStartingFrom" render={({ field }) => (
+                  <FormItem><FormLabel>EMI Starting From (₹)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="longDescription" render={({ field }) => (
+                <FormItem><FormLabel>Long Description</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>
+              )} />
+              <FormField control={form.control} name="additionalOffersStr" render={({ field }) => (
+                <FormItem><FormLabel>Additional Offers (One per line)</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>
+              )} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="assemblyFee" render={({ field }) => (
+                  <FormItem><FormLabel>Assembly Fee (₹)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
+                )} />
+                <FormField control={form.control} name="emiAvailable" render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
+                    <FormControl><input type="checkbox" className="h-4 w-4 accent-primary" checked={field.value} onChange={field.onChange} /></FormControl>
+                    <div className="space-y-1 leading-none"><FormLabel>Enable EMI Option</FormLabel></div>
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="productDetailsStr" render={({ field }) => (
+                <FormItem><FormLabel>Product Details (JSON key-value object)</FormLabel><FormControl><Textarea className="font-mono h-32" placeholder='{"Brand": "Woodsworth", "Room Type": "Living Room"}' {...field} /></FormControl></FormItem>
+              )} />
+              <FormField control={form.control} name="specificationsStr" render={({ field }) => (
+                <FormItem><FormLabel>Specifications (JSON Array of {`{key, value}`})</FormLabel><FormControl><Textarea className="font-mono h-32" placeholder='[{"key": "Frame", "value": "Pine Wood"}]' {...field} /></FormControl></FormItem>
+              )} />
+              <FormField control={form.control} name="careAndMaintenance" render={({ field }) => (
+                <FormItem><FormLabel>Care & Maintenance</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>
+              )} />
+              <FormField control={form.control} name="warrantyTerms" render={({ field }) => (
+                <FormItem><FormLabel>Warranty Terms</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>
+              )} />
+            </div>
+
           </div>
 
           {/* Right Sidebar Column */}

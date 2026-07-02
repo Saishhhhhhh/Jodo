@@ -19,6 +19,16 @@ export interface IProduct extends Document {
   dimensions?: string;
   weight?: number;
   assemblyRequired?: boolean;
+  shortDescription?: string;
+  longDescription?: string;
+  emiAvailable?: boolean;
+  emiStartingFrom?: number;
+  additionalOffers?: string[];
+  assemblyFee?: number;
+  careAndMaintenance?: string;
+  warrantyTerms?: string;
+  productDetails?: Record<string, string>;
+  specifications?: { key: string; value: string }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +53,16 @@ const productSchema = new Schema<IProduct>(
     dimensions: { type: String },
     weight: { type: Number },
     assemblyRequired: { type: Boolean, default: false },
+    shortDescription: { type: String },
+    longDescription: { type: String },
+    emiAvailable: { type: Boolean, default: false },
+    emiStartingFrom: { type: Number },
+    additionalOffers: [{ type: String }],
+    assemblyFee: { type: Number },
+    careAndMaintenance: { type: String },
+    warrantyTerms: { type: String },
+    productDetails: { type: Map, of: String },
+    specifications: [{ key: { type: String }, value: { type: String } }],
   },
   { timestamps: true }
 );

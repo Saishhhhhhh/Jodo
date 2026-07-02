@@ -13,4 +13,14 @@ router.get('/products', async (req, res, next) => {
   }
 });
 
+router.get('/products/:id', async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: 'Not found' });
+    sendSuccess(res, product);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
