@@ -42,8 +42,18 @@ const formSchema = z.object({
   assemblyFee: z.coerce.number().optional(),
   careAndMaintenance: z.string().optional().default(''),
   warrantyTerms: z.string().optional().default(''),
-  productDetailsStr: z.string().optional().default(''),
-  specificationsStr: z.string().optional().default(''),
+  detailBrand: z.string().optional().default(''),
+  detailCollection: z.string().optional().default(''),
+  detailRoomType: z.string().optional().default(''),
+  detailSeatingHeight: z.string().optional().default(''),
+  detailFirmness: z.string().optional().default(''),
+  detailWarranty: z.string().optional().default(''),
+  detailRating: z.string().optional().default(''),
+  specFrame: z.string().optional().default(''),
+  specUpholstery: z.string().optional().default(''),
+  specFoam: z.string().optional().default(''),
+  specLegs: z.string().optional().default(''),
+  specMechanism: z.string().optional().default(''),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -87,8 +97,18 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       assemblyFee: initialData?.assemblyFee ?? undefined,
       careAndMaintenance: initialData?.careAndMaintenance || '',
       warrantyTerms: initialData?.warrantyTerms || '',
-      productDetailsStr: initialData?.productDetails ? JSON.stringify(initialData.productDetails, null, 2) : '',
-      specificationsStr: initialData?.specifications ? JSON.stringify(initialData.specifications, null, 2) : '',
+      detailBrand: initialData?.productDetails?.['Brand'] || '',
+      detailCollection: initialData?.productDetails?.['Collections'] || '',
+      detailRoomType: initialData?.productDetails?.['Room Type'] || '',
+      detailSeatingHeight: initialData?.productDetails?.['Seating Height'] || '',
+      detailFirmness: initialData?.productDetails?.['Sofa Firmness'] || '',
+      detailWarranty: initialData?.productDetails?.['Warranty'] || '',
+      detailRating: initialData?.productDetails?.['Product Rating'] || '',
+      specFrame: initialData?.specifications?.find((s:any) => s.key === 'Frame')?.value || '',
+      specUpholstery: initialData?.specifications?.find((s:any) => s.key === 'Upholstery')?.value || '',
+      specFoam: initialData?.specifications?.find((s:any) => s.key === 'Foam')?.value || '',
+      specLegs: initialData?.specifications?.find((s:any) => s.key === 'Legs')?.value || '',
+      specMechanism: initialData?.specifications?.find((s:any) => s.key === 'Seating Mechanism')?.value || '',
     },
   });
 
@@ -161,8 +181,24 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   const handleFormSubmit = (values: FormValues) => {
     const parsedValues: any = { ...values };
     parsedValues.additionalOffers = values.additionalOffersStr ? values.additionalOffersStr.split('\\n').map(s => s.trim()).filter(Boolean) : [];
-    try { parsedValues.productDetails = values.productDetailsStr ? JSON.parse(values.productDetailsStr) : {}; } catch(e) {}
-    try { parsedValues.specifications = values.specificationsStr ? JSON.parse(values.specificationsStr) : []; } catch(e) {}
+    
+    parsedValues.productDetails = {
+      ...(values.detailBrand && { 'Brand': values.detailBrand }),
+      ...(values.detailCollection && { 'Collections': values.detailCollection }),
+      ...(values.detailRoomType && { 'Room Type': values.detailRoomType }),
+      ...(values.detailSeatingHeight && { 'Seating Height': values.detailSeatingHeight }),
+      ...(values.detailFirmness && { 'Sofa Firmness': values.detailFirmness }),
+      ...(values.detailWarranty && { 'Warranty': values.detailWarranty }),
+      ...(values.detailRating && { 'Product Rating': values.detailRating }),
+    };
+
+    parsedValues.specifications = [
+      ...(values.specFrame ? [{ key: 'Frame', value: values.specFrame }] : []),
+      ...(values.specUpholstery ? [{ key: 'Upholstery', value: values.specUpholstery }] : []),
+      ...(values.specFoam ? [{ key: 'Foam', value: values.specFoam }] : []),
+      ...(values.specLegs ? [{ key: 'Legs', value: values.specLegs }] : []),
+      ...(values.specMechanism ? [{ key: 'Seating Mechanism', value: values.specMechanism }] : []),
+    ];
     
     onSubmit(parsedValues);
   };
@@ -485,7 +521,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
 
             {/* Rich Details Card */}
             <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
-              <h3 className="font-semibold text-lg border-b pb-3 mb-4">Rich Details (Pepperfry Layout)</h3>
+              <h3 className="font-semibold text-lg border-b pb-3 mb-4">Rich Details (Premium Layout)</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="shortDescription" render={({ field }) => (
                   <FormItem><FormLabel>Short Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
@@ -511,12 +547,57 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   </FormItem>
                 )} />
               </div>
-              <FormField control={form.control} name="productDetailsStr" render={({ field }) => (
-                <FormItem><FormLabel>Product Details (JSON key-value object)</FormLabel><FormControl><Textarea className="font-mono h-32" placeholder='{"Brand": "Woodsworth", "Room Type": "Living Room"}' {...field} /></FormControl></FormItem>
-              )} />
-              <FormField control={form.control} name="specificationsStr" render={({ field }) => (
-                <FormItem><FormLabel>Specifications (JSON Array of {`{key, value}`})</FormLabel><FormControl><Textarea className="font-mono h-32" placeholder='[{"key": "Frame", "value": "Pine Wood"}]' {...field} /></FormControl></FormItem>
-              )} />
+              
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-semibold text-md mb-4 text-gray-700">Specific Product Details</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="detailBrand" render={({ field }) => (
+                    <FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g. Woodsworth" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="detailCollection" render={({ field }) => (
+                    <FormItem><FormLabel>Collection</FormLabel><FormControl><Input placeholder="e.g. Miranda" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="detailRoomType" render={({ field }) => (
+                    <FormItem><FormLabel>Room Type</FormLabel><FormControl><Input placeholder="e.g. Living Room" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="detailFirmness" render={({ field }) => (
+                    <FormItem><FormLabel>Firmness</FormLabel><FormControl><Input placeholder="e.g. Medium" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="detailSeatingHeight" render={({ field }) => (
+                    <FormItem><FormLabel>Seating Height (inches)</FormLabel><FormControl><Input placeholder="e.g. 19" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="detailRating" render={({ field }) => (
+                    <FormItem><FormLabel>Rating (e.g. 4.5)</FormLabel><FormControl><Input type="number" step="0.1" max="5" min="1" {...field} /></FormControl></FormItem>
+                  )} />
+                </div>
+                <div className="mt-4">
+                  <FormField control={form.control} name="detailWarranty" render={({ field }) => (
+                    <FormItem><FormLabel>Warranty Summary</FormLabel><FormControl><Input placeholder="e.g. 36 Months Warranty" {...field} /></FormControl></FormItem>
+                  )} />
+                </div>
+              </div>
+
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-semibold text-md mb-4 text-gray-700">Specifications (Construction)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="specFrame" render={({ field }) => (
+                    <FormItem><FormLabel>Frame Material</FormLabel><FormControl><Input placeholder="e.g. Pine Wood" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="specUpholstery" render={({ field }) => (
+                    <FormItem><FormLabel>Upholstery</FormLabel><FormControl><Input placeholder="e.g. Fabric" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="specFoam" render={({ field }) => (
+                    <FormItem><FormLabel>Foam Density</FormLabel><FormControl><Input placeholder="e.g. PU Foam 32D" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="specLegs" render={({ field }) => (
+                    <FormItem><FormLabel>Legs</FormLabel><FormControl><Input placeholder="e.g. Wooden Legs" {...field} /></FormControl></FormItem>
+                  )} />
+                  <FormField control={form.control} name="specMechanism" render={({ field }) => (
+                    <FormItem><FormLabel>Seating Mechanism</FormLabel><FormControl><Input placeholder="e.g. S Spring" {...field} /></FormControl></FormItem>
+                  )} />
+                </div>
+              </div>
+
               <FormField control={form.control} name="careAndMaintenance" render={({ field }) => (
                 <FormItem><FormLabel>Care & Maintenance</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>
               )} />

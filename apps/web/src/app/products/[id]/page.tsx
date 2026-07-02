@@ -31,14 +31,14 @@ interface ProductData {
 }
 
 const fallbackProduct: ProductData = {
-  _id: 'mock-pepperfry-01',
-  vendor: 'Woodsworth from Pepperfry',
+  _id: 'mock-premium-01',
+  vendor: 'Woodsworth',
   title: 'Miranda Chenille Fabric 3 Seater Sofa In Charcoal Grey Colour',
   price: 47999,
   compareAtPrice: 61999,
   inventoryQuantity: 40,
   imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
-  shortDescription: 'By Woodsworth from Pepperfry',
+  shortDescription: 'By Woodsworth',
   emiAvailable: true,
   emiStartingFrom: 2305,
   additionalOffers: [
@@ -49,7 +49,7 @@ const fallbackProduct: ProductData = {
   ],
   assemblyFee: 1399,
   productDetails: {
-    'Brand': 'Woodsworth from Pepperfry',
+    'Brand': 'Woodsworth',
     'Assembly': 'Carpenter Assembly',
     'Collections': 'Miranda',
     'Dimensions (In Centimeters)': 'H 89 x W 202 x D 90',
@@ -189,7 +189,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Buy Box (Pepperfry Style) */}
+          {/* RIGHT COLUMN: Buy Box (Premium Style) */}
           <div className="flex flex-col">
             
             {/* Title & Brand */}
@@ -202,7 +202,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 {rating} <Star className="w-3 h-3 fill-white" />
               </span>
               <span className="text-xs font-medium text-gray-400">36-Month Warranty</span>
-              <span className="text-xs font-bold text-blue-600 ml-2">pepperfry assured</span>
+              <span className="text-xs font-bold text-blue-600 ml-2">Jodo assured</span>
             </div>
 
             {/* Price & EMI */}
