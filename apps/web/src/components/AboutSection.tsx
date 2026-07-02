@@ -15,8 +15,7 @@ export default function AboutSection() {
         {/* ── LEFT SIDE — Text ── */}
         <div className="flex-1 max-w-[600px]">
           
-          <div className="flex items-center gap-3 mb-6">
-            <span className="w-12 h-[2px] bg-terracotta"></span>
+          <div className="mb-6">
             <p className="text-terracotta font-bold text-sm tracking-widest uppercase">
               Craftsmanship & Style
             </p>
