@@ -7,11 +7,8 @@ export default function AboutSection() {
   return (
     <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-20 lg:py-32 overflow-hidden">
       
-      {/* ── BACKGROUND WAVY LINES ── */}
-      <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 z-0 pointer-events-none opacity-40">
-        {/* A large circular gradient blur for abstract modern feel */}
-        <div className="w-[600px] h-[600px] bg-terracotta/20 rounded-full blur-[100px]" />
-      </div>
+      {/* ── BACKGROUND ── */}
+      <div className="absolute inset-0 bg-white -z-10" />
 
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24">
 
@@ -34,8 +31,8 @@ export default function AboutSection() {
             Curated, stylish pieces for every space. With a focus on comfort and craftsmanship, our pieces are designed to inspire and elevate your everyday life.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
-            {/* View All Projects Link */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
+            {/* Discover More Link */}
             <Link
               href="/about"
               className="group relative inline-flex items-center gap-4 bg-[#1C1A17] text-white overflow-hidden rounded-full px-8 py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"
@@ -47,13 +44,13 @@ export default function AboutSection() {
               </span>
             </Link>
             
-            {/* Explore Collections Link */}
+            {/* Explore Collection Link */}
             <Link
-              href="/collections"
-              className="text-[#1C1A17] font-bold text-[15px] hover:text-terracotta transition-colors flex items-center gap-2 group"
+              href="/shop"
+              className="group relative inline-flex items-center gap-4 bg-transparent border-2 border-[#1C1A17] text-[#1C1A17] overflow-hidden rounded-full px-8 py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10"
             >
-              Explore Collections
-              <span className="transition-transform group-hover:translate-x-1">→</span>
+              <div className="absolute inset-0 bg-[#1C1A17] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
+              <span className="relative z-10 font-semibold text-[15px] group-hover:text-white transition-colors duration-500">Explore Collection</span>
             </Link>
           </div>
         </div>
@@ -61,15 +58,9 @@ export default function AboutSection() {
         {/* ── RIGHT SIDE — Images ── */}
         <div className="flex-1 w-full relative">
           
-          <div className="relative w-[90%] ml-auto aspect-[4/5]">
-            {/* Main Large Image with CSS Clip-path Cutout */}
-            <div 
-              className="absolute inset-0 shadow-2xl group"
-              style={{
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 52% 100%, 52% 58%, 0 58%)',
-                borderRadius: '40px'
-              }}
-            >
+          <div className="relative w-full aspect-square md:aspect-[10/9]">
+            {/* Main Large Image */}
+            <div className="absolute inset-0 rounded-[40px] overflow-hidden group z-0">
               <Image
                 src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=85"
                 alt="Living room"
@@ -79,24 +70,30 @@ export default function AboutSection() {
               />
             </div>
 
-            {/* Overlapping Secondary Image */}
-            <div className="absolute left-0 bottom-0 z-10 w-[48%] aspect-square rounded-[32px] overflow-hidden shadow-2xl group">
-              <Image
-                src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80"
-                alt="Furniture detail"
-                fill
-                className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
-                unoptimized
-              />
-            </div>
-          </div>
+            {/* Solid White Cutout Block to create the gap and rounded inner corners */}
+            <div className="absolute left-[-2px] bottom-[-2px] z-10 w-[55%] h-[55%] bg-white rounded-tr-[32px]">
+              
+              {/* Inverted corner - Top side */}
+              <svg className="absolute top-[-30px] left-0 w-[32px] h-[32px] z-20" viewBox="0 0 32 32" fill="none">
+                <path d="M0 0v32h32C14.327 32 0 17.673 0 0z" fill="white" />
+              </svg>
 
-          {/* Floating Experience Badge */}
-          <div className="absolute top-[5%] left-0 bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-white/50 z-20 flex flex-col items-center justify-center hover:-translate-y-2 transition-transform duration-500 cursor-default">
-            <span className="text-terracotta font-bold text-3xl md:text-4xl">10+</span>
-            <span className="text-gray-600 text-[10px] md:text-xs font-bold uppercase tracking-wider mt-1 text-center leading-tight">
-              Years of<br/>Excellence
-            </span>
+              {/* Inverted corner - Right side */}
+              <svg className="absolute bottom-0 right-[-30px] w-[32px] h-[32px] z-20" viewBox="0 0 32 32" fill="none">
+                <path d="M32 32H0V0c0 17.673 14.327 32 32 32z" fill="white" />
+              </svg>
+
+              {/* Overlapping Secondary Image */}
+              <div className="absolute left-0 bottom-0 w-[92%] h-[92%] rounded-[28px] overflow-hidden group">
+                <Image
+                  src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80"
+                  alt="Furniture detail"
+                  fill
+                  className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
+                  unoptimized
+                />
+              </div>
+            </div>
           </div>
 
         </div>
