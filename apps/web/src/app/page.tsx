@@ -3,6 +3,7 @@ import AboutSection from "@/components/AboutSection";
 import FeaturesBar from "@/components/FeaturesBar";
 import CollectionsSection from "@/components/CollectionsSection";
 import FeaturedProducts from "@/components/FeaturedProducts";
+import PuzzleSection from "@/components/PuzzleSection";
 import VideoSection from "@/components/VideoSection";
 
 export default function HomePage() {
@@ -19,6 +20,9 @@ export default function HomePage() {
 
       {/* Featured Products */}
       <FeaturedProducts />
+
+      {/* Scroll Puzzle Animation */}
+      <PuzzleSection />
 
       {/* New Collection + Room Categories */}
       <CollectionsSection />
