@@ -44,62 +44,62 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <div className="group relative flex flex-col bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1">
-      {/* ── Favorite Button ── */}
-      <button 
-        className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-[#111111] transition-colors"
-        aria-label="Add to favorites"
-      >
-        <Heart className="w-5 h-5 transition-transform group-hover/btn:scale-110" strokeWidth={1.5} />
-      </button>
-
-      {/* ── Product Image ── */}
-      <Link href={`/products/${product.id}`} className="relative w-full aspect-[4/3] bg-gray-100 flex items-center justify-center overflow-hidden group/image cursor-pointer">
-        <Image
-          src={product.imageUrl}
-          alt={product.title}
-          fill
-          className="object-cover transition-transform duration-700 group-hover/image:scale-105"
-          unoptimized
-        />
-      </Link>
-
-      {/* ── Product Info ── */}
-      <div className="flex flex-col flex-grow px-5 pb-5 pt-4">
-        {/* Brand */}
-        <span className="text-[#888888] text-[11px] font-bold tracking-[0.15em] uppercase mb-1.5">
-          {product.brand}
-        </span>
+    <div className="group relative flex flex-col gap-3 w-full">
+      {/* ── Product Image Container ── */}
+      <div className="relative w-full aspect-[4/5] bg-[#F9F6F0] rounded-[15px] overflow-hidden">
         
-        {/* Title */}
-        <Link href={`/products/${product.id}`} className="group-hover/title:text-gray-600 transition-colors cursor-pointer">
-          <h3 className="text-[#111111] font-semibold text-[15px] leading-snug mb-1.5 line-clamp-2 hover:underline">
-            {product.title}
-          </h3>
+        <Link href={`/products/${product.id}`} className="absolute inset-0 z-0">
+          <Image
+            src={product.imageUrl}
+            alt={product.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            unoptimized
+          />
+          {/* Subtle gradient overlay to ensure the quick add button is legible */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         </Link>
-        
-        {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-4">
-          <div className="flex items-center gap-0.5">
-            {renderStars(product.rating)}
-          </div>
-          <span className="text-[#666666] text-[13px] font-medium mt-0.5">
-            ({product.reviews})
-          </span>
-        </div>
-        
-        {/* Price */}
-        <div className="text-[#111111] font-bold text-[18px] mt-auto">
-          ₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+
+        {/* Favorite Button */}
+        <button 
+          className="absolute top-4 right-4 z-10 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-gray-600 hover:bg-terracotta hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
+          aria-label="Add to favorites"
+        >
+          <Heart className="w-4 h-4" strokeWidth={1.5} />
+        </button>
+
+        {/* Hover "Quick Add" Button */}
+        <div className="absolute inset-x-0 bottom-0 p-3 md:p-3 translate-y-[120%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-20">
+          <button className="w-full bg-white/90 backdrop-blur-md text-[#1C1A17] hover:bg-[#1C1A17] hover:text-white flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-[14px] transition-colors shadow-lg">
+            <ShoppingBag className="w-4 h-4" strokeWidth={2} />
+            Quick Add
+          </button>
         </div>
       </div>
 
-      {/* ── Hover "Add to Cart" Button ── */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-20">
-        <button className="w-full bg-[#111111] hover:bg-[#222222] text-white flex items-center justify-center gap-2 py-3.5 rounded-lg font-semibold text-[15px] transition-colors shadow-md">
-          <ShoppingBag className="w-5 h-5" strokeWidth={2} />
-          Add to cart
-        </button>
+      {/* ── Product Info ── */}
+      <div className="flex flex-col px-1">
+        <div className="flex justify-between items-start gap-4">
+          <Link href={`/products/${product.id}`}>
+            <h3 className="text-[#1C1A17] font-bold text-[15px] md:text-[16px] leading-snug line-clamp-2 group-hover:text-terracotta transition-colors">
+              {product.title}
+            </h3>
+          </Link>
+          <div className="text-[#1C1A17] font-bold text-[15px] md:text-[16px] whitespace-nowrap">
+            ₹{product.price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center mt-1">
+          <span className="text-gray-400 text-[10px] md:text-[11px] font-bold tracking-[0.1em] uppercase">
+            {product.brand}
+          </span>
+          <div className="flex items-center gap-1 text-xs font-semibold text-gray-600">
+            <Star className="w-3.5 h-3.5 fill-[#FDB022] text-[#FDB022]" />
+            <span>{product.rating}</span>
+            <span className="text-gray-400 font-normal">({product.reviews})</span>
+          </div>
+        </div>
       </div>
     </div>
   );

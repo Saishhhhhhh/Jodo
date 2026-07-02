@@ -22,23 +22,23 @@ export default function PuzzleSection() {
   // Define the animations for the 4 pieces (Top-Left, Top-Right, Bottom-Left, Bottom-Right)
   
   // TOP LEFT: flies in from top-left, rotated negatively
-  const tlX = useTransform(assembleProgress, [0, 1], ['-100%', '0%']);
-  const tlY = useTransform(assembleProgress, [0, 1], ['-100%', '0%']);
+  const tlX = useTransform(assembleProgress, [0, 1], ['-100vw', '0%']);
+  const tlY = useTransform(assembleProgress, [0, 1], ['-100vh', '0%']);
   const tlRotate = useTransform(assembleProgress, [0, 1], [-45, 0]);
 
   // TOP RIGHT: flies in from top-right, rotated positively
-  const trX = useTransform(assembleProgress, [0, 1], ['100%', '0%']);
-  const trY = useTransform(assembleProgress, [0, 1], ['-100%', '0%']);
+  const trX = useTransform(assembleProgress, [0, 1], ['100vw', '0%']);
+  const trY = useTransform(assembleProgress, [0, 1], ['-100vh', '0%']);
   const trRotate = useTransform(assembleProgress, [0, 1], [45, 0]);
 
   // BOTTOM LEFT: flies in from bottom-left
-  const blX = useTransform(assembleProgress, [0, 1], ['-100%', '0%']);
-  const blY = useTransform(assembleProgress, [0, 1], ['100%', '0%']);
+  const blX = useTransform(assembleProgress, [0, 1], ['-100vw', '0%']);
+  const blY = useTransform(assembleProgress, [0, 1], ['100vh', '0%']);
   const blRotate = useTransform(assembleProgress, [0, 1], [-45, 0]);
 
   // BOTTOM RIGHT: flies in from bottom-right
-  const brX = useTransform(assembleProgress, [0, 1], ['100%', '0%']);
-  const brY = useTransform(assembleProgress, [0, 1], ['100%', '0%']);
+  const brX = useTransform(assembleProgress, [0, 1], ['100vw', '0%']);
+  const brY = useTransform(assembleProgress, [0, 1], ['100vh', '0%']);
   const brRotate = useTransform(assembleProgress, [0, 1], [45, 0]);
 
   // Fade out the text as the puzzle finishes assembling
