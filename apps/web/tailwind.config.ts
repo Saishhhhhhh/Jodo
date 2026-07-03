@@ -1,3 +1,4 @@
+// Force tailwind rebuild
 import type { Config } from "tailwindcss";
 
 const config: Config = {
