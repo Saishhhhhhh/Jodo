@@ -44,7 +44,7 @@ export default function LoginPage() {
       {/* Left Panel — Branding */}
       <div className="hidden lg:flex flex-col w-[480px] shrink-0 bg-card border-r border-border relative overflow-hidden p-12">
         {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-purple-500/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-primary/10 pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         {/* Logo */}

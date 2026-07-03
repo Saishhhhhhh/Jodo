@@ -13,7 +13,7 @@
     --card-foreground: 240 10% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 4%;
-    --primary: 239 84% 67%;
+    --primary: 11 45% 49%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 5% 92%;
     --secondary-foreground: 240 10% 4%;
@@ -25,18 +25,18 @@
     --destructive-foreground: 0 0% 100%;
     --border: 240 6% 90%;
     --input: 240 6% 90%;
-    --ring: 239 84% 67%;
+    --ring: 11 45% 49%;
     --radius: 0.5rem;
 
     /* Sidebar */
     --sidebar-background: 240 5% 96%;
     --sidebar-foreground: 240 10% 4%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary: 11 45% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 5% 91%;
     --sidebar-accent-foreground: 240 10% 4%;
     --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-ring: 11 45% 49%;
 
     /* Status colors */
     --success: 142 71% 45%;
@@ -55,7 +55,7 @@
     --card-foreground: 0 0% 95%;
     --popover: 240 10% 7%;
     --popover-foreground: 0 0% 95%;
-    --primary: 239 84% 67%;
+    --primary: 11 45% 49%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 4% 16%;
     --secondary-foreground: 0 0% 95%;
@@ -67,17 +67,17 @@
     --destructive-foreground: 0 0% 100%;
     --border: 240 4% 16%;
     --input: 240 4% 16%;
-    --ring: 239 84% 67%;
+    --ring: 11 45% 49%;
 
     /* Sidebar */
     --sidebar-background: 240 10% 5%;
     --sidebar-foreground: 240 5% 65%;
-    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary: 11 45% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4% 12%;
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 240 4% 12%;
-    --sidebar-ring: 239 84% 67%;
+    --sidebar-ring: 11 45% 49%;
 
     /* Status colors */
     --success: 142 71% 45%;

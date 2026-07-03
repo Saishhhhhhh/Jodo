@@ -11,7 +11,7 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   return (
-    <header className="w-full bg-white sticky top-0 z-50 shadow-sm">
+    <header className="w-full bg-white sticky top-0 z-[100] shadow-sm">
       {/* ── TOP TIER: Search, Logo, Actions ── */}
       <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 flex items-center justify-between h-[65px]">
         

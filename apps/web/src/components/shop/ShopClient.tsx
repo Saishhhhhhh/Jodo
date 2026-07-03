@@ -20,7 +20,6 @@ interface ShopClientProps {
   initialProducts: ProductData[];
 }
 
-const CATEGORIES = ['Living Room', 'Bedroom', 'Dining', 'Study & Office', 'Outdoor'];
 const PRICE_RANGES = [
   { label: 'Under ₹20,000', min: 0, max: 20000 },
   { label: '₹20,000 - ₹50,000', min: 20000, max: 50000 },
@@ -30,29 +29,160 @@ const PRICE_RANGES = [
 export default function ShopClient({ initialProducts }: ShopClientProps) {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [selectedPriceRange, setSelectedPriceRange] = useState<string | null>(null);
   const [inStockOnly, setInStockOnly] = useState(false);
+  const [assemblyRequired, setAssemblyRequired] = useState<boolean | null>(null);
 
-  // Derive products from the mock if DB is empty, for a good initial experience
-  const fallbackProducts: ProductData[] = Array(8).fill(null).map((_, i) => ({
-    _id: `mock-${i}`,
-    title: `Premium Fabric Sofa ${i + 1}`,
-    vendor: 'Woodsworth',
-    price: 47999,
-    compareAtPrice: 61999,
-    imageUrl: `https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80`,
-    inventoryQuantity: 10,
-    productDetails: {
-      'Room Type': 'Living Room'
+  const fallbackProducts: ProductData[] = [
+    {
+      _id: '6a438dfe74b049d5bc53d522',
+      title: 'Mid-Century TV Stand',
+      vendor: 'RetroHome',
+      price: 399,
+      compareAtPrice: 599,
+      imageUrl: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 15,
+      productDetails: { 'Room Type': 'Living Room' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d51f',
+      title: 'Industrial Bookshelf',
+      vendor: 'IronCraft',
+      price: 349,
+      compareAtPrice: 499,
+      imageUrl: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 8,
+      productDetails: { 'Room Type': 'Study & Office' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d51b',
+      title: 'Ergonomic Office Chair',
+      vendor: 'ErgoMates',
+      price: 199.5,
+      compareAtPrice: 299,
+      imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 24,
+      productDetails: { 'Room Type': 'Study & Office' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d51e',
+      title: 'Queen Size Platform Bed',
+      vendor: 'SleepWell',
+      price: 599,
+      compareAtPrice: 899,
+      imageUrl: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 5,
+      productDetails: { 'Room Type': 'Bedroom' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d51d',
+      title: 'Minimalist Nightstand',
+      vendor: 'Jodo Living',
+      price: 145,
+      compareAtPrice: 199,
+      imageUrl: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 12,
+      productDetails: { 'Room Type': 'Bedroom' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d51c',
+      title: 'Velvet Accent Sofa',
+      vendor: 'Plush Designs',
+      price: 1450,
+      compareAtPrice: 1950,
+      imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 4,
+      productDetails: { 'Room Type': 'Living Room' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d51a',
+      title: 'Modern Oak Dining Table',
+      vendor: 'Jodo Living',
+      price: 899,
+      compareAtPrice: 1299,
+      imageUrl: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 7,
+      productDetails: { 'Room Type': 'Dining' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d521',
+      title: 'Glass Top Coffee Table',
+      vendor: 'ClearView',
+      price: 249,
+      compareAtPrice: 349,
+      imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 10,
+      productDetails: { 'Room Type': 'Living Room' }
+    },
+    {
+      _id: '6a438dfe74b049d5bc53d523',
+      title: 'Luxury Marble Dining Table',
+      vendor: 'Jodo Premium',
+      price: 2499,
+      compareAtPrice: 3199,
+      imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 3,
+      productDetails: { 'Room Type': 'Dining' }
+    },
+    {
+      _id: 'furn-out-01',
+      title: 'Outdoor Teak Lounge Chair',
+      vendor: 'Jodo Outdoors',
+      price: 499,
+      compareAtPrice: 699,
+      imageUrl: 'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 9,
+      productDetails: { 'Room Type': 'Outdoor' }
     }
-  }));
+  ];
 
   const displayProducts = initialProducts.length > 0 ? initialProducts : fallbackProducts;
+
+  const dynamicCategories = useMemo(() => {
+    const cats = new Set<string>();
+    displayProducts.forEach(p => {
+      const roomType = p.productDetails?.['Room Type'];
+      if (roomType) {
+        cats.add(roomType);
+      } else if (p.category) {
+        cats.add(p.category as string);
+      }
+    });
+    if (cats.size === 0) return ['Furniture'];
+    return Array.from(cats).sort();
+  }, [displayProducts]);
+
+  const dynamicVendors = useMemo(() => {
+    const vendors = new Set<string>();
+    displayProducts.forEach(p => {
+      if (p.vendor) vendors.add(p.vendor);
+    });
+    return Array.from(vendors).sort();
+  }, [displayProducts]);
+
+  const dynamicMaterials = useMemo(() => {
+    const materials = new Set<string>();
+    displayProducts.forEach(p => {
+      const mat = p.material || p.productDetails?.['Material'];
+      if (mat) materials.add(mat as string);
+    });
+    return Array.from(materials).sort();
+  }, [displayProducts]);
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories(prev => 
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
+  };
+
+  const toggleVendor = (v: string) => {
+    setSelectedVendors(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  };
+
+  const toggleMaterial = (m: string) => {
+    setSelectedMaterials(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
   };
 
   const filteredProducts = useMemo(() => {
@@ -66,6 +196,23 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
         if (range) {
           if (p.price < range.min || p.price > range.max) return false;
         }
+      }
+
+      // Vendor Filter
+      if (selectedVendors.length > 0) {
+        if (!p.vendor || !selectedVendors.includes(p.vendor)) return false;
+      }
+
+      // Material Filter
+      if (selectedMaterials.length > 0) {
+        const mat = p.material || p.productDetails?.['Material'];
+        if (!mat || !selectedMaterials.includes(mat as string)) return false;
+      }
+
+      // Assembly Filter
+      if (assemblyRequired !== null) {
+        const requires = p.assemblyRequired || p.productDetails?.['Assembly Required'] === 'Yes';
+        if (requires !== assemblyRequired) return false;
       }
 
       // Category Filter (Using Room Type from product details, or title fallback)
@@ -123,7 +270,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                 Categories
               </h3>
               <div className="space-y-3">
-                {CATEGORIES.map(cat => (
+                {dynamicCategories.map(cat => (
                   <label key={cat} className="flex items-center gap-3 cursor-pointer group">
                     <input 
                       type="checkbox" 
@@ -171,6 +318,85 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                 )}
               </div>
             </div>
+
+            {/* Vendor Filter */}
+            {dynamicVendors.length > 0 && (
+              <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-4 flex items-center justify-between">
+                  Brands
+                </h3>
+                <div className="space-y-3">
+                  {dynamicVendors.map(vendor => (
+                    <label key={vendor} className="flex items-center gap-3 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={selectedVendors.includes(vendor)} 
+                        onChange={() => toggleVendor(vendor)} 
+                      />
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors
+                        ${selectedVendors.includes(vendor) ? 'bg-[#B65A45] border-[#B65A45]' : 'border-gray-300 group-hover:border-[#B65A45]'}
+                      `}>
+                        {selectedVendors.includes(vendor) && <Check size={14} className="text-white" />}
+                      </div>
+                      <span className="text-gray-700 font-medium group-hover:text-[#B65A45] transition-colors">{vendor}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Material Filter */}
+            {dynamicMaterials.length > 0 && (
+              <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">
+                <h3 className="font-semibold text-lg text-gray-900 mb-4 flex items-center justify-between">
+                  Materials
+                </h3>
+                <div className="space-y-3">
+                  {dynamicMaterials.map(mat => (
+                    <label key={mat} className="flex items-center gap-3 cursor-pointer group">
+                      <input 
+                        type="checkbox" 
+                        className="hidden" 
+                        checked={selectedMaterials.includes(mat)} 
+                        onChange={() => toggleMaterial(mat)} 
+                      />
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors
+                        ${selectedMaterials.includes(mat) ? 'bg-[#B65A45] border-[#B65A45]' : 'border-gray-300 group-hover:border-[#B65A45]'}
+                      `}>
+                        {selectedMaterials.includes(mat) && <Check size={14} className="text-white" />}
+                      </div>
+                      <span className="text-gray-700 font-medium group-hover:text-[#B65A45] transition-colors">{mat}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Assembly Filter */}
+            <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="font-semibold text-lg text-gray-900">Assembly Required</span>
+                <div className={`relative w-11 h-6 rounded-full transition-colors ${assemblyRequired === true ? 'bg-[#B65A45]' : 'bg-gray-300'}`}>
+                  <input 
+                    type="checkbox" 
+                    className="hidden" 
+                    checked={assemblyRequired === true} 
+                    onChange={() => setAssemblyRequired(assemblyRequired === true ? null : true)} 
+                  />
+                  <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${assemblyRequired === true ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
+              </label>
+              {assemblyRequired === true && (
+                <button 
+                  onClick={() => setAssemblyRequired(null)}
+                  className="text-sm text-[#B65A45] font-semibold mt-2 hover:underline block"
+                >
+                  Clear Assembly Filter
+                </button>
+              )}
+            </div>
+
 
             {/* Availability Filter */}
             <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">

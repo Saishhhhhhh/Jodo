@@ -123,16 +123,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Media Library', href: '/media', icon: Image },
     ],
   },
-  {
-    label: 'Sales Channels',
-    icon: Globe,
-    children: [
-      { label: 'Online Store', href: '/channels/online', icon: Globe },
-      { label: 'POS', href: '/channels/pos', icon: ShoppingBag },
-      { label: 'WhatsApp', href: '/channels/whatsapp', icon: MessageSquare },
-      { label: 'B2B Portal', href: '/channels/b2b', icon: Building },
-    ],
-  },
+
   {
     label: 'Analytics',
     icon: BarChart3,
