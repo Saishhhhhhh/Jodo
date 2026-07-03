@@ -14,14 +14,13 @@ export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartCount = useCartStore((state) => state.cartCount());
   
-  const { customer, isAuthenticated } = useCustomerStore();
-  const isAuth = mounted && isAuthenticated();
-  
-  // Hydration fix for zustand persist
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const { customer, isAuthenticated } = useCustomerStore();
+  const isAuth = mounted && isAuthenticated();
 
   return (
     <header className="w-full bg-white sticky top-0 z-[100] shadow-sm">
