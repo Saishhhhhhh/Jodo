@@ -8,11 +8,13 @@ import SearchOverlay from './SearchOverlay';
 import CartOverlay from './CartOverlay';
 import { useCartStore } from '../store/useCartStore';
 import { useCustomerStore } from '../store/useCustomerStore';
+import { useWishlistStore } from '../store/useWishlistStore';
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartCount = useCartStore((state) => state.cartCount());
+  const wishlistCount = useWishlistStore((state) => state.wishlistCount());
   
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -71,8 +73,13 @@ export default function Navbar() {
 
 
           {/* Wishlist */}
-          <Link href="/wishlist" aria-label="Wishlist" className="group">
+          <Link href="/wishlist" aria-label="Wishlist" className="relative group">
             <Heart className="w-6 h-6 text-gray-800 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
+            {mounted && wishlistCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 w-[18px] h-[18px] bg-terracotta text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
           {/* Cart */}

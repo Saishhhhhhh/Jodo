@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, ShoppingBag, Star } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
+import { useWishlistStore } from '../store/useWishlistStore';
 
 export interface Product {
   id: string;
@@ -22,6 +23,15 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const { toggleItem, isInWishlist } = useWishlistStore();
+  
+  // Hydration fix
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isWishlisted = mounted ? isInWishlist(product.id) : false;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,10 +64,21 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Favorite Button */}
         <button 
-          className="absolute top-4 right-4 z-10 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-gray-600 hover:bg-terracotta hover:text-white hover:scale-110 transition-all duration-300 shadow-sm"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleItem({
+              id: product.id,
+              title: product.title,
+              price: product.price,
+              imageUrl: product.imageUrl,
+              brand: product.brand,
+            });
+          }}
+          className={`absolute top-4 right-4 z-10 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${isWishlisted ? 'text-terracotta bg-white' : 'text-gray-600 hover:bg-terracotta hover:text-white hover:scale-110'}`}
           aria-label="Add to favorites"
         >
-          <Heart className="w-4 h-4" strokeWidth={1.5} />
+          <Heart className="w-4 h-4" strokeWidth={1.5} fill={isWishlisted ? 'currentColor' : 'none'} />
         </button>
 
         {/* Hover "Quick Add" Button */}

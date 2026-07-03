@@ -26,7 +26,7 @@ export default function AccountOrdersPage() {
         if (data.success) {
           setOrders(data.data.orders);
         } else {
-          setError('Failed to load orders.');
+          setError(data.message || 'Failed to load orders.');
         }
       } catch (err) {
         setError('A network error occurred.');

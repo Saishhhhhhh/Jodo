@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Customer } from '../models/Customer';
 import { Store } from '../models/Store';
+import { Order } from '../models/Order';
 import { sendSuccess, sendError } from '../utils/response';
 import { signAccessToken } from '../utils/jwt';
 import jwt from 'jsonwebtoken';
@@ -141,7 +142,7 @@ router.put('/me', async (req, res, next) => {
       return sendError(res, 'Invalid or expired token', 401);
     }
 
-    const { firstName, lastName, phone } = req.body;
+    const { firstName, lastName, phone, defaultShippingAddress } = req.body;
     const customer = await Customer.findById(decoded.sub);
     
     if (!customer) {
@@ -151,6 +152,10 @@ router.put('/me', async (req, res, next) => {
     if (firstName) customer.firstName = firstName;
     if (lastName) customer.lastName = lastName;
     if (phone !== undefined) customer.phone = phone; // Allow clearing phone
+    
+    if (defaultShippingAddress) {
+      customer.defaultShippingAddress = defaultShippingAddress;
+    }
 
     await customer.save();
 
@@ -205,8 +210,6 @@ router.put('/me/password', async (req, res, next) => {
   }
 });
 
-import { Order } from '../models/Order';
-
 // Get Current Customer Orders
 router.get('/me/orders', async (req, res, next) => {
   try {
@@ -234,6 +237,42 @@ router.get('/me/orders', async (req, res, next) => {
       .populate('items.productId', 'imageUrl');
 
     sendSuccess(res, { orders }, 'Orders retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get Single Customer Order
+router.get('/me/orders/:id', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const customer = await Customer.findById(decoded.sub);
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    const order = await Order.findOne({ 
+      _id: req.params.id,
+      customerEmail: customer.email 
+    }).populate('items.productId', 'imageUrl');
+
+    if (!order) {
+      return sendError(res, 'Order not found', 404);
+    }
+
+    sendSuccess(res, { order }, 'Order retrieved successfully');
   } catch (error) {
     next(error);
   }

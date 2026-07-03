@@ -1,6 +1,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+export interface ICustomerAddress {
+  firstName: string;
+  lastName: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  phone?: string;
+}
+
 export interface ICustomer extends Document {
   tenantId: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
@@ -15,6 +27,7 @@ export interface ICustomer extends Document {
   status: 'active' | 'inactive';
   tags?: string[];
   passwordHash?: string;
+  defaultShippingAddress?: ICustomerAddress;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -35,6 +48,17 @@ const customerSchema = new Schema<ICustomer>(
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     tags: { type: [String], default: [] },
     passwordHash: { type: String, select: false },
+    defaultShippingAddress: {
+      firstName: { type: String },
+      lastName: { type: String },
+      address1: { type: String },
+      address2: { type: String },
+      city: { type: String },
+      state: { type: String },
+      zip: { type: String },
+      country: { type: String },
+      phone: { type: String },
+    }
   },
   { timestamps: true }
 );

@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCartStore } from '../../store/useCartStore';
+import { useCustomerStore } from '../../store/useCustomerStore';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Lock, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Lock, ShieldCheck, Tag } from 'lucide-react';
 
 export default function CheckoutPage() {
   const { items, cartTotal, clearCart } = useCartStore();
+  const { customer, isAuthenticated } = useCustomerStore();
   const router = useRouter();
   
   const [mounted, setMounted] = useState(false);
@@ -26,9 +28,47 @@ export default function CheckoutPage() {
     phone: '',
   });
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [discountApplied, setDiscountApplied] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponError, setCouponError] = useState('');
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Auto-fill form if customer is logged in
+    if (isAuthenticated() && customer) {
+      setFormData(prev => ({
+        ...prev,
+        email: customer.email || prev.email,
+        firstName: customer.defaultShippingAddress?.firstName || customer.firstName || prev.firstName,
+        lastName: customer.defaultShippingAddress?.lastName || customer.lastName || prev.lastName,
+        address: customer.defaultShippingAddress?.address1 || prev.address,
+        city: customer.defaultShippingAddress?.city || prev.city,
+        state: customer.defaultShippingAddress?.state || prev.state,
+        pincode: customer.defaultShippingAddress?.zip || prev.pincode,
+        phone: customer.defaultShippingAddress?.phone || customer.phone || prev.phone,
+      }));
+    }
+  }, [customer, isAuthenticated]);
+
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCouponError('');
+    
+    if (couponCode.toUpperCase() === 'WELCOME10') {
+      const discount = cartTotal() * 0.10; // 10% off
+      setDiscountAmount(discount);
+      setDiscountApplied(true);
+    } else {
+      setCouponError('Invalid coupon code');
+      setDiscountApplied(false);
+      setDiscountAmount(0);
+    }
+  };
+
+  const finalTotal = cartTotal() - discountAmount;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -64,7 +104,7 @@ export default function CheckoutPage() {
         subtotal: cartTotal(),
         taxTotal: 0,
         shippingTotal: 0,
-        totalAmount: cartTotal(),
+        totalAmount: finalTotal, // Use the discounted total
       };
 
       const res = await fetch('http://localhost:4000/api/storefront/checkout', {
@@ -222,10 +262,43 @@ export default function CheckoutPage() {
             </div>
 
             <div className="border-t border-gray-200 pt-4 pb-4 flex flex-col gap-3">
-              <div className="flex justify-between text-sm text-gray-600">
+              {/* Coupon Form */}
+              <form onSubmit={handleApplyCoupon} className="flex gap-2 mb-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Tag className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    disabled={discountApplied}
+                    placeholder="Discount code (try WELCOME10)"
+                    className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#B65A45] focus:border-[#B65A45] disabled:bg-gray-100 disabled:text-gray-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={!couponCode || discountApplied}
+                  className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                >
+                  Apply
+                </button>
+              </form>
+              
+              {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
+              {discountApplied && <p className="text-green-600 text-xs mt-1">Discount code '{couponCode.toUpperCase()}' applied!</p>}
+
+              <div className="flex justify-between text-sm text-gray-600 mt-2">
                 <span>Subtotal</span>
                 <span className="font-medium text-gray-900">₹{cartTotal().toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
+              {discountApplied && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount</span>
+                  <span className="font-medium">-₹{discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Shipping</span>
                 <span className="font-bold text-green-600">FREE</span>
@@ -236,7 +309,7 @@ export default function CheckoutPage() {
               <span className="font-bold text-lg text-gray-900">Total</span>
               <div className="text-right">
                 <span className="text-xs text-gray-500 mr-2">INR</span>
-                <span className="font-bold text-2xl text-gray-900">₹{cartTotal().toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="font-bold text-2xl text-gray-900">₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
