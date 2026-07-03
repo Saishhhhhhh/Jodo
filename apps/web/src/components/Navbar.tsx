@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, ShoppingBag, User, Heart, Store } from 'lucide-react';
+import { Search, ShoppingBag, User, Heart } from 'lucide-react';
 import { useState } from 'react';
 import SearchOverlay from './SearchOverlay';
 
@@ -52,14 +52,7 @@ export default function Navbar() {
             <User className="w-6 h-6 text-gray-800 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
           </Link>
 
-          {/* Find a Store */}
-          <Link href="/stores" className="flex items-center gap-2 group">
-            <div className="hidden xl:flex flex-col text-right">
-              <span className="text-[13px] font-semibold text-gray-900 group-hover:text-terracotta transition-colors leading-tight">Find a</span>
-              <span className="text-[11px] font-medium text-terracotta leading-tight">Store</span>
-            </div>
-            <Store className="w-6 h-6 text-gray-800 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
-          </Link>
+
 
           {/* Wishlist */}
           <Link href="/wishlist" aria-label="Wishlist" className="group">

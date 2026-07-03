@@ -100,81 +100,81 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     <div className="fixed inset-0 z-[100] flex flex-col bg-white overflow-hidden animate-in fade-in duration-300">
       
       {/* Top Search Bar */}
-      <div className="w-full bg-white px-4 md:px-8 py-6 border-b border-gray-100 flex items-center gap-4">
+      <div className="w-full bg-white px-4 md:px-8 py-5 border-b border-gray-200 flex items-center gap-4">
         <button 
           onClick={onClose}
-          className="text-gray-500 hover:text-black p-2 rounded-full hover:bg-gray-100 transition-colors"
+          className="text-gray-600 bg-gray-100 hover:bg-gray-200 p-2.5 rounded-full transition-colors flex-shrink-0"
         >
-          <ArrowLeft className="w-6 h-6" strokeWidth={1.5} />
+          <ArrowLeft className="w-5 h-5" strokeWidth={2} />
         </button>
 
-        <div className="flex-1 flex items-center border-2 border-gray-200 rounded-xl overflow-hidden bg-white focus-within:border-terracotta focus-within:shadow-sm transition-all p-1.5">
+        <div className="flex-1 max-w-[1440px] mx-auto flex items-center border-2 border-terracotta rounded-lg overflow-hidden bg-white shadow-sm p-1">
           <input
             ref={inputRef}
             type="text"
             placeholder="Search for mattress, beds, or sofas..."
-            className="flex-1 bg-transparent px-4 py-2 md:py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none text-lg md:text-xl font-medium"
+            className="flex-1 bg-transparent px-4 py-2 text-gray-800 placeholder:text-gray-400 focus:outline-none text-[16px] font-medium"
           />
-          <button className="bg-terracotta p-3 rounded-lg text-white hover:opacity-90 transition-opacity flex items-center justify-center shadow-sm">
-            <Search className="w-6 h-6" strokeWidth={2} />
+          <button className="bg-terracotta p-2.5 rounded-md text-white hover:bg-terracotta/90 transition-colors flex items-center justify-center">
+            <Search className="w-5 h-5" strokeWidth={2.5} />
           </button>
         </div>
       </div>
 
       {/* Main Content - 2 Columns */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden max-w-[1500px] mx-auto w-full">
         
         {/* LEFT COLUMN: Trending & Popular Products */}
         <div className="flex-1 w-full lg:w-[60%] overflow-y-auto px-6 md:px-12 py-10 custom-scrollbar">
           
           {/* Trending Searches */}
           <div className="mb-12 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Trending Searches</h3>
+            <h3 className="text-[18px] font-bold text-[#1C1A17] mb-5">Trending Searches</h3>
             <div className="flex flex-wrap gap-3 mb-4">
               {TRENDING_SEARCHES.map((term) => (
                 <button
                   key={term}
-                  className="px-4 py-2.5 rounded-md bg-terracotta/5 border border-terracotta/20 text-terracotta font-semibold text-[15px] flex items-center gap-2 hover:bg-terracotta/10 transition-colors"
+                  className="px-4 py-2 rounded-md bg-[#FFF9F7] border border-[#F2C5B6] text-terracotta font-semibold text-[13px] flex items-center gap-2 hover:bg-[#FCECE6] transition-colors"
                 >
-                  <TrendingUp className="w-4 h-4" strokeWidth={2} />
+                  <TrendingUp className="w-4 h-4" strokeWidth={2.5} />
                   {term}
                 </button>
               ))}
             </div>
-            <button className="text-terracotta font-semibold hover:underline text-[15px]">
+            <button className="text-terracotta font-bold hover:underline text-[13px]">
               Show More...
             </button>
           </div>
 
           {/* Popular Products */}
           <div className="animate-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Popular Products</h3>
-            <div className="flex flex-col gap-4">
+            <h3 className="text-[18px] font-bold text-[#1C1A17] mb-5">Popular Products</h3>
+            <div className="flex flex-col gap-3">
               {POPULAR_PRODUCTS.map((product) => (
                 <Link 
                   href={`/products/${product.id}`} 
                   key={product.id} 
-                  className="group flex items-center gap-4 p-4 border border-gray-100 rounded-xl hover:border-terracotta/30 hover:shadow-md transition-all bg-white"
+                  className="group flex items-center gap-5 p-3 border border-gray-100 rounded-xl hover:border-terracotta/40 hover:shadow-sm transition-all bg-white"
                 >
-                  <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                  <div className="relative w-[80px] h-[80px] bg-gray-50 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                     <Image
                       src={product.image}
                       alt={product.name}
                       fill
-                      className="object-cover"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   <div className="flex-1 pr-4">
-                    <h4 className="text-[15px] font-medium text-gray-800 leading-snug line-clamp-2">{product.name}</h4>
+                    <h4 className="text-[13px] font-medium text-gray-700 leading-snug">{product.name}</h4>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-terracotta text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="w-8 h-8 rounded-full bg-terracotta text-white flex items-center justify-center shrink-0 shadow-sm group-hover:bg-[#a34c32] transition-colors mr-2">
                     <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                   </div>
                 </Link>
               ))}
             </div>
             <div className="mt-4 text-right">
-              <button className="text-terracotta font-semibold hover:underline text-[15px]">
+              <button className="text-terracotta font-bold hover:underline text-[13px]">
                 Show More
               </button>
             </div>
@@ -183,8 +183,8 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
         </div>
 
         {/* RIGHT COLUMN: Popular Categories */}
-        <div className="w-full lg:w-[40%] bg-[#F8F5F2] overflow-y-auto px-6 md:px-12 py-10 border-l border-gray-200 custom-scrollbar">
-          <h3 className="text-xl font-bold text-gray-900 mb-8 animate-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both">
+        <div className="w-full lg:w-[40%] bg-[#F5F5F5] overflow-y-auto px-6 md:px-12 py-10 border-l border-gray-200 custom-scrollbar">
+          <h3 className="text-[18px] font-bold text-[#1C1A17] mb-8 animate-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both">
             Popular Categories
           </h3>
           
@@ -195,19 +195,19 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                 className="animate-in slide-in-from-bottom-4 duration-500 fill-mode-both"
                 style={{ animationDelay: `${400 + (idx * 100)}ms` }}
               >
-                <h4 className="text-[17px] font-bold text-gray-900 mb-4">{category.title}</h4>
+                <h4 className="text-[15px] font-bold text-[#1C1A17] mb-4">{category.title}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {category.items.map((item, index) => (
                     <Link href="/shop" key={index} className="group flex flex-col gap-2">
-                      <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-sm bg-white border border-gray-100 group-hover:shadow-md transition-shadow">
+                      <div className="relative w-full aspect-[4/5] md:aspect-square rounded-[14px] overflow-hidden bg-white shadow-sm group-hover:shadow-md transition-all">
                         <Image
                           src={item.image}
                           alt={item.name}
                           fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700"
                         />
                       </div>
-                      <p className="text-[13px] text-gray-600 font-medium text-center leading-tight group-hover:text-terracotta transition-colors px-1">
+                      <p className="text-[12px] text-gray-700 font-semibold text-center leading-tight group-hover:text-terracotta transition-colors px-1 mt-1">
                         {item.name}
                       </p>
                     </Link>
@@ -222,17 +222,17 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
+          background: #d1d5db;
           border-radius: 10px;
         }
         .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
+          background: #9ca3af;
         }
       `}</style>
     </div>
