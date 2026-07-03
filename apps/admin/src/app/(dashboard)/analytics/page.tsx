@@ -114,6 +114,7 @@ export default function AnalyticsPage() {
                 <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
+                  cursor={{ fill: 'hsl(var(--muted))' }}
                   contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
                   itemStyle={{ color: 'hsl(var(--primary))', fontWeight: 500 }}
                   labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '4px' }}
