@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, ArrowLeft, ShieldCheck, MapPin, Tag, ChevronDown, CheckCircle2, Plus } from 'lucide-react';
+import ProductActions from '@/components/ProductActions';
 
 interface ProductData {
   _id: string;
@@ -286,14 +287,13 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 mb-10">
-              <button className="flex-1 bg-white border-2 border-terracotta text-terracotta hover:bg-terracotta/5 py-3.5 rounded-md font-bold text-[15px] transition-colors shadow-sm">
-                ADD TO CART
-              </button>
-              <button className="flex-1 bg-terracotta text-white hover:bg-terracotta/90 py-3.5 rounded-md font-bold text-[15px] transition-colors shadow-sm">
-                BUY NOW
-              </button>
-            </div>
+            <ProductActions product={{
+              id: product._id,
+              title: product.title,
+              price: product.price,
+              imageUrl: product.imageUrl,
+              brand: product.vendor
+            }} />
 
             {/* Stores Near You */}
             <div className="border-t border-gray-200 pt-8">

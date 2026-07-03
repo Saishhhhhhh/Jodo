@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, ShoppingBag, Star } from 'lucide-react';
+import { useCartStore } from '../store/useCartStore';
 
 export interface Product {
   id: string;
@@ -18,6 +21,19 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const addItem = useCartStore((state) => state.addItem);
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      brand: product.brand,
+    });
+  };
 
   return (
     <div className="group relative flex flex-col gap-3 w-full">
@@ -46,7 +62,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Hover "Quick Add" Button */}
         <div className="absolute inset-x-0 bottom-0 p-3 md:p-3 translate-y-[120%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-20">
-          <button className="w-full bg-white/90 backdrop-blur-md text-[#1C1A17] hover:bg-[#1C1A17] hover:text-white flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-[14px] transition-colors shadow-lg">
+          <button 
+            onClick={handleQuickAdd}
+            className="w-full bg-white/90 backdrop-blur-md text-[#1C1A17] hover:bg-[#1C1A17] hover:text-white flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-[14px] transition-colors shadow-lg"
+          >
             <ShoppingBag className="w-4 h-4" strokeWidth={2} />
             Quick Add
           </button>

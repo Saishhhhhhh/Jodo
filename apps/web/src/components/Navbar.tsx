@@ -3,12 +3,21 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Search, ShoppingBag, User, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SearchOverlay from './SearchOverlay';
+import CartOverlay from './CartOverlay';
+import { useCartStore } from '../store/useCartStore';
 
 export default function Navbar() {
-  const [cartCount] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const cartCount = useCartStore((state) => state.cartCount());
+  
+  // Hydration fix for zustand persist
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="w-full bg-white sticky top-0 z-[100] shadow-sm">
@@ -60,14 +69,18 @@ export default function Navbar() {
           </Link>
 
           {/* Cart */}
-          <Link href="/cart" className="relative group" aria-label="Cart">
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="relative group" 
+            aria-label="Cart"
+          >
             <ShoppingBag className="w-6 h-6 text-gray-800 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
-            {cartCount > 0 && (
+            {mounted && cartCount > 0 && (
               <span className="absolute -top-1.5 -right-2 w-[18px] h-[18px] bg-terracotta text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 {cartCount}
               </span>
             )}
-          </Link>
+          </button>
 
         </div>
       </div>
@@ -96,7 +109,15 @@ export default function Navbar() {
         </nav>
       </div>
 
-      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <SearchOverlay 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+      />
+
+      <CartOverlay
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+      />
     </header>
   );
 }
