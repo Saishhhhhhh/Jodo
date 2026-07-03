@@ -137,17 +137,6 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    label: 'Apps & Plugins',
-    icon: Puzzle,
-    children: [
-      { label: 'Installed Apps', href: '/apps', icon: Puzzle },
-      { label: 'Marketplace', href: '/apps/marketplace', icon: ShoppingBag },
-      { label: 'API Keys', href: '/apps/api-keys', icon: Key },
-      { label: 'Webhooks', href: '/apps/webhooks', icon: Webhook },
-      { label: 'Developer Tools', href: '/apps/dev', icon: Code2 },
-    ],
-  },
-  {
     label: 'Settings',
     icon: Settings,
     children: [
@@ -159,6 +148,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Locations', href: '/settings/locations', icon: MapPin },
       { label: 'Languages', href: '/settings/languages', icon: Languages },
       { label: 'Policies', href: '/settings/policies', icon: FileCheck },
+      { label: 'Webhooks', href: '/apps/webhooks', icon: Webhook },
       { label: 'Audit Logs', href: '/settings/audit-logs', icon: Activity },
     ],
   },
