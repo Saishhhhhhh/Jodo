@@ -125,4 +125,118 @@ router.get('/me', async (req, res, next) => {
   }
 });
 
+// Update Current Customer Profile
+router.put('/me', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const { firstName, lastName, phone } = req.body;
+    const customer = await Customer.findById(decoded.sub);
+    
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    if (firstName) customer.firstName = firstName;
+    if (lastName) customer.lastName = lastName;
+    if (phone !== undefined) customer.phone = phone; // Allow clearing phone
+
+    await customer.save();
+
+    sendSuccess(res, { customer }, 'Profile updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Change Password
+router.put('/me/password', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return sendError(res, 'Current and new password are required', 400);
+    }
+
+    if (newPassword.length < 6) {
+      return sendError(res, 'New password must be at least 6 characters', 400);
+    }
+
+    const customer = await Customer.findById(decoded.sub).select('+passwordHash');
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    const isMatch = await customer.comparePassword(currentPassword);
+    if (!isMatch) {
+      return sendError(res, 'Incorrect current password', 400);
+    }
+
+    // Assign new password, pre-save hook will hash it
+    customer.passwordHash = newPassword;
+    await customer.save();
+
+    sendSuccess(res, null, 'Password updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+import { Order } from '../models/Order';
+
+// Get Current Customer Orders
+router.get('/me/orders', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const customer = await Customer.findById(decoded.sub);
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    // Find orders where customerEmail matches the logged-in customer
+    const orders = await Order.find({ customerEmail: customer.email })
+      .sort({ createdAt: -1 }) // Newest first
+      .populate('items.productId', 'imageUrl');
+
+    sendSuccess(res, { orders }, 'Orders retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
