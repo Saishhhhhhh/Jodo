@@ -131,10 +131,18 @@ export default function Footer() {
 
           <div className="mt-10 pt-6 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/60 font-medium">
             <p>© {new Date().getFullYear()} Jodo Home. All rights reserved.</p>
-            <div className="flex gap-6">
-              <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="/cookies" className="hover:text-white transition-colors">Cookies</Link>
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+              <p>
+                Designed & Developed by{' '}
+                <a 
+                  href="https://digitalvigyapan.in" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-white hover:underline transition-all font-semibold"
+                >
+                  Digital Vigyapan
+                </a>
+              </p>
             </div>
           </div>
         </div>
