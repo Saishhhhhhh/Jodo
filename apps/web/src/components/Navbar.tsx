@@ -7,11 +7,15 @@ import { useState, useEffect } from 'react';
 import SearchOverlay from './SearchOverlay';
 import CartOverlay from './CartOverlay';
 import { useCartStore } from '../store/useCartStore';
+import { useCustomerStore } from '../store/useCustomerStore';
 
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartCount = useCartStore((state) => state.cartCount());
+  
+  const { customer, isAuthenticated } = useCustomerStore();
+  const isAuth = mounted && isAuthenticated();
   
   // Hydration fix for zustand persist
   const [mounted, setMounted] = useState(false);
@@ -53,10 +57,14 @@ export default function Navbar() {
         <div className="flex-1 flex justify-end items-center gap-6">
           
           {/* Sign Up / Account */}
-          <Link href="/account" className="flex items-center gap-2 group">
+          <Link href={isAuth ? "/account" : "/login"} className="flex items-center gap-2 group">
             <div className="hidden xl:flex flex-col text-right">
-              <span className="text-[13px] font-semibold text-gray-900 group-hover:text-terracotta transition-colors leading-tight">Sign Up Now</span>
-              <span className="text-[11px] font-medium text-terracotta leading-tight">Get Upto Rs. 1,500 off</span>
+              <span className="text-[13px] font-semibold text-gray-900 group-hover:text-terracotta transition-colors leading-tight">
+                {isAuth ? `Hi, ${customer?.firstName}` : 'Sign In'}
+              </span>
+              <span className="text-[11px] font-medium text-terracotta leading-tight">
+                {isAuth ? 'My Account' : 'Get Upto Rs. 1,500 off'}
+              </span>
             </div>
             <User className="w-6 h-6 text-gray-800 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
           </Link>

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export interface ICustomer extends Document {
   tenantId: mongoose.Types.ObjectId;
@@ -13,8 +14,10 @@ export interface ICustomer extends Document {
   walletBalance: number;
   status: 'active' | 'inactive';
   tags?: string[];
+  passwordHash?: string;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(password: string): Promise<boolean>;
 }
 
 const customerSchema = new Schema<ICustomer>(
@@ -31,10 +34,25 @@ const customerSchema = new Schema<ICustomer>(
     walletBalance: { type: Number, default: 0 },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     tags: { type: [String], default: [] },
+    passwordHash: { type: String, select: false },
   },
   { timestamps: true }
 );
 
 customerSchema.index({ storeId: 1, email: 1 }, { unique: true });
+
+// Hash password before save
+customerSchema.pre('save', async function (next) {
+  if (!this.isModified('passwordHash') || !this.passwordHash) return next();
+  const salt = await bcrypt.genSalt(12);
+  this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+  next();
+});
+
+// Compare password method
+customerSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
+  if (!this.passwordHash) return false;
+  return bcrypt.compare(password, this.passwordHash);
+};
 
 export const Customer = mongoose.models.Customer || mongoose.model<ICustomer>('Customer', customerSchema);

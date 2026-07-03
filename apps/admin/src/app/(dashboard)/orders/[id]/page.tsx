@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api-client';
 import Link from 'next/link';
-import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer, RotateCcw, ShieldAlert, Clock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -232,6 +232,41 @@ export default function OrderDetailsPage() {
               </div>
             </div>
           </div>
+
+          {/* Timeline Section */}
+          <div className="mt-8 space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Clock className="w-5 h-5 text-muted-foreground" />
+              Timeline
+            </h3>
+            <div className="relative border-l-2 border-muted ml-3 space-y-8 pb-4">
+              
+              {/* Payment Event */}
+              {order.paymentStatus === 'paid' && (
+                <div className="relative pl-6">
+                  <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-background bg-primary" />
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-medium">Payment of {formatCurrency(order.totalAmount)} was processed on the Visa ending in 4242.</p>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Order Placed Event */}
+              <div className="relative pl-6">
+                <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-background bg-muted-foreground" />
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-medium">Order was placed by {order.customerName}.</p>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
 
         {/* Sidebar (Right) */}
@@ -280,25 +315,47 @@ export default function OrderDetailsPage() {
 
           {/* Customer Card */}
           <div className="border rounded-xl bg-card shadow-sm p-5 space-y-4">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold">Customer</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-base">Customer</h3>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                {order.customerName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <Link href="/customers" className="font-medium text-sm text-primary hover:underline block">
+                  {order.customerName}
+                </Link>
+                <p className="text-xs text-muted-foreground mt-0.5 whitespace-nowrap">0 orders</p>
               </div>
             </div>
-            <div>
-              <Link href="/customers" className="font-medium text-sm text-primary hover:underline block">
-                {order.customerName}
-              </Link>
-              <p className="text-xs text-muted-foreground mt-0.5">{order.customerEmail}</p>
+
+            <div className="pt-4 border-t flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contact Information</h4>
+                <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground">Edit</Button>
+              </div>
+              <div className="text-sm space-y-1 text-primary">
+                <a href={`mailto:${order.customerEmail}`} className="hover:underline flex items-center gap-2">
+                   {order.customerEmail}
+                </a>
+                {order.shippingAddress?.phone ? (
+                  <a href={`tel:${order.shippingAddress.phone}`} className="hover:underline flex items-center gap-2 mt-2">
+                     {order.shippingAddress.phone}
+                  </a>
+                ) : (
+                  <p className="text-muted-foreground italic">No phone number</p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Shipping Address Card */}
           <div className="border rounded-xl bg-card shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Shipping Address</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-base">Shipping Address</h3>
+              <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground">Edit</Button>
             </div>
             {order.shippingAddress ? (
               <address className="text-sm text-muted-foreground not-italic space-y-0.5">
@@ -307,10 +364,38 @@ export default function OrderDetailsPage() {
                 {order.shippingAddress.address2 && <p>{order.shippingAddress.address2}</p>}
                 <p>{order.shippingAddress.city} {order.shippingAddress.zip}</p>
                 <p>{order.shippingAddress.state}, {order.shippingAddress.country}</p>
+                {order.shippingAddress.phone && <p className="mt-2 text-primary">{order.shippingAddress.phone}</p>}
               </address>
             ) : (
               <p className="text-sm text-muted-foreground italic">No shipping address provided.</p>
             )}
+          </div>
+
+          {/* Billing Address Card */}
+          <div className="border rounded-xl bg-card shadow-sm p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-base">Billing Address</h3>
+              <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground">Edit</Button>
+            </div>
+            <p className="text-sm text-muted-foreground italic">Same as shipping address</p>
+          </div>
+
+          {/* Fraud Analysis Card */}
+          <div className="border rounded-xl bg-card shadow-sm p-5">
+            <h3 className="font-semibold text-base mb-3">Fraud Analysis</h3>
+            <div className="flex items-start gap-3">
+              <div className={`p-1.5 rounded-full ${order.riskLevel === 'high' ? 'bg-red-100 text-red-600' : order.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
+                {order.riskLevel === 'high' ? <ShieldAlert className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+              </div>
+              <div>
+                <p className="font-medium text-sm text-foreground capitalize">{order.riskLevel || 'Low'} Risk</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {order.riskIndicators && order.riskIndicators.length > 0 
+                    ? order.riskIndicators.map((i: any) => i.message).join(', ') 
+                    : 'No indicators found. Low risk.'}
+                </p>
+              </div>
+            </div>
           </div>
 
         </div>

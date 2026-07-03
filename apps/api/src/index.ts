@@ -27,6 +27,7 @@ import returnsRoutes from './routes/returns';
 import segmentsRoutes from './routes/segments';
 import campaignsRoutes from './routes/campaigns';
 import storefrontRoutes from './routes/storefront';
+import storefrontAuthRoutes from './routes/storefront-auth';
 
 const app = express();
 
@@ -36,7 +37,16 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      const allowedOrigins = [env.CORS_ORIGIN, 'http://localhost:3001'];
+      if (allowedOrigins.indexOf(origin) === -1) {
+        var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -101,6 +111,7 @@ app.use('/api/admin/returns', returnsRoutes);
 app.use('/api/admin/customers/segments', segmentsRoutes);
 app.use('/api/admin/campaigns', campaignsRoutes);
 app.use('/api/storefront', storefrontRoutes);
+app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================
 // Error Handling
 // ============================================================

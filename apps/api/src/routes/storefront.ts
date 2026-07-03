@@ -45,6 +45,8 @@ router.post('/checkout', async (req, res, next) => {
 
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
+    const mongoose = require('mongoose');
+    
     const order = new Order({
       tenantId: store.tenantId,
       storeId: store._id,
@@ -52,7 +54,10 @@ router.post('/checkout', async (req, res, next) => {
       customerName,
       customerEmail,
       shippingAddress,
-      items,
+      items: items.map((item: any) => ({
+        ...item,
+        productId: mongoose.Types.ObjectId.isValid(item.productId) ? item.productId : undefined
+      })),
       subtotal,
       taxTotal,
       shippingTotal,
