@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, ArrowLeft, ShieldCheck, MapPin, Tag, ChevronDown, CheckCircle2, Plus } from 'lucide-react';

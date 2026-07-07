@@ -49,7 +49,7 @@ export default function AccountProfilePage() {
       } else {
         setProfileMessage(data.message || 'Failed to update profile.');
       }
-    } catch (err) {
+    } catch {
       setProfileMessage('A network error occurred.');
     } finally {
       setProfileLoading(false);
@@ -83,7 +83,7 @@ export default function AccountProfilePage() {
       } else {
         setPasswordMessage({ type: 'error', text: data.message || 'Failed to change password.' });
       }
-    } catch (err) {
+    } catch {
       setPasswordMessage({ type: 'error', text: 'A network error occurred.' });
     } finally {
       setPasswordLoading(false);

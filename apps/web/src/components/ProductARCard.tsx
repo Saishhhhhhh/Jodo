@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { QrCode, Smartphone, Sparkles, HelpCircle } from 'lucide-react';
+import { QrCode, Smartphone, Sparkles } from 'lucide-react';
 
 interface ProductARCardProps {
   product: {

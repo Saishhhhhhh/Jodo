@@ -22,7 +22,7 @@ export default function WishlistPage() {
       <section className="bg-[#F9F6F0] py-16 md:py-24 text-center px-4">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">Your Wishlist</h1>
         <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-          Keep track of the pieces you love. Add them to your cart when you're ready to make them yours.
+          Keep track of the pieces you love. Add them to your cart when you&apos;re ready to make them yours.
         </p>
       </section>
 
@@ -51,7 +51,7 @@ export default function WishlistPage() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Your wishlist is empty</h2>
             <p className="text-gray-500 mb-8">
-              You haven't saved any items yet. Start exploring our collections to find your perfect match.
+              You haven&apos;t saved any items yet. Start exploring our collections to find your perfect match.
             </p>
             <Link 
               href="/shop" 

@@ -180,7 +180,7 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
             <div className="w-full text-left space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
               <div className="flex gap-2">
                 <span className="w-5 h-5 bg-[#B65A45] text-white rounded-full flex items-center justify-center font-bold shrink-0">1</span>
-                <p className="text-gray-700 font-medium">Open your smartphone's built-in camera app.</p>
+                <p className="text-gray-700 font-medium">Open your smartphone&apos;s built-in camera app.</p>
               </div>
               <div className="flex gap-2">
                 <span className="w-5 h-5 bg-[#B65A45] text-white rounded-full flex items-center justify-center font-bold shrink-0">2</span>

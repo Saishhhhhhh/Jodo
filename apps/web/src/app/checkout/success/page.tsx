@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
-export default function CheckoutSuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams?.get('orderId') || '1000';
   const [mounted, setMounted] = useState(false);
@@ -28,7 +28,7 @@ export default function CheckoutSuccessPage() {
           Your order <span className="font-bold text-gray-900">#{orderId}</span> has been placed successfully.
         </p>
         <p className="text-gray-500 mb-10 max-w-[400px]">
-          We've sent an order confirmation with details and tracking info to your email address.
+          We&apos;ve sent an order confirmation with details and tracking info to your email address.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -48,5 +48,17 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center bg-white">
+        <div className="animate-pulse text-gray-500 font-medium">Loading...</div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }

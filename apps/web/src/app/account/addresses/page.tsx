@@ -47,7 +47,7 @@ export default function AccountAddressesPage() {
       } else {
         setMessage({ type: 'error', text: data.message || 'Failed to update address.' });
       }
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: 'A network error occurred.' });
     } finally {
       setIsLoading(false);

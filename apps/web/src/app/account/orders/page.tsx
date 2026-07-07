@@ -6,9 +6,29 @@ import { PackageOpen, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+interface OrderItem {
+  productId?: {
+    _id: string;
+    imageUrl?: string;
+  };
+  title: string;
+  quantity: number;
+  sku: string;
+}
+
+interface Order {
+  _id: string;
+  orderNumber: string;
+  createdAt: string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  totalAmount: number;
+  items: OrderItem[];
+}
+
 export default function AccountOrdersPage() {
-  const { customer, token } = useCustomerStore();
-  const [orders, setOrders] = useState<any[]>([]);
+  const { token } = useCustomerStore();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -28,7 +48,7 @@ export default function AccountOrdersPage() {
         } else {
           setError(data.message || 'Failed to load orders.');
         }
-      } catch (err) {
+      } catch {
         setError('A network error occurred.');
       } finally {
         setIsLoading(false);
@@ -107,7 +127,7 @@ export default function AccountOrdersPage() {
                     </h3>
                   </div>
 
-                  {order.items.map((item: any, idx: number) => (
+                  {order.items.map((item: OrderItem, idx: number) => (
                     <div key={idx} className="flex gap-4 sm:gap-6">
                       <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
                         {item.productId?.imageUrl ? (
@@ -144,7 +164,7 @@ export default function AccountOrdersPage() {
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-2">No orders yet</h3>
             <p className="text-gray-500 text-sm mb-8">
-              Looks like you haven't made any purchases yet. Start shopping to see your orders here.
+              Looks like you haven&apos;t made any purchases yet. Start shopping to see your orders here.
             </p>
             <Link 
               href="/shop"

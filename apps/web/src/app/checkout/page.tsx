@@ -135,7 +135,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50 px-4">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-        <p className="text-gray-500 mb-8 text-center max-w-md">Looks like you haven't added any items to your cart yet. Let's get you back to shopping!</p>
+        <p className="text-gray-500 mb-8 text-center max-w-md">Looks like you haven&apos;t added any items to your cart yet. Let&apos;s get you back to shopping!</p>
         <Link href="/shop" className="px-8 py-3 bg-[#B65A45] text-white font-bold rounded-lg hover:bg-[#a04e3b] transition-colors">
           Continue Shopping
         </Link>
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
                 <Lock className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-gray-900">Secure Checkout Demo</p>
-                  <p className="text-sm text-gray-500">This is a demo store. No real payment will be processed. Clicking 'Place Order' will simulate a successful transaction.</p>
+                  <p className="text-sm text-gray-500">This is a demo store. No real payment will be processed. Clicking &apos;Place Order&apos; will simulate a successful transaction.</p>
                 </div>
               </div>
             </section>
@@ -287,7 +287,7 @@ export default function CheckoutPage() {
               </form>
               
               {couponError && <p className="text-red-500 text-xs mt-1">{couponError}</p>}
-              {discountApplied && <p className="text-green-600 text-xs mt-1">Discount code '{couponCode.toUpperCase()}' applied!</p>}
+              {discountApplied && <p className="text-green-600 text-xs mt-1">Discount code &apos;{couponCode.toUpperCase()}&apos; applied!</p>}
 
               <div className="flex justify-between text-sm text-gray-600 mt-2">
                 <span>Subtotal</span>

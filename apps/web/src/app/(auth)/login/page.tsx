@@ -36,7 +36,7 @@ export default function LoginPage() {
       } else {
         setError(data.message || 'Login failed');
       }
-    } catch (err) {
+    } catch {
       setError('A network error occurred');
     } finally {
       setIsLoading(false);
@@ -103,7 +103,7 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-8 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/register" className="text-[#B65A45] font-bold hover:underline">
             Create one here
           </Link>

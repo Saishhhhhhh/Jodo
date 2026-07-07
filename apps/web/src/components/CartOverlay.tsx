@@ -50,7 +50,7 @@ export default function CartOverlay({ isOpen, onClose }: CartOverlayProps) {
             <div className="flex flex-col items-center justify-center h-full text-center gap-4 text-gray-500">
               <ShoppingBag className="w-16 h-16 text-gray-200" strokeWidth={1} />
               <p className="text-lg font-medium text-gray-900">Your cart is empty</p>
-              <p className="text-sm">Looks like you haven't added anything yet.</p>
+              <p className="text-sm">Looks like you haven&apos;t added anything yet.</p>
               <button 
                 onClick={onClose}
                 className="mt-4 px-6 py-2.5 bg-[#B65A45] text-white rounded-lg font-semibold hover:bg-[#a04e3b] transition-colors"

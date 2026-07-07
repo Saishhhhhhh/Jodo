@@ -39,7 +39,7 @@ export default function RegisterPage() {
       } else {
         setError(data.message || 'Registration failed');
       }
-    } catch (err) {
+    } catch {
       setError('A network error occurred');
     } finally {
       setIsLoading(false);
