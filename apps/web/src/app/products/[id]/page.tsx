@@ -1,4 +1,5 @@
 import React from 'react';
+// Trigger Vercel sync with latest environment variables
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { networkInterfaces } from 'os';
