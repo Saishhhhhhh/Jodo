@@ -11,6 +11,7 @@ interface ProductGalleryProps {
     imageUrl: string;
     slug: string;
   };
+  localIp: string;
 }
 
 // Map product slugs to corresponding posters in the VR public folder
@@ -26,7 +27,7 @@ const posterMapping: Record<string, string> = {
   'luxury-marble-dining-table': '/vr/public/posters/ceramic-vase-set.png',
 };
 
-export default function ProductGallery({ product }: ProductGalleryProps) {
+export default function ProductGallery({ product, localIp }: ProductGalleryProps) {
   const [activeMedia, setActiveMedia] = useState<'image' | '3d'>('image');
   const [showQRModal, setShowQRModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -48,8 +49,14 @@ export default function ProductGallery({ product }: ProductGalleryProps) {
   const getVRUrl = () => {
     if (typeof window === 'undefined') return '';
     const hostname = window.location.hostname;
-    // The VR Next.js app runs on port 3000
-    return `http://${hostname}:3000/?product=${product.slug}&ar=true`;
+    if (process.env.NEXT_PUBLIC_VR_URL) {
+      return `${process.env.NEXT_PUBLIC_VR_URL}/?product=${product.slug}&ar=true`;
+    }
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      const ip = localIp || hostname;
+      return `http://${ip}:3000/?product=${product.slug}&ar=true`;
+    }
+    return `${window.location.protocol}//${hostname}/vr/?product=${product.slug}&ar=true`;
   };
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=b65a45&data=${encodeURIComponent(getVRUrl())}`;

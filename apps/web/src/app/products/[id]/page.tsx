@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { networkInterfaces } from 'os';
 import { Star, ArrowLeft, ShieldCheck, MapPin, Tag, ChevronDown, CheckCircle2, Plus } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
 import ProductGallery from '@/components/ProductGallery';
@@ -35,6 +36,7 @@ interface ProductData {
 
 const fallbackProduct: ProductData = {
   _id: 'mock-premium-01',
+  slug: 'miranda-chenille-fabric-3-seater-sofa',
   vendor: 'Woodsworth',
   title: 'Miranda Chenille Fabric 3 Seater Sofa In Charcoal Grey Colour',
   price: 47999,
@@ -98,7 +100,20 @@ async function getProductById(id: string): Promise<ProductData | null> {
   return fallbackProduct;
 }
 
+function getLocalIp() {
+  const nets = networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name] || []) {
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+  const localIp = getLocalIp();
   const product = await getProductById(params.id);
   if (!product) notFound();
 
@@ -119,12 +134,15 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           
           {/* LEFT COLUMN: Gallery & Accordions */}
           <div className="flex flex-col gap-10">
-            <ProductGallery product={{
-              _id: product._id,
-              title: product.title,
-              imageUrl: product.imageUrl,
-              slug: product.slug || ''
-            }} />
+            <ProductGallery 
+              product={{
+                _id: product._id,
+                title: product.title,
+                imageUrl: product.imageUrl,
+                slug: product.slug || ''
+              }} 
+              localIp={localIp}
+            />
 
             {/* Product Details Grid */}
             <div className="pt-8 border-t border-gray-200">
@@ -291,10 +309,13 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
             }} />
 
             {/* AR Try-On QR/Button Card */}
-            <ProductARCard product={{
-              slug: product.slug || '',
-              title: product.title
-            }} />
+            <ProductARCard 
+              product={{
+                slug: product.slug || '',
+                title: product.title
+              }} 
+              localIp={localIp}
+            />
 
             {/* Stores Near You */}
             <div className="border-t border-gray-200 pt-8">

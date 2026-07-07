@@ -8,9 +8,10 @@ interface ProductARCardProps {
     slug: string;
     title: string;
   };
+  localIp: string;
 }
 
-export default function ProductARCard({ product }: ProductARCardProps) {
+export default function ProductARCard({ product, localIp }: ProductARCardProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -26,7 +27,19 @@ export default function ProductARCard({ product }: ProductARCardProps) {
 
   // Resolve current IP/hostname for the local network redirection
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const vrUrl = `http://${hostname}:3000/?product=${product.slug}&ar=true`;
+  
+  const getVRUrl = () => {
+    if (process.env.NEXT_PUBLIC_VR_URL) {
+      return `${process.env.NEXT_PUBLIC_VR_URL}/?product=${product.slug}&ar=true`;
+    }
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      const ip = localIp || hostname;
+      return `http://${ip}:3000/?product=${product.slug}&ar=true`;
+    }
+    return `${window.location.protocol}//${hostname}/vr/?product=${product.slug}&ar=true`;
+  };
+
+  const vrUrl = getVRUrl();
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=b65a45&data=${encodeURIComponent(vrUrl)}`;
 
   return (

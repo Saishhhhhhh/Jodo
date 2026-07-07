@@ -23,11 +23,16 @@ interface Order {
   paymentStatus: string;
   fulfillmentStatus: string;
   totalAmount: number;
+  currency?: string;
+  shippingAddress?: {
+    firstName: string;
+    lastName: string;
+  };
   items: OrderItem[];
 }
 
 export default function AccountOrdersPage() {
-  const { token } = useCustomerStore();
+  const { customer, token } = useCustomerStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
