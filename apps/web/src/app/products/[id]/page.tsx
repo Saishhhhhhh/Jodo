@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Star, ArrowLeft, ShieldCheck, MapPin, Tag, ChevronDown, CheckCircle2, Plus } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
+import ProductGallery from '@/components/ProductGallery';
+import ProductARCard from '@/components/ProductARCard';
 
 interface ProductData {
   _id: string;
@@ -13,6 +15,7 @@ interface ProductData {
   compareAtPrice?: number;
   inventoryQuantity: number;
   imageUrl: string;
+  slug?: string;
   galleryImages?: string[];
   material?: string;
   dimensions?: string;
@@ -117,19 +120,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           
           {/* LEFT COLUMN: Gallery & Accordions */}
           <div className="flex flex-col gap-10">
-            {/* Gallery */}
-            <div className="flex flex-col gap-4">
-              <div className="relative w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border border-gray-100">
-                <Image src={product.imageUrl} alt={product.title} fill className="object-cover" unoptimized />
-              </div>
-              <div className="grid grid-cols-5 gap-3">
-                {[product.imageUrl, product.imageUrl, product.imageUrl].map((img, i) => (
-                  <div key={i} className={`relative aspect-square rounded-md overflow-hidden border ${i === 0 ? 'border-terracotta' : 'border-gray-200 hover:border-gray-300 cursor-pointer'} transition-colors`}>
-                    <Image src={img} alt={`Thumb ${i}`} fill className="object-cover" unoptimized />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ProductGallery product={{
+              _id: product._id,
+              title: product.title,
+              imageUrl: product.imageUrl,
+              slug: product.slug || ''
+            }} />
 
             {/* Product Details Grid */}
             <div className="pt-8 border-t border-gray-200">
@@ -293,6 +289,12 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
               price: product.price,
               imageUrl: product.imageUrl,
               brand: product.vendor
+            }} />
+
+            {/* AR Try-On QR/Button Card */}
+            <ProductARCard product={{
+              slug: product.slug || '',
+              title: product.title
             }} />
 
             {/* Stores Near You */}
