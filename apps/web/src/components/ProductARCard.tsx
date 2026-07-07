@@ -29,9 +29,10 @@ export default function ProductARCard({ product, localIp }: ProductARCardProps) 
   const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
   
   const getVRUrl = () => {
-    if (process.env.NEXT_PUBLIC_VR_URL) {
-      return `${process.env.NEXT_PUBLIC_VR_URL}/?product=${product.slug}&ar=true`;
-    }
+    // Temporarily disabled so you can test locally while Vercel is failing
+    // if (process.env.NEXT_PUBLIC_VR_URL) {
+    //   return `${process.env.NEXT_PUBLIC_VR_URL}/?product=${product.slug}&ar=true`;
+    // }
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       const ip = localIp || hostname;
       return `http://${ip}:3000/?product=${product.slug}&ar=true`;
