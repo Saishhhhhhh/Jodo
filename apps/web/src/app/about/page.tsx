@@ -40,15 +40,19 @@ export default function AboutPage() {
     offset: ["start start", "end start"]
   });
   
-  // Scale up massively and fade out on scroll (Fades quickly to prevent darkening the screen)
-  const heroScale = useTransform(heroScroll, [0, 1], [1, 4]);
-  const heroOpacity = useTransform(heroScroll, [0, 0.4, 1], [1, 0, 0]);
+  // Smooth the raw scroll value with physics to eliminate mouse wheel stutter/lag
+  const smoothHeroScroll = useSpring(heroScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  
+  // Zoom in and fade out on scroll
+  const heroScale = useTransform(smoothHeroScroll, [0, 1], [1, 4]);
+  const heroOpacity = useTransform(smoothHeroScroll, [0, 0.4], [1, 0]);
 
   // Horizontal Scroll Math
   const { scrollYProgress: horizontalScroll } = useScroll({
     target: horizontalRef,
   });
-  const xTransform = useTransform(horizontalScroll, [0, 1], ["0%", "-66.66%"]);
+  const smoothHorizontalScroll = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const xTransform = useTransform(smoothHorizontalScroll, [0, 1], ["0%", "-66.66%"]);
 
   // DNA Parallax Grid Math
   const { scrollYProgress: dnaScroll } = useScroll({
@@ -65,19 +69,27 @@ export default function AboutPage() {
   return (
     <div className="bg-[#FAF6F1] min-h-screen font-sans">
       
-      {/* 1. Hero Section with Scroll-driven Zoom */}
+      {/* 1. Hero Section with Join on Load & Zoom on Scroll */}
       <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-[#FAF6F1]">
         <motion.div 
           className="sticky top-[30vh] origin-center z-10 flex justify-center overflow-hidden w-full"
-          style={{ opacity: heroOpacity, scale: heroScale }}
+          style={{ opacity: heroOpacity, scale: heroScale, willChange: "transform, opacity" }}
         >
           <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
+            initial={{ x: "-50vw", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
           >
-            JODO
+            JO
+          </motion.div>
+          <motion.div 
+            initial={{ x: "50vw", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
+          >
+            DO
           </motion.div>
         </motion.div>
         
@@ -99,7 +111,7 @@ export default function AboutPage() {
         <div className="sticky top-[110px] h-[calc(100vh-110px)] flex items-center overflow-hidden">
           
           {/* Container is 300vw. We slide it left by 66.66% (200vw) so it perfectly stops at the end */}
-          <motion.div style={{ x: xTransform }} className="flex w-[300vw] h-full">
+          <motion.div style={{ x: xTransform, willChange: "transform" }} className="flex w-[300vw] h-full">
             {HORIZONTAL_ITEMS.map((item, i) => (
               <div 
                 key={i} 
