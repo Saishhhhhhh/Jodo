@@ -30,9 +30,8 @@ const HORIZONTAL_ITEMS = [
 
 export default function AboutPage() {
   // Refs for scroll tracking
-  const heroRef = useRef<HTMLDivElement>(null);
-  const horizontalRef = useRef<HTMLDivElement>(null);
-  const dnaRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const horizontalRef = useRef<HTMLElement>(null);
   
   // Hero Scroll Split Math
   const { scrollYProgress: heroScroll } = useScroll({
@@ -47,50 +46,51 @@ export default function AboutPage() {
   const heroScale = useTransform(smoothHeroScroll, [0, 1], [1, 4]);
   const heroOpacity = useTransform(smoothHeroScroll, [0, 0.4], [1, 0]);
 
-  // Horizontal Scroll Math
+  // Horizontal Scroll Math (4 items = slide to -75%)
   const { scrollYProgress: horizontalScroll } = useScroll({
     target: horizontalRef,
   });
   const smoothHorizontalScroll = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  const xTransform = useTransform(smoothHorizontalScroll, [0, 1], ["0%", "-66.66%"]);
+  const xTransform = useTransform(smoothHorizontalScroll, [0, 1], ["0%", "-75%"]);
 
-  // DNA Parallax Grid Math
-  const { scrollYProgress: dnaScroll } = useScroll({
-    target: dnaRef,
-    offset: ["start end", "end start"]
-  });
-  
-  // Different speeds for the parallax cards
-  const yFast = useTransform(dnaScroll, [0, 1], ["30%", "-30%"]);
-  const yMedium = useTransform(dnaScroll, [0, 1], ["15%", "-15%"]);
-  const ySlow = useTransform(dnaScroll, [0, 1], ["5%", "-5%"]);
-  const yReverse = useTransform(dnaScroll, [0, 1], ["-15%", "15%"]);
+
 
   return (
-    <div className="bg-white min-h-screen font-sans overflow-x-hidden">
+    <div className="bg-white min-h-screen font-sans">
       
       {/* 1. Hero Section with Join on Load & Zoom on Scroll */}
       <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-white">
         <motion.div 
-          className="sticky top-[30vh] origin-center z-10 flex justify-center overflow-hidden w-full"
+          className="sticky top-[30vh] origin-center z-10 flex flex-col items-center justify-center overflow-visible w-full"
           style={{ opacity: heroOpacity, scale: heroScale, willChange: "transform, opacity" }}
         >
-          <motion.div 
-            initial={{ x: "-50vw", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-2xl md:text-5xl tracking-[0.3em] font-medium text-jodo-dark uppercase mb-[-2vw] md:mb-[-1vw] z-20"
           >
-            JO
+            We Are
           </motion.div>
-          <motion.div 
-            initial={{ x: "50vw", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
-          >
-            DO
-          </motion.div>
+          
+          <div className="flex justify-center w-full">
+            <motion.div 
+              initial={{ x: "-50vw", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
+            >
+              JO
+            </motion.div>
+            <motion.div 
+              initial={{ x: "50vw", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
+            >
+              DO
+            </motion.div>
+          </div>
         </motion.div>
         
         {/* Secondary text that stays static */}
@@ -107,15 +107,15 @@ export default function AboutPage() {
       </section>
 
       {/* 2. Horizontal Scroll Gallery */}
-      <section ref={horizontalRef} className="h-[400vh] relative bg-[#FAF6F1] pt-24 lg:pt-[15vh]">
-        <div className="sticky top-[110px] h-[calc(100vh-110px)] flex items-center">
+      <section ref={horizontalRef} className="h-[400vh] relative bg-[#FAF6F1] overflow-x-clip">
+        <div className="sticky top-0 h-screen w-full pt-[110px]">
           
-          {/* Container is 300vw. We slide it left by 66.66% (200vw) so it perfectly stops at the end */}
-          <motion.div style={{ x: xTransform, willChange: "transform" }} className="flex w-[300vw] h-full">
+          {/* Container is 400vw. We slide it left by 75% (300vw) so it perfectly stops at the end */}
+          <motion.div style={{ x: xTransform, willChange: "transform" }} className="flex w-[400vw] h-full">
             {HORIZONTAL_ITEMS.map((item, i) => (
               <div 
                 key={i} 
-                className="w-screen lg:w-[75vw] h-full flex flex-col justify-center relative px-8 lg:px-20"
+                className="w-[100vw] h-full relative flex flex-col lg:flex-row items-center justify-center px-8 lg:px-24"
               >
                 <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center w-full max-w-6xl mx-auto">
                   
@@ -153,80 +153,91 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 3. The Bento Box Grid (Our Values) */}
-      <section ref={dnaRef} className="py-40 max-w-[1440px] mx-auto px-4 md:px-8 bg-white rounded-t-[60px] -mt-10 relative z-40 shadow-[0_-20px_50px_rgba(0,0,0,0.05)]">
+      {/* 3. Our DNA Section (Layout imported from Homepage) */}
+      <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-24 md:py-32 bg-white">
         
-        <div className="mb-32 text-center">
-          <h2 className="text-5xl md:text-7xl text-jodo-dark font-semibold tracking-tighter mb-6">Our DNA</h2>
-          <p className="text-2xl text-taupe-dark max-w-2xl mx-auto">The core principles that shape every piece we design.</p>
-        </div>
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-16 lg:gap-24">
 
-        {/* Bento Grid with Parallax floating */}
-        <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 auto-rows-[250px]">
-          
-          {/* Large Wide Card - Moves Slow */}
-          <motion.div 
-            style={{ y: ySlow }}
-            className="md:col-span-2 md:row-span-1 bg-[#FAF6F1] rounded-[40px] p-10 flex flex-col justify-center relative overflow-hidden group hover:shadow-xl transition-shadow"
-          >
-            <Leaf className="w-12 h-12 text-terracotta mb-6" />
-            <h3 className="text-3xl font-semibold text-jodo-dark mb-4">Sustainability First</h3>
-            <p className="text-taupe-dark text-lg max-w-md">Every tree we use is ethically sourced, ensuring we give back more than we take from the environment.</p>
-            {/* Aesthetic circle blur */}
-            <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-terracotta/10 blur-3xl rounded-full pointer-events-none group-hover:scale-150 transition-transform duration-1000" />
-          </motion.div>
-
-          {/* Tall Vertical Card - Moves Fast */}
-          <motion.div 
-            style={{ y: yFast }}
-            className="md:col-span-1 md:row-span-2 bg-jodo-dark text-white rounded-[40px] p-10 flex flex-col justify-end relative overflow-hidden group hover:shadow-2xl transition-shadow"
-          >
-            <div className="absolute inset-0 z-0">
-               <Image 
-                 src="https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&w=800&q=80" 
-                 alt="Texture" 
-                 fill 
-                 className="object-cover opacity-40 group-hover:scale-110 transition-transform duration-1000 grayscale group-hover:grayscale-0" 
-               />
+          {/* ── LEFT SIDE — Text ── */}
+          <div className="flex-1 max-w-[600px]">
+            
+            <div className="mb-6">
+              <p className="text-terracotta font-bold text-sm tracking-widest uppercase">
+                Our DNA
+              </p>
             </div>
-            <div className="relative z-10">
-              <Award className="w-12 h-12 text-gold mb-6" />
-              <h3 className="text-3xl font-semibold mb-4">Award Winning</h3>
-              <p className="text-taupe-light text-lg">Recognized globally for minimalist innovation.</p>
+
+            <h2 className="text-[#1C1A17] font-bold mb-10 tracking-tight leading-[1.15] text-4xl md:text-5xl lg:text-6xl">
+              The core principles that shape every piece we design.
+            </h2>
+            
+            <div className="space-y-10">
+              
+              <div className="flex items-start gap-5 group">
+                <div className="w-12 h-12 rounded-full bg-[#FAF6F1] flex items-center justify-center shrink-0 group-hover:bg-terracotta group-hover:text-white transition-colors duration-300">
+                  <Leaf className="w-6 h-6 text-terracotta group-hover:text-white transition-colors duration-300" />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-[#1C1A17] mb-2">Sustainability First</h4>
+                  <p className="text-gray-600 leading-relaxed">Every tree we use is ethically sourced, ensuring we give back more than we take from the environment.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-5 group">
+                <div className="w-12 h-12 rounded-full bg-[#FAF6F1] flex items-center justify-center shrink-0 group-hover:bg-terracotta group-hover:text-white transition-colors duration-300">
+                  <Award className="w-6 h-6 text-terracotta group-hover:text-white transition-colors duration-300" />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-[#1C1A17] mb-2">Award-Winning Design</h4>
+                  <p className="text-gray-600 leading-relaxed">Recognized globally for blending minimalist aesthetics with unparalleled ergonomic comfort.</p>
+                </div>
+              </div>
+              
             </div>
-          </motion.div>
+          </div>
 
-          {/* Small Top Right Card - Moves Reverse (floats down slightly) */}
-          <motion.div 
-            style={{ y: yReverse }}
-            className="md:col-span-1 md:row-span-1 bg-terracotta text-white rounded-[40px] p-10 flex flex-col justify-center group hover:scale-[1.02] transition-transform duration-500 shadow-lg"
-          >
-            <Shield className="w-10 h-10 mb-4" />
-            <h3 className="text-2xl font-semibold mb-2">10-Year Warranty</h3>
-            <p className="text-white/80">Built to last a lifetime.</p>
-          </motion.div>
+          {/* ── RIGHT SIDE — Images ── */}
+          <div className="flex-1 w-full relative">
+            
+            <div className="relative w-full aspect-square md:aspect-[10/9]">
+              {/* Main Large Image */}
+              <div className="absolute inset-0 rounded-[40px] overflow-hidden group z-0">
+                <Image
+                  src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80"
+                  alt="Our DNA main"
+                  fill
+                  className="object-cover object-center transition-transform duration-[2s] ease-out group-hover:scale-105"
+                  unoptimized
+                />
+              </div>
 
-          {/* Small Bottom Left Card - Moves Fast */}
-          <motion.div 
-            style={{ y: yFast }}
-            className="md:col-span-1 md:row-span-1 bg-white border border-taupe-light rounded-[40px] p-10 flex flex-col justify-center group"
-          >
-            <Recycle className="w-10 h-10 text-jodo-dark mb-4" />
-            <h3 className="text-2xl font-semibold text-jodo-dark mb-2">Zero Waste</h3>
-            <p className="text-taupe-dark">Optimized cutting.</p>
-          </motion.div>
+              {/* Solid White Cutout Block */}
+              <div className="absolute left-[-2px] bottom-[-2px] z-10 w-[55%] h-[55%] bg-white rounded-tr-[32px]">
+                
+                {/* Inverted corner - Top side */}
+                <svg className="absolute top-[-30px] left-0 w-[32px] h-[32px] z-20" viewBox="0 0 32 32" fill="none">
+                  <path d="M0 0v32h32C14.327 32 0 17.673 0 0z" fill="white" />
+                </svg>
 
-          {/* Medium Bottom Block - Moves Medium */}
-          <motion.div 
-            style={{ y: yMedium }}
-            className="md:col-span-1 md:row-span-1 bg-[#D1C4B7] rounded-[40px] p-10 flex flex-col justify-center relative overflow-hidden group shadow-lg"
-          >
-            <h3 className="text-3xl font-semibold text-jodo-dark mb-2 relative z-10">Ergonomics</h3>
-            <p className="text-jodo-dark/70 text-lg relative z-10">Posture perfect design.</p>
-            <div className="absolute right-[-20%] bottom-[-20%] text-[10rem] text-white/30 font-bold pointer-events-none group-hover:scale-110 transition-transform duration-700">
-              E
+                {/* Inverted corner - Right side */}
+                <svg className="absolute bottom-0 right-[-30px] w-[32px] h-[32px] z-20" viewBox="0 0 32 32" fill="none">
+                  <path d="M32 32H0V0c0 17.673 14.327 32 32 32z" fill="white" />
+                </svg>
+
+                {/* Overlapping Secondary Image */}
+                <div className="absolute left-0 bottom-0 w-[92%] h-[92%] rounded-[28px] overflow-hidden group">
+                  <Image
+                    src="https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80"
+                    alt="Our DNA detail"
+                    fill
+                    className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
+                    unoptimized
+                  />
+                </div>
+              </div>
             </div>
-          </motion.div>
+
+          </div>
 
         </div>
       </section>
