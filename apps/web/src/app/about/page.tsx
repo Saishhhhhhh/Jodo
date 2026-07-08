@@ -7,28 +7,24 @@ import { Leaf, Award, Recycle, Shield } from 'lucide-react';
 
 const HORIZONTAL_ITEMS = [
   {
-    title: "Initial Concept",
-    desc: "Drawing inspiration from organic shapes and modern minimalism. We begin with a simple line.",
-    img: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1200&q=80",
-    color: "bg-[#F3EFEA]" // taupe-light tint
+    title: "The Origin",
+    desc: "Every iconic piece begins as a whisper. We strip away the unnecessary, searching for the perfect balance between form, function, and raw emotion.",
+    img: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    title: "Material Sourcing",
-    desc: "Selecting only the finest, sustainable materials for longevity. Nature provides our palette.",
-    img: "https://images.unsplash.com/photo-1581428982868-e410dd047a90?auto=format&fit=crop&w=1200&q=80",
-    color: "bg-[#D1C4B7]" 
+    title: "The Elements",
+    desc: "We let nature speak. Sourcing sustainable oak, raw linens, and forged metals that carry a history, ensuring each piece ages beautifully with your home.",
+    img: "https://images.unsplash.com/photo-1599696848652-f0ff23bc911f?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    title: "Master Craftsmanship",
-    desc: "Our artisans spend countless hours perfecting every joint and seam. Precision is our signature.",
-    img: "https://images.unsplash.com/photo-1544457070-4cd773b4d71e?auto=format&fit=crop&w=1200&q=80",
-    color: "bg-[#E8DFD5]"
+    title: "The Obsession",
+    desc: "True luxury lies in the unseen details. Our artisans spend hundreds of hours perfecting the invisible joints and seamless contours that define Jodo.",
+    img: "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    title: "The Final Piece",
-    desc: "A timeless addition to your home, ready to be enjoyed for generations to come.",
-    img: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
-    color: "bg-[#D1C4B7]"
+    title: "The Experience",
+    desc: "More than furniture. We design the silent backdrops to your life's most meaningful moments, creating spaces that truly breathe with you.",
+    img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80"
   }
 ];
 
@@ -36,15 +32,15 @@ export default function AboutPage() {
   // Refs for scroll tracking
   const heroRef = useRef<HTMLDivElement>(null);
   const horizontalRef = useRef<HTMLDivElement>(null);
+  const dnaRef = useRef<HTMLDivElement>(null);
   
-  // Hero Parallax Scroll Math
+  // Hero Scroll Split Math
   const { scrollYProgress: heroScroll } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"]
   });
-  
-  // Scale up and fade out for the word "CRAFT" (reduced from 15x to 5x)
-  const heroScale = useTransform(heroScroll, [0, 1], [1, 5]);
+  const leftX = useTransform(heroScroll, [0, 1], ["0vw", "-100vw"]);
+  const rightX = useTransform(heroScroll, [0, 1], ["0vw", "100vw"]);
   const heroOpacity = useTransform(heroScroll, [0, 0.5], [1, 0]);
 
   // Horizontal Scroll Math
@@ -53,6 +49,18 @@ export default function AboutPage() {
   });
   const xTransform = useTransform(horizontalScroll, [0, 1], ["0%", "-66.66%"]);
 
+  // DNA Parallax Grid Math
+  const { scrollYProgress: dnaScroll } = useScroll({
+    target: dnaRef,
+    offset: ["start end", "end start"]
+  });
+  
+  // Different speeds for the parallax cards
+  const yFast = useTransform(dnaScroll, [0, 1], ["30%", "-30%"]);
+  const yMedium = useTransform(dnaScroll, [0, 1], ["15%", "-15%"]);
+  const ySlow = useTransform(dnaScroll, [0, 1], ["5%", "-5%"]);
+  const yReverse = useTransform(dnaScroll, [0, 1], ["-15%", "15%"]);
+
   return (
     <div className="bg-[#FAF6F1] min-h-screen font-sans">
       
@@ -60,12 +68,29 @@ export default function AboutPage() {
       <section ref={heroRef} className="h-[120vh] relative flex items-start justify-center pt-40 overflow-hidden bg-white">
         {/* Subtle background noise/gradient could go here */}
         <motion.div 
-          className="sticky top-[30vh] origin-center z-10"
-          style={{ scale: heroScale, opacity: heroOpacity }}
+          className="sticky top-[30vh] origin-center z-10 flex justify-center overflow-hidden w-full"
+          style={{ opacity: heroOpacity }}
         >
-          <h1 className="text-[15vw] md:text-[10vw] font-bold text-center leading-[0.8] tracking-tighter text-jodo-dark uppercase">
-            CRAFT
-          </h1>
+          <motion.div style={{ x: leftX }}>
+            <motion.div 
+              initial={{ x: "-50vw", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[25vw] md:text-[18vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
+            >
+              JO
+            </motion.div>
+          </motion.div>
+          <motion.div style={{ x: rightX }}>
+            <motion.div 
+              initial={{ x: "50vw", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+              className="text-[25vw] md:text-[18vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase -ml-2"
+            >
+              DO
+            </motion.div>
+          </motion.div>
         </motion.div>
         
         {/* Secondary text that stays static */}
@@ -83,7 +108,7 @@ export default function AboutPage() {
 
       {/* 2. Horizontal Scroll Gallery (The Journey) - Editorial Style */}
       <section ref={horizontalRef} className="relative h-[400vh] bg-[#FAF6F1] z-30">
-        <div className="sticky top-0 h-screen flex items-center overflow-hidden">
+        <div className="sticky top-[110px] h-[calc(100vh-110px)] flex items-center overflow-hidden">
           
           {/* Container is 300vw. We slide it left by 66.66% (200vw) so it perfectly stops at the end */}
           <motion.div style={{ x: xTransform }} className="flex w-[300vw] h-full">
@@ -94,23 +119,23 @@ export default function AboutPage() {
               >
                 <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center w-full max-w-6xl mx-auto">
                   
-                  {/* Huge Watermark Number */}
-                  <div className="absolute top-[-50px] left-[-20px] lg:top-[-120px] lg:left-[-80px] text-[10rem] lg:text-[20rem] font-bold text-[#E8DFD5]/70 leading-none pointer-events-none z-0 tracking-tighter select-none">
+                  {/* Huge Watermark Number (Behind Image - Top Left) */}
+                  <div className="absolute top-[-60px] left-[-120px] lg:top-[-120px] lg:left-[-220px] text-[10rem] lg:text-[15rem] font-bold text-[#D1C4B7]/50 leading-none pointer-events-none z-0 tracking-tighter select-none">
                     0{i + 1}
                   </div>
 
                   {/* Editorial Image Frame */}
-                  <div className="w-full lg:w-[55%] aspect-[4/5] relative rounded-[24px] overflow-hidden shadow-sm z-10 group">
+                  <div className="w-full lg:w-[45%] aspect-[3/4] relative rounded-[24px] overflow-hidden z-10 group shadow-lg">
                     <Image 
                       src={item.img} 
                       fill 
-                      className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000" 
+                      className="object-cover group-hover:scale-105 transition-all duration-1000" 
                       alt={item.title}
                     />
                   </div>
                   
                   {/* Text Box */}
-                  <div className="w-full lg:w-[45%] flex flex-col relative z-20 pt-8 lg:pt-0">
+                  <div className="w-full lg:w-[55%] flex flex-col relative z-20 pt-8 lg:pt-0 lg:pl-16">
                      <div className="w-16 h-[3px] bg-terracotta mb-8" />
                      <h2 className="text-4xl lg:text-6xl font-medium text-jodo-dark mb-6 tracking-tight leading-[1.1]">
                        {item.title}
@@ -129,21 +154,19 @@ export default function AboutPage() {
       </section>
 
       {/* 3. The Bento Box Grid (Our Values) */}
-      <section className="py-32 max-w-[1440px] mx-auto px-4 md:px-8 bg-white rounded-t-[60px] -mt-10 relative z-40 shadow-[0_-20px_50px_rgba(0,0,0,0.05)]">
+      <section ref={dnaRef} className="py-40 max-w-[1440px] mx-auto px-4 md:px-8 bg-white rounded-t-[60px] -mt-10 relative z-40 shadow-[0_-20px_50px_rgba(0,0,0,0.05)]">
         
-        <div className="mb-20 text-center">
+        <div className="mb-32 text-center">
           <h2 className="text-5xl md:text-7xl text-jodo-dark font-semibold tracking-tighter mb-6">Our DNA</h2>
           <p className="text-2xl text-taupe-dark max-w-2xl mx-auto">The core principles that shape every piece we design.</p>
         </div>
 
+        {/* Bento Grid with Parallax floating */}
         <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-6 auto-rows-[250px]">
           
-          {/* Large Wide Card */}
+          {/* Large Wide Card - Moves Slow */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8 }}
+            style={{ y: ySlow }}
             className="md:col-span-2 md:row-span-1 bg-[#FAF6F1] rounded-[40px] p-10 flex flex-col justify-center relative overflow-hidden group hover:shadow-xl transition-shadow"
           >
             <Leaf className="w-12 h-12 text-terracotta mb-6" />
@@ -153,13 +176,10 @@ export default function AboutPage() {
             <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-terracotta/10 blur-3xl rounded-full pointer-events-none group-hover:scale-150 transition-transform duration-1000" />
           </motion.div>
 
-          {/* Tall Vertical Card */}
+          {/* Tall Vertical Card - Moves Fast */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="md:col-span-1 md:row-span-2 bg-jodo-dark text-white rounded-[40px] p-10 flex flex-col justify-end relative overflow-hidden group"
+            style={{ y: yFast }}
+            className="md:col-span-1 md:row-span-2 bg-jodo-dark text-white rounded-[40px] p-10 flex flex-col justify-end relative overflow-hidden group hover:shadow-2xl transition-shadow"
           >
             <div className="absolute inset-0 z-0">
                <Image 
@@ -176,25 +196,19 @@ export default function AboutPage() {
             </div>
           </motion.div>
 
-          {/* Small Top Right Card */}
+          {/* Small Top Right Card - Moves Reverse (floats down slightly) */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="md:col-span-1 md:row-span-1 bg-terracotta text-white rounded-[40px] p-10 flex flex-col justify-center group hover:-translate-y-2 transition-transform duration-500"
+            style={{ y: yReverse }}
+            className="md:col-span-1 md:row-span-1 bg-terracotta text-white rounded-[40px] p-10 flex flex-col justify-center group hover:scale-[1.02] transition-transform duration-500 shadow-lg"
           >
             <Shield className="w-10 h-10 mb-4" />
             <h3 className="text-2xl font-semibold mb-2">10-Year Warranty</h3>
             <p className="text-white/80">Built to last a lifetime.</p>
           </motion.div>
 
-          {/* Small Bottom Left Card */}
+          {/* Small Bottom Left Card - Moves Fast */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            style={{ y: yFast }}
             className="md:col-span-1 md:row-span-1 bg-white border border-taupe-light rounded-[40px] p-10 flex flex-col justify-center group"
           >
             <Recycle className="w-10 h-10 text-jodo-dark mb-4" />
@@ -202,13 +216,10 @@ export default function AboutPage() {
             <p className="text-taupe-dark">Optimized cutting.</p>
           </motion.div>
 
-          {/* Medium Bottom Block */}
+          {/* Medium Bottom Block - Moves Medium */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="md:col-span-1 md:row-span-1 bg-[#D1C4B7] rounded-[40px] p-10 flex flex-col justify-center relative overflow-hidden group"
+            style={{ y: yMedium }}
+            className="md:col-span-1 md:row-span-1 bg-[#D1C4B7] rounded-[40px] p-10 flex flex-col justify-center relative overflow-hidden group shadow-lg"
           >
             <h3 className="text-3xl font-semibold text-jodo-dark mb-2 relative z-10">Ergonomics</h3>
             <p className="text-jodo-dark/70 text-lg relative z-10">Posture perfect design.</p>
