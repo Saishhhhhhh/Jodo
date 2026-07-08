@@ -153,10 +153,11 @@ const TextPressure: React.FC<TextPressureProps> = ({
 
           const d = dist(mouseRef.current, charCenter);
 
-          const wdth = width ? Math.floor(getAttr(d, maxDist, 5, 200)) : 100;
-          const wght = weight ? Math.floor(getAttr(d, maxDist, 500, 400)) : 600;
-          const italVal = italic ? getAttr(d, maxDist, 0, 1).toFixed(2) : '0';
-          const alphaVal = alpha ? getAttr(d, maxDist, 0, 1).toFixed(2) : '1';
+          const hoverFactor = 1 - Math.min(1, d / maxDist);
+          const wdth = width ? Math.floor(80 + 71 * hoverFactor) : 100;
+          const wght = weight ? Math.floor(400 + 500 * hoverFactor) : 400;
+          const italVal = italic ? hoverFactor.toFixed(2) : '0';
+          const alphaVal = alpha ? hoverFactor.toFixed(2) : '1';
 
           const newFontVariationSettings = `'wght' ${wght}, 'wdth' ${wdth}, 'ital' ${italVal}`;
 
@@ -199,7 +200,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
   }, [fontFamily, fontUrl, stroke, textColor, strokeColor, strokeWidth]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-transparent">
+    <div ref={containerRef} className="relative w-full h-full overflow-visible bg-transparent flex items-center justify-center">
       {styleElement}
       <h1
         ref={titleRef}
