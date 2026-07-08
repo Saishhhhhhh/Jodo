@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="overflow-x-hidden w-full relative" style={{ fontFamily: "'Rubik', system-ui, sans-serif" }}>
+      <body className="w-full relative" style={{ fontFamily: "'Rubik', system-ui, sans-serif" }}>
         <Script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
