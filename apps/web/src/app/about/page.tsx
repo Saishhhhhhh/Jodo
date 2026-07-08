@@ -39,9 +39,10 @@ export default function AboutPage() {
     target: heroRef,
     offset: ["start start", "end start"]
   });
-  const leftX = useTransform(heroScroll, [0, 1], ["0vw", "-100vw"]);
-  const rightX = useTransform(heroScroll, [0, 1], ["0vw", "100vw"]);
-  const heroOpacity = useTransform(heroScroll, [0, 0.5], [1, 0]);
+  
+  // Scale up massively and fade out on scroll (Fades quickly to prevent darkening the screen)
+  const heroScale = useTransform(heroScroll, [0, 1], [1, 4]);
+  const heroOpacity = useTransform(heroScroll, [0, 0.4, 1], [1, 0, 0]);
 
   // Horizontal Scroll Math
   const { scrollYProgress: horizontalScroll } = useScroll({
@@ -64,32 +65,19 @@ export default function AboutPage() {
   return (
     <div className="bg-[#FAF6F1] min-h-screen font-sans">
       
-      {/* 1. The Parallax Text Hero */}
-      <section ref={heroRef} className="h-[120vh] relative flex items-start justify-center pt-40 overflow-hidden bg-white">
-        {/* Subtle background noise/gradient could go here */}
+      {/* 1. Hero Section with Scroll-driven Zoom */}
+      <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-[#FAF6F1]">
         <motion.div 
           className="sticky top-[30vh] origin-center z-10 flex justify-center overflow-hidden w-full"
-          style={{ opacity: heroOpacity }}
+          style={{ opacity: heroOpacity, scale: heroScale }}
         >
-          <motion.div style={{ x: leftX }}>
-            <motion.div 
-              initial={{ x: "-50vw", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[25vw] md:text-[18vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
-            >
-              JO
-            </motion.div>
-          </motion.div>
-          <motion.div style={{ x: rightX }}>
-            <motion.div 
-              initial={{ x: "50vw", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[25vw] md:text-[18vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase -ml-2"
-            >
-              DO
-            </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
+          >
+            JODO
           </motion.div>
         </motion.div>
         
