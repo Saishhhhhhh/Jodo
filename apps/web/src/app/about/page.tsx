@@ -67,7 +67,7 @@ export default function AboutPage() {
   const yReverse = useTransform(dnaScroll, [0, 1], ["-15%", "15%"]);
 
   return (
-    <div className="bg-[#FAF6F1] min-h-screen font-sans">
+    <div className="bg-white min-h-screen font-sans overflow-x-hidden">
       
       {/* 1. Hero Section with Join on Load & Zoom on Scroll */}
       <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-white">
@@ -94,7 +94,7 @@ export default function AboutPage() {
         </motion.div>
         
         {/* Secondary text that stays static */}
-        <div className="absolute bottom-32 left-8 md:left-24 max-w-md z-20">
+        <div className="absolute bottom-[20vh] lg:bottom-[25vh] left-8 md:left-24 max-w-md z-20">
            <motion.p 
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -106,9 +106,9 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 2. Horizontal Scroll Gallery (The Journey) - Editorial Style */}
-      <section ref={horizontalRef} className="relative h-[400vh] bg-[#FAF6F1] z-30">
-        <div className="sticky top-[110px] h-[calc(100vh-110px)] flex items-center overflow-hidden">
+      {/* 2. Horizontal Scroll Gallery */}
+      <section ref={horizontalRef} className="h-[400vh] relative bg-[#FAF6F1] pt-24 lg:pt-[15vh]">
+        <div className="sticky top-[110px] h-[calc(100vh-110px)] flex items-center">
           
           {/* Container is 300vw. We slide it left by 66.66% (200vw) so it perfectly stops at the end */}
           <motion.div style={{ x: xTransform, willChange: "transform" }} className="flex w-[300vw] h-full">
