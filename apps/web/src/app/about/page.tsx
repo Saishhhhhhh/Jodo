@@ -1,9 +1,11 @@
 'use client';
 
 import { useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Image from 'next/image';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { Leaf, Award, Recycle, Shield } from 'lucide-react';
+import Antigravity from '@/components/Antigravity';
+import TextPressure from '@/components/TextPressure';
 
 const HORIZONTAL_ITEMS = [
   {
@@ -59,39 +61,51 @@ export default function AboutPage() {
     <div className="bg-white min-h-screen font-sans">
       
       {/* 1. Hero Section with Join on Load & Zoom on Scroll */}
-      <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-white">
-        <motion.div 
-          className="sticky top-[30vh] origin-center z-10 flex flex-col items-center justify-center overflow-visible w-full"
-          style={{ opacity: heroOpacity, scale: heroScale, willChange: "transform, opacity" }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-2xl md:text-5xl tracking-[0.3em] font-medium text-jodo-dark uppercase mb-[-2vw] md:mb-[-1vw] z-20"
-          >
-            We Are
-          </motion.div>
+      <section ref={heroRef} className="h-[150vh] relative bg-white">
+        
+        {/* Unified Sticky Wrapper for Background and Text */}
+        <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center">
           
-          <div className="flex justify-center w-full">
-            <motion.div 
-              initial={{ x: "-50vw", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
-            >
-              JO
-            </motion.div>
-            <motion.div 
-              initial={{ x: "50vw", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[35vw] md:text-[25vw] font-bold text-center leading-[0.8] tracking-tighter text-terracotta uppercase"
-            >
-              DO
-            </motion.div>
+          {/* Antigravity Background */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <Antigravity
+              count={600}
+              magnetRadius={10}
+              ringRadius={10}
+              waveSpeed={0.4}
+              waveAmplitude={1}
+              particleSize={1.4}
+              lerpSpeed={0.05}
+              color="#c85a3c"
+              autoAnimate
+              particleVariance={1}
+              rotationSpeed={0}
+              depthFactor={1}
+              pulseSpeed={3}
+              particleShape="capsule"
+              fieldStrength={10}
+            />
           </div>
-        </motion.div>
+
+          {/* TextPressure Layer */}
+          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full pointer-events-auto">
+            <div className="w-full max-w-[80vw] md:max-w-[60vw] h-[200px] md:h-[400px] relative">
+              <TextPressure
+                text="JODO"
+                flex
+                alpha={false}
+                stroke={false}
+                width
+                weight
+                italic
+                textColor="#c85a3c"
+                strokeColor="#c85a3c"
+                minFontSize={36}
+              />
+            </div>
+          </div>
+          
+        </div>
         
         {/* Secondary text that stays static */}
         <div className="absolute bottom-[20vh] lg:bottom-[25vh] left-8 md:left-24 max-w-md z-20">
