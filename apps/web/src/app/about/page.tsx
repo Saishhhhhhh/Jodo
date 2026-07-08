@@ -67,7 +67,7 @@ export default function AboutPage() {
         <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center">
           
           {/* Antigravity Background */}
-          <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 z-0">
             <Antigravity
               count={600}
               magnetRadius={10}
@@ -88,7 +88,7 @@ export default function AboutPage() {
           </div>
 
           {/* TextPressure Layer */}
-          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full pointer-events-auto">
+          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full pointer-events-none">
             <div className="w-full max-w-[80vw] md:max-w-[60vw] h-[200px] md:h-[400px] relative">
               <TextPressure
                 text="JODO"
@@ -107,17 +107,6 @@ export default function AboutPage() {
           
         </div>
         
-        {/* Secondary text that stays static */}
-        <div className="absolute bottom-[20vh] lg:bottom-[25vh] left-8 md:left-24 max-w-md z-20">
-           <motion.p 
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ delay: 0.5, duration: 1 }}
-             className="text-2xl text-taupe-dark font-medium"
-           >
-             We don't just build furniture. We engineer comfort. Scroll to discover the Jodo journey.
-           </motion.p>
-        </div>
       </section>
 
       {/* 2. Horizontal Scroll Gallery */}
