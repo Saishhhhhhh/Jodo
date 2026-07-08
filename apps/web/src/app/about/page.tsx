@@ -70,7 +70,7 @@ export default function AboutPage() {
     <div className="bg-[#FAF6F1] min-h-screen font-sans">
       
       {/* 1. Hero Section with Join on Load & Zoom on Scroll */}
-      <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-[#FAF6F1]">
+      <section ref={heroRef} className="h-[150vh] relative flex items-start justify-center pt-40 overflow-hidden bg-white">
         <motion.div 
           className="sticky top-[30vh] origin-center z-10 flex justify-center overflow-hidden w-full"
           style={{ opacity: heroOpacity, scale: heroScale, willChange: "transform, opacity" }}
