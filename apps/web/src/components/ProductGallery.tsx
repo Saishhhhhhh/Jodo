@@ -63,7 +63,8 @@ export default function ProductGallery({ product, localIp }: ProductGalleryProps
       const ip = localIp || hostname;
       return `http://${ip}:3000/?product=${product.slug}&ar=true`;
     }
-    return `${window.location.protocol}//${hostname}/vr/?product=${product.slug}&ar=true`;
+    // Fallback to the dedicated AR viewer deployment to ensure mobile QR scanning works correctly!
+    return `https://jodo-ar-viewer.vercel.app/?product=${product.slug}&ar=true`;
   };
 
   const vrUrl = getVRUrl();
