@@ -108,10 +108,10 @@ export default function Navbar() {
             { label: 'Mattresses', href: '/shop?category=mattresses' },
             { label: 'Home Decor', href: '/shop?category=decor' },
             { label: 'Explore Collections', href: '/collections' },
-            { label: 'Our Story', href: '/about' },
             { label: 'Shop All', href: '/shop' },
             { label: 'Lamps & Lighting', href: '/shop?category=lighting' },
             { label: 'Kitchen & Dining', href: '/shop?category=kitchen' },
+            { label: 'Our Story', href: '/about' },
             { label: 'Contact Us', href: '/contact' },
           ].map(({ label, href }) => (
             <Link

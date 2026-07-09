@@ -145,6 +145,11 @@ async function seedFurniture() {
       category: 'Outdoor',
       vendor: 'Jodo Outdoors',
       imageUrl: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&auto=format&fit=crop&q=80',
+      galleryImages: [
+        'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=80',
+      ],
       material: 'Grade A Teak Wood',
       dimensions: '30 x 35 x 34 inches',
       weight: 40.0,

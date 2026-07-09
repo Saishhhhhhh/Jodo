@@ -133,6 +133,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       price: 499,
       compareAtPrice: 699,
       imageUrl: 'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?w=800&auto=format&fit=crop&q=80',
+      galleryImages: [
+        'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=80',
+      ],
       inventoryQuantity: 9,
       productDetails: { 'Room Type': 'Outdoor' }
     }
