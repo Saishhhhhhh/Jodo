@@ -5,7 +5,7 @@ import { ArrowUpRight, MapPin, Phone, Mail } from 'lucide-react';
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-[#FAF6F1]"> {/* Beautiful cream background for the entire page */}
+    <div className="min-h-screen bg-white"> {/* White background for the entire page */}
       {/* Container */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24">
         
@@ -36,13 +36,13 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="bg-white p-10 rounded-[32px] flex flex-col items-center text-center shadow-[0_2px_20px_rgba(0,0,0,0.03)]"
+            className="group relative bg-[#FCF6F4] p-10 rounded-[32px] flex flex-col items-center text-center border border-transparent hover:border-terracotta/20 hover:bg-white hover:-translate-y-2 hover:shadow-xl hover:shadow-terracotta/5 transition-all duration-500"
           >
-            <div className="w-16 h-16 bg-cream rounded-full flex items-center justify-center mb-6 text-terracotta">
-              <MapPin className="w-7 h-7" />
+            <div className="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-8 text-terracotta group-hover:bg-terracotta group-hover:text-white transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+              <MapPin className="w-7 h-7 stroke-[1.5]" />
             </div>
-            <h3 className="text-xl text-jodo-dark font-semibold mb-3">Headquarters</h3>
-            <p className="text-taupe-dark text-lg leading-relaxed">
+            <h3 className="text-xl text-jodo-dark font-bold tracking-tight mb-3">Headquarters</h3>
+            <p className="text-gray-500 text-lg leading-relaxed">
               Jodo HQ, Andheri West<br />
               Mumbai, Maharashtra 400053
             </p>
@@ -53,15 +53,15 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="bg-white p-10 rounded-[32px] flex flex-col items-center text-center shadow-[0_2px_20px_rgba(0,0,0,0.03)]"
+            className="group relative bg-[#FCF6F4] p-10 rounded-[32px] flex flex-col items-center text-center border border-transparent hover:border-terracotta/20 hover:bg-white hover:-translate-y-2 hover:shadow-xl hover:shadow-terracotta/5 transition-all duration-500"
           >
-            <div className="w-16 h-16 bg-cream rounded-full flex items-center justify-center mb-6 text-terracotta">
-              <Mail className="w-7 h-7" />
+            <div className="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-8 text-terracotta group-hover:bg-terracotta group-hover:text-white transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3">
+              <Mail className="w-7 h-7 stroke-[1.5]" />
             </div>
-            <h3 className="text-xl text-jodo-dark font-semibold mb-3">Email Us</h3>
+            <h3 className="text-xl text-jodo-dark font-bold tracking-tight mb-3">Email Us</h3>
             <div className="flex flex-col gap-2">
-              <a href="mailto:hello@jodo.com" className="text-taupe-dark text-lg hover:text-terracotta transition-colors">hello@jodo.com</a>
-              <a href="mailto:support@jodo.com" className="text-taupe-dark text-lg hover:text-terracotta transition-colors">support@jodo.com</a>
+              <a href="mailto:hello@jodo.com" className="text-gray-500 text-lg hover:text-terracotta transition-colors">hello@jodo.com</a>
+              <a href="mailto:support@jodo.com" className="text-gray-500 text-lg hover:text-terracotta transition-colors">support@jodo.com</a>
             </div>
           </motion.div>
 
@@ -70,15 +70,15 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="bg-white p-10 rounded-[32px] flex flex-col items-center text-center shadow-[0_2px_20px_rgba(0,0,0,0.03)]"
+            className="group relative bg-[#FCF6F4] p-10 rounded-[32px] flex flex-col items-center text-center border border-transparent hover:border-terracotta/20 hover:bg-white hover:-translate-y-2 hover:shadow-xl hover:shadow-terracotta/5 transition-all duration-500"
           >
-            <div className="w-16 h-16 bg-cream rounded-full flex items-center justify-center mb-6 text-terracotta">
-              <Phone className="w-7 h-7" />
+            <div className="w-16 h-16 bg-white shadow-sm rounded-2xl flex items-center justify-center mb-8 text-terracotta group-hover:bg-terracotta group-hover:text-white transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+              <Phone className="w-7 h-7 stroke-[1.5]" />
             </div>
-            <h3 className="text-xl text-jodo-dark font-semibold mb-3">Call Us</h3>
+            <h3 className="text-xl text-jodo-dark font-bold tracking-tight mb-3">Call Us</h3>
             <div className="flex flex-col gap-2">
-              <a href="tel:+919876543210" className="text-taupe-dark text-lg hover:text-terracotta transition-colors">+91 98765 43210</a>
-              <a href="tel:+919876543211" className="text-taupe-dark text-lg hover:text-terracotta transition-colors">+91 98765 43211</a>
+              <a href="tel:+919876543210" className="text-gray-500 text-lg hover:text-terracotta transition-colors">+91 98765 43210</a>
+              <a href="tel:+919876543211" className="text-gray-500 text-lg hover:text-terracotta transition-colors">+91 98765 43211</a>
             </div>
           </motion.div>
         </div>
@@ -120,14 +120,25 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="relative group">
-                <input 
-                  type="email" 
-                  id="email"
-                  placeholder=" "
-                  className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
-                />
-                <label htmlFor="email" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">Email Address</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="relative group">
+                  <input 
+                    type="email" 
+                    id="email"
+                    placeholder=" "
+                    className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
+                  />
+                  <label htmlFor="email" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">Email Address</label>
+                </div>
+                <div className="relative group">
+                  <input 
+                    type="tel" 
+                    id="phone"
+                    placeholder=" "
+                    className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
+                  />
+                  <label htmlFor="phone" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">Phone Number</label>
+                </div>
               </div>
 
               <div className="relative group pt-4">
@@ -142,10 +153,12 @@ export default function ContactPage() {
 
               <button 
                 type="submit"
-                className="mt-10 bg-jodo-dark text-white rounded-full px-10 py-5 text-lg font-medium hover:bg-terracotta transition-all duration-300 flex items-center gap-4 group w-full justify-center lg:w-auto shadow-lg shadow-black/10"
+                className="mt-10 bg-terracotta text-white rounded-[16px] pl-6 pr-2 py-2 text-lg font-bold hover:bg-[#C25135] transition-colors duration-300 flex items-center justify-center gap-4 group w-fit"
               >
-                Send Message
-                <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <span>Send Message</span>
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-terracotta shrink-0">
+                  <ArrowUpRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                </div>
               </button>
             </form>
           </motion.div>
@@ -172,6 +185,34 @@ export default function ContactPage() {
           </motion.div>
           
         </div>
+
+        {/* Full-width Image CTA */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1 }}
+          className="mt-20 md:mt-24 relative rounded-[40px] overflow-hidden min-h-[400px] flex items-center justify-center group shadow-[0_2px_20px_rgba(0,0,0,0.03)]"
+        >
+          <img 
+            src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1600&q=80" 
+            alt="Crafting Excellence"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+          />
+          {/* Dark Overlay for Text Readability */}
+          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-500"></div>
+          
+          <div className="relative z-10 text-center px-6 py-16 max-w-3xl mx-auto flex flex-col items-center">
+            <h2 className="text-3xl md:text-5xl text-white font-medium mb-6 tracking-tight leading-tight">
+              Experience our craftsmanship in person.
+            </h2>
+            <p className="text-lg text-white/90 mb-10 max-w-2xl leading-relaxed">
+              Visit our Mumbai showroom to feel the textures, see the finishes, and meet our design consultants. Let's build something beautiful together.
+            </p>
+            <button className="bg-white text-jodo-dark rounded-full px-10 py-4 text-lg font-bold hover:-translate-y-1 hover:bg-terracotta hover:text-white transition-all duration-300 shadow-lg flex items-center gap-4">
+              Book a Showroom Visit
+            </button>
+          </div>
+        </motion.div>
 
       </div>
     </div>
