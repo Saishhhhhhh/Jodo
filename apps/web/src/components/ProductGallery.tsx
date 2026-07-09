@@ -123,6 +123,14 @@ export default function ProductGallery({ product, localIp }: ProductGalleryProps
               shadow-softness="0.5"
               style={{ width: '100%', height: '100%', background: 'transparent' }}
             >
+              {/* Custom Loading State */}
+              <div slot="progress-bar" className="absolute inset-0 flex items-center justify-center bg-[#F9F6F0]/80 backdrop-blur-sm z-20 transition-opacity duration-300">
+                <div className="flex flex-col items-center gap-3 bg-white px-6 py-4 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="w-8 h-8 border-4 border-[#B65A45] border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Loading 3D Model...</span>
+                </div>
+              </div>
+
               {/* Custom AR Button */}
               <button
                 type="button"
