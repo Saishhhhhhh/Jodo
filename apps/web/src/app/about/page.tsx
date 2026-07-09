@@ -37,9 +37,11 @@ export default function AboutPage() {
   // Horizontal Scroll Math (4 items = slide to -75%)
   const { scrollYProgress: horizontalScroll } = useScroll({
     target: horizontalRef,
+    offset: ["start start", "end end"]
   });
   const smoothHorizontalScroll = useSpring(horizontalScroll, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  const xTransform = useTransform(smoothHorizontalScroll, [0, 1], ["0%", "-75%"]);
+  // Finish horizontal sliding at 80% scroll progress to give the 4th slide time to rest before scrolling away
+  const xTransform = useTransform(smoothHorizontalScroll, [0, 0.8], ["0%", "-75%"]);
 
 
 
@@ -91,7 +93,7 @@ export default function AboutPage() {
       </section>
 
       {/* 2. Horizontal Scroll Gallery */}
-      <section ref={horizontalRef} className="h-[400vh] relative bg-[#FCF6F4] overflow-x-clip">
+      <section ref={horizontalRef} className="h-[500vh] relative bg-[#FCF6F4] overflow-x-clip">
         <div className="sticky top-0 h-screen w-full pt-[110px]">
           
           {/* Container is 400vw. We slide it left by 75% (300vw) so it perfectly stops at the end */}
@@ -101,12 +103,12 @@ export default function AboutPage() {
                 key={i} 
                 className="w-[100vw] h-full relative flex flex-col lg:flex-row items-center justify-center px-8 lg:px-24"
               >
+                {/* Huge Watermark Number (Fixed to Viewport Corners, pushed down below header) */}
+                <div className="absolute top-[20px] left-[-40px] lg:top-[40px] lg:left-[-100px] text-[8rem] lg:text-[12rem] font-bold text-[#D1C4B7]/40 leading-none pointer-events-none z-0 tracking-tighter select-none">
+                  0{i + 1}
+                </div>
+
                 <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center w-full max-w-6xl mx-auto">
-                  
-                  {/* Huge Watermark Number (Behind Image - Top Left) */}
-                  <div className="absolute top-[-60px] left-[-120px] lg:top-[-120px] lg:left-[-220px] text-[10rem] lg:text-[15rem] font-bold text-[#D1C4B7]/50 leading-none pointer-events-none z-0 tracking-tighter select-none">
-                    0{i + 1}
-                  </div>
 
                   {/* Editorial Image Frame */}
                   <div className="w-full lg:w-[45%] aspect-[3/4] relative rounded-[24px] overflow-hidden z-10 group shadow-lg">
