@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { Leaf, Award, Recycle, Shield } from 'lucide-react';
-import Antigravity from '@/components/Antigravity';
+
 import TextPressure from '@/components/TextPressure';
 
 const HORIZONTAL_ITEMS = [
@@ -51,27 +51,7 @@ export default function AboutPage() {
       {/* 1. Hero Section */}
       <section className="h-screen w-full relative bg-white overflow-hidden flex items-center justify-center">
         
-        {/* Antigravity Background */}
-        <div className="absolute inset-0 z-0">
-          <Antigravity
-            count={600}
-            magnetRadius={10}
-            ringRadius={10}
-            waveSpeed={0.4}
-            waveAmplitude={1}
-            particleSize={1.4}
-            lerpSpeed={0.05}
-            color="#c85a3c"
-            autoAnimate
-            particleVariance={1}
-            rotationSpeed={0}
-            depthFactor={1}
-            pulseSpeed={3}
-            particleShape="capsule"
-            fieldStrength={10}
-          />
-        </div>
-
+        
         {/* TextPressure Layer */}
         <div className="relative z-10 w-full max-w-[80vw] md:max-w-[60vw] h-[200px] md:h-[400px] pointer-events-none">
           <div className="w-full h-full pointer-events-auto">
