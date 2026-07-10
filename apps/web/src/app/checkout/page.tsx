@@ -107,7 +107,7 @@ export default function CheckoutPage() {
         totalAmount: finalTotal, // Use the discounted total
       };
 
-      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/checkout`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

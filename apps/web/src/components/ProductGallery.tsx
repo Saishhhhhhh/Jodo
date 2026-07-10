@@ -46,7 +46,7 @@ export default function ProductGallery({ product, localIp }: ProductGalleryProps
 
   const resolveImgUrl = (url: string) => {
     if (url.startsWith('/')) {
-      return `\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${url}`;
+      return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${url}`;
     }
     return url;
   };

@@ -3,7 +3,7 @@ import ShopClient from '../../components/shop/ShopClient';
 
 async function getProducts() {
   try {
-    const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products`, {
       next: { revalidate: 60 } // Revalidate every minute
     });
     if (!res.ok) {

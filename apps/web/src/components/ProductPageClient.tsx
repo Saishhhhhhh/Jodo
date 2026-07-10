@@ -59,7 +59,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     // Fetch dynamic reviews
     const fetchReviews = async () => {
       try {
-        const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products/${product._id}/reviews`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products/${product._id}/reviews`);
         const json = await res.json();
         if (json.success) {
           setReviews(json.data);
@@ -89,7 +89,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
   const resolveImgUrl = (url?: string) => {
     if (!url) return '';
-    if (url.startsWith('/')) return `\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${url}`;
+    if (url.startsWith('/')) return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${url}`;
     return url;
   };
 
@@ -122,7 +122,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     }
     setIsSubmitting(true);
     try {
-      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products/${product._id}/reviews`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products/${product._id}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewForm)

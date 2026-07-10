@@ -33,7 +33,7 @@ export default function AccountProfilePage() {
     setProfileLoading(true);
     setProfileMessage('');
     try {
-      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export default function AccountProfilePage() {
 
     setPasswordLoading(true);
     try {
-      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me/password`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
