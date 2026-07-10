@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { networkInterfaces } from 'os';
 import ProductPageClient from '@/components/ProductPageClient';
@@ -115,5 +115,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   
   if (!product) notFound();
 
-  return <ProductPageClient product={product} localIp={localIp} />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <ProductPageClient product={product} localIp={localIp} />
+    </Suspense>
+  );
 }

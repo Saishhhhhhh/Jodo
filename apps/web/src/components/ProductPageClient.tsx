@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Box, Smartphone, X, ChevronRight, Info, Plus } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
 
@@ -12,9 +13,18 @@ interface ProductPageClientProps {
 }
 
 export default function ProductPageClient({ product, localIp }: ProductPageClientProps) {
+  const searchParams = useSearchParams();
   const [showModal, setShowModal] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const modelViewerRef = useRef<any>(null);
+
+  useEffect(() => {
+    // If the user arrived via the QR code
+    if (searchParams.get('ar') === 'true') {
+      setShow3D(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,8 +51,18 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       setShowQRModal(true);
     } else {
       setShow3D(true);
+      // Attempt to auto-launch AR if supported (might be blocked without direct user gesture on some browsers, but worth a try)
+      setTimeout(() => {
+        if (modelViewerRef.current) {
+          try {
+            modelViewerRef.current.activateAR();
+          } catch (e) {}
+        }
+      }, 500);
     }
   };
+
+  const qrUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?ar=true` : '';
 
   return (
     <div className="bg-white min-h-screen font-sans">
@@ -70,17 +90,26 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       {/* ── 1. Massive Hero Image ── */}
       <div className="relative w-full h-[85vh] md:h-[95vh] bg-[#f7f5f2]">
         {show3D ? (
-          <div className="w-full h-full relative">
+          <div className="w-full h-full relative bg-gray-100 flex items-center justify-center">
             <model-viewer
+              ref={modelViewerRef}
               src={product.model3dUrl || '/vr/public/models/thermos-hydration-bottle.glb'}
               alt={`3D model`}
               ar
+              ar-modes="webxr scene-viewer quick-look"
               camera-controls
               auto-rotate
               shadow-intensity="1"
               style={{ width: '100%', height: '100%' }}
-            ></model-viewer>
-            <button onClick={() => setShow3D(false)} className="absolute top-8 right-8 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black">
+            >
+              <button 
+                slot="ar-button" 
+                className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
+              >
+                <Smartphone className="w-5 h-5" /> View in your room
+              </button>
+            </model-viewer>
+            <button onClick={() => setShow3D(false)} className="absolute top-8 right-8 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black transition-colors">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -213,7 +242,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             <div className="bg-gray-50 p-4 rounded-xl mb-6">
               {typeof window !== 'undefined' && (
                 <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`}
                   alt="QR Code" 
                   className="w-48 h-48"
                 />
