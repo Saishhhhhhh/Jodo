@@ -68,6 +68,7 @@ interface ProductFormProps {
 export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
+  const modelFileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [showGalleryUrlInput, setShowGalleryUrlInput] = useState(false);
   const [galleryUrlValue, setGalleryUrlValue] = useState('');
@@ -131,6 +132,21 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
 
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleModelFileChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (val: string) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 20 * 1024 * 1024) {
+        alert('File size exceeds 20MB limit.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onChange(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleGalleryFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
@@ -429,7 +445,38 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   <FormItem className="space-y-2 mt-4 pt-4 border-t border-dashed">
                     <FormLabel>3D Model URL (.glb or .gltf) (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. /wooden_sofa/scene.gltf" {...field} />
+                      <div className="flex gap-2 items-center">
+                        <Input placeholder="e.g. /wooden_sofa/scene.gltf" {...field} value={field.value && field.value.length > 100 ? 'Uploaded File (Base64)' : field.value} onChange={(e) => {
+                          if (e.target.value !== 'Uploaded File (Base64)') {
+                            field.onChange(e.target.value);
+                          }
+                        }} />
+                        <input
+                          type="file"
+                          ref={modelFileInputRef}
+                          className="hidden"
+                          accept=".glb,.gltf"
+                          onChange={(e) => handleModelFileChange(e, field.onChange)}
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => modelFileInputRef.current?.click()}
+                          className="flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <UploadCloud className="h-4 w-4" /> Upload
+                        </Button>
+                        {field.value && field.value.length > 100 && (
+                          <Button 
+                            type="button" 
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => field.onChange('')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </FormControl>
                     <FormDescription>
                       Link to a 3D model file to enable AR Try-On and 3D preview on the product page.
