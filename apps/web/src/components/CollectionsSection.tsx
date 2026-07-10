@@ -40,7 +40,7 @@ export default function CollectionsSection() {
         
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-bold text-[32px] tracking-tight">
+          <h2 className="font-heading text-white font-bold text-[32px] tracking-tight">
             Explore Collections
           </h2>
           

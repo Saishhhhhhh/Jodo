@@ -39,8 +39,7 @@ export default function FeaturesBar() {
               </div>
               
               <h3 
-                className="text-[#111111] font-bold text-[17px] mb-1.5 tracking-tight"
-                style={{ fontFamily: 'Syne, sans-serif' }}
+                className="font-heading text-[#111111] font-bold text-[17px] mb-1.5 tracking-tight"
               >
                 {title}
               </h3>

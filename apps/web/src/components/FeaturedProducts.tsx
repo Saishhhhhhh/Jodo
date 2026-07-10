@@ -137,7 +137,7 @@ export default async function FeaturedProducts() {
         
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
-          <h2 className="text-[#111111] font-bold text-[32px] tracking-tight">
+          <h2 className="font-heading text-[#111111] font-bold text-[32px] tracking-tight">
             Featured Products 
           </h2>
           
