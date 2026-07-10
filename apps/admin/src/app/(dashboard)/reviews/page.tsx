@@ -361,7 +361,7 @@ export default function ReviewsPage() {
 
       {/* Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Review Details</DialogTitle>
             <DialogDescription>
@@ -408,7 +408,7 @@ export default function ReviewsPage() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="flex flex-wrap items-center justify-end gap-2 sm:space-x-0">
             {selectedReview && (
               <Button onClick={() => { setIsDetailOpen(false); handleEditClick(selectedReview); }} variant="outline">
                 <Pencil className="mr-2 h-4 w-4" /> Edit Review

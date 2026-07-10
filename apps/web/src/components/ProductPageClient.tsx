@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Box, Smartphone, X, ChevronRight, Info, Plus, Star } from 'lucide-react';
+import { ArrowLeft, Box, Smartphone, X, ChevronRight, ChevronLeft, Info, Plus, Star } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
 
 interface ProductPageClientProps {
@@ -17,14 +17,43 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
   const [showModal, setShowModal] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const modelViewerRef = useRef<any>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Reviews State
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsMeta, setReviewsMeta] = useState({ totalReviews: 0, averageRating: 0 });
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewForm, setReviewForm] = useState({ rating: 5, authorName: '', authorEmail: '', title: '', body: '' });
+  const [reviewForm, setReviewForm] = useState({ rating: 0, authorName: '', authorEmail: '', title: '', body: '' });
+  const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSliderHovered, setIsSliderHovered] = useState(false);
+
+  // Auto-slide effect for reviews
+  useEffect(() => {
+    if (reviews.length === 0 || isSliderHovered) return;
+    
+    const interval = setInterval(() => {
+      if (sliderRef.current) {
+        const slider = sliderRef.current;
+        const scrollAmount = window.innerWidth < 768 ? 320 : 420;
+        
+        // If we are at the end, scroll back to start
+        if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 10) {
+          slider.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      }
+    }, 4000); // Slide every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [reviews.length, isSliderHovered]);
 
   useEffect(() => {
     // Fetch dynamic reviews
@@ -87,6 +116,10 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
   const submitReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (reviewForm.rating === 0) {
+      alert('Please select a star rating before submitting.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await fetch(`http://localhost:4000/api/storefront/products/${product._id}/reviews`, {
@@ -98,7 +131,8 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       if (json.success) {
         alert('Review submitted successfully! It will appear once approved by an admin.');
         setShowReviewModal(false);
-        setReviewForm({ rating: 5, authorName: '', authorEmail: '', title: '', body: '' });
+        setReviewForm({ rating: 0, authorName: '', authorEmail: '', title: '', body: '' });
+        setHoverRating(0);
       } else {
         alert(json.message || 'Failed to submit review');
       }
@@ -106,6 +140,13 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       alert('An error occurred while submitting.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    if (sliderRef.current) {
+      const scrollAmount = window.innerWidth < 768 ? 320 : 420;
+      sliderRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
     }
   };
 
@@ -226,45 +267,68 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               <div className="flex items-center gap-4">
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className={`w-5 h-5 ${star <= Math.round(reviewsMeta.averageRating) ? 'fill-gray-900 text-gray-900' : 'fill-transparent text-gray-300'}`} />
+                    <Star key={star} className={`w-5 h-5 ${star <= Math.round(reviewsMeta.averageRating) ? 'fill-gold text-gold' : 'fill-transparent text-gray-300'}`} />
                   ))}
                 </div>
                 <span className="text-lg font-medium text-gray-900">{reviewsMeta.averageRating > 0 ? reviewsMeta.averageRating : '0.0'} / 5</span>
                 <span className="text-sm text-gray-500 hidden sm:inline-block border-l border-gray-300 pl-4 ml-2">Based on {reviewsMeta.totalReviews} review{reviewsMeta.totalReviews !== 1 ? 's' : ''}</span>
               </div>
             </div>
-            <button 
-              onClick={() => setShowReviewModal(true)}
-              className="text-sm font-medium text-gray-900 border-b border-gray-900 pb-1 hover:text-gray-500 hover:border-gray-500 transition-colors"
-            >
-              Write a review
-            </button>
+            
+            <div className="flex items-center gap-6">
+              <div className="hidden md:flex items-center gap-2">
+                <button 
+                  onClick={() => scrollSlider('left')}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:text-terracotta hover:border-terracotta transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => scrollSlider('right')}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:text-terracotta hover:border-terracotta transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+              <button 
+                onClick={() => setShowReviewModal(true)}
+                className="text-sm font-medium text-terracotta border-b border-terracotta pb-1 hover:text-terracotta/80 hover:border-terracotta/80 transition-colors"
+              >
+                Write a review
+              </button>
+            </div>
           </div>
 
           {reviews.length === 0 ? (
             <div className="text-center py-12 text-gray-500">No reviews yet. Be the first to review this product!</div>
           ) : (
-            <div className="flex overflow-x-auto gap-8 pb-8 snap-x snap-mandatory hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {reviews.map(review => (
-                <div key={review._id} className="flex-none w-[300px] md:w-[400px] flex flex-col gap-4 snap-start bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                  <div className="flex gap-1 mb-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className={`w-4 h-4 ${star <= review.rating ? 'fill-gray-900 text-gray-900' : 'fill-transparent text-gray-300'}`} />
-                    ))}
-                  </div>
-                  {review.title && <h4 className="font-medium text-gray-900">{review.title}</h4>}
-                  <p className="text-gray-700 leading-relaxed font-light text-base md:text-lg">"{review.body}"</p>
-                  <div className="mt-auto pt-4 flex items-center gap-3 border-t border-gray-100">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
-                      {review.authorName.charAt(0).toUpperCase()}
+            <div 
+              className="relative" 
+              onMouseEnter={() => setIsSliderHovered(true)} 
+              onMouseLeave={() => setIsSliderHovered(false)}
+            >
+              <div ref={sliderRef} className="flex overflow-x-auto gap-6 pb-12 snap-x snap-mandatory hide-scrollbar pt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {reviews.map(review => (
+                  <div key={review._id} className="flex-none w-[320px] md:w-[420px] flex flex-col gap-5 snap-start bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300">
+                    <div className="flex gap-1 mb-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className={`w-5 h-5 ${star <= review.rating ? 'fill-gold text-gold' : 'fill-transparent text-gray-200'}`} />
+                      ))}
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{review.authorName}</p>
-                      <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  {review.title && <h4 className="text-xl font-medium text-gray-900 tracking-tight">{review.title}</h4>}
+                  <p className="text-gray-600 leading-relaxed font-light text-base md:text-lg italic">"{review.body}"</p>
+                    <div className="mt-auto pt-6 flex items-center gap-4 border-t border-gray-50">
+                      <div className="w-12 h-12 rounded-full bg-cream flex items-center justify-center text-base font-semibold text-terracotta shadow-inner">
+                        {review.authorName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{review.authorName}</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wider">{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -282,33 +346,42 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           <form onSubmit={submitReview} className="flex flex-col gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <button type="button" key={star} onClick={() => setReviewForm({ ...reviewForm, rating: star })} className="focus:outline-none">
-                    <Star className={`w-8 h-8 ${star <= reviewForm.rating ? 'fill-gray-900 text-gray-900' : 'fill-transparent text-gray-300 hover:text-gray-400'}`} />
-                  </button>
-                ))}
+              <div className="flex gap-2" onMouseLeave={() => setHoverRating(0)}>
+                {[1, 2, 3, 4, 5].map(star => {
+                  const isActive = star <= (hoverRating || reviewForm.rating);
+                  return (
+                    <button 
+                      type="button" 
+                      key={star} 
+                      onClick={() => setReviewForm({ ...reviewForm, rating: star })} 
+                      onMouseEnter={() => setHoverRating(star)}
+                      className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
+                    >
+                      <Star className={`w-9 h-9 transition-colors ${isActive ? 'fill-gold text-gold' : 'fill-transparent text-gray-300'}`} />
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input required type="text" value={reviewForm.authorName} onChange={e => setReviewForm({...reviewForm, authorName: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900" placeholder="John Doe" />
+                <input required type="text" value={reviewForm.authorName} onChange={e => setReviewForm({...reviewForm, authorName: e.target.value})} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="John Doe" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input required type="email" value={reviewForm.authorEmail} onChange={e => setReviewForm({...reviewForm, authorEmail: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900" placeholder="john@example.com" />
+                <input required type="email" value={reviewForm.authorEmail} onChange={e => setReviewForm({...reviewForm, authorEmail: e.target.value})} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="john@example.com" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Title (Optional)</label>
-              <input type="text" value={reviewForm.title} onChange={e => setReviewForm({...reviewForm, title: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900" placeholder="Great product!" />
+              <input type="text" value={reviewForm.title} onChange={e => setReviewForm({...reviewForm, title: e.target.value})} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="Great product!" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Review</label>
-              <textarea required value={reviewForm.body} onChange={e => setReviewForm({...reviewForm, body: e.target.value})} rows={4} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900 resize-none" placeholder="What did you think?"></textarea>
+              <textarea required value={reviewForm.body} onChange={e => setReviewForm({...reviewForm, body: e.target.value})} rows={4} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta resize-none" placeholder="What did you think?"></textarea>
             </div>
-            <button disabled={isSubmitting} type="submit" className="w-full mt-4 bg-gray-900 text-white rounded-full py-3 font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
+            <button disabled={isSubmitting} type="submit" className="w-full mt-4 bg-terracotta text-white rounded-full py-4 font-medium hover:bg-terracotta/90 transition-colors disabled:opacity-50">
               {isSubmitting ? 'Submitting...' : 'Submit Review'}
             </button>
           </form>
@@ -385,8 +458,8 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             </button>
           </div>
           <div className="flex flex-col items-center text-center">
-            <div className="bg-gray-50 p-4 rounded-xl mb-6">
-              {typeof window !== 'undefined' && (
+            <div className="bg-gray-50 p-4 rounded-xl mb-6 min-h-[232px] flex items-center justify-center">
+              {mounted && (
                 <img 
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`}
                   alt="QR Code" 
