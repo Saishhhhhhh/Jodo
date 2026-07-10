@@ -31,7 +31,7 @@ export default function AccountAddressesPage() {
     setMessage({ type: '', text: '' });
 
     try {
-      const res = await fetch('http://localhost:4000/api/storefront/auth/me', {
+      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
