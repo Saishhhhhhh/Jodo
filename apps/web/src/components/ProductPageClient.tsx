@@ -230,12 +230,21 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <button onClick={() => setShow3D(true)} className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors">
-            <Box className="w-5 h-5" /> View in 3D
+        <div className="flex flex-wrap justify-center gap-4">
+          <button 
+            onClick={() => {
+              setShow3D(true);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} 
+            className="flex items-center gap-2.5 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm"
+          >
+            <Box className="w-5 h-5" /> <span>View in 3D</span>
           </button>
-          <button onClick={handleARClick} className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors">
-            <Smartphone className="w-5 h-5" /> AR Try-on
+          <button 
+            onClick={handleARClick} 
+            className="flex items-center gap-2.5 px-6 py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm"
+          >
+            <Smartphone className="w-5 h-5" /> <span>AR Try-on</span>
           </button>
         </div>
 
@@ -390,23 +399,25 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
       {/* ── Hidden Details Modal (Drawer style) ── */}
       <div className={`fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
-        <div className={`w-full max-w-md h-full bg-white shadow-2xl p-8 md:p-12 flex flex-col overflow-y-auto transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} onClick={e => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-10">
-            <h3 className="text-2xl font-medium text-gray-900">Details</h3>
-            <button onClick={() => setShowModal(false)} className="p-2 -mr-2 text-gray-400 hover:text-gray-900 transition-colors">
-              <X className="w-6 h-6" />
+        <div className={`w-full max-w-[500px] h-full bg-white shadow-2xl p-8 md:p-12 flex flex-col overflow-y-auto transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} onClick={e => e.stopPropagation()}>
+          <div className="flex justify-between items-start mb-16">
+            <h3 className="text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
+            <button onClick={() => setShowModal(false)} className="p-2 -mr-2 text-gray-400 hover:text-black transition-colors">
+              <X className="w-8 h-8 font-light" strokeWidth={1} />
             </button>
           </div>
 
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-14 pb-12">
             {product.productDetails && Object.keys(product.productDetails).length > 0 && (
               <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6">Overview</h4>
-                <div className="flex flex-col gap-4">
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-5">
+                  Overview
+                </h4>
+                <div className="flex flex-col">
                   {Object.entries(product.productDetails).map(([key, value]) => (
-                    <div key={key} className="flex justify-between border-b border-gray-100 pb-4">
-                      <span className="text-sm text-gray-500">{key}</span>
-                      <span className="text-sm font-medium text-gray-900 text-right">{String(value)}</span>
+                    <div key={key} className="flex justify-between items-center py-4 border-b border-gray-100">
+                      <span className="text-[15px] text-gray-500">{key}</span>
+                      <span className="text-[15px] font-medium text-[#1a1a1a] text-right">{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -415,12 +426,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
             {product.specifications && product.specifications.length > 0 && (
               <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6">Materials & Build</h4>
-                <div className="flex flex-col gap-4">
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-5">
+                  Materials & Build
+                </h4>
+                <div className="flex flex-col">
                   {product.specifications.map((spec: any, i: number) => (
-                    <div key={i} className="flex flex-col gap-1 border-b border-gray-100 pb-4">
-                      <span className="text-sm text-gray-500">{spec.key}</span>
-                      <span className="text-sm font-medium text-gray-900">{spec.value}</span>
+                    <div key={i} className="flex flex-col py-4 border-b border-gray-100 gap-1.5">
+                      <span className="text-[13px] font-medium text-gray-500">{spec.key}</span>
+                      <span className="text-[15px] text-[#1a1a1a] leading-relaxed">{spec.value}</span>
                     </div>
                   ))}
                 </div>
@@ -429,17 +442,19 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
             {(product.careAndMaintenance || product.warrantyTerms) && (
               <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6">Care & Warranty</h4>
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-5">
+                  Care & Warranty
+                </h4>
                 {product.careAndMaintenance && (
-                  <div className="mb-6">
-                    <span className="text-sm font-medium text-gray-900 block mb-2">Care Instructions</span>
-                    <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
+                  <div className="mb-8 pt-2">
+                    <span className="text-[15px] font-bold text-[#1a1a1a] block mb-3">Care Instructions</span>
+                    <p className="text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
                   </div>
                 )}
                 {product.warrantyTerms && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-900 block mb-2">Warranty</span>
-                    <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
+                  <div className="pt-2">
+                    <span className="text-[15px] font-bold text-[#1a1a1a] block mb-3">Warranty terms</span>
+                    <p className="text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
                   </div>
                 )}
               </div>
