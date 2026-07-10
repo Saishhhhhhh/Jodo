@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { DM_Sans, Syne } from 'next/font/google';
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
+const dmSans = DM_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-dm-sans' });
+const syne = Syne({ subsets: ['latin'], display: 'swap', variable: '--font-syne' });
 
 export const metadata: Metadata = {
   title: "Jodo Home | Crafting Comfort, Shaping Style",
@@ -15,13 +19,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body className="w-full relative" style={{ fontFamily: "'Rubik', system-ui, sans-serif" }}>
+      <body className={`w-full relative ${dmSans.variable} ${syne.variable} font-sans`} style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
         <Script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"

@@ -9,22 +9,22 @@ import TextPressure from '@/components/TextPressure';
 
 const HORIZONTAL_ITEMS = [
   {
-    title: "The Origin",
+    title: "The origin",
     desc: "Every iconic piece begins as a whisper. We strip away the unnecessary, searching for the perfect balance between form, function, and raw emotion.",
     img: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    title: "The Elements",
+    title: "The elements",
     desc: "We let nature speak. Sourcing sustainable oak, raw linens, and forged metals that carry a history, ensuring each piece ages beautifully with your home.",
     img: "https://images.unsplash.com/photo-1599696848652-f0ff23bc911f?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    title: "The Obsession",
+    title: "The obsession",
     desc: "True luxury lies in the unseen details. Our artisans spend hundreds of hours perfecting the invisible joints and seamless contours that define Jodo.",
     img: "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1200&q=80"
   },
   {
-    title: "The Experience",
+    title: "The experience",
     desc: "More than furniture. We design the silent backdrops to your life's most meaningful moments, creating spaces that truly breathe with you.",
     img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=80"
   }

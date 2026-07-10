@@ -21,7 +21,8 @@ const config: Config = {
         cream: "#FAF6F1",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
+        heading: ["var(--font-syne)", "system-ui", "sans-serif"],
       },
       fontSize: {
         "hero": ["clamp(2.5rem, 5vw, 4.5rem)", { lineHeight: "1.05", fontWeight: "700" }],

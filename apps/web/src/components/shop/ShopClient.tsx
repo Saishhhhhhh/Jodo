@@ -27,7 +27,7 @@ const PRICE_RANGES = [
 ];
 
 export default function ShopClient({ initialProducts }: ShopClientProps) {
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
@@ -236,39 +236,49 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
   }, [displayProducts, selectedCategories, selectedPriceRange, inStockOnly]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 relative">
+    <div className="flex flex-col relative w-full">
       
-      {/* Mobile Filter Toggle */}
-      <div className="lg:hidden flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
-        <span className="font-medium text-gray-800">{filteredProducts.length} Products</span>
-        <button 
-          onClick={() => setIsMobileFiltersOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#B65A45] text-white rounded-md font-medium text-sm"
-        >
-          <Filter size={16} /> Filters
-        </button>
+      {/* Filter Toggle & Info Bar */}
+      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setIsFiltersOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-terracotta hover:bg-terracotta/90 transition-colors text-white rounded-lg font-medium text-sm shadow-sm"
+          >
+            <Filter size={18} /> Filter Collection
+          </button>
+          <span className="font-medium text-gray-800 text-sm hidden sm:block">Showing {filteredProducts.length} Products</span>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-terracotta">
+          Sort by: <span className="text-gray-900 hidden sm:inline">Recommended</span> <ChevronDown size={16} />
+        </div>
       </div>
 
-      {/* Sidebar Filters */}
+      {/* Overlay Filters Drawer */}
       <aside className={`
-        fixed inset-0 z-50 bg-black/50 lg:bg-transparent lg:static lg:block
-        transition-opacity duration-300 lg:w-[280px] shrink-0
-        ${isMobileFiltersOpen ? 'opacity-100' : 'opacity-0 pointer-events-none lg:opacity-100 lg:pointer-events-auto'}
+        fixed inset-0 z-50 bg-black/40 backdrop-blur-sm
+        transition-opacity duration-300
+        ${isFiltersOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
       `}>
+        <div 
+          className="absolute inset-0" 
+          onClick={() => setIsFiltersOpen(false)}
+        />
         <div className={`
-          absolute right-0 top-0 bottom-0 w-[300px] bg-white lg:bg-transparent lg:w-full lg:static
-          transform transition-transform duration-300 ease-in-out p-6 lg:p-0
-          overflow-y-auto lg:overflow-visible
-          ${isMobileFiltersOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+          absolute right-0 top-0 bottom-0 w-full max-w-[360px] bg-white
+          transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+          overflow-y-auto shadow-2xl flex flex-col
+          ${isFiltersOpen ? 'translate-x-0' : 'translate-x-full'}
         `}>
-          <div className="flex items-center justify-between lg:hidden mb-6">
-            <h2 className="text-xl font-bold">Filters</h2>
-            <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 bg-gray-100 rounded-full text-gray-600">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur z-10">
+            <h2 className="text-2xl font-bold font-heading text-jodo-dark">Filters</h2>
+            <button onClick={() => setIsFiltersOpen(false)} className="p-2 bg-gray-50 hover:bg-gray-100 transition-colors rounded-full text-gray-600">
               <X size={20} />
             </button>
           </div>
 
-          <div className="space-y-8 lg:sticky lg:top-28">
+          <div className="space-y-8 p-6 flex-1">
             {/* Category Filter */}
             <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">
               <h3 className="font-semibold text-lg text-gray-900 mb-4 flex items-center justify-between">
@@ -284,11 +294,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                       onChange={() => toggleCategory(cat)} 
                     />
                     <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors
-                      ${selectedCategories.includes(cat) ? 'bg-[#B65A45] border-[#B65A45]' : 'border-gray-300 group-hover:border-[#B65A45]'}
+                      ${selectedCategories.includes(cat) ? 'bg-terracotta border-terracotta' : 'border-gray-300 group-hover:border-terracotta'}
                     `}>
                       {selectedCategories.includes(cat) && <Check size={14} className="text-white" />}
                     </div>
-                    <span className="text-gray-700 font-medium group-hover:text-[#B65A45] transition-colors">{cat}</span>
+                    <span className="text-gray-700 font-medium group-hover:text-terracotta transition-colors">{cat}</span>
                   </label>
                 ))}
               </div>
@@ -301,7 +311,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                 {PRICE_RANGES.map(range => (
                   <label key={range.label} className="flex items-center gap-3 cursor-pointer group">
                     <div className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center">
-                      <div className={`w-2.5 h-2.5 rounded-full transition-colors ${selectedPriceRange === range.label ? 'bg-[#B65A45]' : 'bg-transparent'}`} />
+                      <div className={`w-2.5 h-2.5 rounded-full transition-colors ${selectedPriceRange === range.label ? 'bg-terracotta' : 'bg-transparent'}`} />
                     </div>
                     <input 
                       type="radio" 
@@ -310,13 +320,13 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                       checked={selectedPriceRange === range.label}
                       onChange={() => setSelectedPriceRange(selectedPriceRange === range.label ? null : range.label)}
                     />
-                    <span className="text-gray-700 font-medium group-hover:text-[#B65A45] transition-colors">{range.label}</span>
+                    <span className="text-gray-700 font-medium group-hover:text-terracotta transition-colors">{range.label}</span>
                   </label>
                 ))}
                 {selectedPriceRange && (
                   <button 
                     onClick={() => setSelectedPriceRange(null)}
-                    className="text-sm text-[#B65A45] font-semibold mt-2 hover:underline"
+                    className="text-sm text-terracotta font-semibold mt-2 hover:underline"
                   >
                     Clear Price Filter
                   </button>
@@ -340,11 +350,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                         onChange={() => toggleVendor(vendor)} 
                       />
                       <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors
-                        ${selectedVendors.includes(vendor) ? 'bg-[#B65A45] border-[#B65A45]' : 'border-gray-300 group-hover:border-[#B65A45]'}
+                        ${selectedVendors.includes(vendor) ? 'bg-terracotta border-terracotta' : 'border-gray-300 group-hover:border-terracotta'}
                       `}>
                         {selectedVendors.includes(vendor) && <Check size={14} className="text-white" />}
                       </div>
-                      <span className="text-gray-700 font-medium group-hover:text-[#B65A45] transition-colors">{vendor}</span>
+                      <span className="text-gray-700 font-medium group-hover:text-terracotta transition-colors">{vendor}</span>
                     </label>
                   ))}
                 </div>
@@ -367,11 +377,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                         onChange={() => toggleMaterial(mat)} 
                       />
                       <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors
-                        ${selectedMaterials.includes(mat) ? 'bg-[#B65A45] border-[#B65A45]' : 'border-gray-300 group-hover:border-[#B65A45]'}
+                        ${selectedMaterials.includes(mat) ? 'bg-terracotta border-terracotta' : 'border-gray-300 group-hover:border-terracotta'}
                       `}>
                         {selectedMaterials.includes(mat) && <Check size={14} className="text-white" />}
                       </div>
-                      <span className="text-gray-700 font-medium group-hover:text-[#B65A45] transition-colors">{mat}</span>
+                      <span className="text-gray-700 font-medium group-hover:text-terracotta transition-colors">{mat}</span>
                     </label>
                   ))}
                 </div>
@@ -382,7 +392,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
             <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">
               <label className="flex items-center justify-between cursor-pointer">
                 <span className="font-semibold text-lg text-gray-900">Assembly Required</span>
-                <div className={`relative w-11 h-6 rounded-full transition-colors ${assemblyRequired === true ? 'bg-[#B65A45]' : 'bg-gray-300'}`}>
+                <div className={`relative w-11 h-6 rounded-full transition-colors ${assemblyRequired === true ? 'bg-terracotta' : 'bg-gray-300'}`}>
                   <input 
                     type="checkbox" 
                     className="hidden" 
@@ -395,7 +405,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
               {assemblyRequired === true && (
                 <button 
                   onClick={() => setAssemblyRequired(null)}
-                  className="text-sm text-[#B65A45] font-semibold mt-2 hover:underline block"
+                  className="text-sm text-terracotta font-semibold mt-2 hover:underline block"
                 >
                   Clear Assembly Filter
                 </button>
@@ -407,24 +417,28 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
             <div className="bg-white lg:p-6 lg:rounded-2xl lg:shadow-sm lg:border border-gray-100">
               <label className="flex items-center justify-between cursor-pointer">
                 <span className="font-semibold text-lg text-gray-900">In Stock Only</span>
-                <div className={`relative w-11 h-6 rounded-full transition-colors ${inStockOnly ? 'bg-[#B65A45]' : 'bg-gray-300'}`}>
+                <div className={`relative w-11 h-6 rounded-full transition-colors ${inStockOnly ? 'bg-terracotta' : 'bg-gray-300'}`}>
                   <input type="checkbox" className="hidden" checked={inStockOnly} onChange={() => setInStockOnly(!inStockOnly)} />
                   <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${inStockOnly ? 'translate-x-5' : 'translate-x-0'}`} />
                 </div>
               </label>
             </div>
           </div>
+          
+          {/* Apply button at bottom of drawer */}
+          <div className="p-6 border-t border-gray-100 sticky bottom-0 bg-white/95 backdrop-blur">
+             <button 
+                onClick={() => setIsFiltersOpen(false)}
+                className="w-full py-3.5 bg-jodo-dark text-white rounded-xl font-semibold hover:bg-terracotta transition-colors shadow-lg"
+             >
+                Apply Filters
+             </button>
+          </div>
         </div>
       </aside>
 
       {/* Main Product Grid */}
-      <main className="flex-1">
-        <div className="hidden lg:flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <span className="font-medium text-gray-600">Showing <strong className="text-gray-900">{filteredProducts.length}</strong> Products</span>
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-[#B65A45]">
-            Sort by: <span className="text-gray-900">Recommended</span> <ChevronDown size={16} />
-          </div>
-        </div>
+      <main className="flex-1 w-full">
 
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 text-center px-4">
@@ -439,7 +453,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                 setSelectedPriceRange(null);
                 setInStockOnly(false);
               }}
-              className="px-6 py-2 bg-gray-900 text-white rounded-full font-medium hover:bg-[#B65A45] transition-colors"
+              className="px-6 py-2 bg-gray-900 text-white rounded-full font-medium hover:bg-terracotta transition-colors"
             >
               Clear all filters
             </button>
