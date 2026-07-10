@@ -34,19 +34,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     ? product.galleryImages 
     : [product.imageUrl]).map(resolveImgUrl);
 
-  const getVRUrl = () => {
-    if (typeof window === 'undefined') return '';
-    if (process.env.NEXT_PUBLIC_VR_URL) {
-      return `${process.env.NEXT_PUBLIC_VR_URL}/?product=${product.slug}&ar=true`;
-    }
-    // Fallback to the dedicated AR viewer deployment
-    return `https://jodo-ar-viewer.vercel.app/?product=${product.slug}&ar=true`;
-  };
-
-  const vrUrl = getVRUrl();
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const handleARClick = () => {
-    window.open(vrUrl, '_blank');
+    if (typeof window !== 'undefined' && window.innerWidth > 768) {
+      setShowQRModal(true);
+    } else {
+      setShow3D(true);
+    }
   };
 
   return (
@@ -77,7 +72,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
         {show3D ? (
           <div className="w-full h-full relative">
             <model-viewer
-              src={'/vr/public/models/thermos-hydration-bottle.glb'}
+              src={product.model3dUrl || '/vr/public/models/thermos-hydration-bottle.glb'}
               alt={`3D model`}
               ar
               camera-controls
@@ -201,6 +196,39 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                 )}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── AR QR Code Modal for Desktop ── */}
+      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showQRModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowQRModal(false)}>
+        <div className={`bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl transform transition-transform duration-300 ${showQRModal ? 'scale-100' : 'scale-95'}`} onClick={e => e.stopPropagation()}>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-medium text-gray-900">AR Try-on</h3>
+            <button onClick={() => setShowQRModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-gray-50 p-4 rounded-xl mb-6">
+              {typeof window !== 'undefined' && (
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href)}`}
+                  alt="QR Code" 
+                  className="w-48 h-48"
+                />
+              )}
+            </div>
+            <h4 className="text-lg font-medium text-gray-900 mb-2">Scan with your phone</h4>
+            <p className="text-sm text-gray-500 mb-6">
+              Open your phone's camera and scan this QR code to view this product in your space using Augmented Reality.
+            </p>
+            <button 
+              onClick={() => setShowQRModal(false)}
+              className="w-full py-3 px-4 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+            >
+              Done
+            </button>
           </div>
         </div>
       </div>

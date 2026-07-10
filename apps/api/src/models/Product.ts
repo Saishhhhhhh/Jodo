@@ -15,6 +15,7 @@ export interface IProduct extends Document {
   vendor: string;
   imageUrl?: string;
   galleryImages?: string[];
+  model3dUrl?: string;
   material?: string;
   dimensions?: string;
   weight?: number;
@@ -49,6 +50,7 @@ const productSchema = new Schema<IProduct>(
     vendor: { type: String, default: '' },
     imageUrl: { type: String },
     galleryImages: [{ type: String }],
+    model3dUrl: { type: String },
     material: { type: String },
     dimensions: { type: String },
     weight: { type: Number },

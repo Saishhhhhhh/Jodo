@@ -29,6 +29,7 @@ const formSchema = z.object({
   vendor: z.string().optional().default(''),
   imageUrl: z.string().optional().default(''),
   galleryImages: z.array(z.string()).default([]),
+  model3dUrl: z.string().optional().default(''),
   status: z.enum(['draft', 'active', 'archived']),
   material: z.string().optional().default(''),
   dimensions: z.string().optional().default(''),
@@ -84,6 +85,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       vendor: initialData?.vendor || '',
       imageUrl: initialData?.imageUrl || '',
       galleryImages: initialData?.galleryImages || [],
+      model3dUrl: initialData?.model3dUrl || '',
       status: initialData?.status || 'active',
       material: initialData?.material || '',
       dimensions: initialData?.dimensions || '',
@@ -415,6 +417,23 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                         </div>
                       </div>
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="model3dUrl"
+                render={({ field }) => (
+                  <FormItem className="space-y-2 mt-4 pt-4 border-t border-dashed">
+                    <FormLabel>3D Model URL (.glb or .gltf) (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. /vr/public/models/thermos-hydration-bottle.glb" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Link to a 3D model file to enable AR Try-On and 3D preview on the product page.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
