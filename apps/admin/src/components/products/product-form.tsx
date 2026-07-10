@@ -429,7 +429,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   <FormItem className="space-y-2 mt-4 pt-4 border-t border-dashed">
                     <FormLabel>3D Model URL (.glb or .gltf) (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. /vr/public/models/thermos-hydration-bottle.glb" {...field} />
+                      <Input placeholder="e.g. /wooden_sofa/scene.gltf" {...field} />
                     </FormControl>
                     <FormDescription>
                       Link to a 3D model file to enable AR Try-On and 3D preview on the product page.

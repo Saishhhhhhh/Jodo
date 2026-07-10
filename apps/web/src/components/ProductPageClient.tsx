@@ -93,7 +93,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           <div className="w-full h-full relative bg-gray-100 flex items-center justify-center">
             <model-viewer
               ref={modelViewerRef}
-              src={product.model3dUrl || '/vr/public/models/thermos-hydration-bottle.glb'}
+              src={product.model3dUrl || '/wooden_sofa/scene.gltf'}
               alt={`3D model`}
               ar
               ar-modes="webxr scene-viewer quick-look"
@@ -104,7 +104,8 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             >
               <button 
                 slot="ar-button" 
-                className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
+                style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)' }}
+                className="bg-gray-900 text-white px-6 py-3 rounded-full font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
               >
                 <Smartphone className="w-5 h-5" /> View in your room
               </button>
