@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { Store } from '../models/Store';
-import { sendSuccess } from '../utils/response';
+import { Review } from '../models/Review';
+import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
 
@@ -20,6 +21,46 @@ router.get('/products/:id', async (req, res, next) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ success: false, message: 'Not found' });
     sendSuccess(res, product);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/products/:id/reviews', async (req, res, next) => {
+  try {
+    const reviews = await Review.find({ productId: req.params.id, status: 'approved' }).sort({ createdAt: -1 });
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews > 0 ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / totalReviews).toFixed(1) : 0;
+    
+    res.json({ success: true, data: reviews, meta: { totalReviews, averageRating } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/products/:id/reviews', async (req, res, next) => {
+  try {
+    const store = await Store.findOne();
+    if (!store) return sendError(res, 'Store not found', 404);
+
+    const { rating, authorName, authorEmail, title, body } = req.body;
+    if (!rating || !authorName || !authorEmail || !body) {
+      return sendError(res, 'Missing required review fields', 400);
+    }
+
+    const review = await Review.create({
+      tenantId: store.tenantId,
+      storeId: store._id,
+      productId: req.params.id,
+      rating: parseInt(rating, 10),
+      authorName,
+      authorEmail,
+      title,
+      body,
+      status: 'pending' // Admin must approve
+    });
+
+    sendSuccess(res, review, 'Review submitted successfully and is pending approval', 201);
   } catch (error) {
     next(error);
   }

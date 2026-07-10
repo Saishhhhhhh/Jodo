@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Box, Smartphone, X, ChevronRight, Info, Plus } from 'lucide-react';
+import { ArrowLeft, Box, Smartphone, X, ChevronRight, Info, Plus, Star } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
 
 interface ProductPageClientProps {
@@ -18,6 +18,30 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
   const [show3D, setShow3D] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const modelViewerRef = useRef<any>(null);
+
+  // Reviews State
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsMeta, setReviewsMeta] = useState({ totalReviews: 0, averageRating: 0 });
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, authorName: '', authorEmail: '', title: '', body: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Fetch dynamic reviews
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch(`http://localhost:4000/api/storefront/products/${product._id}/reviews`);
+        const json = await res.json();
+        if (json.success) {
+          setReviews(json.data);
+          setReviewsMeta(json.meta);
+        }
+      } catch (err) {
+        console.error('Failed to fetch reviews', err);
+      }
+    };
+    fetchReviews();
+  }, [product._id]);
 
   useEffect(() => {
     // If the user arrived via the QR code
@@ -51,7 +75,6 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       setShowQRModal(true);
     } else {
       setShow3D(true);
-      // Attempt to auto-launch AR if supported (might be blocked without direct user gesture on some browsers, but worth a try)
       setTimeout(() => {
         if (modelViewerRef.current) {
           try {
@@ -59,6 +82,30 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           } catch (e) {}
         }
       }, 500);
+    }
+  };
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`http://localhost:4000/api/storefront/products/${product._id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewForm)
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert('Review submitted successfully! It will appear once approved by an admin.');
+        setShowReviewModal(false);
+        setReviewForm({ rating: 5, authorName: '', authorEmail: '', title: '', body: '' });
+      } else {
+        alert(json.message || 'Failed to submit review');
+      }
+    } catch (err) {
+      alert('An error occurred while submitting.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -168,6 +215,104 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             <Image src={img} alt={`Lifestyle ${idx + 1}`} fill className="object-cover" unoptimized />
           </div>
         ))}
+      </div>
+
+      {/* ── 4. Minimalist Reviews Section ── */}
+      <div className="w-full bg-[#fcfbf9] py-24 md:py-32 px-6">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-medium text-gray-900 mb-4 tracking-tight">What our customers say</h2>
+              <div className="flex items-center gap-4">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className={`w-5 h-5 ${star <= Math.round(reviewsMeta.averageRating) ? 'fill-gray-900 text-gray-900' : 'fill-transparent text-gray-300'}`} />
+                  ))}
+                </div>
+                <span className="text-lg font-medium text-gray-900">{reviewsMeta.averageRating > 0 ? reviewsMeta.averageRating : '0.0'} / 5</span>
+                <span className="text-sm text-gray-500 hidden sm:inline-block border-l border-gray-300 pl-4 ml-2">Based on {reviewsMeta.totalReviews} review{reviewsMeta.totalReviews !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowReviewModal(true)}
+              className="text-sm font-medium text-gray-900 border-b border-gray-900 pb-1 hover:text-gray-500 hover:border-gray-500 transition-colors"
+            >
+              Write a review
+            </button>
+          </div>
+
+          {reviews.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">No reviews yet. Be the first to review this product!</div>
+          ) : (
+            <div className="flex overflow-x-auto gap-8 pb-8 snap-x snap-mandatory hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {reviews.map(review => (
+                <div key={review._id} className="flex-none w-[300px] md:w-[400px] flex flex-col gap-4 snap-start bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className={`w-4 h-4 ${star <= review.rating ? 'fill-gray-900 text-gray-900' : 'fill-transparent text-gray-300'}`} />
+                    ))}
+                  </div>
+                  {review.title && <h4 className="font-medium text-gray-900">{review.title}</h4>}
+                  <p className="text-gray-700 leading-relaxed font-light text-base md:text-lg">"{review.body}"</p>
+                  <div className="mt-auto pt-4 flex items-center gap-3 border-t border-gray-100">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
+                      {review.authorName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{review.authorName}</p>
+                      <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Write Review Modal ── */}
+      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showReviewModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => !isSubmitting && setShowReviewModal(false)}>
+        <div className={`bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300 ${showReviewModal ? 'scale-100' : 'scale-95'}`} onClick={e => e.stopPropagation()}>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-medium text-gray-900">Write a Review</h3>
+            <button onClick={() => !isSubmitting && setShowReviewModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <form onSubmit={submitReview} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button type="button" key={star} onClick={() => setReviewForm({ ...reviewForm, rating: star })} className="focus:outline-none">
+                    <Star className={`w-8 h-8 ${star <= reviewForm.rating ? 'fill-gray-900 text-gray-900' : 'fill-transparent text-gray-300 hover:text-gray-400'}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input required type="text" value={reviewForm.authorName} onChange={e => setReviewForm({...reviewForm, authorName: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900" placeholder="John Doe" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input required type="email" value={reviewForm.authorEmail} onChange={e => setReviewForm({...reviewForm, authorEmail: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900" placeholder="john@example.com" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title (Optional)</label>
+              <input type="text" value={reviewForm.title} onChange={e => setReviewForm({...reviewForm, title: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900" placeholder="Great product!" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Review</label>
+              <textarea required value={reviewForm.body} onChange={e => setReviewForm({...reviewForm, body: e.target.value})} rows={4} className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-gray-900 resize-none" placeholder="What did you think?"></textarea>
+            </div>
+            <button disabled={isSubmitting} type="submit" className="w-full mt-4 bg-gray-900 text-white rounded-full py-3 font-medium hover:bg-gray-800 transition-colors disabled:opacity-50">
+              {isSubmitting ? 'Submitting...' : 'Submit Review'}
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* ── Hidden Details Modal (Drawer style) ── */}
