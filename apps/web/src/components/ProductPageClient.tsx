@@ -69,7 +69,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
         _id: 'r2',
         rating: 5,
         title: 'Beautiful and highly durable',
-        body: 'I was hesitant to buy furniture online, but this piece is exceptional. The materials feel premium and it\\'s very sturdy. Worth every penny!',
+        body: "I was hesitant to buy furniture online, but this piece is exceptional. The materials feel premium and it's very sturdy. Worth every penny!",
         authorName: 'Michael Chen',
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString()
       },
@@ -77,7 +77,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
         _id: 'r3',
         rating: 4,
         title: 'Great design, comfortable',
-        body: 'Love the minimalist design. It\\'s very comfortable and looks exactly like the photos. Took off one star because shipping took a couple days longer than expected, but otherwise perfect.',
+        body: "Love the minimalist design. It's very comfortable and looks exactly like the photos. Took off one star because shipping took a couple days longer than expected, but otherwise perfect.",
         authorName: 'Priya Patel',
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18).toISOString()
       },
