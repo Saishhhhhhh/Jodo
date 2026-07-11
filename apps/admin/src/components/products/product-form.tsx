@@ -253,88 +253,67 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 control={form.control}
                 name="imageUrl"
                 render={({ field }) => (
-                  <FormItem className="space-y-2">
+                  <FormItem className="space-y-4">
                     <FormLabel>Main Image</FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(e, field.onChange)}
+                    
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input 
+                          placeholder="https://example.com/image.jpg" 
+                          {...field} 
+                          value={field.value?.startsWith('data:') ? 'Uploaded File (Base64)' : field.value || ''}
+                          onChange={(e) => {
+                            if (!field.value?.startsWith('data:')) {
+                              field.onChange(e.target.value);
+                            }
+                          }}
+                          readOnly={field.value?.startsWith('data:')}
                         />
-                        
-                        {field.value ? (
-                          <div className="relative rounded-lg border bg-muted/30 p-2 flex items-center justify-center min-h-[200px] group overflow-hidden">
-                            <img
-                              src={field.value}
-                              alt="Product Preview"
-                              className="max-h-[190px] max-w-full rounded-md object-contain"
-                              referrerPolicy="no-referrer"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              className="absolute right-2 top-2 h-7 w-7 opacity-90 hover:opacity-100"
-                              onClick={() => field.onChange('')}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div
-                            onClick={triggerFileSelect}
-                            className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/30 hover:border-primary/45 transition-colors min-h-[200px]"
-                          >
-                            <div className="rounded-full bg-primary/10 p-3 text-primary">
-                              <UploadCloud className="h-6 w-6" />
-                            </div>
-                            <div className="text-center">
-                              <p className="text-sm font-semibold">Upload Image</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">Drag and drop or click to upload</p>
-                            </div>
-                          </div>
-                        )}
+                      </FormControl>
+                      
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, field.onChange)}
+                      />
+                      
+                      <Button 
+                        type="button" 
+                        variant="secondary" 
+                        onClick={() => {
+                          if (field.value?.startsWith('data:')) {
+                            field.onChange('');
+                          } else {
+                            fileInputRef.current?.click();
+                          }
+                        }}
+                      >
+                        {field.value?.startsWith('data:') ? <X className="h-4 w-4 mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                        {field.value?.startsWith('data:') ? 'Clear' : 'Upload'}
+                      </Button>
+                    </div>
 
-                        {!showUrlInput && !field.value && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-primary/80 h-7 flex items-center gap-1 hover:bg-primary/5 w-full justify-center"
-                            onClick={() => setShowUrlInput(true)}
-                          >
-                            <LinkIcon className="h-3 w-3" /> Or paste image URL
-                          </Button>
-                        )}
-
-                        {(showUrlInput || field.value) && (
-                          <div className="flex items-center gap-2 pt-1">
-                            <Input
-                              placeholder="Paste image web link (e.g. https://...)"
-                              className="h-8 text-xs"
-                              {...field}
-                            />
-                            {!field.value && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
-                                onClick={() => {
-                                  setShowUrlInput(false);
-                                  field.onChange('');
-                                }}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        )}
+                    {field.value && (
+                      <div className="relative rounded-lg border bg-muted/30 p-2 flex items-center justify-center min-h-[200px] group overflow-hidden">
+                        <img
+                          src={field.value}
+                          alt="Product Preview"
+                          className="max-h-[190px] max-w-full rounded-md object-contain"
+                          referrerPolicy="no-referrer"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute right-2 top-2 h-7 w-7 opacity-90 hover:opacity-100"
+                          onClick={() => field.onChange('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </FormControl>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
