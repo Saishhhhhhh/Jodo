@@ -141,9 +141,10 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     return url;
   };
 
-  const images = (product.galleryImages && product.galleryImages.length > 0 
-    ? product.galleryImages 
-    : [product.imageUrl]).map(resolveImgUrl);
+  // Main image is index 0 (hero), gallery images are index 1+ (lifestyle)
+  const images = [product.imageUrl, ...(product.galleryImages || [])]
+    .filter(Boolean)
+    .map(resolveImgUrl);
 
   const [showQRModal, setShowQRModal] = useState(false);
 

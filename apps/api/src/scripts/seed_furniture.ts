@@ -43,6 +43,10 @@ async function seedFurniture() {
       dimensions: '72 x 36 x 30 inches',
       weight: 120.5,
       assemblyRequired: true,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1617806118233-18e1c12e8467?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
@@ -61,6 +65,10 @@ async function seedFurniture() {
       dimensions: '26 x 26 x 45 inches',
       weight: 35.0,
       assemblyRequired: true,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
@@ -79,6 +87,10 @@ async function seedFurniture() {
       dimensions: '84 x 35 x 32 inches',
       weight: 110.0,
       assemblyRequired: false,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
@@ -97,6 +109,10 @@ async function seedFurniture() {
       dimensions: '18 x 15 x 24 inches',
       weight: 22.0,
       assemblyRequired: true,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
@@ -115,6 +131,10 @@ async function seedFurniture() {
       dimensions: '80 x 60 x 14 inches',
       weight: 75.0,
       assemblyRequired: true,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
@@ -132,6 +152,10 @@ async function seedFurniture() {
       dimensions: '48 x 12 x 72 inches',
       weight: 65.5,
       assemblyRequired: true,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
@@ -171,6 +195,10 @@ async function seedFurniture() {
       dimensions: '40 x 40 x 18 inches',
       weight: 55.0,
       assemblyRequired: true,
+      galleryImages: [
+        'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=80'
+      ],
     },
     {
       tenantId: tenant._id,
