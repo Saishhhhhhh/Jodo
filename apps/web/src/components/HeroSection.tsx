@@ -73,8 +73,9 @@ export default function HeroSection() {
             {HERO_SLIDES.map((slide, index) => (
               <div 
                 key={slide.image}
+                style={{ opacity: index === currentImage ? 1 : 0 }}
                 className={`w-full flex flex-col justify-start transition-all duration-1000 ease-in-out ${
-                  index === currentImage ? 'relative opacity-100 translate-y-0 z-10 pointer-events-auto' : 'absolute top-0 left-0 opacity-0 translate-y-8 z-0 pointer-events-none'
+                  index === currentImage ? 'relative translate-y-0 z-10 pointer-events-auto' : 'absolute top-0 left-0 translate-y-8 z-0 pointer-events-none'
                 }`}
               >
                 {/* Tagline */}
