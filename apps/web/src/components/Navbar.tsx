@@ -32,13 +32,13 @@ export default function Navbar() {
         {/* LEFT: Search Bar (Desktop) / Logo (Mobile) */}
         <div className="flex-1 flex justify-start items-center">
           {/* Logo on Mobile */}
-          <Link href="/" className="md:hidden flex items-center justify-start h-[75px] w-[160px] pt-[5px] -ml-1">
+          <Link href="/" className="md:hidden flex items-center justify-start h-[75px] w-[160px] pt-[5px] -ml-14">
             <Image
               src="/logo.png"
               alt="Jodo"
               width={350}
               height={90}
-              className="w-full h-auto object-contain object-left origin-left scale-[1.25]"
+              className="w-full h-auto object-contain object-left origin-left scale-[1.3]"
               priority
             />
           </Link>
