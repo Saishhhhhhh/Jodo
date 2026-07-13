@@ -79,17 +79,17 @@ export default function HeroSection() {
                 }`}
               >
                 {/* Tagline */}
-                <p className="text-white text-[15px] font-bold mb-4 tracking-wide">
+                <p className="text-white text-[13px] md:text-[15px] font-bold mb-2 md:mb-4 tracking-wide">
                   {slide.tagline}
                 </p>
 
                 {/* Main headline */}
-                <h1 className="text-white text-3xl md:text-5xl lg:text-[56px] font-bold leading-[1.2] mb-6 drop-shadow-lg max-w-4xl">
+                <h1 className="text-white text-2xl md:text-5xl lg:text-[56px] font-bold leading-[1.2] mb-3 md:mb-6 drop-shadow-lg max-w-4xl">
                   {slide.heading}
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-white/95 text-[14px] font-medium leading-relaxed max-w-[420px]">
+                <p className="text-white/95 text-[12px] md:text-[14px] font-medium leading-relaxed max-w-[420px]">
                   {slide.subtext}
                 </p>
               </div>
@@ -99,24 +99,47 @@ export default function HeroSection() {
           {/* Discover Now button */}
           <Link
             href="/shop"
-            className="flex items-center gap-4 w-fit transition-transform hover:-translate-y-0.5 bg-terracotta mt-4"
-            style={{
-              borderRadius: '8px',
-              padding: '8px 8px 8px 24px',
-            }}
+            className="flex items-center gap-3 md:gap-4 w-fit transition-transform hover:-translate-y-0.5 bg-terracotta mt-4 md:mt-6 rounded-lg md:rounded-[8px] pl-4 pr-1.5 py-1.5 md:pl-6 md:pr-2 md:py-2"
           >
-            <span className="text-white font-bold text-[15px]">Discover Now</span>
+            <span className="text-white font-bold text-[13px] md:text-[15px]">Discover Now</span>
             <span
-              className="flex items-center justify-center bg-white rounded-full"
-              style={{ width: '32px', height: '32px' }}
+              className="flex items-center justify-center bg-white rounded-full w-7 h-7 md:w-8 md:h-8"
             >
-              <ArrowUpRight className="w-4 h-4 text-terracotta" />
+              <ArrowUpRight className="w-3 h-3 md:w-4 md:h-4 text-terracotta" />
             </span>
           </Link>
         </div>
 
-        {/* ── BOTTOM LEFT CIRCULAR BUTTON ── */}
-        <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10 hidden md:block">
+        {/* ── MOBILE SLIDER BUTTON (Corner Effect) ── */}
+        <div className="absolute bottom-0 right-0 z-30 flex md:hidden">
+          {/* Inverted corner - Left side */}
+          <svg className="absolute bottom-0 left-[-20px] w-5 h-5" viewBox="0 0 32 32" fill="none">
+            <path d="M0 32H32V0C32 17.673 17.673 32 0 32Z" fill="white" />
+          </svg>
+
+          {/* Inverted corner - Top side */}
+          <svg className="absolute top-[-20px] right-0 w-5 h-5" viewBox="0 0 32 32" fill="none">
+            <path d="M32 0V32H0C17.673 32 32 17.673 32 0Z" fill="white" />
+          </svg>
+
+          <div
+            className="bg-white flex items-center justify-center"
+            style={{
+              borderTopLeftRadius: '24px',
+              padding: '16px 12px 12px 16px',
+            }}
+          >
+            <button 
+              onClick={() => setCurrentImage((prev) => (prev + 1) % HERO_SLIDES.length)}
+              className="w-12 h-12 bg-terracotta rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:scale-105 transition-transform"
+            >
+              <ArrowLeftRight className="w-5 h-5 text-white" />
+            </button>
+          </div>
+        </div>
+
+        {/* ── DESKTOP SLIDER BUTTON ── */}
+        <div className="absolute bottom-8 left-8 z-30 hidden md:block">
           <button 
             onClick={() => setCurrentImage((prev) => (prev + 1) % HERO_SLIDES.length)}
             className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform"

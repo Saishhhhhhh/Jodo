@@ -52,7 +52,7 @@ export default function PuzzleSection() {
   return (
     <section ref={containerRef} className="relative w-full h-[300vh] bg-[#F9F6F0]">
       {/* Sticky container that stays fixed to viewport while we scroll the 300vh height */}
-      <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center">
+      <div className="sticky top-0 w-full h-screen overflow-hidden flex flex-col items-center justify-center pt-16 md:pt-24">
         
         {/* Intro Text behind the puzzle */}
         <motion.div 
@@ -68,7 +68,7 @@ export default function PuzzleSection() {
         </motion.div>
 
         {/* Puzzle Container */}
-        <div className="relative z-10 w-[85vw] md:w-[90vw] max-w-[1000px] aspect-square md:aspect-video">
+        <div className="relative z-10 w-[85vw] md:w-[90vw] max-w-[1000px] aspect-[9/16] md:aspect-video">
           
           {/* Top Left Piece */}
           <motion.div

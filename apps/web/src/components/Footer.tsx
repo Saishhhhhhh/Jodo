@@ -45,15 +45,15 @@ export default function Footer() {
               <p className="text-white/80 text-xs font-medium uppercase tracking-widest mb-1">Join the Jodo Family</p>
               <h3 className="text-white text-xl lg:text-2xl font-bold">Get 10% off your first order</h3>
             </div>
-            <form className="flex gap-2 w-full md:w-auto">
+            <form className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full md:w-auto mt-2 md:mt-0">
               <input
                 type="email"
                 placeholder="Enter your email address"
-                className="flex-1 md:w-64 px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/60 text-sm focus:outline-none focus:border-white transition-colors"
+                className="flex-1 w-full md:w-64 px-4 py-3 sm:py-2.5 rounded-xl bg-white/20 border border-white/30 text-white placeholder-white/60 text-sm focus:outline-none focus:border-white transition-colors"
               />
               <button
                 type="submit"
-                className="bg-white text-terracotta font-bold px-6 py-2.5 rounded-xl hover:bg-gray-100 transition-colors text-sm whitespace-nowrap shadow-md"
+                className="bg-white text-terracotta w-full sm:w-auto font-bold px-6 py-3 sm:py-2.5 rounded-xl hover:bg-gray-100 transition-colors text-sm whitespace-nowrap shadow-md"
               >
                 Subscribe
               </button>
@@ -63,10 +63,10 @@ export default function Footer() {
 
         {/* Main footer */}
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-10">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-10">
 
             {/* Brand column */}
-          <div className="lg:col-span-2 space-y-3">
+          <div className="col-span-2 lg:col-span-2 space-y-3">
             <Link href="/" className="inline-block relative w-[180px] h-[50px] md:w-[220px] md:h-[60px] -ml-4">
               <Image 
                 src="/logo.png" 

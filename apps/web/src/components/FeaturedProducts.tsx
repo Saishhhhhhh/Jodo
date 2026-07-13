@@ -137,23 +137,29 @@ export default async function FeaturedProducts() {
         
         {/* Header */}
         <div className="flex items-center justify-between mb-6 md:mb-10">
-          <h2 className="font-heading text-[#111111] font-bold text-2xl md:text-[32px] tracking-tight">
+          <h2 className="font-heading text-[#111111] font-bold text-[22px] sm:text-2xl md:text-[32px] tracking-tight whitespace-nowrap">
             Featured Products 
           </h2>
           
           <Link 
             href="/shop/beauty" 
-            className="group flex items-center gap-2 text-[#555555] font-semibold text-[15px] hover:text-[#111111] transition-colors"
+            className="group flex items-center gap-1 md:gap-2 text-[#555555] font-semibold text-[14px] md:text-[15px] hover:text-[#111111] transition-colors whitespace-nowrap shrink-0"
           >
-            Check all items 
+            <span className="md:hidden">View all</span>
+            <span className="hidden md:inline">Check all items</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2} />
           </Link>
         </div>
 
         {/* Products Grid / Horizontal Scroll */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-12">
+        <div 
+          className="flex md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-x-6 md:gap-y-12 overflow-x-auto md:overflow-visible snap-x snap-mandatory pb-6 md:pb-0"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <div key={product.id} className="w-[calc(50%-8px)] flex-shrink-0 snap-start md:w-auto md:flex-shrink-1">
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
 

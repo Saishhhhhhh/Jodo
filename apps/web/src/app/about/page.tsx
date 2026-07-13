@@ -49,7 +49,7 @@ export default function AboutPage() {
     <div className="bg-white min-h-screen font-sans">
       
       {/* 1. Hero Section */}
-      <section className="h-screen w-full relative bg-white overflow-hidden flex items-center justify-center">
+      <section className="h-[60vh] md:h-screen w-full relative bg-white overflow-hidden flex items-center justify-center mt-16 md:mt-0">
         
         
         {/* TextPressure Layer */}
@@ -83,15 +83,15 @@ export default function AboutPage() {
                 key={i} 
                 className="w-[100vw] h-full relative flex flex-col lg:flex-row items-center justify-center px-8 lg:px-24"
               >
-                {/* Huge Watermark Number (Fixed to Viewport Corners, pushed down below header) */}
-                <div className="absolute top-[20px] left-[-40px] lg:top-[40px] lg:left-[-100px] text-[8rem] lg:text-[12rem] font-bold text-[#D1C4B7]/40 leading-none pointer-events-none z-0 tracking-tighter select-none">
+                {/* Huge Watermark Number */}
+                <div className="absolute top-[-40px] sm:top-0 md:top-[10%] left-1/2 -translate-x-1/2 lg:top-[40px] lg:left-[-100px] lg:translate-x-0 text-[10rem] lg:text-[12rem] font-bold text-[#D1C4B7]/40 leading-none pointer-events-none z-0 tracking-tighter select-none">
                   0{i + 1}
                 </div>
 
-                <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center w-full max-w-6xl mx-auto">
+                <div className="relative z-10 flex flex-col lg:flex-row gap-6 md:gap-12 lg:gap-20 items-center w-full max-w-6xl mx-auto">
 
                   {/* Editorial Image Frame */}
-                  <div className="w-full lg:w-[45%] aspect-[3/4] relative rounded-[24px] overflow-hidden z-10 group shadow-lg">
+                  <div className="w-full sm:w-[80%] lg:w-[45%] aspect-[16/9] sm:aspect-[3/4] relative rounded-[24px] overflow-hidden z-10 group shadow-lg mx-auto">
                     <Image 
                       src={item.img} 
                       fill 
@@ -101,12 +101,12 @@ export default function AboutPage() {
                   </div>
                   
                   {/* Text Box */}
-                  <div className="w-full lg:w-[55%] flex flex-col relative z-20 pt-8 lg:pt-0 lg:pl-16">
-                     <div className="w-16 h-[3px] bg-terracotta mb-8" />
-                     <h2 className="text-4xl lg:text-6xl font-medium text-jodo-dark mb-6 tracking-tight leading-[1.1]">
+                  <div className="w-full lg:w-[55%] flex flex-col relative z-20 pt-4 lg:pt-0 lg:pl-16 text-center lg:text-left items-center lg:items-start">
+                     <div className="w-16 h-[3px] bg-terracotta mb-4 md:mb-8" />
+                     <h2 className="text-3xl lg:text-6xl font-medium text-jodo-dark mb-3 md:mb-6 tracking-tight leading-[1.1]">
                        {item.title}
                      </h2>
-                     <p className="text-xl lg:text-2xl text-taupe-dark leading-relaxed font-light">
+                     <p className="text-[15px] sm:text-lg lg:text-2xl text-taupe-dark leading-relaxed font-light">
                        {item.desc}
                      </p>
                   </div>
@@ -120,24 +120,24 @@ export default function AboutPage() {
       </section>
 
       {/* 3. Our DNA Section (Layout imported from Homepage) */}
-      <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-24 md:py-32 bg-white">
+      <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-16 md:py-32 bg-white">
         
-        <div className="flex flex-col lg:flex-row items-start justify-between gap-16 lg:gap-24">
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-10 md:gap-16 lg:gap-24">
 
           {/* ── LEFT SIDE — Text ── */}
           <div className="flex-1 max-w-[600px]">
             
-            <div className="mb-6">
-              <p className="text-terracotta font-bold text-sm tracking-widest uppercase">
+            <div className="mb-3 md:mb-6">
+              <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase">
                 Our Story
               </p>
             </div>
 
-            <h2 className="text-[#1C1A17] font-bold mb-8 tracking-tight leading-[1.15] text-4xl md:text-5xl lg:text-6xl">
+            <h2 className="text-[#1C1A17] font-bold mb-4 md:mb-8 tracking-tight leading-[1.15] text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
               Born from a frustration with the ordinary.
             </h2>
             
-            <div className="space-y-6 text-gray-600 leading-relaxed text-lg">
+            <div className="space-y-4 md:space-y-6 text-gray-600 leading-relaxed text-[15px] md:text-lg">
               <p>
                 Jodo began when a group of industrial designers and master carpenters realized that the modern furniture industry had lost its way. Mass-produced, disposable pieces had replaced the timeless, durable craftsmanship of the past.
               </p>
@@ -194,8 +194,8 @@ export default function AboutPage() {
       </section>
 
       {/* 4. Alternate Image Left Section */}
-      <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 py-24 md:py-32 bg-white">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24">
+      <section className="relative w-full max-w-[1400px] mx-auto px-5 md:px-10 pb-16 pt-8 md:py-32 bg-white">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 md:gap-16 lg:gap-24">
           
           {/* ── LEFT SIDE — Image ── */}
           <div className="flex-1 w-full relative">
@@ -213,18 +213,18 @@ export default function AboutPage() {
           </div>
 
           {/* ── RIGHT SIDE — Text ── */}
-          <div className="flex-1 max-w-[600px]">
-            <div className="mb-6">
-              <p className="text-terracotta font-bold text-sm tracking-widest uppercase">
+          <div className="flex-1 max-w-[600px] pt-4 lg:pt-0">
+            <div className="mb-3 md:mb-6">
+              <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase">
                 Crafting Excellence
               </p>
             </div>
 
-            <h2 className="text-[#1C1A17] font-bold mb-8 tracking-tight leading-[1.15] text-4xl md:text-5xl lg:text-6xl">
+            <h2 className="text-[#1C1A17] font-bold mb-4 md:mb-8 tracking-tight leading-[1.15] text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
               Where tradition meets modern living.
             </h2>
             
-            <div className="space-y-6 text-gray-600 leading-relaxed text-lg">
+            <div className="space-y-4 md:space-y-6 text-gray-600 leading-relaxed text-[15px] md:text-lg">
               <p>
                 Our process is a delicate balance of honoring time-tested woodworking techniques while embracing modern, sustainable materials. We don't just build furniture; we engineer silent companions for your life's most meaningful moments.
               </p>
@@ -238,14 +238,14 @@ export default function AboutPage() {
       </section>
 
       {/* 5. Why Choose Us (Masonry Bento Box) */}
-      <section className="w-full bg-[#FCF6F4] relative z-10 py-20 md:py-32">
+      <section className="w-full bg-[#FCF6F4] relative z-10 py-16 md:py-32">
         <div className="max-w-[1400px] mx-auto px-5 md:px-10">
           
-          <div className="mb-16 md:mb-24 text-center max-w-3xl mx-auto">
-            <h2 className="text-[#1C1A17] font-bold mb-6 tracking-tight leading-[1.15] text-4xl md:text-5xl">
+          <div className="mb-10 md:mb-24 text-center max-w-3xl mx-auto">
+            <h2 className="text-[#1C1A17] font-bold mb-4 md:mb-6 tracking-tight leading-[1.15] text-3xl sm:text-4xl md:text-5xl">
               Why choose Jodo?
             </h2>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-[15px] md:text-lg px-4 md:px-0">
               We don't cut corners. We build pieces that become part of your family's heritage.
             </p>
           </div>
@@ -254,14 +254,14 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Bento Item 1 - Large Span (2 columns) */}
-            <div className="md:col-span-2 group relative p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
+            <div className="md:col-span-2 group relative p-6 md:p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
               <div className="relative z-10 flex flex-col h-full justify-between">
-                <div className="w-16 h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
-                  <Leaf className="w-8 h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-6 md:mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
+                  <Leaf className="w-7 h-7 md:w-8 md:h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-bold tracking-tight text-[#1C1A17] mb-3">Sustainable Sourcing</h4>
-                  <p className="text-gray-500 leading-relaxed text-base max-w-md">Every piece is crafted from ethically sourced, renewable materials, ensuring we give back as much as we take. Our commitment to the planet is non-negotiable.</p>
+                  <h4 className="text-xl md:text-2xl font-bold tracking-tight text-[#1C1A17] mb-2 md:mb-3">Sustainable Sourcing</h4>
+                  <p className="text-gray-500 leading-relaxed text-[15px] md:text-base max-w-md">Every piece is crafted from ethically sourced, renewable materials, ensuring we give back as much as we take. Our commitment to the planet is non-negotiable.</p>
                 </div>
               </div>
               <span className="absolute -bottom-8 -right-4 text-[200px] font-bold text-[#F5EBE8] leading-none pointer-events-none select-none z-0">
@@ -270,14 +270,14 @@ export default function AboutPage() {
             </div>
             
             {/* Bento Item 2 - Standard Span (1 column) */}
-            <div className="md:col-span-1 group relative p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
+            <div className="md:col-span-1 group relative p-6 md:p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
               <div className="relative z-10 flex flex-col h-full justify-between">
-                <div className="w-16 h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
-                  <Award className="w-8 h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-6 md:mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
+                  <Award className="w-7 h-7 md:w-8 md:h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-bold tracking-tight text-[#1C1A17] mb-3">Master Craftsmanship</h4>
-                  <p className="text-gray-500 leading-relaxed text-base">Hand-finished by artisans with decades of expertise.</p>
+                  <h4 className="text-xl md:text-2xl font-bold tracking-tight text-[#1C1A17] mb-2 md:mb-3">Master Craftsmanship</h4>
+                  <p className="text-gray-500 leading-relaxed text-[15px] md:text-base">Hand-finished by artisans with decades of expertise.</p>
                 </div>
               </div>
               <span className="absolute -bottom-8 -right-4 text-[200px] font-bold text-[#F5EBE8] leading-none pointer-events-none select-none z-0">
@@ -286,14 +286,14 @@ export default function AboutPage() {
             </div>
 
             {/* Bento Item 3 - Standard Span (1 column) */}
-            <div className="md:col-span-1 group relative p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
+            <div className="md:col-span-1 group relative p-6 md:p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
               <div className="relative z-10 flex flex-col h-full justify-between">
-                <div className="w-16 h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
-                  <Recycle className="w-8 h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-6 md:mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
+                  <Recycle className="w-7 h-7 md:w-8 md:h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-bold tracking-tight text-[#1C1A17] mb-3">Circular Design</h4>
-                  <p className="text-gray-500 leading-relaxed text-base">Engineered with modularity to be repaired, reused, and completely recycled.</p>
+                  <h4 className="text-xl md:text-2xl font-bold tracking-tight text-[#1C1A17] mb-2 md:mb-3">Circular Design</h4>
+                  <p className="text-gray-500 leading-relaxed text-[15px] md:text-base">Engineered with modularity to be repaired, reused, and completely recycled.</p>
                 </div>
               </div>
               <span className="absolute -bottom-8 -right-4 text-[200px] font-bold text-[#F5EBE8] leading-none pointer-events-none select-none z-0">
@@ -302,14 +302,14 @@ export default function AboutPage() {
             </div>
 
             {/* Bento Item 4 - Large Span (2 columns) */}
-            <div className="md:col-span-2 group relative p-10 rounded-[32px] bg-white overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
+            <div className="md:col-span-2 group relative p-6 md:p-10 rounded-[32px] bg-terracotta overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
               <div className="relative z-10 flex flex-col h-full justify-between">
-                <div className="w-16 h-16 rounded-2xl bg-[#FCF6F4] flex items-center justify-center mb-8 group-hover:bg-terracotta group-hover:text-white transition-all duration-500">
-                  <Shield className="w-8 h-8 text-terracotta group-hover:text-white transition-colors duration-500 stroke-[1.5]" />
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/20 flex items-center justify-center mb-6 md:mb-8 group-hover:bg-white group-hover:text-terracotta transition-all duration-500">
+                  <Shield className="w-7 h-7 md:w-8 md:h-8 text-white group-hover:text-terracotta transition-colors duration-500 stroke-[1.5]" />
                 </div>
                 <div>
-                  <h4 className="text-2xl font-bold tracking-tight text-[#1C1A17] mb-3">Lifetime Guarantee</h4>
-                  <p className="text-gray-500 leading-relaxed text-base max-w-md">We stand behind our obsessive quality standards. Your investment in Jodo is protected forever against defects in workmanship.</p>
+                  <h4 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-2 md:mb-3">Lifetime Guarantee</h4>
+                  <p className="text-white/80 leading-relaxed text-[15px] md:text-base max-w-md">We believe in our craft so deeply that we cover all structural integrity issues for life. It's not just furniture; it's an investment in your home.</p>
                 </div>
               </div>
               <span className="absolute -bottom-8 -right-4 text-[200px] font-bold text-[#F5EBE8] leading-none pointer-events-none select-none z-0">

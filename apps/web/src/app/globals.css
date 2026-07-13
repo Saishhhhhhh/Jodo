@@ -21,3 +21,13 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #FAF6F1; }
 ::-webkit-scrollbar-thumb { background: #C5B09A; border-radius: 10px; }
+
+/* Mobile border-radius overrides */
+@media (max-width: 768px) {
+  .rounded-\[28px\] {
+    border-radius: 20px !important;
+  }
+  .rounded-\[40px\] {
+    border-radius: 20px !important;
+  }
+}
