@@ -27,7 +27,7 @@ export default function Navbar() {
   return (
     <header className="w-full bg-white sticky top-0 z-[100] shadow-sm">
       {/* ── TOP TIER: Search, Logo, Actions ── */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 flex items-center justify-between h-[65px]">
+      <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 flex items-center justify-between h-[75px]">
         
         {/* LEFT: Search Bar */}
         <div className="flex-1 flex justify-start">
@@ -46,9 +46,9 @@ export default function Navbar() {
             <Image
               src="/logo.png"
               alt="Jodo"
-              width={240}
-              height={65}
-              className="w-[240px] h-auto object-contain"
+              width={350}
+              height={90}
+              className="w-[260px] md:w-[320px] h-auto object-contain scale-105"
               priority
             />
           </Link>

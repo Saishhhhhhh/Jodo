@@ -107,11 +107,11 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       detailFirmness: initialData?.productDetails?.['Sofa Firmness'] || '',
       detailWarranty: initialData?.productDetails?.['Warranty'] || '',
       detailRating: initialData?.productDetails?.['Product Rating'] || '',
-      specFrame: initialData?.specifications?.find((s:any) => s.key === 'Frame')?.value || '',
-      specUpholstery: initialData?.specifications?.find((s:any) => s.key === 'Upholstery')?.value || '',
-      specFoam: initialData?.specifications?.find((s:any) => s.key === 'Foam')?.value || '',
-      specLegs: initialData?.specifications?.find((s:any) => s.key === 'Legs')?.value || '',
-      specMechanism: initialData?.specifications?.find((s:any) => s.key === 'Seating Mechanism')?.value || '',
+      specFrame: initialData?.specifications?.find((s: any) => s.key === 'Frame')?.value || '',
+      specUpholstery: initialData?.specifications?.find((s: any) => s.key === 'Upholstery')?.value || '',
+      specFoam: initialData?.specifications?.find((s: any) => s.key === 'Foam')?.value || '',
+      specLegs: initialData?.specifications?.find((s: any) => s.key === 'Legs')?.value || '',
+      specMechanism: initialData?.specifications?.find((s: any) => s.key === 'Seating Mechanism')?.value || '',
     },
   });
 
@@ -152,7 +152,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   const handleGalleryFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
     const files = e.target.files;
     if (!files?.length) return;
-    
+
     const currentImages = field.value || [];
     let processedCount = 0;
     const newImages: string[] = [];
@@ -187,7 +187,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
     newImages.splice(index, 1);
     field.onChange(newImages);
   };
-  
+
   const addGalleryUrl = (field: any) => {
     if (galleryUrlValue.trim()) {
       field.onChange([...(field.value || []), galleryUrlValue.trim()]);
@@ -199,7 +199,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   const handleFormSubmit = (values: FormValues) => {
     const parsedValues: any = { ...values };
     parsedValues.additionalOffers = values.additionalOffersStr ? values.additionalOffersStr.split('\\n').map(s => s.trim()).filter(Boolean) : [];
-    
+
     parsedValues.productDetails = {
       ...(values.detailBrand && { 'Brand': values.detailBrand }),
       ...(values.detailCollection && { 'Collections': values.detailCollection }),
@@ -217,7 +217,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       ...(values.specLegs ? [{ key: 'Legs', value: values.specLegs }] : []),
       ...(values.specMechanism ? [{ key: 'Seating Mechanism', value: values.specMechanism }] : []),
     ];
-    
+
     onSubmit(parsedValues);
   };
 
@@ -248,19 +248,19 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
             {/* Media Card */}
             <div className="bg-card rounded-xl border shadow-sm p-6 space-y-6">
               <h3 className="font-semibold text-lg border-b pb-3">Media</h3>
-              
+
               <FormField
                 control={form.control}
                 name="imageUrl"
                 render={({ field }) => (
                   <FormItem className="space-y-4">
                     <FormLabel>Main Image</FormLabel>
-                    
+
                     <div className="flex gap-2">
                       <FormControl>
-                        <Input 
-                          placeholder="https://example.com/image.jpg" 
-                          {...field} 
+                        <Input
+                          placeholder="https://example.com/image.jpg"
+                          {...field}
                           value={field.value?.startsWith('data:') ? 'Uploaded File (Base64)' : field.value || ''}
                           onChange={(e) => {
                             if (!field.value?.startsWith('data:')) {
@@ -270,7 +270,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                           readOnly={field.value?.startsWith('data:')}
                         />
                       </FormControl>
-                      
+
                       <input
                         type="file"
                         ref={fileInputRef}
@@ -278,10 +278,10 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                         accept="image/*"
                         onChange={(e) => handleFileChange(e, field.onChange)}
                       />
-                      
-                      <Button 
-                        type="button" 
-                        variant="secondary" 
+
+                      <Button
+                        type="button"
+                        variant="secondary"
                         onClick={() => {
                           if (field.value?.startsWith('data:')) {
                             field.onChange('');
@@ -437,17 +437,17 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                           accept=".glb,.gltf"
                           onChange={(e) => handleModelFileChange(e, field.onChange)}
                         />
-                        <Button 
-                          type="button" 
-                          variant="outline" 
+                        <Button
+                          type="button"
+                          variant="outline"
                           onClick={() => modelFileInputRef.current?.click()}
                           className="flex items-center gap-2 whitespace-nowrap"
                         >
                           <UploadCloud className="h-4 w-4" /> Upload
                         </Button>
                         {field.value && field.value.length > 100 && (
-                          <Button 
-                            type="button" 
+                          <Button
+                            type="button"
                             variant="destructive"
                             size="icon"
                             onClick={() => field.onChange('')}
@@ -592,7 +592,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   </FormItem>
                 )} />
               </div>
-              
+
               <div className="border-t pt-4 mt-4">
                 <h4 className="font-semibold text-md mb-4 text-gray-700">Specific Product Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
