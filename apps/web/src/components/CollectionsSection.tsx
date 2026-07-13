@@ -40,7 +40,7 @@ export default function CollectionsSection() {
         
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading text-white font-bold text-[32px] tracking-tight">
+          <h2 className="font-heading text-white font-bold text-2xl md:text-[32px] tracking-tight">
             Explore Collections
           </h2>
           
@@ -54,7 +54,7 @@ export default function CollectionsSection() {
         </div>
 
         {/* Circular Gallery (React Bits) */}
-        <div className="w-full h-[400px] md:h-[480px] relative rounded-[24px] overflow-hidden">
+        <div className="w-full h-[300px] md:h-[480px] relative rounded-[24px] overflow-hidden">
           <CircularGallery
             items={galleryItems}
             bend={0}

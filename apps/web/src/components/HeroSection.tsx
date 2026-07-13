@@ -40,12 +40,7 @@ export default function HeroSection() {
     <section className="px-4 lg:px-6 py-0">
       {/* ── HERO CONTAINER ── */}
       <div
-        className="relative w-full overflow-hidden flex flex-col"
-        style={{
-          borderRadius: '24px',
-          minHeight: 'max(720px, calc(100vh - 120px))',
-          backgroundColor: '#D1C4B7', // Matches the wall color in the screenshot
-        }}
+        className="relative w-full overflow-hidden flex flex-col rounded-[24px] min-h-[500px] lg:min-h-[max(720px,calc(100vh-120px))] bg-[#D1C4B7]"
       >
         {/* Background images with Ken Burns effect */}
         {HERO_SLIDES.map((slide, index) => (
@@ -72,7 +67,7 @@ export default function HeroSection() {
         <div className="absolute inset-0 bg-black/10 z-0"></div>
 
         {/* ── TEXT CONTENT — left side ── */}
-        <div className="relative z-10 flex flex-1 flex-col justify-center px-10 lg:px-16 max-w-[800px]">
+        <div className="relative z-10 flex flex-1 flex-col justify-center px-6 md:px-10 lg:px-16 max-w-[800px]">
           
           <div className="relative w-full">
             {HERO_SLIDES.map((slide, index) => (
@@ -120,7 +115,7 @@ export default function HeroSection() {
         </div>
 
         {/* ── BOTTOM LEFT CIRCULAR BUTTON ── */}
-        <div className="absolute bottom-8 left-8 z-10">
+        <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10 hidden md:block">
           <button 
             onClick={() => setCurrentImage((prev) => (prev + 1) % HERO_SLIDES.length)}
             className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform"
@@ -130,7 +125,7 @@ export default function HeroSection() {
         </div>
 
         {/* ── FLOATING BLOG CARD — Bottom Right ── */}
-        <div className="absolute bottom-0 right-0 z-20 flex">
+        <div className="absolute bottom-0 right-0 z-20 hidden lg:flex">
           
           {/* Inverted corner - Left side */}
           <svg className="absolute bottom-0 left-[-32px] w-8 h-8" viewBox="0 0 32 32" fill="none">

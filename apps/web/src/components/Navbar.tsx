@@ -29,33 +29,51 @@ export default function Navbar() {
       {/* ── TOP TIER: Search, Logo, Actions ── */}
       <div className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 flex items-center justify-between h-[75px]">
         
-        {/* LEFT: Search Bar */}
-        <div className="flex-1 flex justify-start">
-          <button 
-            onClick={() => setIsSearchOpen(true)}
-            className="flex items-center justify-between w-[250px] border-b border-gray-300 pb-1.5 text-gray-500 hover:border-terracotta transition-colors group"
-          >
-            <span className="text-sm">Search for Furniture</span>
-            <Search className="w-4 h-4 text-gray-400 group-hover:text-terracotta transition-colors" />
-          </button>
-        </div>
-
-        {/* CENTER: Logo */}
-        <div className="flex-1 flex justify-center h-full items-center">
-          <Link href="/" className="flex items-center">
+        {/* LEFT: Search Bar (Desktop) / Logo (Mobile) */}
+        <div className="flex-1 flex justify-start items-center">
+          {/* Logo on Mobile */}
+          <Link href="/" className="md:hidden flex items-center justify-start h-[75px] w-[140px] pt-[5px] overflow-hidden">
             <Image
               src="/logo.png"
               alt="Jodo"
               width={350}
               height={90}
-              className="w-[260px] md:w-[320px] h-auto object-contain scale-105"
+              className="w-full h-auto object-contain object-left origin-left scale-[1.5]"
+              priority
+            />
+          </Link>
+
+          {/* Search on Desktop */}
+          <button 
+            onClick={() => setIsSearchOpen(true)}
+            className="hidden md:flex items-center justify-between w-[250px] border-b border-gray-300 pb-1.5 text-gray-500 hover:text-terracotta transition-colors group"
+          >
+            <span className="text-sm">Search for Furniture</span>
+            <Search className="w-4 h-4 text-gray-400 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* CENTER: Logo (Desktop Only) */}
+        <div className="hidden md:flex flex-1 justify-center h-full items-center">
+          <Link href="/" className="flex items-center justify-center h-[75px] overflow-hidden w-[260px] lg:w-[320px] pt-[5px]">
+            <Image
+              src="/logo.png"
+              alt="Jodo"
+              width={350}
+              height={90}
+              className="w-full h-auto object-contain scale-110 origin-center"
               priority
             />
           </Link>
         </div>
 
         {/* RIGHT: Action Icons */}
-        <div className="flex-1 flex justify-end items-center gap-6">
+        <div className="flex-1 flex justify-end items-center gap-4 md:gap-6">
+          
+          {/* Search Icon (Mobile Only) */}
+          <button onClick={() => setIsSearchOpen(true)} className="md:hidden relative group">
+            <Search className="w-6 h-6 text-gray-800 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
+          </button>
           
           {/* Sign Up / Account */}
           <Link href={isAuth ? "/account" : "/login"} className="flex items-center gap-2 group">

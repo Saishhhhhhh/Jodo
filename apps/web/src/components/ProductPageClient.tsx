@@ -34,6 +34,24 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSliderHovered, setIsSliderHovered] = useState(false);
 
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const nextLightboxImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setLightboxIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const prevLightboxImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setLightboxIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   // Auto-slide effect for reviews
   useEffect(() => {
     if (reviews.length === 0 || isSliderHovered) return;
@@ -146,6 +164,25 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     .filter(Boolean)
     .map(resolveImgUrl);
 
+  const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+  const videoId = product.videoUrl ? getYouTubeId(product.videoUrl) : null;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowRight') nextLightboxImage();
+      if (e.key === 'ArrowLeft') prevLightboxImage();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, images.length]);
+
   const [showQRModal, setShowQRModal] = useState(false);
 
   const handleARClick = () => {
@@ -224,87 +261,150 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
         </Link>
       </div>
 
-      {/* ── 1. Massive Hero Image ── */}
-      <div className="relative w-full h-[85vh] md:h-[95vh] bg-[#f7f5f2]">
-        {show3D ? (
-          <div className="w-full h-full relative bg-gray-100 flex items-center justify-center">
-            <model-viewer
-              ref={modelViewerRef}
-              src={product.model3dUrl || '/wooden_sofa/scene.gltf'}
-              alt={`3D model`}
-              ar
-              ar-modes="webxr scene-viewer quick-look"
-              camera-controls
-              auto-rotate
-              shadow-intensity="1"
-              style={{ width: '100%', height: '100%' }}
-            >
-              <button 
-                slot="ar-button" 
-                style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)' }}
-                className="bg-gray-900 text-white px-6 py-3 rounded-full font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
-              >
-                <Smartphone className="w-5 h-5" /> View in your room
-              </button>
-            </model-viewer>
-            <button onClick={() => setShow3D(false)} className="absolute top-8 right-8 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black transition-colors">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-        ) : (
-          <Image src={images[0]} alt={product.title} fill className="object-cover" unoptimized priority />
-        )}
-      </div>
-
-      {/* ── 2. Clean Centered Buy Section ── */}
-      <div className="max-w-[800px] mx-auto px-5 py-24 flex flex-col items-center text-center">
-        <span className="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase mb-4">{product.vendor}</span>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-gray-900 leading-tight tracking-tight mb-6">
+      {/* ── 1. Image Gallery ── */}
+      <div className="max-w-[1400px] mx-auto px-5 pt-[50px] pb-8">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 leading-tight tracking-tight mb-8">
           {product.title}
         </h1>
-        <p className="text-xl text-gray-500 max-w-2xl mb-10 leading-relaxed font-light">
-          {product.shortDescription || 'Experience a new level of sophistication and comfort, crafted specifically for your space.'}
-        </p>
         
-        <div className="flex items-center gap-6 mb-12">
-          <span className="text-4xl font-medium text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
-          {product.compareAtPrice && (
-            <span className="text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
+        <div className="w-full h-[60vh] md:h-[75vh]">
+          {show3D ? (
+            <div className="w-full h-full relative bg-gray-100 flex items-center justify-center rounded-2xl overflow-hidden">
+              <model-viewer
+                ref={modelViewerRef}
+                src={product.model3dUrl || '/wooden_sofa/scene.gltf'}
+                alt={`3D model`}
+                ar
+                ar-modes="webxr scene-viewer quick-look"
+                camera-controls
+                auto-rotate
+                shadow-intensity="1"
+                style={{ width: '100%', height: '100%' }}
+              >
+                <button 
+                  slot="ar-button" 
+                  style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)' }}
+                  className="bg-gray-900 text-white px-6 py-3 rounded-full font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
+                >
+                  <Smartphone className="w-5 h-5" /> View in your room
+                </button>
+              </model-viewer>
+              <button onClick={() => setShow3D(false)} className="absolute top-8 right-8 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black transition-colors">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+              {/* Left Column (Tall) */}
+              <div 
+                className="col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
+                onClick={() => openLightbox(0)}
+              >
+                <Image src={images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
+              </div>
+              
+              {/* Middle Column (Tall) */}
+              <div 
+                className="col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] hidden md:block cursor-pointer group"
+                onClick={() => openLightbox(Math.min(1, images.length - 1))}
+              >
+                <Image src={images[1] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
+              </div>
+              
+              {/* Right Column (Stacked) */}
+              <div className="col-span-1 flex-col gap-4 hidden md:flex">
+                <div 
+                  className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
+                  onClick={() => openLightbox(Math.min(2, images.length - 1))}
+                >
+                  <Image src={images[2] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
+                </div>
+                <div 
+                  className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
+                  onClick={() => openLightbox(Math.min(3, images.length - 1))}
+                >
+                  <Image src={images[3] || images[1] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
+                </div>
+              </div>
+            </div>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md mb-8">
-          <div className="w-full h-14 [&>div]:h-full [&_button]:h-full [&_button]:rounded-full [&_button]:text-lg">
-            <ProductActions product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} />
+      {/* ── 2. Clean Buy Section & Optional Video ── */}
+      <div className="max-w-[1400px] mx-auto px-5 pb-20 pt-8">
+        <div className={`grid grid-cols-1 ${videoId || product.brochureUrl ? 'lg:grid-cols-12 gap-12 lg:gap-16 items-center' : 'max-w-[800px] mx-auto place-items-center text-center'} `}>
+          
+          {(videoId || product.brochureUrl) && (
+             <div className="w-full flex flex-col gap-6 lg:col-span-7">
+               {videoId && (
+                 <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100">
+                   <iframe 
+                     src={`https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`} 
+                     title="Product Video" 
+                     className="absolute inset-0 w-full h-full border-0"
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                     allowFullScreen
+                   />
+                 </div>
+               )}
+               {product.brochureUrl && (
+                 <div className="flex gap-4">
+                   <a href={product.brochureUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-4 px-6 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                     DOWNLOAD BROCHURE
+                   </a>
+                 </div>
+               )}
+             </div>
+          )}
+
+          <div className={`flex flex-col w-full ${videoId || product.brochureUrl ? 'lg:col-span-5 items-start text-left' : 'items-center text-center'}`}>
+            <span className={`text-xs font-bold tracking-[0.2em] text-gray-400 uppercase ${videoId || product.brochureUrl ? 'mb-4' : 'mb-6'}`}>{product.vendor}</span>
+            <p className={`text-gray-500 leading-relaxed font-light ${videoId || product.brochureUrl ? 'text-lg mb-8 max-w-xl' : 'text-xl mb-10 max-w-2xl'}`}>
+              {product.shortDescription || 'Experience a new level of sophistication and comfort, crafted specifically for your space.'}
+            </p>
+            
+            <div className={`flex items-center gap-6 ${videoId || product.brochureUrl ? 'mb-8' : 'mb-12'}`}>
+              <span className="text-4xl font-medium text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
+              {product.compareAtPrice && (
+                <span className="text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
+              )}
+            </div>
+
+            <div className={`flex flex-col sm:flex-row items-center gap-4 w-full max-w-md ${videoId || product.brochureUrl ? 'mb-6 justify-start' : 'mb-8 justify-center'}`}>
+              <div className="w-full h-14 [&>div]:h-full [&_button]:h-full [&_button]:rounded-full [&_button]:text-lg">
+                <ProductActions product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} />
+              </div>
+            </div>
+
+            <div className={`flex flex-wrap gap-4 ${videoId || product.brochureUrl ? 'justify-start' : 'justify-center'}`}>
+              <button 
+                onClick={() => {
+                  setShow3D(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }} 
+                className="flex items-center gap-2.5 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm"
+              >
+                <Box className="w-5 h-5" /> <span>View in 3D</span>
+              </button>
+              <button 
+                onClick={handleARClick} 
+                className="flex items-center gap-2.5 px-6 py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm"
+              >
+                <Smartphone className="w-5 h-5" /> <span>AR Try-on</span>
+              </button>
+            </div>
+
+            {/* View Details Trigger */}
+            <button 
+              onClick={() => setShowModal(true)}
+              className={`flex items-center justify-between w-full max-w-lg border-b border-gray-200 pb-4 group hover:border-gray-900 transition-colors ${videoId || product.brochureUrl ? 'mt-12 text-left' : 'mt-16 text-left mx-auto'}`}
+            >
+              <span className="text-lg font-medium text-gray-900">View detailed specifications</span>
+              <Plus className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
+            </button>
           </div>
         </div>
-
-        <div className="flex flex-wrap justify-center gap-4">
-          <button 
-            onClick={() => {
-              setShow3D(true);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} 
-            className="flex items-center gap-2.5 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm"
-          >
-            <Box className="w-5 h-5" /> <span>View in 3D</span>
-          </button>
-          <button 
-            onClick={handleARClick} 
-            className="flex items-center gap-2.5 px-6 py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm"
-          >
-            <Smartphone className="w-5 h-5" /> <span>AR Try-on</span>
-          </button>
-        </div>
-
-        {/* View Details Trigger */}
-        <button 
-          onClick={() => setShowModal(true)}
-          className="mt-16 flex items-center justify-between w-full max-w-lg border-b border-gray-200 pb-4 text-left group hover:border-gray-900 transition-colors"
-        >
-          <span className="text-lg font-medium text-gray-900">View detailed specifications</span>
-          <Plus className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
-        </button>
       </div>
 
       {/* ── 3. Uninterrupted Image Flow ── */}
@@ -393,7 +493,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       </div>
 
       {/* ── Write Review Modal ── */}
-      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showReviewModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => !isSubmitting && setShowReviewModal(false)}>
+      <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showReviewModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => !isSubmitting && setShowReviewModal(false)}>
         <div className={`bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300 ${showReviewModal ? 'scale-100' : 'scale-95'}`} onClick={e => e.stopPropagation()}>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-medium text-gray-900">Write a Review</h3>
@@ -447,7 +547,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       </div>
 
       {/* ── Hidden Details Modal (Drawer style) ── */}
-      <div className={`fixed inset-0 z-50 flex justify-end bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
+      <div className={`fixed inset-0 z-[100] flex justify-end bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
         <div className={`w-full max-w-[500px] h-full bg-white shadow-2xl p-8 md:p-12 flex flex-col overflow-y-auto transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} onClick={e => e.stopPropagation()}>
           <div className="flex justify-between items-start mb-16">
             <h3 className="text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
@@ -513,7 +613,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       </div>
 
       {/* ── AR QR Code Modal for Desktop ── */}
-      <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showQRModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowQRModal(false)}>
+      <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showQRModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowQRModal(false)}>
         <div className={`bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl transform transition-transform duration-300 ${showQRModal ? 'scale-100' : 'scale-95'}`} onClick={e => e.stopPropagation()}>
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-medium text-gray-900">AR Try-on</h3>
@@ -544,6 +644,43 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           </div>
         </div>
       </div>
+
+      {/* ── Lightbox Modal ── */}
+      {lightboxOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-8" onClick={() => setLightboxOpen(false)}>
+          <button 
+            className="absolute top-6 right-6 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-2 transition-colors z-10"
+            onClick={(e) => { e.stopPropagation(); setLightboxOpen(false); }}
+          >
+            <X className="w-8 h-8" />
+          </button>
+          
+          <button 
+            className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-3 transition-colors z-10"
+            onClick={prevLightboxImage}
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+          
+          <div className="relative w-full max-w-5xl h-full max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl bg-black/20" onClick={(e) => e.stopPropagation()}>
+            <Image 
+              src={images[lightboxIndex]} 
+              alt={product.title} 
+              fill 
+              className="object-contain" 
+              unoptimized 
+              priority 
+            />
+          </div>
+          
+          <button 
+            className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-black/50 hover:bg-black/80 rounded-full p-3 transition-colors z-10"
+            onClick={nextLightboxImage}
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+        </div>
+      )}
 
     </div>
   );

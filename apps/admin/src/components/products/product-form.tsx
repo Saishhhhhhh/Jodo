@@ -30,6 +30,8 @@ const formSchema = z.object({
   imageUrl: z.string().optional().default(''),
   galleryImages: z.array(z.string()).default([]),
   model3dUrl: z.string().optional().default(''),
+  videoUrl: z.string().optional().default(''),
+  brochureUrl: z.string().optional().default(''),
   status: z.enum(['draft', 'active', 'archived']),
   material: z.string().optional().default(''),
   dimensions: z.string().optional().default(''),
@@ -69,6 +71,7 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const modelFileInputRef = useRef<HTMLInputElement>(null);
+  const brochureFileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [showGalleryUrlInput, setShowGalleryUrlInput] = useState(false);
   const [galleryUrlValue, setGalleryUrlValue] = useState('');
@@ -87,6 +90,8 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       imageUrl: initialData?.imageUrl || '',
       galleryImages: initialData?.galleryImages || [],
       model3dUrl: initialData?.model3dUrl || '',
+      videoUrl: initialData?.videoUrl || '',
+      brochureUrl: initialData?.brochureUrl || '',
       status: initialData?.status || 'active',
       material: initialData?.material || '',
       dimensions: initialData?.dimensions || '',
@@ -459,6 +464,73 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                     </FormControl>
                     <FormDescription>
                       Link to a 3D model file to enable AR Try-On and 3D preview on the product page.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
+              <FormField
+                control={form.control}
+                name="videoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>YouTube Video URL (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. https://www.youtube.com/watch?v=-ueUb6PNwbs" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      If provided, this video will be displayed next to the product details on the frontend.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="brochureUrl"
+                render={({ field }) => (
+                  <FormItem className="space-y-2 mt-4 pt-4 border-t border-dashed">
+                    <FormLabel>Product Brochure (.pdf) (Optional)</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2 items-center">
+                        <Input placeholder="e.g. /brochure.pdf" {...field} value={field.value && field.value.length > 100 ? 'Uploaded File (Base64)' : field.value} onChange={(e) => {
+                          if (e.target.value !== 'Uploaded File (Base64)') {
+                            field.onChange(e.target.value);
+                          }
+                        }} />
+                        <input
+                          type="file"
+                          accept=".pdf"
+                          ref={brochureFileInputRef}
+                          className="hidden"
+                          onChange={(e) => handleModelFileChange(e, field.onChange)}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => brochureFileInputRef.current?.click()}
+                          className="flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <UploadCloud className="h-4 w-4" /> Upload
+                        </Button>
+                        {field.value && field.value.length > 100 && (
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => field.onChange('')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Upload a PDF brochure that customers can download on the product page.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

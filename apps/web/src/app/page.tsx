@@ -8,7 +8,7 @@ import VideoSection from "@/components/VideoSection";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-[70px] pb-[70px]">
+    <div className="flex flex-col gap-12 md:gap-[70px] pb-12 md:pb-[70px]">
       {/* Hero */}
       <HeroSection />
 

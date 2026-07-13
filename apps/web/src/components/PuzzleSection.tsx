@@ -59,16 +59,16 @@ export default function PuzzleSection() {
           style={{ opacity: textOpacity, y: textY }}
           className="absolute z-0 flex flex-col items-center text-center px-4"
         >
-          <h2 className="text-4xl md:text-6xl font-bold text-[#1C1A17] mb-6 tracking-tight max-w-[800px]">
+          <h2 className="text-3xl md:text-6xl font-bold text-[#1C1A17] mb-4 md:mb-6 tracking-tight max-w-[800px]">
             Bringing the missing pieces of your home <span className="text-terracotta italic font-serif font-light">together</span>.
           </h2>
-          <p className="text-gray-600 text-xl max-w-[500px]">
+          <p className="text-gray-600 text-base md:text-xl max-w-[500px]">
             Keep scrolling to reveal the big picture.
           </p>
         </motion.div>
 
         {/* Puzzle Container */}
-        <div className="relative z-10 w-[90vw] max-w-[1000px] aspect-video">
+        <div className="relative z-10 w-[85vw] md:w-[90vw] max-w-[1000px] aspect-square md:aspect-video">
           
           {/* Top Left Piece */}
           <motion.div
@@ -113,12 +113,12 @@ export default function PuzzleSection() {
           {/* Overlay Content that appears when puzzle is done */}
           <motion.div 
             style={{ opacity: finalOpacity, y: finalY }}
-            className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/40 rounded-[40px] backdrop-blur-sm transition-colors duration-1000"
+            className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/40 rounded-[40px] backdrop-blur-sm transition-colors duration-1000 px-4"
           >
-            <h3 className="text-white text-5xl font-bold mb-6 text-center">
+            <h3 className="text-white text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center">
               The Perfect Fit
             </h3>
-            <button className="bg-white text-[#1C1A17] font-semibold px-8 py-4 rounded-full hover:bg-terracotta hover:text-white transition-colors duration-300">
+            <button className="bg-white text-[#1C1A17] font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:bg-terracotta hover:text-white transition-colors duration-300">
               Shop The Room
             </button>
           </motion.div>

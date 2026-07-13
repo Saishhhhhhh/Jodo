@@ -43,7 +43,7 @@ router.get('/:id', async (req, res, next) => {
 // CREATE
 router.post('/', async (req, res, next) => {
   try {
-    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications } = req.body;
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -62,6 +62,8 @@ router.post('/', async (req, res, next) => {
       imageUrl,
       galleryImages: galleryImages || [],
       model3dUrl,
+      videoUrl,
+      brochureUrl,
       status,
       material,
       dimensions,
@@ -89,7 +91,7 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications } = req.body;
 
     const product = await Product.findOneAndUpdate(
       { _id: id, tenantId: req.auth!.tenantId, storeId: req.auth!.storeId },
@@ -105,6 +107,8 @@ router.put('/:id', async (req, res, next) => {
         imageUrl,
         galleryImages: galleryImages || [],
         model3dUrl,
+        videoUrl,
+        brochureUrl,
         status,
         material,
         dimensions,

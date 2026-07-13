@@ -10,7 +10,7 @@ export default function AboutSection() {
       {/* ── BACKGROUND ── */}
       <div className="absolute inset-0 bg-white -z-10" />
 
-      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24">
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-24">
 
         {/* ── LEFT SIDE — Text ── */}
         <div className="flex-1 max-w-[600px]">
@@ -22,11 +22,11 @@ export default function AboutSection() {
           </div>
 
           {/* Main Headline */}
-          <h2 className="text-[#1C1A17] font-bold mb-8 tracking-tight leading-[1.15] text-4xl md:text-5xl lg:text-6xl">
+          <h2 className="text-[#1C1A17] font-bold mb-6 md:mb-8 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
             We help turn your design <span className="text-terracotta italic font-serif font-light">dreams</span> into reality.
           </h2>
           
-          <p className="text-gray-600 text-lg md:text-xl leading-relaxed mb-10 max-w-[500px]">
+          <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-8 md:mb-10 max-w-[500px]">
             Curated, stylish pieces for every space. With a focus on comfort and craftsmanship, our pieces are designed to inspire and elevate your everyday life.
           </p>
 
@@ -34,7 +34,7 @@ export default function AboutSection() {
             {/* Discover More Link */}
             <Link
               href="/about"
-              className="group relative inline-flex items-center gap-4 bg-[#1C1A17] text-white overflow-hidden rounded-full px-8 py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20"
+              className="group relative inline-flex items-center gap-4 bg-[#1C1A17] text-white overflow-hidden rounded-full px-6 py-3 md:px-8 md:py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 w-full sm:w-auto justify-center"
             >
               <div className="absolute inset-0 bg-terracotta translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
               <span className="relative z-10 font-semibold text-[15px]">Discover More</span>
@@ -46,7 +46,7 @@ export default function AboutSection() {
             {/* Explore Collection Link */}
             <Link
               href="/shop"
-              className="group relative inline-flex items-center gap-4 bg-transparent border-2 border-[#1C1A17] text-[#1C1A17] overflow-hidden rounded-full px-8 py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10"
+              className="group relative inline-flex items-center gap-4 bg-transparent border-2 border-[#1C1A17] text-[#1C1A17] overflow-hidden rounded-full px-6 py-3 md:px-8 md:py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 w-full sm:w-auto justify-center"
             >
               <div className="absolute inset-0 bg-[#1C1A17] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
               <span className="relative z-10 font-semibold text-[15px] group-hover:text-white transition-colors duration-500">Explore Collection</span>
