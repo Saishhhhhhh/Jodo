@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -29,7 +30,7 @@ import {
   MessageSquare,
   Bell,
   Globe,
-  Image,
+  Image as ImageIcon,
   Navigation,
   CreditCard,
   ShoppingBag,
@@ -119,8 +120,8 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Pages', href: '/pages', icon: FileText },
       { label: 'Blog', href: '/blog', icon: FileText },
       { label: 'Navigation', href: '/navigation', icon: Navigation },
-      { label: 'Banners', href: '/banners', icon: Image },
-      { label: 'Media Library', href: '/media', icon: Image },
+      { label: 'Banners', href: '/banners', icon: ImageIcon },
+      { label: 'Media Library', href: '/media', icon: ImageIcon },
     ],
   },
 
@@ -211,16 +212,24 @@ export function AppSidebar({ collapsed }: SidebarProps) {
         <div
           className={cn(
             'flex items-center h-14 border-b border-sidebar-border px-4 shrink-0',
-            collapsed ? 'justify-center' : 'gap-3'
+            collapsed ? 'justify-center' : ''
           )}
         >
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.4)]">
-            <Store className="w-4 h-4 text-primary-foreground" />
-          </div>
-          {!collapsed && (
-            <span className="font-bold text-base text-sidebar-foreground tracking-tight">
-              Jodo
-            </span>
+          {collapsed ? (
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.4)]">
+              <Store className="w-4 h-4 text-primary-foreground" />
+            </div>
+          ) : (
+            <div className="relative w-[160px] h-[50px] flex items-center justify-start -ml-2">
+              <Image
+                src="/logo.png"
+                alt="Jodo"
+                width={200}
+                height={60}
+                className="w-full h-auto object-contain object-left origin-left scale-[1.25]"
+                priority
+              />
+            </div>
           )}
         </div>
 
