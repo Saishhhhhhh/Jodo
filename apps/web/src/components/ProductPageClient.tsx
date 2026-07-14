@@ -410,16 +410,16 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       {/* ── 3. Uninterrupted Image Flow ── */}
       <div className="w-full flex flex-col">
         {images.slice(1).map((img: string, idx: number) => (
-          <div key={idx} className="relative w-full h-[70vh] md:h-[100vh]">
+          <div key={idx} className="relative w-full h-[45vh] md:h-[100vh]">
             <Image src={img} alt={`Lifestyle ${idx + 1}`} fill className="object-cover" unoptimized />
           </div>
         ))}
       </div>
 
       {/* ── 4. Minimalist Reviews Section ── */}
-      <div className="w-full bg-[#fcfbf9] py-24 md:py-32 px-6">
+      <div className="w-full bg-[#fcfbf9] py-12 md:py-32 px-6">
         <div className="max-w-[1200px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-16 gap-6 md:gap-8">
             <div>
               <h2 className="text-3xl md:text-4xl font-medium text-gray-900 mb-4 tracking-tight">What our customers say</h2>
               <div className="flex items-center gap-4">
@@ -465,9 +465,9 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               onMouseEnter={() => setIsSliderHovered(true)} 
               onMouseLeave={() => setIsSliderHovered(false)}
             >
-              <div ref={sliderRef} className="flex overflow-x-auto gap-6 pb-12 snap-x snap-mandatory hide-scrollbar pt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div ref={sliderRef} className="flex overflow-x-auto gap-6 pb-6 md:pb-12 snap-x snap-mandatory hide-scrollbar pt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {reviews.map(review => (
-                  <div key={review._id} className="flex-none w-[320px] md:w-[420px] flex flex-col gap-5 snap-start bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300">
+                  <div key={review._id} className="flex-none w-[320px] md:w-[420px] flex flex-col gap-4 md:gap-5 snap-start bg-white p-6 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300">
                     <div className="flex gap-1 mb-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star key={star} className={`w-5 h-5 ${star <= review.rating ? 'fill-gold text-gold' : 'fill-transparent text-gray-200'}`} />
@@ -494,17 +494,17 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
       {/* ── Write Review Modal ── */}
       <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showReviewModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => !isSubmitting && setShowReviewModal(false)}>
-        <div className={`bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300 ${showReviewModal ? 'scale-100' : 'scale-95'}`} onClick={e => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-6">
+        <div className={`bg-white rounded-2xl p-6 md:p-8 max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300 ${showReviewModal ? 'scale-100' : 'scale-95'}`} onClick={e => e.stopPropagation()}>
+          <div className="flex justify-between items-center mb-4 md:mb-6">
             <h3 className="text-xl font-medium text-gray-900">Write a Review</h3>
             <button onClick={() => !isSubmitting && setShowReviewModal(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
               <X className="w-6 h-6" />
             </button>
           </div>
-          <form onSubmit={submitReview} className="flex flex-col gap-4">
+          <form onSubmit={submitReview} className="flex flex-col gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-              <div className="flex gap-2" onMouseLeave={() => setHoverRating(0)}>
+              <label className="block text-[13px] md:text-sm font-medium text-gray-700 mb-1">Rating</label>
+              <div className="flex gap-1.5 md:gap-2" onMouseLeave={() => setHoverRating(0)}>
                 {[1, 2, 3, 4, 5].map(star => {
                   const isActive = star <= (hoverRating || reviewForm.rating);
                   return (
@@ -515,31 +515,31 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                       onMouseEnter={() => setHoverRating(star)}
                       className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
                     >
-                      <Star className={`w-9 h-9 transition-colors ${isActive ? 'fill-gold text-gold' : 'fill-transparent text-gray-300'}`} />
+                      <Star className={`w-7 h-7 md:w-9 md:h-9 transition-colors ${isActive ? 'fill-gold text-gold' : 'fill-transparent text-gray-300'}`} />
                     </button>
                   );
                 })}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input required type="text" value={reviewForm.authorName} onChange={e => setReviewForm({...reviewForm, authorName: e.target.value})} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="John Doe" />
+                <label className="block text-[13px] md:text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input required type="text" value={reviewForm.authorName} onChange={e => setReviewForm({...reviewForm, authorName: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2.5 md:p-3 text-[13px] md:text-base focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="John Doe" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input required type="email" value={reviewForm.authorEmail} onChange={e => setReviewForm({...reviewForm, authorEmail: e.target.value})} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="john@example.com" />
+                <label className="block text-[13px] md:text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input required type="email" value={reviewForm.authorEmail} onChange={e => setReviewForm({...reviewForm, authorEmail: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2.5 md:p-3 text-[13px] md:text-base focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="john@example.com" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title (Optional)</label>
-              <input type="text" value={reviewForm.title} onChange={e => setReviewForm({...reviewForm, title: e.target.value})} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="Great product!" />
+              <label className="block text-[13px] md:text-sm font-medium text-gray-700 mb-1">Title (Optional)</label>
+              <input type="text" value={reviewForm.title} onChange={e => setReviewForm({...reviewForm, title: e.target.value})} className="w-full border border-gray-300 rounded-lg p-2.5 md:p-3 text-[13px] md:text-base focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta" placeholder="Great product!" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Review</label>
-              <textarea required value={reviewForm.body} onChange={e => setReviewForm({...reviewForm, body: e.target.value})} rows={4} className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta resize-none" placeholder="What did you think?"></textarea>
+              <label className="block text-[13px] md:text-sm font-medium text-gray-700 mb-1">Review</label>
+              <textarea required value={reviewForm.body} onChange={e => setReviewForm({...reviewForm, body: e.target.value})} rows={3} className="w-full border border-gray-300 rounded-lg p-2.5 md:p-3 text-[13px] md:text-base focus:outline-none focus:ring-1 focus:ring-terracotta focus:border-terracotta resize-none" placeholder="What did you think?"></textarea>
             </div>
-            <button disabled={isSubmitting} type="submit" className="w-full mt-4 bg-terracotta text-white rounded-full py-4 font-medium hover:bg-terracotta/90 transition-colors disabled:opacity-50">
+            <button disabled={isSubmitting} type="submit" className="w-full mt-2 md:mt-4 bg-terracotta text-white rounded-full py-3 md:py-4 font-medium hover:bg-terracotta/90 transition-colors disabled:opacity-50 text-sm md:text-base">
               {isSubmitting ? 'Submitting...' : 'Submit Review'}
             </button>
           </form>
@@ -548,25 +548,25 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
       {/* ── Hidden Details Modal (Drawer style) ── */}
       <div className={`fixed inset-0 z-[100] flex justify-end bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
-        <div className={`w-full max-w-[500px] h-full bg-white shadow-2xl p-8 md:p-12 flex flex-col overflow-y-auto transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} onClick={e => e.stopPropagation()}>
-          <div className="flex justify-between items-start mb-16">
-            <h3 className="text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
-            <button onClick={() => setShowModal(false)} className="p-2 -mr-2 text-gray-400 hover:text-black transition-colors">
-              <X className="w-8 h-8 font-light" strokeWidth={1} />
+        <div className={`w-full max-w-[500px] h-full bg-white shadow-2xl p-6 md:p-12 flex flex-col overflow-y-auto transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} onClick={e => e.stopPropagation()}>
+          <div className="flex justify-between items-center mb-10 md:mb-16">
+            <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
+            <button onClick={() => setShowModal(false)} className="p-2 -mr-2 text-gray-400 hover:text-black transition-colors flex-shrink-0">
+              <X className="w-6 h-6 md:w-8 md:h-8 font-light" strokeWidth={1} />
             </button>
           </div>
 
-          <div className="flex flex-col gap-14 pb-12">
+          <div className="flex flex-col gap-10 md:gap-14 pb-12">
             {product.productDetails && Object.keys(product.productDetails).length > 0 && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-5">
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">
                   Overview
                 </h4>
                 <div className="flex flex-col">
                   {Object.entries(product.productDetails).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center py-4 border-b border-gray-100">
-                      <span className="text-[15px] text-gray-500">{key}</span>
-                      <span className="text-[15px] font-medium text-[#1a1a1a] text-right">{String(value)}</span>
+                    <div key={key} className="flex justify-between items-center py-3 md:py-4 border-b border-gray-100">
+                      <span className="text-[14px] md:text-[15px] text-gray-500">{key}</span>
+                      <span className="text-[14px] md:text-[15px] font-medium text-[#1a1a1a] text-right">{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -575,14 +575,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
             {product.specifications && product.specifications.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-5">
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">
                   Materials & Build
                 </h4>
                 <div className="flex flex-col">
                   {product.specifications.map((spec: any, i: number) => (
-                    <div key={i} className="flex flex-col py-4 border-b border-gray-100 gap-1.5">
-                      <span className="text-[13px] font-medium text-gray-500">{spec.key}</span>
-                      <span className="text-[15px] text-[#1a1a1a] leading-relaxed">{spec.value}</span>
+                    <div key={i} className="flex flex-col py-3 md:py-4 border-b border-gray-100 gap-1 md:gap-1.5">
+                      <span className="text-[12px] md:text-[13px] font-medium text-gray-500">{spec.key}</span>
+                      <span className="text-[14px] md:text-[15px] text-[#1a1a1a] leading-relaxed">{spec.value}</span>
                     </div>
                   ))}
                 </div>
@@ -591,19 +591,19 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
             {(product.careAndMaintenance || product.warrantyTerms) && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-5">
+                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">
                   Care & Warranty
                 </h4>
                 {product.careAndMaintenance && (
-                  <div className="mb-8 pt-2">
-                    <span className="text-[15px] font-bold text-[#1a1a1a] block mb-3">Care Instructions</span>
-                    <p className="text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
+                  <div className="mb-6 md:mb-8 pt-2">
+                    <span className="text-[14px] md:text-[15px] font-bold text-[#1a1a1a] block mb-2 md:mb-3">Care Instructions</span>
+                    <p className="text-[14px] md:text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
                   </div>
                 )}
                 {product.warrantyTerms && (
                   <div className="pt-2">
-                    <span className="text-[15px] font-bold text-[#1a1a1a] block mb-3">Warranty terms</span>
-                    <p className="text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
+                    <span className="text-[14px] md:text-[15px] font-bold text-[#1a1a1a] block mb-2 md:mb-3">Warranty terms</span>
+                    <p className="text-[14px] md:text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
                   </div>
                 )}
               </div>
