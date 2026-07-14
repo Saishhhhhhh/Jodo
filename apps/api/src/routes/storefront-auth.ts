@@ -242,4 +242,40 @@ router.get('/me/orders', async (req, res, next) => {
   }
 });
 
+// Get Single Customer Order
+router.get('/me/orders/:id', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const customer = await Customer.findById(decoded.sub);
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    const order = await Order.findOne({ 
+      _id: req.params.id, 
+      customerEmail: customer.email 
+    }).populate('items.productId', 'imageUrl name description');
+
+    if (!order) {
+      return sendError(res, 'Order not found', 404);
+    }
+
+    sendSuccess(res, { order }, 'Order retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
