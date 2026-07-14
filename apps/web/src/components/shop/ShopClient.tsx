@@ -37,7 +37,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
 
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState('Recommended');
-  
+
   const SORT_OPTIONS = [
     'Recommended',
     'Price: Low to High',
@@ -187,7 +187,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
   }, [displayProducts]);
 
   const toggleCategory = (cat: string) => {
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
     );
   };
@@ -269,11 +269,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
         <div className="space-y-4">
           {dynamicCategories.map(cat => (
             <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                className="hidden" 
-                checked={selectedCategories.includes(cat)} 
-                onChange={() => toggleCategory(cat)} 
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={selectedCategories.includes(cat)}
+                onChange={() => toggleCategory(cat)}
               />
               <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-sm bg-white">
                 {selectedCategories.includes(cat) && <Check size={14} className="text-black" strokeWidth={3} />}
@@ -293,10 +293,10 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
               <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-full bg-white">
                 {selectedPriceRange === range.label && <div className="w-2.5 h-2.5 bg-black rounded-full" />}
               </div>
-              <input 
-                type="radio" 
-                name="priceRange" 
-                className="hidden" 
+              <input
+                type="radio"
+                name="priceRange"
+                className="hidden"
                 checked={selectedPriceRange === range.label}
                 onChange={() => setSelectedPriceRange(selectedPriceRange === range.label ? null : range.label)}
               />
@@ -304,7 +304,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
             </label>
           ))}
           {selectedPriceRange && (
-            <button 
+            <button
               onClick={() => setSelectedPriceRange(null)}
               className="text-sm text-gray-500 font-medium mt-2 hover:underline"
             >
@@ -321,11 +321,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
           <div className="space-y-4">
             {dynamicVendors.map(vendor => (
               <label key={vendor} className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  className="hidden" 
-                  checked={selectedVendors.includes(vendor)} 
-                  onChange={() => toggleVendor(vendor)} 
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={selectedVendors.includes(vendor)}
+                  onChange={() => toggleVendor(vendor)}
                 />
                 <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-sm bg-white">
                   {selectedVendors.includes(vendor) && <Check size={14} className="text-black" strokeWidth={3} />}
@@ -344,11 +344,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
           <div className="space-y-4">
             {dynamicMaterials.map(mat => (
               <label key={mat} className="flex items-center gap-3 cursor-pointer group">
-                <input 
-                  type="checkbox" 
-                  className="hidden" 
-                  checked={selectedMaterials.includes(mat)} 
-                  onChange={() => toggleMaterial(mat)} 
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={selectedMaterials.includes(mat)}
+                  onChange={() => toggleMaterial(mat)}
                 />
                 <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-sm bg-white">
                   {selectedMaterials.includes(mat) && <Check size={14} className="text-black" strokeWidth={3} />}
@@ -365,11 +365,11 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
         <label className="flex items-center justify-between cursor-pointer">
           <span className="font-bold text-[15px] text-black">Assembly Required</span>
           <div className={`relative w-11 h-6 rounded-full transition-colors ${assemblyRequired === true ? 'bg-black' : 'bg-gray-200'}`}>
-            <input 
-              type="checkbox" 
-              className="hidden" 
-              checked={assemblyRequired === true} 
-              onChange={() => setAssemblyRequired(assemblyRequired === true ? null : true)} 
+            <input
+              type="checkbox"
+              className="hidden"
+              checked={assemblyRequired === true}
+              onChange={() => setAssemblyRequired(assemblyRequired === true ? null : true)}
             />
             <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${assemblyRequired === true ? 'translate-x-5' : 'translate-x-0'}`} />
           </div>
@@ -391,24 +391,24 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
 
   return (
     <div className="flex flex-col md:flex-row relative w-full gap-8 lg:gap-12 items-start">
-      
+
       {/* Desktop Inline Sidebar (Left) */}
       <aside className="hidden md:flex flex-col w-[240px] lg:w-[260px] flex-shrink-0 sticky top-28">
         <div className="flex-1 px-2 pb-6 hide-scrollbar">
           {filterContent}
           <div className="py-6">
-            <button 
-               onClick={() => {
-                 setSelectedCategories([]);
-                 setSelectedVendors([]);
-                 setSelectedMaterials([]);
-                 setSelectedPriceRange(null);
-                 setInStockOnly(false);
-                 setAssemblyRequired(null);
-               }}
-               className="w-full py-3.5 bg-gray-50 text-gray-800 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+            <button
+              onClick={() => {
+                setSelectedCategories([]);
+                setSelectedVendors([]);
+                setSelectedMaterials([]);
+                setSelectedPriceRange(null);
+                setInStockOnly(false);
+                setAssemblyRequired(null);
+              }}
+              className="w-full py-3.5 bg-gray-50 text-gray-800 rounded-xl font-medium hover:bg-gray-100 transition-colors"
             >
-               Clear Filters
+              Clear Filters
             </button>
           </div>
         </div>
@@ -416,19 +416,19 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
 
       {/* Main Content Area (Right on Desktop) */}
       <div className="flex-1 flex flex-col min-w-0 w-full">
-        
+
         {/* Desktop Info & Sort Bar */}
         <div className="hidden md:flex items-center justify-between bg-transparent pb-6 mb-6 border-b border-gray-100">
           <div className="flex items-center gap-4">
             <span className="font-medium text-gray-500 text-sm">Showing {filteredProducts.length} Products</span>
           </div>
-          
+
           <div className="relative">
-            <div 
+            <div
               onClick={() => setIsSortOpen(!isSortOpen)}
               className="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-black transition-colors group"
             >
-              Sort by: <span className="text-black font-semibold group-hover:text-black">{sortBy}</span> 
+              Sort by: <span className="text-black font-semibold group-hover:text-black">{sortBy}</span>
               <ChevronDown size={16} className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} />
             </div>
 
@@ -460,18 +460,18 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
 
         {/* Mobile Sticky Filter/Sort Bar */}
         <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] z-40 bg-white rounded-full flex items-center shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
-          <button 
+          <button
             onClick={() => setIsSortOpen(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-gray-900 border-r border-gray-100 active:bg-gray-50 transition-colors"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg> 
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 16 4 4 4-4" /><path d="M7 20V4" /><path d="m21 8-4-4-4 4" /><path d="M17 4v16" /></svg>
             Sort
           </button>
-          <button 
+          <button
             onClick={() => setIsFiltersOpen(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-gray-900 active:bg-gray-50 transition-colors"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="4" y1="21" y2="14" /><line x1="4" x2="4" y1="10" y2="3" /><line x1="12" x2="12" y1="21" y2="12" /><line x1="12" x2="12" y1="8" y2="3" /><line x1="20" x2="20" y1="21" y2="16" /><line x1="20" x2="20" y1="12" y2="3" /><line x1="2" x2="6" y1="14" y2="14" /><line x1="10" x2="14" y1="8" y2="8" /><line x1="18" x2="22" y1="16" y2="16" /></svg>
             Filter
           </button>
         </div>
@@ -482,8 +482,8 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
           transition-opacity duration-300
           ${isSortOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}>
-          <div 
-            className="absolute inset-0" 
+          <div
+            className="absolute inset-0"
             onClick={() => setIsSortOpen(false)}
           />
           <div className={`
@@ -509,9 +509,9 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                       <div className="relative w-5 h-5 flex-shrink-0 flex items-center justify-center rounded-full bg-white">
                         {sortBy === option && <Check size={18} className="text-black" strokeWidth={3} />}
                       </div>
-                      <input 
-                        type="radio" 
-                        className="hidden" 
+                      <input
+                        type="radio"
+                        className="hidden"
                         checked={sortBy === option}
                         onChange={() => {
                           setSortBy(option);
@@ -532,8 +532,8 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
           transition-opacity duration-300
           ${isFiltersOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}>
-          <div 
-            className="absolute inset-0" 
+          <div
+            className="absolute inset-0"
             onClick={() => setIsFiltersOpen(false)}
           />
           <div className={`
@@ -552,15 +552,15 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
             <div className="flex-1 overflow-y-auto px-6 py-2">
               {filterContent}
             </div>
-            
+
             {/* Apply button at bottom of mobile drawer */}
             <div className="px-6 py-4 border-t border-gray-100 bg-white pb-safe">
-               <button 
-                  onClick={() => setIsFiltersOpen(false)}
-                  className="w-full py-4 bg-[#1a1a1a] text-white rounded-xl font-medium hover:bg-black transition-colors"
-               >
-                  Apply Filters
-               </button>
+              <button
+                onClick={() => setIsFiltersOpen(false)}
+                className="w-full py-4 bg-[#1a1a1a] text-white rounded-xl font-medium hover:bg-black transition-colors"
+              >
+                Apply Filters
+              </button>
             </div>
           </div>
         </aside>
@@ -574,7 +574,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
               <p className="text-gray-500 max-w-md mx-auto mb-6">We couldn&apos;t find any products matching your current filters. Try adjusting your selections to see more results.</p>
-              <button 
+              <button
                 onClick={() => {
                   setSelectedCategories([]);
                   setSelectedPriceRange(null);
@@ -597,7 +597,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                   price: product.price,
                   imageUrl: product.imageUrl || `https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80`
                 };
-                
+
                 return <ProductCard key={mappedProduct.id} product={mappedProduct} />;
               })}
             </div>
