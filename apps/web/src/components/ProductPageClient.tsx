@@ -262,8 +262,8 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       </div>
 
       {/* ── 1. Image Gallery ── */}
-      <div className="max-w-[1400px] mx-auto px-5 pt-[50px] pb-8">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 leading-tight tracking-tight mb-8">
+      <div className="max-w-[1400px] mx-auto px-5 pt-4 md:pt-[50px] pb-6 md:pb-8">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 leading-tight tracking-tight mb-4 md:mb-8">
           {product.title}
         </h1>
         
@@ -294,10 +294,10 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+            <div className="grid grid-cols-2 md:grid-cols-3 grid-rows-[2fr_1fr] md:grid-rows-1 gap-2 md:gap-4 h-full">
               {/* Left Column (Tall) */}
               <div 
-                className="col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
+                className="col-span-2 md:col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
                 onClick={() => openLightbox(0)}
               >
                 <Image src={images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
@@ -305,14 +305,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               
               {/* Middle Column (Tall) */}
               <div 
-                className="col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] hidden md:block cursor-pointer group"
+                className="col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
                 onClick={() => openLightbox(Math.min(1, images.length - 1))}
               >
                 <Image src={images[1] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
               </div>
               
               {/* Right Column (Stacked) */}
-              <div className="col-span-1 flex-col gap-4 hidden md:flex">
+              <div className="col-span-1 flex flex-col gap-2 md:gap-4">
                 <div 
                   className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
                   onClick={() => openLightbox(Math.min(2, images.length - 1))}
@@ -320,7 +320,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                   <Image src={images[2] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
                 </div>
                 <div 
-                  className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
+                  className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] hidden md:block cursor-pointer group"
                   onClick={() => openLightbox(Math.min(3, images.length - 1))}
                 >
                   <Image src={images[3] || images[1] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
@@ -359,39 +359,39 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           )}
 
           <div className={`flex flex-col w-full ${videoId || product.brochureUrl ? 'lg:col-span-5 items-start text-left' : 'items-center text-center'}`}>
-            <span className={`text-xs font-bold tracking-[0.2em] text-gray-400 uppercase ${videoId || product.brochureUrl ? 'mb-4' : 'mb-6'}`}>{product.vendor}</span>
-            <p className={`text-gray-500 leading-relaxed font-light ${videoId || product.brochureUrl ? 'text-lg mb-8 max-w-xl' : 'text-xl mb-10 max-w-2xl'}`}>
+            <span className={`text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-400 uppercase ${videoId || product.brochureUrl ? 'mb-3 md:mb-4' : 'mb-4 md:mb-6'}`}>{product.vendor}</span>
+            <p className={`text-gray-500 leading-relaxed font-light ${videoId || product.brochureUrl ? 'text-[15px] md:text-lg mb-6 md:mb-8 max-w-xl' : 'text-[15px] md:text-xl mb-6 md:mb-10 max-w-2xl'}`}>
               {product.shortDescription || 'Experience a new level of sophistication and comfort, crafted specifically for your space.'}
             </p>
             
-            <div className={`flex items-center gap-6 ${videoId || product.brochureUrl ? 'mb-8' : 'mb-12'}`}>
-              <span className="text-4xl font-medium text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
+            <div className={`flex items-center gap-4 md:gap-6 ${videoId || product.brochureUrl ? 'mb-6 md:mb-8' : 'mb-8 md:mb-12'}`}>
+              <span className="text-3xl md:text-4xl font-medium text-gray-900 tracking-tight">₹{product.price.toLocaleString('en-IN')}</span>
               {product.compareAtPrice && (
-                <span className="text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
+                <span className="text-lg md:text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
               )}
             </div>
 
             <div className={`flex flex-col sm:flex-row items-center gap-4 w-full max-w-md ${videoId || product.brochureUrl ? 'mb-6 justify-start' : 'mb-8 justify-center'}`}>
-              <div className="w-full h-14 [&>div]:h-full [&_button]:h-full [&_button]:rounded-full [&_button]:text-lg">
+              <div className="w-full h-12 md:h-14 [&>div]:h-full [&>div]:mb-0 [&_button]:h-full [&_button]:rounded-full [&_button]:text-[13px] md:[&_button]:text-lg">
                 <ProductActions product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} />
               </div>
             </div>
 
-            <div className={`flex flex-wrap gap-4 ${videoId || product.brochureUrl ? 'justify-start' : 'justify-center'}`}>
+            <div className={`flex flex-wrap gap-3 md:gap-4 ${videoId || product.brochureUrl ? 'justify-start' : 'justify-center'}`}>
               <button 
                 onClick={() => {
                   setShow3D(true);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }} 
-                className="flex items-center gap-2.5 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm"
+                className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
               >
-                <Box className="w-5 h-5" /> <span>View in 3D</span>
+                <Box className="w-4 h-4 md:w-5 md:h-5" /> <span>View in 3D</span>
               </button>
               <button 
                 onClick={handleARClick} 
-                className="flex items-center gap-2.5 px-6 py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm"
+                className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
               >
-                <Smartphone className="w-5 h-5" /> <span>AR Try-on</span>
+                <Smartphone className="w-4 h-4 md:w-5 md:h-5" /> <span>AR Try-on</span>
               </button>
             </div>
 
