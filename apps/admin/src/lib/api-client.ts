@@ -1,6 +1,12 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+export const getImageUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads/')) return `${API_URL}${url}`;
+  return url;
+};
 
 export const apiClient = axios.create({
   baseURL: `${API_URL}/api`,

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { productsApi } from '@/lib/api-client';
+import { productsApi, getImageUrl } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -158,7 +158,7 @@ export default function ProductsPage() {
                 {product.imageUrl ? (
                   <>
                     <img 
-                      src={product.imageUrl} 
+                      src={getImageUrl(product.imageUrl)} 
                       alt={product.title} 
                       className="h-full w-full object-cover" 
                       referrerPolicy="no-referrer"

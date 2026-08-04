@@ -7,7 +7,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Plus, MoreHorizontal, Edit, Trash2, UploadCloud, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { bannersApi } from '@/lib/api-client';
+import { bannersApi, getImageUrl } from '@/lib/api-client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -147,7 +147,7 @@ export default function BannersPage() {
       header: 'Preview',
       cell: ({ row }) => (
         <div className="w-16 h-10 relative rounded overflow-hidden">
-          <img src={row.getValue('image')} alt="Banner" className="w-full h-full object-cover" />
+          <img src={getImageUrl(row.getValue('image'))} alt="Banner" className="w-full h-full object-cover" />
         </div>
       )
     },

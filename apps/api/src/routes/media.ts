@@ -48,7 +48,7 @@ router.post('/upload', async (req, res, next) => {
     // Create unique filename
     const uniqueFilename = `${Date.now()}-${filename.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     const filePath = path.join(UPLOADS_DIR, uniqueFilename);
-    const fileUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/uploads/${uniqueFilename}`;
+    const fileUrl = `/uploads/${uniqueFilename}`;
 
     // Write to local disk
     fs.writeFileSync(filePath, data);

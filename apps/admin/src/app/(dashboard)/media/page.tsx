@@ -7,7 +7,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { UploadCloud, Trash2, Copy, FileIcon, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { mediaApi } from '@/lib/api-client';
+import { mediaApi, getImageUrl } from '@/lib/api-client';
 
 function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return '0 Bytes';
@@ -85,7 +85,7 @@ export default function MediaLibraryPage() {
         return (
           <div className="w-12 h-12 relative rounded bg-muted flex items-center justify-center overflow-hidden border">
             {mimeType?.startsWith('image/') ? (
-              <img src={url} alt={row.original.filename} className="w-full h-full object-cover" />
+              <img src={getImageUrl(url)} alt={row.original.filename} className="w-full h-full object-cover" />
             ) : (
               <FileIcon className="h-6 w-6 text-muted-foreground" />
             )}
@@ -122,7 +122,7 @@ export default function MediaLibraryPage() {
             size="icon" 
             className="h-8 w-8"
             onClick={() => {
-              navigator.clipboard.writeText(row.original.url);
+              navigator.clipboard.writeText(getImageUrl(row.original.url));
               toast.success('URL copied to clipboard');
             }}
           >
