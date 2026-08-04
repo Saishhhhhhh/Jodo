@@ -37,6 +37,16 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
     setLightboxOpen(true);
@@ -261,15 +271,13 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
         </Link>
       </div>
 
-      {/* ── 1. Image Gallery ── */}
-      <div className="max-w-[1400px] mx-auto px-5 pt-4 md:pt-[50px] pb-6 md:pb-8">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 leading-tight tracking-tight mb-4 md:mb-8">
-          {product.title}
-        </h1>
+      {/* ── 1. Product Layout (Gallery + Details) ── */}
+      <div className="max-w-[1400px] mx-auto px-5 pt-4 md:pt-[50px] pb-12 lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start">
         
-        <div className="w-full h-[60vh] md:h-[75vh]">
+        {/* Left Column: Image Carousel / 3D Viewer */}
+        <div className="w-full mb-8 lg:mb-0 lg:sticky lg:top-[120px]">
           {show3D ? (
-            <div className="w-full h-full relative bg-gray-100 flex items-center justify-center rounded-2xl overflow-hidden">
+            <div className="w-full aspect-[4/5] md:aspect-square relative bg-gray-100 flex items-center justify-center rounded-2xl overflow-hidden">
               <model-viewer
                 ref={modelViewerRef}
                 src={product.model3dUrl || '/wooden_sofa/scene.gltf'}
@@ -289,131 +297,145 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                   <Smartphone className="w-5 h-5" /> View in your room
                 </button>
               </model-viewer>
-              <button onClick={() => setShow3D(false)} className="absolute top-8 right-8 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black transition-colors">
+              <button onClick={() => setShow3D(false)} className="absolute top-6 right-6 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black transition-colors">
                 <X className="w-6 h-6" />
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 grid-rows-[2fr_1fr] md:grid-rows-1 gap-2 md:gap-4 h-full">
-              {/* Left Column (Tall) */}
-              <div 
-                className="col-span-2 md:col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
-                onClick={() => openLightbox(0)}
-              >
-                <Image src={images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
+            <div className="w-full flex flex-col gap-4">
+              <div className="relative w-full aspect-[4/5] md:aspect-square bg-[#efeeea] rounded-2xl overflow-hidden group cursor-pointer" onClick={() => openLightbox(currentSlide)}>
+                <Image 
+                  src={images[currentSlide] || ''} 
+                  alt={`${product.title} - ${currentSlide + 1}`} 
+                  fill 
+                  className="object-cover" 
+                  unoptimized 
+                  priority 
+                />
+                
+                {/* Carousel Controls */}
+                {images.length > 1 && (
+                  <>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-black shadow-sm transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-black shadow-sm transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                    
+                    {/* Dots for mobile */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 md:hidden">
+                      {images.map((_, idx) => (
+                        <button 
+                          key={idx}
+                          onClick={(e) => { e.stopPropagation(); setCurrentSlide(idx); }}
+                          className={`w-2 h-2 rounded-full transition-all ${currentSlide === idx ? 'bg-black w-4' : 'bg-black/30'}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              
-              {/* Middle Column (Tall) */}
-              <div 
-                className="col-span-1 relative rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
-                onClick={() => openLightbox(Math.min(1, images.length - 1))}
-              >
-                <Image src={images[1] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
-              </div>
-              
-              {/* Right Column (Stacked) */}
-              <div className="col-span-1 flex flex-col gap-2 md:gap-4">
-                <div 
-                  className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] cursor-pointer group"
-                  onClick={() => openLightbox(Math.min(2, images.length - 1))}
-                >
-                  <Image src={images[2] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
-                </div>
-                <div 
-                  className="relative flex-1 rounded-2xl overflow-hidden bg-[#efeeea] hidden md:block cursor-pointer group"
-                  onClick={() => openLightbox(Math.min(3, images.length - 1))}
-                >
-                  <Image src={images[3] || images[1] || images[0] || ''} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized priority />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* ── 2. Clean Buy Section & Optional Video ── */}
-      <div className="max-w-[1400px] mx-auto px-5 pb-20 pt-8">
-        <div className={`grid grid-cols-1 ${videoId || product.brochureUrl ? 'lg:grid-cols-12 gap-12 lg:gap-16 items-center' : 'max-w-[800px] mx-auto place-items-center text-center'} `}>
-          
-          {(videoId || product.brochureUrl) && (
-             <div className="w-full flex flex-col gap-6 lg:col-span-7">
-               {videoId && (
-                 <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100">
-                   <iframe 
-                     src={`https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`} 
-                     title="Product Video" 
-                     className="absolute inset-0 w-full h-full border-0"
-                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                     allowFullScreen
-                   />
-                 </div>
-               )}
-               {product.brochureUrl && (
-                 <div className="flex gap-4">
-                   <a href={product.brochureUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-4 px-6 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors">
-                     DOWNLOAD BROCHURE
-                   </a>
-                 </div>
-               )}
-             </div>
-          )}
-
-          <div className={`flex flex-col w-full ${videoId || product.brochureUrl ? 'lg:col-span-5 items-start text-left' : 'items-center text-center'}`}>
-            <span className={`text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-400 uppercase ${videoId || product.brochureUrl ? 'mb-3 md:mb-4' : 'mb-4 md:mb-6'}`}>{product.vendor}</span>
-            <p className={`text-gray-500 leading-relaxed font-light ${videoId || product.brochureUrl ? 'text-[15px] md:text-lg mb-6 md:mb-8 max-w-xl' : 'text-[15px] md:text-xl mb-6 md:mb-10 max-w-2xl'}`}>
-              {product.shortDescription || 'Experience a new level of sophistication and comfort, crafted specifically for your space.'}
-            </p>
-            
-            <div className={`flex items-center gap-4 md:gap-6 ${videoId || product.brochureUrl ? 'mb-6 md:mb-8' : 'mb-8 md:mb-12'}`}>
-              <span className="text-3xl md:text-4xl font-medium text-gray-900 tracking-tight">₹{product.price.toLocaleString('en-IN')}</span>
-              {product.compareAtPrice && (
-                <span className="text-lg md:text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
+              {/* Thumbnail Navigation (Desktop) */}
+              {images.length > 1 && (
+                <div className="hidden md:flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                  {images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${currentSlide === idx ? 'border-terracotta opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                    >
+                      <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
+          )}
+        </div>
 
-            <div className={`flex flex-col sm:flex-row items-center gap-4 w-full max-w-md ${videoId || product.brochureUrl ? 'mb-6 justify-start' : 'mb-8 justify-center'}`}>
-              <div className="w-full h-12 md:h-14 [&>div]:h-full [&>div]:mb-0 [&_button]:h-full [&_button]:rounded-full [&_button]:text-[13px] md:[&_button]:text-lg">
-                <ProductActions product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} />
-              </div>
+        {/* Right Column: Product Details */}
+        <div className="w-full flex flex-col items-start text-left lg:pt-4">
+          <span className="text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-400 uppercase mb-3 md:mb-4">{product.vendor}</span>
+          
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 leading-tight tracking-tight mb-4 md:mb-6">
+            {product.title}
+          </h1>
+
+          <p className="text-gray-500 leading-relaxed font-light text-[15px] md:text-lg mb-6 md:mb-8 max-w-xl">
+            {product.shortDescription || 'Experience a new level of sophistication and comfort, crafted specifically for your space.'}
+          </p>
+          
+          <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
+            <span className="text-3xl md:text-4xl font-medium text-gray-900 tracking-tight">₹{product.price.toLocaleString('en-IN')}</span>
+            {product.compareAtPrice && (
+              <span className="text-lg md:text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start gap-4 w-full max-w-md mb-8">
+            <div className="w-full h-12 md:h-14 [&>div]:h-full [&>div]:mb-0 [&_button]:h-full [&_button]:rounded-full [&_button]:text-[13px] md:[&_button]:text-lg">
+              <ProductActions product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} />
             </div>
+          </div>
 
-            <div className={`flex flex-wrap gap-3 md:gap-4 ${videoId || product.brochureUrl ? 'justify-start' : 'justify-center'}`}>
-              <button 
-                onClick={() => {
-                  setShow3D(true);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }} 
-                className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
-              >
-                <Box className="w-4 h-4 md:w-5 md:h-5" /> <span>View in 3D</span>
-              </button>
-              <button 
-                onClick={handleARClick} 
-                className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
-              >
-                <Smartphone className="w-4 h-4 md:w-5 md:h-5" /> <span>AR Try-on</span>
-              </button>
-            </div>
-
-            {/* View Details Trigger */}
+          <div className="flex flex-wrap gap-3 md:gap-4 justify-start mb-8">
             <button 
-              onClick={() => setShowModal(true)}
-              className={`flex items-center justify-between w-full max-w-lg border-b border-gray-200 pb-4 group hover:border-gray-900 transition-colors ${videoId || product.brochureUrl ? 'mt-12 text-left' : 'mt-16 text-left mx-auto'}`}
+              onClick={() => {
+                setShow3D(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
             >
-              <span className="text-lg font-medium text-gray-900">View detailed specifications</span>
-              <Plus className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
+              <Box className="w-4 h-4 md:w-5 md:h-5" /> <span>View in 3D</span>
+            </button>
+            <button 
+              onClick={handleARClick} 
+              className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
+            >
+              <Smartphone className="w-4 h-4 md:w-5 md:h-5" /> <span>AR Try-on</span>
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* ── 3. Uninterrupted Image Flow ── */}
-      <div className="w-full flex flex-col">
-        {images.slice(1).map((img: string, idx: number) => (
-          <div key={idx} className="relative w-full h-[45vh] md:h-[100vh]">
-            <Image src={img} alt={`Lifestyle ${idx + 1}`} fill className="object-cover" unoptimized />
-          </div>
-        ))}
+          {(videoId || product.brochureUrl) && (
+            <div className="w-full flex flex-col gap-6 mb-8 max-w-xl">
+              {videoId && (
+                <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100">
+                  <iframe 
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`} 
+                    title="Product Video" 
+                    className="absolute inset-0 w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                </div>
+              )}
+              {product.brochureUrl && (
+                <div className="flex gap-4">
+                  <a href={product.brochureUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-4 px-6 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                    DOWNLOAD BROCHURE
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* View Details Trigger */}
+          <button 
+            onClick={() => setShowModal(true)}
+            className="flex items-center justify-between w-full max-w-xl border-b border-gray-200 pb-4 group hover:border-gray-900 transition-colors text-left"
+          >
+            <span className="text-lg font-medium text-gray-900">View detailed specifications</span>
+            <Plus className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
+          </button>
+        </div>
       </div>
 
       {/* ── 4. Minimalist Reviews Section ── */}

@@ -74,7 +74,6 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Collections', href: '/collections', icon: Boxes },
       { label: 'Inventory', href: '/inventory', icon: ReceiptText },
       { label: 'Gift Cards', href: '/gift-cards', icon: Tag },
-      { label: 'Digital Products', href: '/digital-products', icon: FileText },
       { label: 'Product Reviews', href: '/reviews', icon: Star },
     ],
   },
@@ -105,7 +104,6 @@ const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'Discounts', href: '/discounts', icon: Tag },
       { label: 'Campaigns', href: '/campaigns', icon: Megaphone },
-      { label: 'Automations', href: '/automations', icon: Zap },
       { label: 'Email', href: '/marketing/email', icon: Mail },
       { label: 'SMS', href: '/marketing/sms', icon: MessageSquare },
       { label: 'WhatsApp', href: '/marketing/whatsapp', icon: MessageSquare },

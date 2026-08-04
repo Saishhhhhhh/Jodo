@@ -125,6 +125,7 @@ export const productsApi = {
 export const ordersApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/orders', { params }),
   get: (id: string) => apiClient.get(`/admin/orders/${id}`),
+  create: (data: any) => apiClient.post('/admin/orders', data),
   update: (id: string, data: any) => apiClient.put(`/admin/orders/${id}`, data),
   fulfill: (id: string, data: any) => apiClient.post(`/admin/orders/${id}/fulfill`, data),
 };

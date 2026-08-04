@@ -9,12 +9,74 @@ router.use(requireAuth);
 
 router.get('/', async (req, res, next) => {
   try {
-    const orders = await Order.find({
+    const filter: any = {
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    }).sort({ createdAt: -1 });
+    };
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+    const orders = await Order.find(filter).sort({ createdAt: -1 });
 
     sendSuccess(res, orders);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/', async (req, res, next) => {
+  try {
+    const { customerName, customerEmail, items, shippingAddress } = req.body;
+
+    if (!items || !items.length) {
+      return sendError(res, 'Order must contain at least one item', 400);
+    }
+
+    // Calculate totals
+    let subtotal = 0;
+    let itemsCount = 0;
+    const orderItems = items.map((item: any) => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      itemsCount += item.quantity;
+      return {
+        productId: item.productId,
+        sku: item.sku || 'N/A',
+        title: item.title,
+        quantity: item.quantity,
+        price: item.price,
+        total: itemTotal,
+      };
+    });
+
+    const taxTotal = 0; // Simple for now
+    const shippingTotal = 0; // Simple for now
+    const totalAmount = subtotal + taxTotal + shippingTotal;
+    
+    // Generate order number
+    const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const orderNumber = `DRAFT-${randomSuffix}`;
+
+    const order = new Order({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+      orderNumber,
+      customerName: customerName || 'Unknown Customer',
+      customerEmail: customerEmail || 'unknown@example.com',
+      items: orderItems,
+      shippingAddress,
+      subtotal,
+      taxTotal,
+      shippingTotal,
+      totalAmount,
+      itemsCount,
+      status: 'draft',
+      paymentStatus: 'pending',
+      fulfillmentStatus: 'unfulfilled',
+    });
+
+    await order.save();
+    sendSuccess(res, order, 'Draft order created successfully', 201);
   } catch (error) {
     next(error);
   }

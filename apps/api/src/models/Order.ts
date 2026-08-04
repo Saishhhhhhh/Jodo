@@ -65,7 +65,7 @@ export interface IOrder extends Document {
   
   createdAt: Date;
   updatedAt: Date;
-  status: 'open' | 'archived' | 'cancelled';
+  status: 'open' | 'archived' | 'cancelled' | 'draft';
 }
 
 const orderItemSchema = new Schema<IOrderItem>({
@@ -145,7 +145,7 @@ const orderSchema = new Schema<IOrder>(
     },
     status: {
       type: String,
-      enum: ['open', 'archived', 'cancelled'],
+      enum: ['open', 'archived', 'cancelled', 'draft'],
       default: 'open',
     },
   },
