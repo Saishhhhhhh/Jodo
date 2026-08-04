@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Plus, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Plus, MoreHorizontal, Edit, Trash2, UploadCloud, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { bannersApi } from '@/lib/api-client';
 import {
@@ -28,6 +28,7 @@ export default function BannersPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     image: '',
@@ -116,6 +117,21 @@ export default function BannersPage() {
     setEditingBanner(null);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File exceeds 5MB limit.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingBanner) {
@@ -192,13 +208,41 @@ export default function BannersPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input 
-                required 
-                placeholder="https://images.unsplash.com/..." 
-                value={formData.image} 
-                onChange={e => setFormData({ ...formData, image: e.target.value })}
-              />
+              <Label>Image (URL or Upload)</Label>
+              <div className="flex gap-2">
+                <Input 
+                  required 
+                  placeholder="https://images.unsplash.com/..." 
+                  value={formData.image?.startsWith('data:') ? 'Uploaded File (Base64)' : formData.image} 
+                  onChange={e => {
+                    if (!formData.image?.startsWith('data:')) {
+                      setFormData({ ...formData, image: e.target.value })
+                    }
+                  }}
+                  readOnly={formData.image?.startsWith('data:')}
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    if (formData.image?.startsWith('data:')) {
+                      setFormData({ ...formData, image: '' });
+                    } else {
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                >
+                  {formData.image?.startsWith('data:') ? <X className="h-4 w-4 mr-2" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                  {formData.image?.startsWith('data:') ? 'Clear' : 'Upload'}
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Tagline</Label>

@@ -202,3 +202,11 @@ export const campaignsApi = {
   update: (id: string, data: any) => apiClient.put(`/admin/campaigns/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/campaigns/${id}`),
 };
+
+export const bannersApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/banners', { params }),
+  get: (id: string) => apiClient.get(`/admin/banners/${id}`),
+  create: (data: any) => apiClient.post('/admin/banners', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/banners/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/banners/${id}`),
+};
