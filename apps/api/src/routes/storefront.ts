@@ -3,6 +3,7 @@ import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { Store } from '../models/Store';
 import { Review } from '../models/Review';
+import { Collection } from '../models/Collection';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -11,6 +12,33 @@ router.get('/products', async (req, res, next) => {
   try {
     const products = await Product.find({}).sort({ createdAt: -1 }).limit(100);
     sendSuccess(res, products);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/collections', async (req, res, next) => {
+  try {
+    const collections = await Collection.find({ status: 'active' }).sort({ createdAt: -1 });
+    sendSuccess(res, collections);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/collections/:slug', async (req, res, next) => {
+  try {
+    const collection = await Collection.findOne({ slug: req.params.slug, status: 'active' })
+      .populate({
+        path: 'products',
+        match: { status: 'active' }
+      });
+      
+    if (!collection) {
+      return res.status(404).json({ success: false, message: 'Collection not found' });
+    }
+    
+    sendSuccess(res, collection);
   } catch (error) {
     next(error);
   }
