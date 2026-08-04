@@ -210,3 +210,9 @@ export const bannersApi = {
   update: (id: string, data: any) => apiClient.put(`/admin/banners/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/banners/${id}`),
 };
+
+export const mediaApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/media', { params }),
+  upload: (data: any) => apiClient.post('/admin/media/upload', data),
+  delete: (id: string) => apiClient.delete(`/admin/media/${id}`),
+};

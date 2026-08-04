@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -27,6 +28,7 @@ import returnsRoutes from './routes/returns';
 import segmentsRoutes from './routes/segments';
 import campaignsRoutes from './routes/campaigns';
 import bannersRoutes from './routes/banners';
+import mediaRoutes from './routes/media';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 
@@ -76,6 +78,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
 // ============================================================
 // Health Check
 // ============================================================
@@ -112,6 +117,7 @@ app.use('/api/admin/returns', returnsRoutes);
 app.use('/api/admin/customers/segments', segmentsRoutes);
 app.use('/api/admin/campaigns', campaignsRoutes);
 app.use('/api/admin/banners', bannersRoutes);
+app.use('/api/admin/media', mediaRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================
