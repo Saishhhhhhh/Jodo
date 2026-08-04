@@ -105,21 +105,16 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Discounts', href: '/discounts', icon: Tag },
       { label: 'Campaigns', href: '/campaigns', icon: Megaphone },
       { label: 'Email', href: '/marketing/email', icon: Mail },
-      { label: 'SMS', href: '/marketing/sms', icon: MessageSquare },
-      { label: 'WhatsApp', href: '/marketing/whatsapp', icon: MessageSquare },
-      { label: 'Push', href: '/marketing/push', icon: Bell },
-      { label: 'SEO', href: '/seo', icon: Search },
     ],
   },
   {
     label: 'Content',
     icon: FileText,
     children: [
-      { label: 'Pages', href: '/pages', icon: FileText },
-      { label: 'Blog', href: '/blog', icon: FileText },
-      { label: 'Navigation', href: '/navigation', icon: Navigation },
       { label: 'Banners', href: '/banners', icon: ImageIcon },
       { label: 'Media Library', href: '/media', icon: ImageIcon },
+      { label: 'Navigation', href: '/navigation', icon: Navigation },
+      { label: 'Blog', href: '/blog', icon: FileText },
     ],
   },
 

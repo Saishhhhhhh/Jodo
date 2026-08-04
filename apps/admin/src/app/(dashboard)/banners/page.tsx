@@ -1,17 +1,261 @@
 'use client';
 
-import { LayoutDashboard } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DataTable } from '@/components/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Button } from '@/components/ui/button';
+import { Plus, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { bannersApi } from '@/lib/api-client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function BannersPage() {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBanner, setEditingBanner] = useState<any>(null);
+
+  const [formData, setFormData] = useState({
+    image: '',
+    tagline: '',
+    heading: '',
+    subtext: '',
+    buttonText: 'Discover Now',
+    buttonUrl: '/shop',
+    status: 'active',
+  });
+
+  const { data: bannersData, isLoading } = useQuery({
+    queryKey: ['banners'],
+    queryFn: async () => {
+      const res = await bannersApi.list();
+      return res.data.data;
+    },
+  });
+
+  const banners = bannersData || [];
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => bannersApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast.success('Banner created successfully');
+      handleCloseModal();
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to create banner');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => bannersApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast.success('Banner updated successfully');
+      handleCloseModal();
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to update banner');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => bannersApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      toast.success('Banner deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete banner');
+    },
+  });
+
+  const handleOpenModal = (banner: any = null) => {
+    if (banner) {
+      setEditingBanner(banner);
+      setFormData({
+        image: banner.image,
+        tagline: banner.tagline,
+        heading: banner.heading,
+        subtext: banner.subtext,
+        buttonText: banner.buttonText,
+        buttonUrl: banner.buttonUrl,
+        status: banner.status,
+      });
+    } else {
+      setEditingBanner(null);
+      setFormData({
+        image: '',
+        tagline: '',
+        heading: '',
+        subtext: '',
+        buttonText: 'Discover Now',
+        buttonUrl: '/shop',
+        status: 'active',
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingBanner(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingBanner) {
+      updateMutation.mutate({ id: editingBanner._id, data: formData });
+    } else {
+      createMutation.mutate(formData);
+    }
+  };
+
+  const columns: ColumnDef<any>[] = [
+    { 
+      accessorKey: 'image', 
+      header: 'Preview',
+      cell: ({ row }) => (
+        <div className="w-16 h-10 relative rounded overflow-hidden">
+          <img src={row.getValue('image')} alt="Banner" className="w-full h-full object-cover" />
+        </div>
+      )
+    },
+    { 
+      accessorKey: 'heading', 
+      header: 'Heading',
+      cell: ({ row }) => <span className="font-semibold">{row.getValue('heading')}</span>
+    },
+    {
+      accessorKey: 'tagline',
+      header: 'Tagline',
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleOpenModal(row.original)}><Edit className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick={() => deleteMutation.mutate(row.original._id)}><Trash2 className="mr-2 h-4 w-4" /> Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    }
+  ];
+
   return (
-    <div className="flex h-[80vh] flex-col items-center justify-center text-center px-4 animate-fade-in">
-      <div className="rounded-full bg-primary/10 p-4 mb-4">
-        <LayoutDashboard className="h-10 w-10 text-primary" />
+    <div className="p-6 animate-fade-in space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Banners</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage homepage and promotional banners</p>
+        </div>
+        <Button onClick={() => handleOpenModal()}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Banner
+        </Button>
       </div>
-      <h2 className="text-3xl font-bold tracking-tight mb-2">Page in Maintenance</h2>
-      <p className="text-muted-foreground max-w-[500px]">
-        We are currently building out this feature. Please check back later.
-      </p>
+
+      <DataTable 
+        columns={columns} 
+        data={banners} 
+        isLoading={isLoading} 
+      />
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingBanner ? 'Edit Banner' : 'Create Banner'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Image URL</Label>
+              <Input 
+                required 
+                placeholder="https://images.unsplash.com/..." 
+                value={formData.image} 
+                onChange={e => setFormData({ ...formData, image: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Tagline</Label>
+              <Input 
+                required 
+                placeholder="Crafting Comfort, Shaping Style" 
+                value={formData.tagline} 
+                onChange={e => setFormData({ ...formData, tagline: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Heading</Label>
+              <Input 
+                required 
+                placeholder="Elevating Everyday Living..." 
+                value={formData.heading} 
+                onChange={e => setFormData({ ...formData, heading: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Subtext</Label>
+              <Input 
+                required 
+                placeholder="From modern minimalist to timeless..." 
+                value={formData.subtext} 
+                onChange={e => setFormData({ ...formData, subtext: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Button Text</Label>
+                <Input 
+                  required 
+                  placeholder="Discover Now" 
+                  value={formData.buttonText} 
+                  onChange={e => setFormData({ ...formData, buttonText: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Button URL</Label>
+                <Input 
+                  required 
+                  placeholder="/shop" 
+                  value={formData.buttonUrl} 
+                  onChange={e => setFormData({ ...formData, buttonUrl: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={handleCloseModal}>Cancel</Button>
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                {editingBanner ? 'Save Changes' : 'Create Banner'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

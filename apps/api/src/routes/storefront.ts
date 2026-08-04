@@ -16,6 +16,16 @@ router.get('/products', async (req, res, next) => {
   }
 });
 
+router.get('/banners', async (req, res, next) => {
+  try {
+    const { Banner } = require('../models/Banner');
+    const banners = await Banner.find({ status: 'active' }).sort({ order: 1, createdAt: -1 });
+    sendSuccess(res, banners);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/products/:id', async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);

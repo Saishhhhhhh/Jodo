@@ -26,6 +26,7 @@ import reviewsRoutes from './routes/reviews';
 import returnsRoutes from './routes/returns';
 import segmentsRoutes from './routes/segments';
 import campaignsRoutes from './routes/campaigns';
+import bannersRoutes from './routes/banners';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 
@@ -110,6 +111,7 @@ app.use('/api/admin/reviews', reviewsRoutes);
 app.use('/api/admin/returns', returnsRoutes);
 app.use('/api/admin/customers/segments', segmentsRoutes);
 app.use('/api/admin/campaigns', campaignsRoutes);
+app.use('/api/admin/banners', bannersRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================

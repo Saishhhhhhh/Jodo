@@ -28,13 +28,25 @@ const HERO_SLIDES = [
 
 export default function HeroSection() {
   const [currentImage, setCurrentImage] = useState(0);
+  const [banners, setBanners] = useState<any[]>(HERO_SLIDES);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/storefront/banners`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data && data.data.length > 0) {
+          setBanners(data.data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch banners:', err));
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentImage((prev) => (prev + 1) % banners.length);
     }, 6000); // Change image every 6 seconds
     return () => clearInterval(timer);
-  }, []);
+  }, [banners.length]);
 
   return (
     <section className="px-4 lg:px-6 py-0">
@@ -43,9 +55,9 @@ export default function HeroSection() {
         className="relative w-full overflow-hidden flex flex-col rounded-[24px] min-h-[500px] lg:min-h-[max(720px,calc(100vh-120px))] bg-[#D1C4B7]"
       >
         {/* Background images with Ken Burns effect */}
-        {HERO_SLIDES.map((slide, index) => (
+        {banners.map((slide, index) => (
           <div
-            key={slide.image}
+            key={slide._id || slide.image}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out z-0 ${
               index === currentImage ? 'opacity-100' : 'opacity-0'
             }`}
@@ -70,9 +82,9 @@ export default function HeroSection() {
         <div className="relative z-10 flex flex-1 flex-col justify-center px-6 md:px-10 lg:px-16 max-w-[800px]">
           
           <div className="relative w-full">
-            {HERO_SLIDES.map((slide, index) => (
+            {banners.map((slide, index) => (
               <div 
-                key={slide.image}
+                key={slide._id || slide.image}
                 style={{ opacity: index === currentImage ? 1 : 0 }}
                 className={`w-full flex flex-col justify-start transition-all duration-1000 ease-in-out ${
                   index === currentImage ? 'relative translate-y-0 z-10 pointer-events-auto' : 'absolute top-0 left-0 translate-y-8 z-0 pointer-events-none'
@@ -98,10 +110,10 @@ export default function HeroSection() {
 
           {/* Discover Now button */}
           <Link
-            href="/shop"
+            href={banners[currentImage]?.buttonUrl || "/shop"}
             className="flex items-center gap-3 md:gap-4 w-fit transition-transform hover:-translate-y-0.5 bg-terracotta mt-4 md:mt-6 rounded-lg md:rounded-[8px] pl-4 pr-1.5 py-1.5 md:pl-6 md:pr-2 md:py-2"
           >
-            <span className="text-white font-bold text-[13px] md:text-[15px]">Discover Now</span>
+            <span className="text-white font-bold text-[13px] md:text-[15px]">{banners[currentImage]?.buttonText || "Discover Now"}</span>
             <span
               className="flex items-center justify-center bg-white rounded-full w-7 h-7 md:w-8 md:h-8"
             >
@@ -130,7 +142,7 @@ export default function HeroSection() {
             }}
           >
             <button 
-              onClick={() => setCurrentImage((prev) => (prev + 1) % HERO_SLIDES.length)}
+              onClick={() => setCurrentImage((prev) => (prev + 1) % banners.length)}
               className="w-12 h-12 bg-terracotta rounded-full flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:scale-105 transition-transform"
             >
               <ArrowLeftRight className="w-5 h-5 text-white" />
@@ -141,7 +153,7 @@ export default function HeroSection() {
         {/* ── DESKTOP SLIDER BUTTON ── */}
         <div className="absolute bottom-8 left-8 z-30 hidden md:block">
           <button 
-            onClick={() => setCurrentImage((prev) => (prev + 1) % HERO_SLIDES.length)}
+            onClick={() => setCurrentImage((prev) => (prev + 1) % banners.length)}
             className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform"
           >
             <ArrowLeftRight className="w-5 h-5 text-terracotta" />
