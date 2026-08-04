@@ -11,6 +11,7 @@ interface ProductGalleryProps {
     imageUrl: string;
     galleryImages?: string[];
     slug: string;
+    model3dUrl?: string;
   };
   localIp: string;
 }
@@ -42,7 +43,7 @@ export default function ProductGallery({ product, localIp }: ProductGalleryProps
   }, []);
 
   const posterUrl = posterMapping[product.slug] || '/vr/public/posters/thermos-hydration-bottle.png';
-  const glbUrl = '/vr/public/models/thermos-hydration-bottle.glb';
+  const glbUrl = product.model3dUrl || '/vr/public/models/thermos-hydration-bottle.glb';
 
   const resolveImgUrl = (url: string) => {
     if (url.startsWith('/')) {
