@@ -430,11 +430,17 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                     <FormLabel>3D Model URL (.glb or .gltf) (Optional)</FormLabel>
                     <FormControl>
                       <div className="flex gap-2 items-center">
-                        <Input placeholder="e.g. /wooden_sofa/scene.gltf" {...field} value={field.value && field.value.length > 100 ? 'Uploaded File (Base64)' : field.value} onChange={(e) => {
-                          if (e.target.value !== 'Uploaded File (Base64)') {
-                            field.onChange(e.target.value);
-                          }
-                        }} />
+                        <Input 
+                          placeholder="e.g. /wooden_sofa/scene.gltf" 
+                          {...field} 
+                          value={field.value?.startsWith('data:') ? 'Uploaded File (Base64)' : field.value || ''} 
+                          onChange={(e) => {
+                            if (!field.value?.startsWith('data:')) {
+                              field.onChange(e.target.value);
+                            }
+                          }}
+                          readOnly={field.value?.startsWith('data:')}
+                        />
                         <input
                           type="file"
                           ref={modelFileInputRef}
@@ -448,9 +454,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                           onClick={() => modelFileInputRef.current?.click()}
                           className="flex items-center gap-2 whitespace-nowrap"
                         >
-                          <UploadCloud className="h-4 w-4" /> Upload
+                          <UploadCloud className="h-4 w-4" /> {field.value?.startsWith('data:') ? 'Change' : 'Upload'}
                         </Button>
-                        {field.value && field.value.length > 100 && (
+                        {field.value?.startsWith('data:') && (
                           <Button
                             type="button"
                             variant="destructive"
@@ -497,11 +503,17 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                     <FormLabel>Product Brochure (.pdf) (Optional)</FormLabel>
                     <FormControl>
                       <div className="flex gap-2 items-center">
-                        <Input placeholder="e.g. /brochure.pdf" {...field} value={field.value && field.value.length > 100 ? 'Uploaded File (Base64)' : field.value} onChange={(e) => {
-                          if (e.target.value !== 'Uploaded File (Base64)') {
-                            field.onChange(e.target.value);
-                          }
-                        }} />
+                        <Input 
+                          placeholder="e.g. /brochure.pdf" 
+                          {...field} 
+                          value={field.value?.startsWith('data:') ? 'Uploaded File (Base64)' : field.value || ''} 
+                          onChange={(e) => {
+                            if (!field.value?.startsWith('data:')) {
+                              field.onChange(e.target.value);
+                            }
+                          }}
+                          readOnly={field.value?.startsWith('data:')}
+                        />
                         <input
                           type="file"
                           accept=".pdf"
@@ -515,9 +527,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                           onClick={() => brochureFileInputRef.current?.click()}
                           className="flex items-center gap-2 whitespace-nowrap"
                         >
-                          <UploadCloud className="h-4 w-4" /> Upload
+                          <UploadCloud className="h-4 w-4" /> {field.value?.startsWith('data:') ? 'Change' : 'Upload'}
                         </Button>
-                        {field.value && field.value.length > 100 && (
+                        {field.value?.startsWith('data:') && (
                           <Button
                             type="button"
                             variant="destructive"
