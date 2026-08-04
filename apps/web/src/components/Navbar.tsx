@@ -13,12 +13,23 @@ import { useWishlistStore } from '../store/useWishlistStore';
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState<{ label: string, url: string }[]>([]);
   const cartCount = useCartStore((state) => state.cartCount());
   const wishlistCount = useWishlistStore((state) => state.wishlistCount());
   
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
+    
+    // Fetch Header Menu dynamically
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/navigation/header-menu`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data && data.data.items) {
+          setMenuItems(data.data.items);
+        }
+      })
+      .catch(err => console.error("Failed to fetch header menu:", err));
   }, []);
 
   const { customer, isAuthenticated } = useCustomerStore();
@@ -120,26 +131,19 @@ export default function Navbar() {
       {/* ── BOTTOM TIER: Navigation Links ── */}
       <div className="w-full border-t border-gray-100 bg-white">
         <nav className="max-w-[1440px] mx-auto px-4 lg:px-8 hidden lg:flex items-center justify-center gap-6 xl:gap-8 h-[45px] overflow-x-auto">
-          {[
-            { label: 'Furniture', href: '/shop' },
-            { label: 'Sofas & Seating', href: '/shop?category=sofas' },
-            { label: 'Mattresses', href: '/shop?category=mattresses' },
-            { label: 'Home Decor', href: '/shop?category=decor' },
-            { label: 'Explore Collections', href: '/collections' },
-            { label: 'Shop All', href: '/shop' },
-            { label: 'Lamps & Lighting', href: '/shop?category=lighting' },
-            { label: 'Kitchen & Dining', href: '/shop?category=kitchen' },
-            { label: 'Our Story', href: '/about' },
-            { label: 'Contact Us', href: '/contact' },
-          ].map(({ label, href }) => (
-            <Link
-              key={label}
-              href={href}
-              className="text-[13px] xl:text-[14px] font-semibold text-gray-800 hover:text-terracotta transition-colors whitespace-nowrap"
-            >
-              {label}
-            </Link>
-          ))}
+          {menuItems.length > 0 ? (
+            menuItems.map(({ label, url }) => (
+              <Link
+                key={label}
+                href={url}
+                className="text-[13px] xl:text-[14px] font-semibold text-gray-800 hover:text-terracotta transition-colors whitespace-nowrap"
+              >
+                {label}
+              </Link>
+            ))
+          ) : (
+            <div className="h-4 w-64 bg-gray-100 rounded animate-pulse" />
+          )}
         </nav>
       </div>
 

@@ -29,6 +29,7 @@ import segmentsRoutes from './routes/segments';
 import campaignsRoutes from './routes/campaigns';
 import bannersRoutes from './routes/banners';
 import mediaRoutes from './routes/media';
+import navigationRoutes from './routes/navigation';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 
@@ -120,6 +121,7 @@ app.use('/api/admin/customers/segments', segmentsRoutes);
 app.use('/api/admin/campaigns', campaignsRoutes);
 app.use('/api/admin/banners', bannersRoutes);
 app.use('/api/admin/media', mediaRoutes);
+app.use('/api/admin/navigation', navigationRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================

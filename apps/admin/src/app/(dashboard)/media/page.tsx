@@ -75,13 +75,13 @@ export default function MediaLibraryPage() {
   };
 
   const columns: ColumnDef<any>[] = [
-    { 
-      accessorKey: 'url', 
+    {
+      accessorKey: 'url',
       header: 'Preview',
       cell: ({ row }) => {
         const mimeType = row.getValue('mimeType') as string;
         const url = row.getValue('url') as string;
-        
+
         return (
           <div className="w-12 h-12 relative rounded bg-muted flex items-center justify-center overflow-hidden border">
             {mimeType?.startsWith('image/') ? (
@@ -93,8 +93,8 @@ export default function MediaLibraryPage() {
         );
       }
     },
-    { 
-      accessorKey: 'filename', 
+    {
+      accessorKey: 'filename',
       header: 'File Name',
       cell: ({ row }) => <span className="font-medium text-sm truncate max-w-[200px] block">{row.getValue('filename')}</span>
     },
@@ -117,9 +117,9 @@ export default function MediaLibraryPage() {
       id: 'actions',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-8 w-8"
             onClick={() => {
               navigator.clipboard.writeText(getImageUrl(row.original.url));
@@ -128,9 +128,9 @@ export default function MediaLibraryPage() {
           >
             <Copy className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-8 w-8 text-destructive hover:bg-destructive/10"
             onClick={() => deleteMutation.mutate(row.original._id)}
           >
@@ -148,7 +148,7 @@ export default function MediaLibraryPage() {
           <h1 className="text-2xl font-bold tracking-tight">Media Library</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage your images, videos, and files</p>
         </div>
-        
+
         <input
           type="file"
           ref={fileInputRef}
@@ -156,17 +156,17 @@ export default function MediaLibraryPage() {
           accept="image/*,video/*,application/pdf"
           onChange={handleFileChange}
         />
-        
+
         <Button onClick={() => fileInputRef.current?.click()} disabled={uploadMutation.isPending}>
           <UploadCloud className="mr-2 h-4 w-4" />
           {uploadMutation.isPending ? 'Uploading...' : 'Upload File'}
         </Button>
       </div>
 
-      <DataTable 
-        columns={columns} 
-        data={mediaList} 
-        isLoading={isLoading} 
+      <DataTable
+        columns={columns}
+        data={mediaList}
+        isLoading={isLoading}
       />
     </div>
   );

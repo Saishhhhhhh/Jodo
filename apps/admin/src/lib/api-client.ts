@@ -222,3 +222,11 @@ export const mediaApi = {
   upload: (data: any) => apiClient.post('/admin/media/upload', data),
   delete: (id: string) => apiClient.delete(`/admin/media/${id}`),
 };
+
+export const navigationApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/navigation', { params }),
+  get: (id: string) => apiClient.get(`/admin/navigation/${id}`),
+  create: (data: any) => apiClient.post('/admin/navigation', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/navigation/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/navigation/${id}`),
+};

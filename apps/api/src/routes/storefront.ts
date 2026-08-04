@@ -16,11 +16,77 @@ router.get('/products', async (req, res, next) => {
   }
 });
 
+router.get('/search', async (req, res, next) => {
+  try {
+    let q = (req.query.q as string) || '';
+    if (!q) return sendSuccess(res, []);
+
+    let maxPrice;
+    let minPrice;
+    
+    // 1. Extract MAX price ("under 5000", "below 5000", "max 5000")
+    const underMatch = q.match(/(?:under|below|less than|max)\s*(\d+)/i);
+    if (underMatch) {
+      maxPrice = parseInt(underMatch[1]);
+      q = q.replace(underMatch[0], '').trim();
+    }
+
+    // 2. Extract MIN price ("over 5000", "above 5000", "min 5000")
+    const overMatch = q.match(/(?:over|above|more than|min)\s*(\d+)/i);
+    if (overMatch) {
+      minPrice = parseInt(overMatch[1]);
+      q = q.replace(overMatch[0], '').trim();
+    }
+
+    // 3. Remove fluff words like 'rs', 'rupees', 'products'
+    q = q.replace(/\b(rs|rupees|products?)\b/gi, '').trim();
+
+    // 4. Build MongoDB Query
+    const dbQuery: any = { status: 'active' };
+    
+    if (maxPrice !== undefined || minPrice !== undefined) {
+      dbQuery.price = {};
+      if (maxPrice !== undefined) dbQuery.price.$lte = maxPrice;
+      if (minPrice !== undefined) dbQuery.price.$gte = minPrice;
+    }
+
+    // If keywords remain, build a regex OR query for title and category
+    if (q) {
+      const keywords = q.split(/\s+/).filter(k => k.length > 1).join('|');
+      if (keywords) {
+        dbQuery.$or = [
+          { title: { $regex: keywords, $options: 'i' } },
+          { category: { $regex: keywords, $options: 'i' } },
+          { shortDescription: { $regex: keywords, $options: 'i' } }
+        ];
+      }
+    }
+
+    const products = await Product.find(dbQuery).limit(12).sort({ createdAt: -1 });
+    sendSuccess(res, products);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/banners', async (req, res, next) => {
   try {
     const { Banner } = require('../models/Banner');
     const banners = await Banner.find({ status: 'active' }).sort({ order: 1, createdAt: -1 });
     sendSuccess(res, banners);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/navigation/:handle', async (req, res, next) => {
+  try {
+    const { Navigation } = require('../models/Navigation');
+    const menu = await Navigation.findOne({ handle: req.params.handle });
+    if (!menu) {
+      return res.status(404).json({ success: false, message: 'Menu not found' });
+    }
+    sendSuccess(res, menu);
   } catch (error) {
     next(error);
   }

@@ -2,29 +2,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Instagram, Facebook, Twitter, Youtube, Mail, MapPin, Phone, ArrowUpRight } from 'lucide-react';
 
-const footerLinks = {
-  shop: [
-    { label: 'Living Room', href: '/shop/living-room' },
-    { label: 'Bedroom', href: '/shop/bedroom' },
-    { label: 'Dining Room', href: '/shop/dining-room' },
-    { label: 'Kitchen', href: '/shop/kitchen' },
-    { label: 'Office', href: '/shop/office' },
-    { label: 'Outdoor', href: '/shop/outdoor' },
-  ],
-  company: [
-    { label: 'About Jodo', href: '/about' },
-    { label: 'Our Story', href: '/about#story' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Press', href: '/press' },
-  ],
-  support: [
-    { label: 'Help Center', href: '/help' },
-    { label: 'Track Order', href: '/track' },
-    { label: 'Returns & Refunds', href: '/returns' },
-    { label: 'Shipping Policy', href: '/shipping' },
-    { label: 'Privacy Policy', href: '/privacy' },
-  ],
+// We will fetch these dynamically in the component
+type FooterLinks = {
+  [key: string]: { label: string; href: string }[];
 };
 
 const socials = [
@@ -34,7 +14,32 @@ const socials = [
   { Icon: Youtube,   href: '#', label: 'YouTube' },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  let dynamicFooterLinks: FooterLinks = {};
+
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const [shopRes, companyRes, supportRes] = await Promise.all([
+      fetch(`${baseUrl}/api/storefront/navigation/footer-shop`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/api/storefront/navigation/footer-company`, { next: { revalidate: 60 } }),
+      fetch(`${baseUrl}/api/storefront/navigation/footer-support`, { next: { revalidate: 60 } })
+    ]);
+
+    const parseItems = async (res: Response) => {
+      if (!res.ok) return [];
+      const json = await res.json();
+      return (json.data?.items || []).map((i: any) => ({ label: i.label, href: i.url }));
+    };
+
+    dynamicFooterLinks = {
+      shop: await parseItems(shopRes),
+      company: await parseItems(companyRes),
+      support: await parseItems(supportRes),
+    };
+  } catch (error) {
+    console.error('Failed to fetch footer menus:', error);
+  }
+
   return (
     <div className="px-5 md:px-10 pb-5 md:pb-10 pt-[50px]">
       <footer className="bg-terracotta text-white rounded-[32px] overflow-hidden shadow-2xl">
@@ -107,7 +112,7 @@ export default function Footer() {
             </div>
 
             {/* Link columns */}
-            {Object.entries(footerLinks).map(([section, links]) => (
+            {Object.entries(dynamicFooterLinks).map(([section, links]) => (
               <div key={section}>
                 <h4 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4">
                   {section}

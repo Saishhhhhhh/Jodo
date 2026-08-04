@@ -114,7 +114,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Banners', href: '/banners', icon: ImageIcon },
       { label: 'Media Library', href: '/media', icon: ImageIcon },
       { label: 'Navigation', href: '/navigation', icon: Navigation },
-      { label: 'Blog', href: '/blog', icon: FileText },
+
     ],
   },
 
@@ -126,8 +126,6 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Sales', href: '/analytics/sales', icon: LineChart },
       { label: 'Products', href: '/analytics/products', icon: Package },
       { label: 'Customers', href: '/analytics/customers', icon: Users },
-      { label: 'Checkout Funnel', href: '/analytics/funnel', icon: GitBranch },
-      { label: 'Reports', href: '/analytics/reports', icon: FileText },
     ],
   },
   {
@@ -140,9 +138,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Shipping', href: '/settings/shipping', icon: Truck },
       { label: 'Taxes', href: '/settings/taxes', icon: Receipt },
       { label: 'Locations', href: '/settings/locations', icon: MapPin },
-      { label: 'Languages', href: '/settings/languages', icon: Languages },
       { label: 'Policies', href: '/settings/policies', icon: FileCheck },
-      { label: 'Webhooks', href: '/apps/webhooks', icon: Webhook },
       { label: 'Audit Logs', href: '/settings/audit-logs', icon: Activity },
     ],
   },
