@@ -123,7 +123,7 @@ export default function MarketingEmailPage() {
   };
 
   const updateStatus = (id: number, newStatus: string) => {
-    setCampaigns(prev => prev.map(c => {
+    setCampaigns(prev => prev.map((c): Campaign => {
       if (c.id === id) {
         return { 
           ...c, 
