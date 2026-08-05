@@ -57,46 +57,14 @@ export default function LoginPage() {
 
         {/* Center content */}
         <div className="relative z-10 mt-auto mb-auto">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-            </span>
-            Commerce OS — Phase 0
-          </div>
-
-          <h1 className="text-4xl font-bold text-foreground leading-tight">
-            The commerce
-            <br />
-            <span className="gradient-text">operating system.</span>
+          <h1 className="text-5xl font-bold text-foreground leading-tight">
+            Login to Admin
           </h1>
-          <p className="mt-4 text-muted-foreground text-base leading-relaxed">
-            Manage products, orders, customers, inventory, and everything else — from one
-            powerful admin panel.
-          </p>
-
-          {/* Feature chips */}
-          <div className="flex flex-wrap gap-2 mt-8">
-            {[
-              'Multi-tenant',
-              'Headless API',
-              'Shopify-level',
-              'shadcn/ui',
-              'TypeScript',
-            ].map((tag) => (
-              <span
-                key={tag}
-                className="px-2.5 py-1 rounded-full bg-secondary text-xs text-secondary-foreground font-medium border border-border"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* Bottom */}
         <div className="relative z-10 text-xs text-muted-foreground">
-          © 2024 Jodo Commerce OS. Built with ❤️
+          Designed and developed by digital Vigyapan
         </div>
       </div>
 
