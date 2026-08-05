@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="relative flex items-center z-10">
-          <img src="/logo.png" alt="Jodo" className="h-12 w-auto" />
+          <img src="/logo.png" alt="Jodo" className="h-16 w-auto" />
         </div>
 
         {/* Center content */}
@@ -70,7 +70,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center mb-8 lg:hidden">
-            <img src="/logo.png" alt="Jodo" className="h-8 w-auto" />
+            <img src="/logo.png" alt="Jodo" className="h-10 w-auto" />
           </div>
 
           <div className="mb-8">
