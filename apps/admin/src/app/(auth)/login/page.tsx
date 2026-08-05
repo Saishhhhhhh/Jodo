@@ -48,11 +48,8 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         {/* Logo */}
-        <div className="relative flex items-center gap-3 z-10">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
-            <Store className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-xl text-foreground tracking-tight">Jodo</span>
+        <div className="relative flex items-center z-10">
+          <img src="/logo.png" alt="Jodo" className="h-12 w-auto" />
         </div>
 
         {/* Center content */}
@@ -72,11 +69,8 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-              <Store className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg">Jodo</span>
+          <div className="flex items-center mb-8 lg:hidden">
+            <img src="/logo.png" alt="Jodo" className="h-8 w-auto" />
           </div>
 
           <div className="mb-8">
