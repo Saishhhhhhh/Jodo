@@ -20,6 +20,62 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// BULK DELETE
+router.post('/bulk-delete', async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No IDs provided' });
+    }
+
+    await Product.deleteMany({
+      _id: { $in: ids },
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    });
+
+    sendSuccess(res, null, 'Products deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// BULK IMPORT
+router.post('/bulk-import', async (req, res, next) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: false, message: 'No products provided' });
+    }
+
+    const tenantId = req.auth!.tenantId;
+    const storeId = req.auth!.storeId;
+
+    const formattedProducts = products.map((p) => {
+      // Ensure slug uniqueness by appending a timestamp or random string if needed
+      const baseSlug = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      const slug = `${baseSlug}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      return {
+        ...p,
+        tenantId,
+        storeId,
+        slug,
+        price: parseFloat(p.price || 0),
+        compareAtPrice: p.compareAtPrice ? parseFloat(p.compareAtPrice) : undefined,
+        inventoryQuantity: parseInt(p.inventoryQuantity || 0, 10),
+        weight: p.weight ? parseFloat(p.weight) : undefined,
+      };
+    });
+
+    await Product.insertMany(formattedProducts, { ordered: false });
+
+    sendSuccess(res, null, 'Products imported successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET SINGLE
 router.get('/:id', async (req, res, next) => {
   try {

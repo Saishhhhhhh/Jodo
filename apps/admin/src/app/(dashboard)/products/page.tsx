@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi, getImageUrl } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
@@ -8,7 +8,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, MoreHorizontal, Pencil, Trash, Package, Download, Search } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, MoreHorizontal, Pencil, Trash, Package, Download, Search, Upload } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import Papa from 'papaparse';
 
 type Product = {
   _id: string;
@@ -39,6 +41,8 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [rowSelection, setRowSelection] = useState({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['products'],
@@ -70,6 +74,25 @@ export default function ProductsPage() {
     onError: () => toast.error('Failed to delete product'),
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) => productsApi.bulkDelete(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setRowSelection({});
+      toast.success('Products deleted successfully');
+    },
+    onError: () => toast.error('Failed to delete products'),
+  });
+
+  const bulkImportMutation = useMutation({
+    mutationFn: (products: any[]) => productsApi.bulkImport(products),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Products imported successfully');
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to import products'),
+  });
+
   const handleCreate = () => {
     router.push('/products/new');
   };
@@ -82,6 +105,55 @@ export default function ProductsPage() {
     if (confirm('Are you sure you want to delete this product?')) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleBulkDelete = () => {
+    const selectedIds = Object.keys(rowSelection)
+      .filter((index) => rowSelection[index as keyof typeof rowSelection])
+      .map((index) => filteredData[parseInt(index)]._id);
+
+    if (selectedIds.length === 0) return;
+    
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} products?`)) {
+      bulkDeleteMutation.mutate(selectedIds);
+    }
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const importedProducts = results.data.map((row: any) => ({
+          title: row['Product Name'] || 'Untitled',
+          sku: row['SKU'] || '',
+          price: parseFloat((row['Price'] || '0').replace(/[^0-9.-]+/g,"")),
+          inventoryQuantity: parseInt(row['Stock Level'] || '0', 10),
+          status: (row['Status'] || 'draft').toLowerCase(),
+          category: row['Category'] || '',
+          vendor: row['Vendor'] || '',
+          material: row['Material'] || '',
+          dimensions: row['Dimensions'] || '',
+          weight: parseFloat((row['Weight'] || '0').replace(/[^0-9.-]+/g,"")),
+          assemblyRequired: (row['Assembly'] || '').toLowerCase() === 'yes',
+          imageUrl: row['Main Image URL'] !== '-' ? row['Main Image URL'] : '',
+          galleryImages: row['Gallery Images'] !== '-' ? (row['Gallery Images'] || '').split(' ; ') : []
+        }));
+
+        bulkImportMutation.mutate(importedProducts);
+        
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      },
+      error: (error) => {
+        toast.error('Failed to parse CSV file');
+        console.error(error);
+      }
+    });
   };
 
 
@@ -145,6 +217,29 @@ export default function ProductsPage() {
 
   const columns = useMemo<ColumnDef<Product>[]>(
     () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              className="translate-y-[2px]"
+            />
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
       {
         accessorKey: 'title',
         header: 'Product',
@@ -279,6 +374,21 @@ export default function ProductsPage() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage your catalog</p>
         </div>
         <div className="flex items-center gap-3">
+          {Object.keys(rowSelection).length > 0 && (
+            <Button variant="destructive" onClick={handleBulkDelete} disabled={bulkDeleteMutation.isPending}>
+              <Trash className="mr-2 h-4 w-4" /> Delete Selected ({Object.keys(rowSelection).length})
+            </Button>
+          )}
+          <input
+            type="file"
+            accept=".csv"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleImportCSV}
+          />
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={bulkImportMutation.isPending}>
+            <Upload className="mr-2 h-4 w-4" /> Import CSV
+          </Button>
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
@@ -306,6 +416,8 @@ export default function ProductsPage() {
         data={filteredData} 
         isLoading={isLoading} 
         onRowClick={(row) => router.push(`/products/${row._id}`)}
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
       />
     </div>
   );

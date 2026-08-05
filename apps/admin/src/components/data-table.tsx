@@ -22,6 +22,8 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   isLoading?: boolean;
   onRowClick?: (row: TData) => void;
+  rowSelection?: Record<string, boolean>;
+  onRowSelectionChange?: (updater: any) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -29,11 +31,18 @@ export function DataTable<TData, TValue>({
   data,
   isLoading,
   onRowClick,
+  rowSelection,
+  onRowSelectionChange,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: {
+      ...(rowSelection !== undefined && { rowSelection }),
+    },
+    enableRowSelection: true,
+    onRowSelectionChange,
   });
 
   return (

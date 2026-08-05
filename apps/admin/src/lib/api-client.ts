@@ -126,6 +126,8 @@ export const productsApi = {
   create: (data: any) => apiClient.post('/admin/products', data),
   update: (id: string, data: any) => apiClient.put(`/admin/products/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/products/${id}`),
+  bulkDelete: (ids: string[]) => apiClient.post('/admin/products/bulk-delete', { ids }),
+  bulkImport: (products: any[]) => apiClient.post('/admin/products/bulk-import', { products }),
 };
 
 export const ordersApi = {
