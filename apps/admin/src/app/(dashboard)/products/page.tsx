@@ -127,7 +127,7 @@ export default function ProductsPage() {
     // Combine headers and rows
     const csvContent = [
       headers.join(','),
-      ...csvRows.map(row => row.join(','))
+      ...csvRows.map((row: string[]) => row.join(','))
     ].join('\n');
     
     // Trigger download

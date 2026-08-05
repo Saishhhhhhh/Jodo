@@ -186,6 +186,7 @@ export default function NavigationBuilderPage({ params }: { params: { id: string
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
+                            style={provided.draggableProps.style as React.CSSProperties}
                             className={`flex items-center justify-between p-3 border rounded-lg bg-card transition-colors ${snapshot.isDragging ? 'border-terracotta shadow-md' : 'hover:border-border/80'}`}
                           >
                             <div className="flex items-center gap-3 overflow-hidden">
