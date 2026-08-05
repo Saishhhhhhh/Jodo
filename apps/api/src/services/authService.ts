@@ -180,7 +180,7 @@ export class AuthService {
    * Get current user profile.
    */
   async getMe(userId: string): Promise<IUser | null> {
-    return User.findById(userId).populate('roleIds', 'name permissions').lean();
+    return User.findById(userId).populate('roleIds', 'name permissions').lean() as unknown as IUser | null;
   }
 }
 

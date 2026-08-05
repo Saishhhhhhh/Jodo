@@ -45,8 +45,18 @@ const templates = [
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
 
+type Campaign = {
+  id: number;
+  name: string;
+  status: string;
+  sentDate: string | null;
+  openRate: number | null;
+  clickRate: number | null;
+  sales: number;
+};
+
 export default function MarketingEmailPage() {
-  const [campaigns, setCampaigns] = React.useState(initialCampaigns);
+  const [campaigns, setCampaigns] = React.useState<Campaign[]>(initialCampaigns);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('All');
   

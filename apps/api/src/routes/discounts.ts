@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { Discount } from '../models/Discount';
-import { sendSuccess } from '../utils/response';
+import { sendSuccess, sendCreated } from '../utils/response';
 
 const router = Router();
 
@@ -45,7 +45,7 @@ router.post('/', async (req, res, next) => {
       status: status || 'active'
     });
 
-    sendSuccess(res, discount, 201);
+    sendCreated(res, discount);
   } catch (error) {
     next(error);
   }

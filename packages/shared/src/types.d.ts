@@ -89,7 +89,11 @@ export interface DashboardSummary {
     returnedOrders: DashboardMetric;
     recentOrders: RecentOrder[];
     salesByDay: SalesByDay[];
-    setupSteps?: { label: string; done: boolean; path: string }[];
+    setupSteps?: {
+        label: string;
+        done: boolean;
+        path: string;
+    }[];
 }
 export interface RecentOrder {
     _id: string;

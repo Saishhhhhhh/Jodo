@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { Campaign } from '../models/Campaign';
-import { sendSuccess } from '../utils/response';
+import { sendSuccess, sendCreated } from '../utils/response';
 
 const router = Router();
 
@@ -35,7 +35,7 @@ router.post('/', async (req, res, next) => {
       endDate: endDate ? new Date(endDate) : undefined,
     });
 
-    sendSuccess(res, campaign, 201);
+    sendCreated(res, campaign);
   } catch (error) {
     next(error);
   }
