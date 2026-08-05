@@ -46,12 +46,17 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      const allowedOrigins = [env.CORS_ORIGIN, 'http://localhost:3001'];
-      if (allowedOrigins.indexOf(origin) === -1) {
-        var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-        return callback(new Error(msg), false);
+      
+      const allowedOrigins = env.CORS_ORIGIN.split(',').map(s => s.trim());
+      allowedOrigins.push('http://localhost:3000', 'http://localhost:3001');
+      
+      // Allow Vercel preview/production URLs automatically, or exact matches
+      if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
       }
-      return callback(null, true);
+      
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
