@@ -16,8 +16,7 @@ export const metadata: Metadata = {
     default: 'Jodo Admin',
     template: '%s — Jodo Admin',
   },
-  description:
-    'Jodo Commerce OS — A powerful headless e-commerce admin panel for merchants and agencies.',
+  description: 'Jodo Admin',
   robots: { index: false, follow: false },
 };
 
