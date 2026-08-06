@@ -4,6 +4,8 @@ import React, { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useQuery } from '@tanstack/react-query';
+import { productsApi } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -42,6 +44,8 @@ const formSchema = z.object({
   emiAvailable: z.boolean().default(false),
   emiStartingFrom: z.coerce.number().optional(),
   additionalOffersStr: z.string().optional().default(''),
+  tagsStr: z.string().optional().default(''),
+  addons: z.array(z.string()).default([]),
   assemblyFee: z.coerce.number().optional(),
   careAndMaintenance: z.string().optional().default(''),
   warrantyTerms: z.string().optional().default(''),
@@ -76,6 +80,14 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
   const [showGalleryUrlInput, setShowGalleryUrlInput] = useState(false);
   const [galleryUrlValue, setGalleryUrlValue] = useState('');
 
+  const { data: allProducts } = useQuery({
+    queryKey: ['products-list'],
+    queryFn: async () => {
+      const res = await productsApi.list();
+      return res.data.data;
+    },
+  });
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -101,7 +113,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       longDescription: initialData?.longDescription || '',
       emiAvailable: initialData?.emiAvailable ?? false,
       emiStartingFrom: initialData?.emiStartingFrom ?? undefined,
-      additionalOffersStr: initialData?.additionalOffers?.join('\\n') || '',
+      additionalOffersStr: initialData?.additionalOffers?.join('\n') || '',
+      tagsStr: initialData?.tags?.join(', ') || '',
+      addons: initialData?.addons?.map((a: any) => typeof a === 'string' ? a : a._id) || [],
       assemblyFee: initialData?.assemblyFee ?? undefined,
       careAndMaintenance: initialData?.careAndMaintenance || '',
       warrantyTerms: initialData?.warrantyTerms || '',
@@ -203,7 +217,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
 
   const handleFormSubmit = (values: FormValues) => {
     const parsedValues: any = { ...values };
-    parsedValues.additionalOffers = values.additionalOffersStr ? values.additionalOffersStr.split('\\n').map(s => s.trim()).filter(Boolean) : [];
+    parsedValues.additionalOffers = values.additionalOffersStr ? values.additionalOffersStr.split('\n').map((s: string) => s.trim()).filter(Boolean) : [];
+    parsedValues.tags = values.tagsStr;
+    parsedValues.addons = values.addons;
 
     parsedValues.productDetails = {
       ...(values.detailBrand && { 'Brand': values.detailBrand }),
@@ -735,6 +751,76 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
               )} />
             </div>
 
+            {/* Bundles & Add-ons Card */}
+            <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
+              <h3 className="font-semibold text-lg border-b pb-3 mb-4">Bundles & Add-ons</h3>
+              <FormField
+                control={form.control}
+                name="addons"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel>Select Products to Bundle</FormLabel>
+                      <FormDescription>
+                        These products will be suggested as add-ons on the product page.
+                      </FormDescription>
+                    </div>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      {allProducts?.filter((p: any) => p._id !== initialData?._id).map((product: any) => (
+                        <FormField
+                          key={product._id}
+                          control={form.control}
+                          name="addons"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={product._id}
+                                className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3 hover:bg-muted/30 transition-colors"
+                              >
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 accent-primary translate-y-0.5 cursor-pointer"
+                                    checked={field.value?.includes(product._id)}
+                                    onChange={(e) => {
+                                      return e.target.checked
+                                        ? field.onChange([...field.value, product._id])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value: string) => value !== product._id
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none flex-1 cursor-pointer" onClick={() => {
+                                  const isChecked = field.value?.includes(product._id);
+                                  isChecked 
+                                    ? field.onChange(field.value?.filter((value: string) => value !== product._id))
+                                    : field.onChange([...field.value, product._id]);
+                                }}>
+                                  <FormLabel className="font-medium cursor-pointer flex justify-between w-full">
+                                    <span>{product.title}</span>
+                                    <span className="text-muted-foreground text-xs font-normal ml-2">{product.sku}</span>
+                                  </FormLabel>
+                                </div>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                      {(!allProducts || allProducts.length <= 1) && (
+                        <p className="text-sm text-muted-foreground italic p-4 text-center border rounded-md">
+                          No other products available to bundle.
+                        </p>
+                      )}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
           </div>
 
           {/* Right Sidebar Column */}
@@ -788,6 +874,22 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                     <FormControl>
                       <Input placeholder="e.g. Jodo Retail" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tagsStr"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Search Tags</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. bed, mattress, sleep (comma separated)" {...field} />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      Hidden tags used for intelligent search functionality.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

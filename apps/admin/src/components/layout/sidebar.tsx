@@ -52,7 +52,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
-interface NavItem {
+export interface NavItem {
   label: string;
   href?: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -60,7 +60,7 @@ interface NavItem {
   badge?: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: NavItem[] = [
   {
     label: 'Dashboard',
     href: '/',
@@ -146,9 +146,10 @@ const NAV_ITEMS: NavItem[] = [
 
 interface SidebarProps {
   collapsed: boolean;
+  isMobile?: boolean;
 }
 
-export function AppSidebar({ collapsed }: SidebarProps) {
+export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders']);
 
@@ -194,7 +195,8 @@ export function AppSidebar({ collapsed }: SidebarProps) {
       <aside
         className={cn(
           'flex flex-col h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out',
-          collapsed ? 'w-14' : 'w-60'
+          collapsed ? 'w-14' : 'w-60',
+          !isMobile && 'hidden md:flex'
         )}
       >
         {/* Logo */}

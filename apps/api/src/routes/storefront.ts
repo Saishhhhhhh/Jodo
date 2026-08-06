@@ -78,14 +78,14 @@ router.get('/search', async (req, res, next) => {
       if (minPrice !== undefined) dbQuery.price.$gte = minPrice;
     }
 
-    // If keywords remain, build a regex OR query for title and category
     if (q) {
       const keywords = q.split(/\s+/).filter(k => k.length > 1).join('|');
       if (keywords) {
         dbQuery.$or = [
           { title: { $regex: keywords, $options: 'i' } },
           { category: { $regex: keywords, $options: 'i' } },
-          { shortDescription: { $regex: keywords, $options: 'i' } }
+          { shortDescription: { $regex: keywords, $options: 'i' } },
+          { tags: { $regex: keywords, $options: 'i' } }
         ];
       }
     }
@@ -122,7 +122,7 @@ router.get('/navigation/:handle', async (req, res, next) => {
 
 router.get('/products/:id', async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate('addons');
     if (!product) return res.status(404).json({ success: false, message: 'Not found' });
     sendSuccess(res, product);
   } catch (error) {

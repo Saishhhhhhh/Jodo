@@ -12,18 +12,27 @@ interface ProductActionsProps {
     imageUrl: string;
     brand?: string;
   };
+  addons?: {
+    id: string;
+    title: string;
+    price: number;
+    imageUrl: string;
+    brand?: string;
+  }[];
 }
 
-export default function ProductActions({ product }: ProductActionsProps) {
+export default function ProductActions({ product, addons = [] }: ProductActionsProps) {
   const addItem = useCartStore((state) => state.addItem);
   const router = useRouter();
 
   const handleAddToCart = () => {
     addItem(product);
+    addons.forEach((addon) => addItem(addon));
   };
 
   const handleBuyNow = () => {
     addItem(product);
+    addons.forEach((addon) => addItem(addon));
     router.push('/checkout');
   };
 

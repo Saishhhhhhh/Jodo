@@ -35,6 +35,7 @@ type Product = {
   weight?: number;
   assemblyRequired?: boolean;
   galleryImages?: string[];
+  tags?: string[];
 };
 
 export default function ProductsPage() {
@@ -140,7 +141,8 @@ export default function ProductsPage() {
           weight: parseFloat((row['Weight'] || '0').replace(/[^0-9.-]+/g,"")),
           assemblyRequired: (row['Assembly'] || '').toLowerCase() === 'yes',
           imageUrl: row['Main Image URL'] !== '-' ? row['Main Image URL'] : '',
-          galleryImages: row['Gallery Images'] !== '-' ? (row['Gallery Images'] || '').split(' ; ') : []
+          galleryImages: row['Gallery Images'] !== '-' ? (row['Gallery Images'] || '').split(' ; ') : [],
+          tags: row['Tags'] || ''
         }));
 
         bulkImportMutation.mutate(importedProducts);
@@ -173,7 +175,7 @@ export default function ProductsPage() {
     const headers = [
       'Product Name', 'SKU', 'Price', 'Stock Level', 'Status', 'Category', 'Vendor', 
       'Material', 'Dimensions', 'Weight', 'Assembly',
-      'Main Image URL', 'Gallery Images'
+      'Main Image URL', 'Gallery Images', 'Tags'
     ];
     
     // Map the products to an array of arrays
@@ -192,7 +194,8 @@ export default function ProductsPage() {
         p.weight ? `"${p.weight} kg"` : '"-"',
         escapeCsv(p.assemblyRequired ? 'Yes' : 'No'),
         escapeCsv(p.imageUrl),
-        escapeCsv((p.galleryImages || []).join(' ; '))
+        escapeCsv((p.galleryImages || []).join(' ; ')),
+        escapeCsv((p.tags || []).join(', '))
       ];
     });
     

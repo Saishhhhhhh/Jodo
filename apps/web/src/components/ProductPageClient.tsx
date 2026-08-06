@@ -39,6 +39,11 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const selectedAddonsData = product.addons?.filter((a: any) => selectedAddons.includes(a._id)) || [];
+  const totalPrice = product.price + selectedAddonsData.reduce((sum: number, a: any) => sum + (a.price || 0), 0);
+  const totalComparePrice = product.compareAtPrice ? product.compareAtPrice + selectedAddonsData.reduce((sum: number, a: any) => sum + (a.compareAtPrice || a.price || 0), 0) : undefined;
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
@@ -374,15 +379,52 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           </p>
           
           <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
-            <span className="text-3xl md:text-4xl font-medium text-gray-900 tracking-tight">₹{product.price.toLocaleString('en-IN')}</span>
-            {product.compareAtPrice && (
-              <span className="text-lg md:text-xl text-gray-400 line-through">₹{product.compareAtPrice.toLocaleString('en-IN')}</span>
+            <span className="text-3xl md:text-4xl font-medium text-gray-900 tracking-tight">₹{totalPrice.toLocaleString('en-IN')}</span>
+            {totalComparePrice && (
+              <span className="text-lg md:text-xl text-gray-400 line-through">₹{totalComparePrice.toLocaleString('en-IN')}</span>
             )}
           </div>
 
+          {/* Addons Selection */}
+          {product.addons && product.addons.length > 0 && (
+            <div className="w-full max-w-md mb-8">
+              <h3 className="text-[13px] md:text-sm font-bold tracking-[0.1em] text-gray-900 uppercase mb-4">Complete your setup</h3>
+              <div className="flex flex-col gap-3">
+                {product.addons.map((addon: any) => (
+                  <label key={addon._id} className={`flex items-center justify-between p-3 md:p-4 border rounded-xl cursor-pointer transition-all ${selectedAddons.includes(addon._id) ? 'border-terracotta bg-terracotta/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                    <div className="flex items-center gap-3 md:gap-4">
+                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                        <Image src={addon.imageUrl} alt={addon.title} fill className="object-cover" unoptimized />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[13px] md:text-sm font-medium text-gray-900 line-clamp-1">{addon.title}</span>
+                        <span className="text-[12px] md:text-sm text-gray-500">+ ₹{addon.price?.toLocaleString('en-IN') || addon.price}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-gray-300 shrink-0 ml-4 relative">
+                       <input 
+                         type="checkbox" 
+                         className="opacity-0 absolute inset-0 cursor-pointer"
+                         checked={selectedAddons.includes(addon._id)}
+                         onChange={(e) => {
+                           if (e.target.checked) setSelectedAddons([...selectedAddons, addon._id]);
+                           else setSelectedAddons(selectedAddons.filter(id => id !== addon._id));
+                         }}
+                       />
+                       {selectedAddons.includes(addon._id) && <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-terracotta" />}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row items-start gap-4 w-full max-w-md mb-8">
             <div className="w-full h-12 md:h-14 [&>div]:h-full [&>div]:mb-0 [&_button]:h-full [&_button]:rounded-full [&_button]:text-[13px] md:[&_button]:text-lg">
-              <ProductActions product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} />
+              <ProductActions 
+                product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} 
+                addons={selectedAddonsData.map((a: any) => ({ id: a._id, title: a.title, price: a.price, imageUrl: a.imageUrl, brand: a.vendor }))}
+              />
             </div>
           </div>
 
@@ -437,6 +479,8 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           </button>
         </div>
       </div>
+
+
 
       {/* ── 4. Minimalist Reviews Section ── */}
       <div className="w-full bg-[#fcfbf9] py-12 md:py-32 px-6">

@@ -56,6 +56,13 @@ router.post('/bulk-import', async (req, res, next) => {
       const baseSlug = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       const slug = `${baseSlug}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       
+      let parsedTags: string[] = [];
+      if (Array.isArray(p.tags)) {
+        parsedTags = p.tags;
+      } else if (typeof p.tags === 'string') {
+        parsedTags = p.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+      }
+
       return {
         ...p,
         tenantId,
@@ -65,6 +72,7 @@ router.post('/bulk-import', async (req, res, next) => {
         compareAtPrice: p.compareAtPrice ? parseFloat(p.compareAtPrice) : undefined,
         inventoryQuantity: parseInt(p.inventoryQuantity || 0, 10),
         weight: p.weight ? parseFloat(p.weight) : undefined,
+        tags: parsedTags,
       };
     });
 
@@ -99,7 +107,14 @@ router.get('/:id', async (req, res, next) => {
 // CREATE
 router.post('/', async (req, res, next) => {
   try {
-    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications, tags, addons } = req.body;
+
+    let parsedTags: string[] = [];
+    if (Array.isArray(tags)) {
+      parsedTags = tags;
+    } else if (typeof tags === 'string') {
+      parsedTags = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+    }
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
@@ -135,6 +150,8 @@ router.post('/', async (req, res, next) => {
       warrantyTerms,
       productDetails,
       specifications: specifications || [],
+      tags: parsedTags,
+      addons: Array.isArray(addons) ? addons : [],
     });
 
     sendSuccess(res, newProduct, 'Product created successfully', 201);
@@ -147,7 +164,14 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications } = req.body;
+    const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications, tags, addons } = req.body;
+
+    let parsedTags: string[] = [];
+    if (Array.isArray(tags)) {
+      parsedTags = tags;
+    } else if (typeof tags === 'string') {
+      parsedTags = tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+    }
 
     const product = await Product.findOneAndUpdate(
       { _id: id, tenantId: req.auth!.tenantId, storeId: req.auth!.storeId },
@@ -180,6 +204,8 @@ router.put('/:id', async (req, res, next) => {
         warrantyTerms,
         productDetails,
         specifications: specifications || [],
+        tags: parsedTags,
+        addons: Array.isArray(addons) ? addons : [],
       },
       { new: true }
     );

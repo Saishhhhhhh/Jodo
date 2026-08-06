@@ -126,7 +126,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     <div className="fixed inset-0 z-[100] flex flex-col bg-white overflow-hidden animate-in fade-in duration-300">
       
       {/* Top Search Bar */}
-      <div className="w-full bg-white px-4 md:px-8 py-5 border-b border-gray-200 flex items-center gap-4">
+      <div className="w-full bg-white px-4 md:px-8 py-3 md:py-5 border-b border-gray-200 flex items-center gap-3 md:gap-4">
         <button 
           onClick={onClose}
           className="text-gray-600 bg-gray-100 hover:bg-gray-200 p-2.5 rounded-full transition-colors flex-shrink-0"
@@ -199,7 +199,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
         ) : (
           <>
             {/* LEFT COLUMN: Trending & Popular Products */}
-            <div className="flex-1 w-full lg:w-[60%] overflow-y-auto px-6 md:px-12 py-10 custom-scrollbar">
+            <div className="flex-1 w-full lg:w-[60%] overflow-y-auto px-4 py-6 md:px-12 md:py-10 custom-scrollbar">
               
               {/* Trending Searches */}
               <div className="mb-12 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
@@ -222,7 +222,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
               </div>
 
               {/* Popular Products */}
-              <div className="animate-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both">
+              <div className="animate-in slide-in-from-bottom-4 duration-500 delay-200 fill-mode-both hidden md:block">
                 <h3 className="text-[18px] font-bold text-[#1C1A17] mb-5">Popular Products</h3>
                 <div className="flex flex-col gap-3">
                   {POPULAR_PRODUCTS.map((product) => (
@@ -259,7 +259,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
             </div>
 
             {/* RIGHT COLUMN: Popular Categories */}
-            <div className="w-full lg:w-[40%] bg-[#F5F5F5] overflow-y-auto px-6 md:px-12 py-10 border-l border-gray-200 custom-scrollbar">
+            <div className="hidden lg:block w-full lg:w-[40%] bg-[#F5F5F5] overflow-y-auto px-6 md:px-12 py-10 border-l border-gray-200 custom-scrollbar">
               <h3 className="text-[18px] font-bold text-[#1C1A17] mb-8 animate-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both">
                 Popular Categories
               </h3>

@@ -32,6 +32,8 @@ export interface IProduct extends Document {
   warrantyTerms?: string;
   productDetails?: Record<string, string>;
   specifications?: { key: string; value: string }[];
+  tags?: string[];
+  addons?: mongoose.Types.ObjectId[] | any[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +71,8 @@ const productSchema = new Schema<IProduct>(
     warrantyTerms: { type: String },
     productDetails: { type: Map, of: String },
     specifications: [{ key: { type: String }, value: { type: String } }],
+    tags: [{ type: String }],
+    addons: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
   },
   { timestamps: true }
 );
