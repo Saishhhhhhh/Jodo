@@ -109,7 +109,7 @@ export default function ProductGallery({ product, localIp }: ProductGalleryProps
                     poster={posterUrl}
                     alt={`3D model of ${product.title}`}
                     ar
-                    ar-scale="auto"
+                    ar-scale="fixed"
                     ar-modes="webxr scene-viewer quick-look"
                     camera-controls
                     auto-rotate

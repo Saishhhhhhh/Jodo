@@ -288,6 +288,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                 src={product.model3dUrl || '/wooden_sofa/scene.gltf'}
                 alt={`3D model`}
                 ar
+                ar-scale="fixed"
                 ar-modes="webxr scene-viewer quick-look"
                 camera-controls
                 auto-rotate
