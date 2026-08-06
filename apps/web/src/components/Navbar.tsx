@@ -182,14 +182,16 @@ export default function Navbar() {
           <GrAppsRounded className={`w-[22px] h-[22px] ${isMenuOpen ? 'text-terracotta' : 'text-gray-500 group-hover:text-terracotta'}`} />
           <span className={`text-[10px] font-medium ${isMenuOpen ? 'text-terracotta' : 'text-gray-500 group-hover:text-terracotta'}`}>Menu</span>
         </button>
-        <button onClick={() => setIsCartOpen(true)} className="flex flex-col items-center justify-center w-full h-full gap-1 relative group">
-          <ShoppingBag className={`w-[22px] h-[22px] ${isCartOpen ? 'text-terracotta' : 'text-gray-500 group-hover:text-terracotta'}`} strokeWidth={2.25} />
+        <button onClick={() => setIsCartOpen(true)} className="flex flex-col items-center justify-center w-full h-full gap-1 group">
+          <div className="relative">
+            <ShoppingBag className={`w-[22px] h-[22px] ${isCartOpen ? 'text-terracotta' : 'text-gray-500 group-hover:text-terracotta'}`} strokeWidth={2.25} />
+            {mounted && cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-2 w-[16px] h-[16px] bg-terracotta text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </div>
           <span className={`text-[10px] font-medium ${isCartOpen ? 'text-terracotta' : 'text-gray-500 group-hover:text-terracotta'}`}>Cart</span>
-          {mounted && cartCount > 0 && (
-            <span className="absolute top-1 right-2 w-[16px] h-[16px] bg-terracotta text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-              {cartCount}
-            </span>
-          )}
         </button>
         <Link href={isAuth ? "/account" : "/login"} className="flex flex-col items-center justify-center w-full h-full gap-1 group">
           <User className={`w-[22px] h-[22px] ${pathname?.startsWith('/account') || pathname === '/login' ? 'text-terracotta' : 'text-gray-500 group-hover:text-terracotta'}`} strokeWidth={2.25} />
