@@ -390,10 +390,10 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
   );
 
   return (
-    <div className="flex flex-col md:flex-row relative w-full gap-8 lg:gap-12 items-start">
+    <div className="flex flex-col md:flex-row relative w-full gap-8 lg:gap-12 items-start mt-8 md:mt-12">
 
       {/* Desktop Inline Sidebar (Left) */}
-      <aside className="hidden md:flex flex-col w-[240px] lg:w-[260px] flex-shrink-0 sticky top-28">
+      <aside className="hidden md:flex flex-col w-[240px] lg:w-[260px] flex-shrink-0 sticky top-40">
         <div className="flex-1 px-2 pb-6 hide-scrollbar">
           {filterContent}
           <div className="py-6">
@@ -459,7 +459,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
         </div>
 
         {/* Mobile Sticky Filter/Sort Bar */}
-        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] z-40 bg-white rounded-full flex items-center shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
+        <div className="md:hidden fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] z-40 bg-white rounded-full flex items-center shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
           <button
             onClick={() => setIsSortOpen(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-gray-900 border-r border-gray-100 active:bg-gray-50 transition-colors"
