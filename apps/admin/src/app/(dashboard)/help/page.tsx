@@ -16,7 +16,7 @@ import {
 
 export default function HelpDocsPage() {
   return (
-    <div className="p-6 max-w-4xl mx-auto w-full space-y-8 animate-fade-in">
+    <div className="p-6 w-full space-y-8 animate-fade-in">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-primary/10 rounded-lg">
           <HelpCircle className="w-6 h-6 text-primary" />

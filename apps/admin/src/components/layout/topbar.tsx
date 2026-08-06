@@ -117,7 +117,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/help')}>
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Help & Docs
               </DropdownMenuItem>
