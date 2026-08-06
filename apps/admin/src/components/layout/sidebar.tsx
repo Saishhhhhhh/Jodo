@@ -46,11 +46,15 @@ import {
   FileCheck,
   Receipt,
   Activity,
+  Activity,
   Zap,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { useAuthStore } from '@/stores/auth';
+import { getImageUrl } from '@/lib/api-client';
 
 export interface NavItem {
   label: string;
@@ -142,6 +146,11 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Audit Logs', href: '/settings/audit-logs', icon: Activity },
     ],
   },
+  {
+    label: 'Help & Docs',
+    href: '/help',
+    icon: HelpCircle,
+  },
 ];
 
 interface SidebarProps {
@@ -151,6 +160,7 @@ interface SidebarProps {
 
 export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuthStore();
   const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders']);
 
   function toggleGroup(label: string) {
@@ -212,13 +222,10 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
             </div>
           ) : (
             <div className="relative w-[160px] h-[50px] flex items-center justify-start -ml-2">
-              <Image
-                src="/logo.png"
+              <img
+                src={(user as any)?.adminLogoUrl ? getImageUrl((user as any).adminLogoUrl) : "/logo.png"}
                 alt="Jodo"
-                width={200}
-                height={60}
-                className="w-full h-auto object-contain object-left origin-left scale-[1.25]"
-                priority
+                className="w-full h-full object-contain object-left origin-left scale-[1.25]"
               />
             </div>
           )}

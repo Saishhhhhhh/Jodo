@@ -29,6 +29,7 @@ export default function ProfileSettingsPage() {
   const { user, fetchMe } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -197,20 +198,25 @@ export default function ProfileSettingsPage() {
                       )}
                     </div>
                     <div>
-                      <Button type="button" variant="outline" className="relative">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={logoUploading}
+                      >
                         {logoUploading ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</>
                         ) : (
                           'Change Logo'
                         )}
-                        <input
-                          type="file"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          accept="image/*"
-                          onChange={handleLogoUpload}
-                          disabled={logoUploading}
-                        />
                       </Button>
+                      <input
+                        type="file"
+                        className="hidden"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                      />
                       <p className="text-xs text-muted-foreground mt-2">
                         Recommended size: 200x60px. PNG or SVG.
                       </p>
