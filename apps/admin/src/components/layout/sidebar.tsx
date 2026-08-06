@@ -46,7 +46,6 @@ import {
   FileCheck,
   Receipt,
   Activity,
-  Activity,
   Zap,
   HelpCircle,
 } from 'lucide-react';
