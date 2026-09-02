@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  sku         String
+  name        String
+  category    String
+  description String
+  price       Float?
+  enquiryOnly Boolean  @default(true)
+  width       Float
+  height      Float
+  depth       Float
+  unit        String   @default("cm")
+  weight      Float?
+  glbUrl      String
+  usdzUrl     String?
+  posterUrl   String
+  fileSizeMb  Float?
+  images      String   @default("[]")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  productId String?
+  slug      String?
+  eventType String
+  deviceType String?
+  browser   String?
+  userAgent String?
+  timestamp DateTime @default(now())
+}

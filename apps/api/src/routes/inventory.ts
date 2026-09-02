@@ -1,0 +1,83 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth';
+import { InventoryItem } from '../models/InventoryItem';
+import { Product } from '../models/Product';
+import { sendSuccess, sendError } from '../utils/response';
+
+const router = Router();
+
+router.use(requireAuth);
+
+router.get('/', async (req, res, next) => {
+  try {
+    const inventory = await InventoryItem.find({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    }).sort({ createdAt: -1 }).lean();
+
+    // Fetch all products to match by SKU
+    const products = await Product.find({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    }).select('title sku imageUrl category vendor').lean();
+
+    const productMap = new Map(products.map(p => [p.sku, p]));
+
+    const inventoryWithProducts = inventory.map(item => {
+      const product = productMap.get(item.sku);
+      return {
+        ...item,
+        product: product ? {
+          title: product.title,
+          imageUrl: product.imageUrl,
+          category: product.category,
+          vendor: product.vendor,
+        } : null
+      };
+    });
+
+    sendSuccess(res, inventoryWithProducts);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { available, committed } = req.body;
+
+    const item = await InventoryItem.findOne({
+      _id: id,
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    });
+
+    if (!item) {
+      return sendError(res, 'Inventory item not found', 404);
+    }
+
+    if (available !== undefined) item.available = parseInt(available, 10);
+    if (committed !== undefined) item.committed = parseInt(committed, 10);
+
+    // Recalculate totals
+    item.onHand = item.available + item.committed;
+
+    // Transition stock status
+    if (item.available === 0) {
+      item.status = 'out_of_stock';
+    } else if (item.available < 15) {
+      item.status = 'low_stock';
+    } else {
+      item.status = 'in_stock';
+    }
+
+    await item.save();
+
+    sendSuccess(res, item, 'Inventory updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;
