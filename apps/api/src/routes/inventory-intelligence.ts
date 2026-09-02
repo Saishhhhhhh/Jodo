@@ -13,12 +13,24 @@ router.use(requireAuth);
 
 router.get('/summary', async (req, res, next) => {
   try {
-    const inventory = await InventoryItem.find({
+    const { category, location } = req.query;
+    const query: any = {
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    }).lean();
+    };
+    if (location && location !== 'all') query.locationName = location;
+    
+    if (category && category !== 'all') {
+      const products = await Product.find({ storeId: req.auth!.storeId, category }).select('sku').lean();
+      const skus = products.map(p => p.sku);
+      query.sku = { $in: skus };
+    }
 
-    const uniqueLocations = [...new Set(inventory.map(item => item.locationName).filter(Boolean))];
+    const inventory = await InventoryItem.find(query).lean();
+
+    // Unique locations across ALL items, not just filtered (so the dropdown still shows all)
+    const allInventory = await InventoryItem.find({ tenantId: req.auth!.tenantId, storeId: req.auth!.storeId }).select('locationName').lean();
+    const uniqueLocations = [...new Set(allInventory.map(item => item.locationName).filter(Boolean))];
 
     let totalProducts = 0;
     let availableStock = 0;
@@ -60,10 +72,20 @@ router.get('/summary', async (req, res, next) => {
 
 router.get('/stock-status', async (req, res, next) => {
   try {
-    const inventory = await InventoryItem.find({
+    const { category, location } = req.query;
+    const query: any = {
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    }).lean();
+    };
+    if (location && location !== 'all') query.locationName = location;
+    
+    if (category && category !== 'all') {
+      const products = await Product.find({ storeId: req.auth!.storeId, category }).select('sku').lean();
+      const skus = products.map(p => p.sku);
+      query.sku = { $in: skus };
+    }
+
+    const inventory = await InventoryItem.find(query).lean();
 
     let inStock = 0, lowStock = 0, outOfStock = 0, reserved = 0;
     
@@ -89,14 +111,18 @@ router.get('/stock-status', async (req, res, next) => {
 
 router.get('/category-summary', async (req, res, next) => {
   try {
+    const { location } = req.query;
     // We need product categories
     const products = await Product.find({ storeId: req.auth!.storeId }).select('sku category').lean();
     const catMap = new Map(products.map(p => [p.sku, p.category || 'Uncategorized']));
 
-    const inventory = await InventoryItem.find({
+    const query: any = {
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    }).lean();
+    };
+    if (location && location !== 'all') query.locationName = location;
+
+    const inventory = await InventoryItem.find(query).lean();
 
     const catData: Record<string, any> = {};
 
@@ -119,12 +145,27 @@ router.get('/category-summary', async (req, res, next) => {
 
 router.get('/demand-signals', async (req, res, next) => {
   try {
-    const products = await Product.find({ storeId: req.auth!.storeId }).lean();
-    const inventory = await InventoryItem.find({ storeId: req.auth!.storeId }).lean();
+    const { category, location } = req.query;
+    
+    let productQuery: any = { storeId: req.auth!.storeId };
+    if (category && category !== 'all') {
+      productQuery.category = category;
+    }
+    const products = await Product.find(productQuery).lean();
+    
+    const invQuery: any = { storeId: req.auth!.storeId };
+    if (location && location !== 'all') {
+      invQuery.locationName = location;
+    }
+    const inventory = await InventoryItem.find(invQuery).lean();
     const invMap = new Map(inventory.map(i => [i.sku, i]));
 
     const result = products.map(p => {
-      const item = invMap.get(p.sku as string) || { onHand: 0, reservedStock: 0, reorderLevel: 10 };
+      const item = invMap.get(p.sku as string) || { onHand: 0, reservedStock: 0, reorderLevel: 10, locationName: 'Unknown' };
+      // If location is filtered but the product has no inventory in this location, item will be default.
+      // But if we specifically want to filter out items not in the location:
+      if (location && location !== 'all' && !invMap.has(p.sku as string)) return null;
+
       const stats = InventoryIntelligenceService.calculateStockStatus(item);
       
       const unitsSold = Math.floor(Math.random() * 80); // Replace with real aggregation
@@ -144,7 +185,7 @@ router.get('/demand-signals', async (req, res, next) => {
         unitsSold,
         estimatedDays
       };
-    }).sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 10);
+    }).filter(Boolean).sort((a: any, b: any) => b.unitsSold - a.unitsSold).slice(0, 10);
 
     sendSuccess(res, result);
   } catch (error) {
@@ -154,21 +195,36 @@ router.get('/demand-signals', async (req, res, next) => {
 
 router.get('/attention-required', async (req, res, next) => {
   try {
-    const products = await Product.find({ storeId: req.auth!.storeId }).select('title sku category').lean();
+    const { category, location, status } = req.query;
+
+    let productQuery: any = { storeId: req.auth!.storeId };
+    if (category && category !== 'all') {
+      productQuery.category = category;
+    }
+    const products = await Product.find(productQuery).select('title sku category').lean();
     const prodMap = new Map(products.map(p => [p.sku, p]));
     
-    const inventory = await InventoryItem.find({ storeId: req.auth!.storeId }).lean();
+    let invQuery: any = { storeId: req.auth!.storeId };
+    if (location && location !== 'all') {
+      invQuery.locationName = location;
+    }
+    const inventory = await InventoryItem.find(invQuery).lean();
     
     const results = [];
     for (const item of inventory) {
+      const prod = prodMap.get(item.sku);
+      if (category && category !== 'all' && !prod) continue; // Skip if product doesn't match category
+
       const stats = InventoryIntelligenceService.calculateStockStatus(item);
+
+      if (status && status !== 'all' && stats.status !== status) continue; // Skip if status doesn't match
+
       const unitsSold = Math.floor(Math.random() * 40); // Replace with real data
       const demandLevel = InventoryIntelligenceService.calculateDemandSignal(unitsSold);
       const estDays = InventoryIntelligenceService.calculateEstimatedStockDays(stats.availableStock, unitsSold);
       const recommendReorder = InventoryIntelligenceService.isReorderRecommended(stats.availableStock, demandLevel, estDays);
       
-      if (stats.status === 'out_of_stock' || stats.status === 'low_stock' || recommendReorder) {
-        const prod = prodMap.get(item.sku);
+      if (stats.status === 'out_of_stock' || stats.status === 'low_stock' || recommendReorder || (status && status !== 'all')) {
         results.push({
           _id: item._id,
           sku: item.sku,

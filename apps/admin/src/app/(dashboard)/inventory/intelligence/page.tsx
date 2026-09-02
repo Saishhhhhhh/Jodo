@@ -52,49 +52,49 @@ export default function InventoryIntelligencePage() {
   
   // Queries
   const { data: summary, isLoading: loadingSummary } = useQuery({
-    queryKey: ['inventory-intelligence-summary'],
+    queryKey: ['inventory-intelligence-summary', activeFilters],
     queryFn: async () => {
-      const res = await inventoryIntelligenceApi.summary();
+      const res = await inventoryIntelligenceApi.summary(activeFilters);
       return res.data.data;
     },
   });
 
   const { data: stockStatus } = useQuery({
-    queryKey: ['inventory-intelligence-stock-status'],
+    queryKey: ['inventory-intelligence-stock-status', activeFilters],
     queryFn: async () => {
-      const res = await inventoryIntelligenceApi.stockStatus();
+      const res = await inventoryIntelligenceApi.stockStatus(activeFilters);
       return res.data.data;
     },
   });
 
   const { data: categorySummary } = useQuery({
-    queryKey: ['inventory-intelligence-category-summary'],
+    queryKey: ['inventory-intelligence-category-summary', activeFilters.location],
     queryFn: async () => {
-      const res = await inventoryIntelligenceApi.categorySummary();
+      const res = await inventoryIntelligenceApi.categorySummary({ location: activeFilters.location });
       return res.data.data;
     },
   });
 
   const { data: attentionRequired, isLoading: loadingAttention } = useQuery({
-    queryKey: ['inventory-intelligence-attention-required'],
+    queryKey: ['inventory-intelligence-attention-required', activeFilters],
     queryFn: async () => {
-      const res = await inventoryIntelligenceApi.attentionRequired();
+      const res = await inventoryIntelligenceApi.attentionRequired(activeFilters);
       return res.data.data;
     },
   });
 
   const { data: demandSignals } = useQuery({
-    queryKey: ['inventory-intelligence-demand-signals'],
+    queryKey: ['inventory-intelligence-demand-signals', activeFilters],
     queryFn: async () => {
-      const res = await inventoryIntelligenceApi.demandSignals();
+      const res = await inventoryIntelligenceApi.demandSignals(activeFilters);
       return res.data.data;
     },
   });
 
   const { data: stockMovements } = useQuery({
-    queryKey: ['inventory-intelligence-stock-movements'],
+    queryKey: ['inventory-intelligence-stock-movements', activeFilters],
     queryFn: async () => {
-      const res = await inventoryIntelligenceApi.stockMovements();
+      const res = await inventoryIntelligenceApi.stockMovements(activeFilters);
       return res.data.data;
     },
   });
@@ -107,11 +107,6 @@ export default function InventoryIntelligencePage() {
     queryClient.invalidateQueries({ queryKey: ['inventory-intelligence-demand-signals'] });
     queryClient.invalidateQueries({ queryKey: ['inventory-intelligence-stock-movements'] });
     toast.success('Data refreshed');
-  };
-
-  const handleApplyFilters = () => {
-    setActiveFilters({ category: categoryFilter, location: locationFilter, status: stockStatusFilter });
-    toast.success('Filters applied');
   };
 
   const handleClearFilters = () => {
@@ -219,7 +214,10 @@ export default function InventoryIntelligencePage() {
               <SelectItem value="90">Last 90 Days</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select 
+            value={activeFilters.category} 
+            onValueChange={(val) => { setCategoryFilter(val); setActiveFilters(p => ({...p, category: val})) }}
+          >
             <SelectTrigger><SelectValue placeholder="Product Category" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
@@ -228,7 +226,10 @@ export default function InventoryIntelligencePage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <Select 
+            value={activeFilters.location} 
+            onValueChange={(val) => { setLocationFilter(val); setActiveFilters(p => ({...p, location: val})) }}
+          >
             <SelectTrigger><SelectValue placeholder="Warehouse/Location" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
@@ -237,7 +238,10 @@ export default function InventoryIntelligencePage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={stockStatusFilter} onValueChange={setStockStatusFilter}>
+          <Select 
+            value={activeFilters.status} 
+            onValueChange={(val) => { setStockStatusFilter(val); setActiveFilters(p => ({...p, status: val})) }}
+          >
             <SelectTrigger><SelectValue placeholder="Stock Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
@@ -247,8 +251,7 @@ export default function InventoryIntelligencePage() {
             </SelectContent>
           </Select>
           <div className="flex gap-2">
-            <Button className="w-full" onClick={handleApplyFilters}>Apply Filters</Button>
-            <Button variant="ghost" className="w-full text-muted-foreground" onClick={handleClearFilters}>Clear</Button>
+            <Button variant="outline" className="w-full text-muted-foreground" onClick={handleClearFilters}>Clear Filters</Button>
           </div>
         </CardContent>
       </Card>
