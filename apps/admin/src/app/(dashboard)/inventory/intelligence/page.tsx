@@ -267,8 +267,8 @@ export default function InventoryIntelligencePage() {
         </Card>
         <Card className="hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-            <CardTitle className="text-sm font-medium text-green-600">Available Stock</CardTitle>
-            <Box className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Available Stock</CardTitle>
+            <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary?.availableStock || 0}</div>
@@ -277,42 +277,42 @@ export default function InventoryIntelligencePage() {
         </Card>
         <Card className="hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-            <CardTitle className="text-sm font-medium text-blue-600">Reserved Stock</CardTitle>
-            <Box className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium">Reserved Stock</CardTitle>
+            <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summary?.reservedStock || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">Pending orders</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow cursor-pointer bg-amber-50/50">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-            <CardTitle className="text-sm font-medium text-amber-600">Low-Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <CardTitle className="text-sm font-medium">Low-Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{summary?.lowStockProducts || 0}</div>
-            <p className="text-xs text-amber-600/80 mt-1">Reorder soon</p>
+            <div className="text-2xl font-bold">{summary?.lowStockProducts || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Reorder soon</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow cursor-pointer bg-red-50/50">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-            <CardTitle className="text-sm font-medium text-red-600">Out-of-Stock</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-600" />
+            <CardTitle className="text-sm font-medium">Out-of-Stock</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{summary?.outOfStockProducts || 0}</div>
-            <p className="text-xs text-red-600/80 mt-1">Needs attention</p>
+            <div className="text-2xl font-bold">{summary?.outOfStockProducts || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Needs attention</p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-md transition-shadow cursor-pointer bg-purple-50/50">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
-            <CardTitle className="text-sm font-medium text-purple-600">High-Demand</CardTitle>
-            <TrendingUp className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium">High-Demand</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{summary?.highDemandProducts || 0}</div>
-            <p className="text-xs text-purple-600/80 mt-1">Fast moving</p>
+            <div className="text-2xl font-bold">{summary?.highDemandProducts || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Fast moving</p>
           </CardContent>
         </Card>
       </div>
