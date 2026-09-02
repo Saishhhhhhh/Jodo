@@ -1,0 +1,26 @@
+{
+  "name": "jodo-commerce-os",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Jodo Commerce OS — Headless E-commerce Admin Panel",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "dev:admin": "turbo run dev --filter=@jodo/admin",
+    "dev:api": "turbo run dev --filter=@jodo/api"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
