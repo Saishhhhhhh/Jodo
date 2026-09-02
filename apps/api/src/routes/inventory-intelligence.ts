@@ -126,6 +126,13 @@ router.get('/category-summary', async (req, res, next) => {
 
     const catData: Record<string, any> = {};
 
+    for (const p of products) {
+      const cat = p.category || 'Uncategorized';
+      if (!catData[cat]) {
+        catData[cat] = { name: cat, available: 0, reserved: 0, lowStock: 0 };
+      }
+    }
+
     for (const item of inventory) {
       const cat = catMap.get(item.sku) || 'Uncategorized';
       if (!catData[cat]) {
