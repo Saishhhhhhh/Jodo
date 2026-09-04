@@ -92,7 +92,9 @@ const MOCK_TASKS: Task[] = [
   }
 ];
 
-export const useTasksStore = create<TasksState>((set) => ({
+import { toast } from 'sonner';
+
+export const useTasksStore = create<TasksState>((set, get) => ({
   tasks: MOCK_TASKS,
   addTask: (taskData) => set((state) => {
     const newTask: Task = {
@@ -108,11 +110,31 @@ export const useTasksStore = create<TasksState>((set) => ({
         }
       ]
     };
+    
+    // Notify Assignee
+    setTimeout(() => {
+      toast.success(`New Task Assigned: ${newTask.title}`, {
+        description: `Assigned by ${newTask.createdBy}`,
+      });
+    }, 500);
+
     return { tasks: [newTask, ...state.tasks] };
   }),
-  updateTask: (id, updates) => set((state) => ({
-    tasks: state.tasks.map(t => (t.id === id ? { ...t, ...updates } : t))
-  })),
+  updateTask: (id, updates) => set((state) => {
+    const task = state.tasks.find(t => t.id === id);
+    if (task && updates.status && updates.status !== task.status) {
+      // Notify Admin / Creator that the status changed
+      setTimeout(() => {
+        toast.info(`Task Status Updated`, {
+          description: `${task.assignedTo} changed "${task.title}" to ${updates.status}`,
+        });
+      }, 500);
+    }
+    
+    return {
+      tasks: state.tasks.map(t => (t.id === id ? { ...t, ...updates } : t))
+    };
+  }),
   deleteTask: (id) => set((state) => ({
     tasks: state.tasks.filter(t => t.id !== id)
   })),
