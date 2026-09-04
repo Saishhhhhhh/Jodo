@@ -49,6 +49,11 @@ import {
   Zap,
   HelpCircle,
   Target,
+  CheckSquare,
+  User,
+  Copy,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -100,6 +105,20 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Segments', href: '/customers/segments', icon: Users2 },
       { label: 'Loyalty', href: '/customers/loyalty', icon: Star },
       { label: 'Wallets', href: '/customers/wallets', icon: Wallet },
+    ],
+  },
+  {
+    label: 'Tasks',
+    icon: CheckSquare,
+    children: [
+      { label: 'Dashboard', href: '/tasks', icon: LayoutDashboard },
+      { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
+      { label: 'All Tasks', href: '/tasks/all-tasks', icon: FileText },
+      { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users },
+      { label: 'Overdue', href: '/tasks/overdue', icon: AlertTriangle },
+      { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
+      { label: 'Templates', href: '/tasks/templates', icon: Copy },
+      { label: 'Reports', href: '/tasks/reports', icon: BarChart3 },
     ],
   },
   {
