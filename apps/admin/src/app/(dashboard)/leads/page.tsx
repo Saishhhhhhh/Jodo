@@ -75,7 +75,14 @@ export default function LeadsPage() {
   // Form State for creating
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newLocation, setNewLocation] = useState('');
+  const [newProductReq, setNewProductReq] = useState('');
+  const [newBudget, setNewBudget] = useState('');
   const [newSource, setNewSource] = useState<Lead['source']>('Manual');
+  const [newInterest, setNewInterest] = useState<Lead['interestLevel']>('Medium');
+  const [newPriority, setNewPriority] = useState<Lead['followUpPriority']>('Medium');
+  const [newNotes, setNewNotes] = useState('');
 
   // Fetch leads
   const { data: leads, isLoading } = useQuery({
@@ -94,6 +101,14 @@ export default function LeadsPage() {
       setIsCreateModalOpen(false);
       setNewName('');
       setNewPhone('');
+      setNewEmail('');
+      setNewLocation('');
+      setNewProductReq('');
+      setNewBudget('');
+      setNewSource('Manual');
+      setNewInterest('Medium');
+      setNewPriority('Medium');
+      setNewNotes('');
       toast.success('Lead created successfully');
     },
     onError: () => toast.error('Failed to create lead'),
@@ -124,10 +139,15 @@ export default function LeadsPage() {
     createMutation.mutate({
       name: newName,
       phone: newPhone,
+      email: newEmail,
+      location: newLocation,
+      productRequirement: newProductReq,
+      budget: newBudget,
       source: newSource,
       status: 'New',
-      followUpPriority: 'Medium',
-      interestLevel: 'Medium'
+      followUpPriority: newPriority,
+      interestLevel: newInterest,
+      notes: newNotes,
     });
   };
 
@@ -463,35 +483,98 @@ export default function LeadsPage() {
 
       {/* Modals & Sheets below (unchanged structurally) */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Manual Lead</DialogTitle>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle>Add New Lead</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. John Doe" />
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Contact Info</h3>
+                <div className="space-y-2">
+                  <Label>Name <span className="text-destructive">*</span></Label>
+                  <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. John Doe" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="+1234567890" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="john@example.com" type="email" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Location / City</Label>
+                  <Input value={newLocation} onChange={e => setNewLocation(e.target.value)} placeholder="e.g. Mumbai" />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Lead Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Source</Label>
+                    <Select value={newSource} onValueChange={(val: any) => setNewSource(val)}>
+                      <SelectTrigger><SelectValue/></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Manual">Manual</SelectItem>
+                        <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                        <SelectItem value="Instagram">Instagram</SelectItem>
+                        <SelectItem value="Website">Website</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Interest Level</Label>
+                    <Select value={newInterest} onValueChange={(val: any) => setNewInterest(val)}>
+                      <SelectTrigger><SelectValue/></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High">Hot</SelectItem>
+                        <SelectItem value="Medium">Warm</SelectItem>
+                        <SelectItem value="Low">Cold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Budget</Label>
+                    <Input value={newBudget} onChange={e => setNewBudget(e.target.value)} placeholder="e.g. $500" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <Select value={newPriority} onValueChange={(val: any) => setNewPriority(val)}>
+                      <SelectTrigger><SelectValue/></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High"><span className="text-destructive font-medium">High</span></SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Product Requirement</Label>
+                  <Input value={newProductReq} onChange={e => setNewProductReq(e.target.value)} placeholder="What are they looking for?" />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Phone</Label>
-              <Input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="+1234567890" />
-            </div>
-            <div className="space-y-2">
-              <Label>Source</Label>
-              <Select value={newSource} onValueChange={(val: any) => setNewSource(val)}>
-                <SelectTrigger><SelectValue/></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Manual">Manual</SelectItem>
-                  <SelectItem value="WhatsApp">WhatsApp</SelectItem>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="Website">Website</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="mt-6 space-y-2">
+              <Label>Initial Notes</Label>
+              <Textarea 
+                value={newNotes} 
+                onChange={e => setNewNotes(e.target.value)} 
+                placeholder="Add any context, background information, or specific requests here..."
+                className="min-h-[100px] resize-none"
+              />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t bg-muted/20">
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending}>Save</Button>
+            <Button onClick={handleCreate} disabled={createMutation.isPending}>Create Lead</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
