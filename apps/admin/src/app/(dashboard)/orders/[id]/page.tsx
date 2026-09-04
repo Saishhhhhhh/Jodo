@@ -267,6 +267,25 @@ export default function OrderDetailsPage() {
 
             </div>
           </div>
+          
+          {/* Tasks Section */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-muted-foreground" />
+                Tasks
+              </h3>
+              <Link href="/tasks/all-tasks">
+                <Button size="sm" variant="outline">View All</Button>
+              </Link>
+            </div>
+            <div className="border rounded-xl bg-card shadow-sm p-5 text-center">
+              <p className="text-sm text-muted-foreground mb-4">No tasks linked to this order yet.</p>
+              <Link href="/tasks/all-tasks">
+                <Button size="sm">Create Task</Button>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar (Right) */}
