@@ -15,7 +15,8 @@ export async function connectDB(): Promise<void> {
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('❌ MongoDB connection failed:', error);
-    process.exit(1);
+    // process.exit(1);
+    throw error;
   }
 }
 

@@ -147,13 +147,21 @@ import { initCronJobs } from './services/cron';
 // Start Server
 // ============================================================
 async function bootstrap() {
-  await connectDB();
-  initCronJobs();
+  try {
+    await connectDB();
+    console.log(`💾 Database: Connected to MongoDB`);
+  } catch (dbErr) {
+    console.error('⚠️ Database connection failed, but starting API anyway for mock access:', dbErr);
+  }
+  
+  try {
+    initCronJobs();
+  } catch (cronErr) {
+    console.error('⚠️ Failed to init cron jobs:', cronErr);
+  }
 
   app.listen(env.PORT, () => {
     console.log(`\n🚀 Jodo API Server running at http://localhost:${env.PORT}`);
-    console.log(`📚 Environment: ${env.NODE_ENV}`);
-    console.log(`💾 Database: Connected to MongoDB`);
     console.log(`\n📋 Endpoints:`);
     console.log(`   GET  http://localhost:${env.PORT}/api/health`);
     console.log(`   POST http://localhost:${env.PORT}/api/admin/auth/login`);
