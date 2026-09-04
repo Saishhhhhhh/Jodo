@@ -35,7 +35,7 @@ router.post('/shiprocket', async (req, res, next) => {
       }
 
       // Update the pending tracking number to the real AWB
-      const fulfillment = pendingOrder.fulfillments?.find(f => f.trackingNumber.includes(`SR-PENDING-${order_id}`));
+      const fulfillment = pendingOrder.fulfillments?.find((f: any) => f.trackingNumber.includes(`SR-PENDING-${order_id}`));
       if (fulfillment) {
         fulfillment.trackingNumber = awb;
         fulfillment.trackingUrl = `https://shiprocket.co/tracking/${awb}`;

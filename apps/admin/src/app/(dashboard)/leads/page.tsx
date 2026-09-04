@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Plus, User, Phone, Mail, Globe, MessageCircle, Instagram, MousePointerClick, Target, ArrowRight, Save, Trash } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Search, Plus, User, Phone, Mail, Globe, MessageCircle, Instagram, MousePointerClick, Target, Save, Trash, Download, LayoutList, KanbanSquare } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -22,21 +23,23 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import Papa from 'papaparse';
 
+type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Won' | 'Lost';
 type Lead = {
   _id: string;
   name: string;
   email?: string;
   phone?: string;
   source: 'Website' | 'Instagram' | 'WhatsApp' | 'Manual' | 'Other';
-  status: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Won' | 'Lost';
+  status: LeadStatus;
   interestLevel: 'High' | 'Medium' | 'Low';
   followUpPriority: 'High' | 'Medium' | 'Low';
   productRequirement?: string;
@@ -47,9 +50,16 @@ type Lead = {
   createdAt: string;
 };
 
+const COLUMNS: LeadStatus[] = ['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'];
+
 export default function LeadsPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+  
+  // Need to wait for mounted to render DND context (hydration mismatch fix)
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
   
   // Create / Edit State
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -136,9 +146,76 @@ export default function LeadsPage() {
       id: selectedLead._id,
       data: { status, followUpPriority: priority, interestLevel: interest, notes },
     });
+    setIsSheetOpen(false);
   };
 
-  // KPIs
+  const handleExportCSV = () => {
+    if (!leads || leads.length === 0) return toast.error('No leads to export');
+    
+    const csvData = leads.map(l => ({
+      Name: l.name,
+      Phone: l.phone || '',
+      Email: l.email || '',
+      Status: l.status,
+      Priority: l.followUpPriority,
+      Interest: l.interestLevel,
+      Source: l.source,
+      Notes: l.notes || '',
+      Created: new Date(l.createdAt).toLocaleDateString(),
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `leads_export_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Kanban Drag and Drop Handler
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    
+    const { source, destination, draggableId } = result;
+    
+    if (source.droppableId !== destination.droppableId) {
+      const newStatus = destination.droppableId as LeadStatus;
+      
+      // Optimistically update local cache
+      queryClient.setQueryData(['leads'], (old: Lead[] | undefined) => {
+        if (!old) return old;
+        return old.map(lead => lead._id === draggableId ? { ...lead, status: newStatus } : lead);
+      });
+
+      // Fire backend update
+      updateMutation.mutate({ id: draggableId, data: { status: newStatus } });
+    }
+  };
+
+  // Filters and Data
+  const filteredData = useMemo(() => {
+    if (!leads) return [];
+    return leads.filter(l => 
+      l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (l.phone && l.phone.includes(searchTerm))
+    );
+  }, [leads, searchTerm]);
+
+  const kanbanBoard = useMemo(() => {
+    const board: Record<LeadStatus, Lead[]> = {
+      New: [], Contacted: [], Qualified: [], Proposal: [], Won: [], Lost: []
+    };
+    filteredData.forEach(lead => {
+      if (board[lead.status]) {
+        board[lead.status].push(lead);
+      }
+    });
+    return board;
+  }, [filteredData]);
+
   const kpis = useMemo(() => {
     if (!leads) return { total: 0, new: 0, highPriority: 0, won: 0 };
     return leads.reduce((acc, l) => {
@@ -150,14 +227,17 @@ export default function LeadsPage() {
     }, { total: 0, new: 0, highPriority: 0, won: 0 });
   }, [leads]);
 
-  // Filters
-  const filteredData = useMemo(() => {
-    if (!leads) return [];
-    return leads.filter(l => 
-      l.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (l.phone && l.phone.includes(searchTerm))
-    );
-  }, [leads, searchTerm]);
+  const getStatusBadge = (s: string) => {
+    const map: Record<string, string> = {
+      'New': 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+      'Contacted': 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+      'Qualified': 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+      'Proposal': 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+      'Won': 'bg-green-500/10 text-green-600 dark:text-green-400',
+      'Lost': 'bg-slate-500/10 text-slate-600 dark:text-slate-400',
+    };
+    return <Badge className={`border-none ${map[s] || 'bg-secondary'}`}>{s}</Badge>;
+  };
 
   const columns = useMemo<ColumnDef<Lead>[]>(
     () => [
@@ -181,25 +261,14 @@ export default function LeadsPage() {
       {
         accessorKey: 'status',
         header: 'Status',
-        cell: ({ row }) => {
-          const s = row.getValue('status') as string;
-          const map: Record<string, string> = {
-            'New': 'bg-blue-100 text-blue-700 hover:bg-blue-200',
-            'Contacted': 'bg-amber-100 text-amber-700 hover:bg-amber-200',
-            'Qualified': 'bg-purple-100 text-purple-700 hover:bg-purple-200',
-            'Proposal': 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200',
-            'Won': 'bg-green-100 text-green-700 hover:bg-green-200',
-            'Lost': 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-          };
-          return <Badge className={`border-none ${map[s] || 'bg-slate-100'}`}>{s}</Badge>;
-        }
+        cell: ({ row }) => getStatusBadge(row.original.status),
       },
       {
         accessorKey: 'followUpPriority',
         header: 'Priority',
         cell: ({ row }) => {
           const p = row.original.followUpPriority;
-          if (p === 'High') return <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">High</Badge>;
+          if (p === 'High') return <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/10">High</Badge>;
           if (p === 'Low') return <span className="text-xs text-muted-foreground ml-2">Low</span>;
           return <span className="text-xs font-medium ml-2">Medium</span>;
         }
@@ -213,18 +282,30 @@ export default function LeadsPage() {
           if (s === 'WhatsApp') icon = <MessageCircle className="w-3 h-3 mr-1" />;
           if (s === 'Instagram') icon = <Instagram className="w-3 h-3 mr-1" />;
           if (s === 'Website') icon = <Globe className="w-3 h-3 mr-1" />;
-          
-          return (
-            <div className="flex items-center text-xs text-muted-foreground">
-              {icon} {s}
-            </div>
-          );
+          return <div className="flex items-center text-xs text-muted-foreground">{icon} {s}</div>;
         }
       },
       {
-        accessorKey: 'createdAt',
-        header: 'Created',
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{new Date(row.original.createdAt).toLocaleDateString()}</span>
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            {row.original.phone && (
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-500/10" asChild>
+                <a href={`https://wa.me/${row.original.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="w-4 h-4" />
+                </a>
+              </Button>
+            )}
+            {row.original.email && (
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10" asChild>
+                <a href={`mailto:${row.original.email}`}>
+                  <Mail className="w-4 h-4" />
+                </a>
+              </Button>
+            )}
+          </div>
+        )
       }
     ],
     []
@@ -241,55 +322,146 @@ export default function LeadsPage() {
           </h1>
           <p className="text-muted-foreground mt-1">Capture, qualify, and convert your incoming leads.</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" /> Add Lead
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="w-4 h-4 mr-2" /> Export CSV
+          </Button>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" /> Add Lead
+          </Button>
+        </div>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="shadow-sm border-blue-100 bg-blue-50/30">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium text-blue-600 mb-1">New Leads</p>
-            <p className="text-2xl font-bold">{kpis.new}</p>
+        <Card className="shadow-sm border-blue-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-blue-500 dark:text-blue-400">New Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono">{kpis.new}</div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-red-100 bg-red-50/30">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium text-red-600 mb-1">High Priority</p>
-            <p className="text-2xl font-bold">{kpis.highPriority}</p>
+        
+        <Card className="shadow-sm border-destructive/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-destructive">High Priority</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-destructive">{kpis.highPriority}</div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-green-100 bg-green-50/30">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium text-green-600 mb-1">Won</p>
-            <p className="text-2xl font-bold">{kpis.won}</p>
+
+        <Card className="shadow-sm border-green-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400">Won</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-green-600 dark:text-green-400">{kpis.won}</div>
           </CardContent>
         </Card>
+
         <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium text-muted-foreground mb-1">Total Pipeline</p>
-            <p className="text-2xl font-bold">{kpis.total}</p>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pipeline</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono">{kpis.total}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Table */}
-      <div className="bg-card rounded-xl border shadow-sm p-4">
-        <div className="mb-4 max-w-sm flex items-center gap-2 border px-3 py-2 rounded-md">
-          <Search className="w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search by name or phone..."
-            className="w-full text-sm outline-none bg-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Workspace Area */}
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'kanban')} className="w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div className="flex items-center gap-2 border px-3 py-2 rounded-md bg-card shadow-sm w-full sm:max-w-sm">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by name or phone..."
+              className="w-full text-sm outline-none bg-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <TabsList className="grid w-full sm:w-[200px] grid-cols-2">
+            <TabsTrigger value="kanban"><KanbanSquare className="w-4 h-4 mr-2"/> Board</TabsTrigger>
+            <TabsTrigger value="list"><LayoutList className="w-4 h-4 mr-2"/> List</TabsTrigger>
+          </TabsList>
         </div>
-        <DataTable columns={columns} data={filteredData} isLoading={isLoading} />
-      </div>
 
-      {/* Create Modal */}
+        <TabsContent value="list" className="m-0 bg-card rounded-xl border shadow-sm p-4">
+          <DataTable columns={columns} data={filteredData} isLoading={isLoading} />
+        </TabsContent>
+
+        <TabsContent value="kanban" className="m-0">
+          {isMounted && (
+            <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-350px)] min-h-[500px]">
+              <DragDropContext onDragEnd={onDragEnd}>
+                {COLUMNS.map((columnId) => (
+                  <div key={columnId} className="flex flex-col w-[300px] shrink-0 bg-muted/40 rounded-xl border p-3">
+                    <div className="flex items-center justify-between mb-3 px-1">
+                      <h3 className="font-semibold text-sm flex items-center gap-2">
+                        {columnId} 
+                        <Badge variant="secondary" className="px-1.5 py-0 min-w-[20px] text-center justify-center text-[10px]">
+                          {kanbanBoard[columnId]?.length || 0}
+                        </Badge>
+                      </h3>
+                    </div>
+                    
+                    <Droppable droppableId={columnId}>
+                      {(provided, snapshot) => (
+                        <div 
+                          ref={provided.innerRef} 
+                          {...provided.droppableProps}
+                          className={`flex-1 overflow-y-auto space-y-3 rounded-md transition-colors ${snapshot.isDraggingOver ? 'bg-primary/5' : ''}`}
+                        >
+                          {kanbanBoard[columnId]?.map((lead, index) => (
+                            <Draggable key={lead._id} draggableId={lead._id} index={index}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  onClick={() => handleRowClick(lead)}
+                                  className={`bg-card p-4 rounded-lg border shadow-sm flex flex-col gap-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors ${snapshot.isDragging ? 'shadow-md rotate-2 scale-105' : ''}`}
+                                >
+                                  <div className="flex justify-between items-start gap-2">
+                                    <h4 className="font-semibold text-sm leading-tight">{lead.name}</h4>
+                                    {lead.followUpPriority === 'High' && (
+                                      <div className="w-2 h-2 rounded-full bg-destructive shrink-0 mt-1" />
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                                    {lead.phone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3"/> {lead.phone}</span>}
+                                    {lead.email && <span className="flex items-center gap-1.5 truncate"><Mail className="w-3 h-3 shrink-0"/> {lead.email}</span>}
+                                  </div>
+
+                                  <div className="flex items-center justify-between mt-1">
+                                    <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                                      {lead.source}
+                                    </span>
+                                    {lead.interestLevel === 'High' && <Badge variant="secondary" className="text-[10px] py-0 h-4 bg-orange-500/10 text-orange-500">HOT</Badge>}
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
+                ))}
+              </DragDropContext>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Modals & Sheets below (unchanged structurally) */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -324,7 +496,6 @@ export default function LeadsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Lead Details Drawer */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader className="mb-6">
@@ -338,7 +509,6 @@ export default function LeadsPage() {
           {selectedLead && (
             <div className="space-y-6">
               
-              {/* Contact Info */}
               <div className="bg-muted/50 p-4 rounded-lg space-y-3">
                 <div className="flex items-center gap-3 text-sm">
                   <Phone className="w-4 h-4 text-muted-foreground" />
@@ -350,7 +520,6 @@ export default function LeadsPage() {
                 </div>
               </div>
 
-              {/* Qualification Form */}
               <div className="space-y-4">
                 <h3 className="font-semibold border-b pb-2">Qualification</h3>
                 
@@ -375,7 +544,7 @@ export default function LeadsPage() {
                     <Select value={priority} onValueChange={(val: any) => setPriority(val)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="High"><span className="text-red-600 font-medium">High</span></SelectItem>
+                        <SelectItem value="High"><span className="text-destructive font-medium">High</span></SelectItem>
                         <SelectItem value="Medium">Medium</SelectItem>
                         <SelectItem value="Low">Low</SelectItem>
                       </SelectContent>
@@ -406,23 +575,20 @@ export default function LeadsPage() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="pt-4 border-t flex flex-col gap-3">
                 <Button onClick={handleSaveUpdate} disabled={updateMutation.isPending} className="w-full">
                   <Save className="w-4 h-4 mr-2" /> Save Updates
                 </Button>
-                <Button variant="destructive" className="w-full bg-red-50 text-red-600 hover:bg-red-100 border-none" onClick={() => {
+                <Button variant="destructive" className="w-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-none" onClick={() => {
                   if(confirm('Are you sure?')) deleteMutation.mutate(selectedLead._id);
                 }}>
                   <Trash className="w-4 h-4 mr-2" /> Delete Lead
                 </Button>
               </div>
-
             </div>
           )}
         </SheetContent>
       </Sheet>
-
     </div>
   );
 }
