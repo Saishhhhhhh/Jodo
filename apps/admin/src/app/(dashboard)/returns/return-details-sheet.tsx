@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { returnsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
@@ -23,10 +23,17 @@ interface ReturnDetailsSheetProps {
 
 export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDetailsSheetProps) {
   const queryClient = useQueryClient();
+  const [resolutionText, setResolutionText] = useState('');
+
+  useEffect(() => {
+    if (returnObj) {
+      setResolutionText(returnObj.resolution || '');
+    }
+  }, [returnObj]);
 
   const updateMutation = useMutation({
-    mutationFn: ({ status }: { status: string }) => 
-      returnsApi.update(returnObj._id, { status }),
+    mutationFn: ({ status, resolution }: { status: string; resolution?: string }) => 
+      returnsApi.update(returnObj._id, { status, resolution }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['returns-list'] });
       toast.success('Return status updated successfully');
@@ -40,7 +47,7 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
   if (!returnObj) return null;
 
   const handleUpdateStatus = (status: string) => {
-    updateMutation.mutate({ status });
+    updateMutation.mutate({ status, resolution: resolutionText });
   };
 
   const getReasonLabel = (reason: string) => {
@@ -72,6 +79,10 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
         label: 'Refunded', 
         className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' 
       },
+      resolved: { 
+        label: 'Resolved', 
+        className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' 
+      },
       rejected: { 
         label: 'Rejected', 
         className: 'bg-destructive/15 text-destructive border-destructive/20' 
@@ -95,10 +106,12 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
           <SheetHeader className="space-y-1.5">
             <div className="flex items-center gap-2.5 text-primary">
               <RotateCcw className="h-5 w-5 text-indigo-400" />
-              <SheetTitle className="text-xl font-bold tracking-tight">Return details — {returnObj.orderNumber}</SheetTitle>
+              <SheetTitle className="text-xl font-bold tracking-tight capitalize">
+                {returnObj.type || 'Return'} details — {returnObj.orderNumber}
+              </SheetTitle>
             </div>
             <SheetDescription className="text-xs text-muted-foreground">
-              Return request initiated on {new Date(returnObj.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+              {returnObj.type || 'Return'} request initiated on {new Date(returnObj.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
             </SheetDescription>
           </SheetHeader>
         </div>
@@ -180,7 +193,7 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
           {/* Notes bubble */}
           {returnObj.notes && (
             <div className="space-y-2.5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Return Reason & Notes</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Reason & Notes</h4>
               <div className="flex gap-3 p-4 rounded-xl border border-zinc-800/60 bg-muted/10 text-sm italic text-zinc-300">
                 <MessageSquare className="h-4 w-4 text-zinc-500 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">"{returnObj.notes}"</p>
@@ -188,17 +201,81 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
             </div>
           )}
 
+          {/* Images */}
+          {returnObj.images && returnObj.images.length > 0 && (
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Customer Images</h4>
+              <div className="flex gap-3 flex-wrap">
+                {returnObj.images.map((img: string, idx: number) => (
+                  <div key={idx} className="h-24 w-24 rounded-lg overflow-hidden border border-zinc-800">
+                    <img src={img} alt="Customer upload" className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Moderate workflow actions block */}
-          {returnObj.status !== 'refunded' && returnObj.status !== 'rejected' && (
+          {returnObj.status !== 'refunded' && returnObj.status !== 'resolved' && returnObj.status !== 'rejected' && (
             <div className="pt-2">
               <div className="bg-muted/30 border border-zinc-800 p-4 rounded-xl space-y-3.5 shadow-inner">
                 <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Fulfillment Actions</h4>
-                  <p className="text-[11px] text-zinc-500">Advance the return through standard warehouse receiving protocols.</p>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Case Actions</h4>
+                  <p className="text-[11px] text-zinc-500">Provide a resolution or process the request.</p>
                 </div>
                 
-                <div className="flex flex-col gap-2">
-                  {returnObj.status === 'requested' && (
+                <div className="space-y-3">
+                  {/* Resolution Input */}
+                  <textarea
+                    value={resolutionText}
+                    onChange={(e) => setResolutionText(e.target.value)}
+                    placeholder="Enter resolution notes (optional)..."
+                    className="w-full min-h-[80px] bg-background border border-zinc-800 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-zinc-300"
+                  />
+
+                  {returnObj.type === 'return' || returnObj.type === 'exchange' || !returnObj.type ? (
+                    <div className="flex flex-col gap-2">
+                      {returnObj.status === 'requested' && (
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline"
+                            className="flex-1 border-rose-900/30 text-rose-400 hover:bg-rose-950/20 hover:text-rose-300"
+                            disabled={updateMutation.isPending}
+                            onClick={() => handleUpdateStatus('rejected')}
+                          >
+                            Reject
+                          </Button>
+                          <Button 
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition-all"
+                            disabled={updateMutation.isPending}
+                            onClick={() => handleUpdateStatus('approved')}
+                          >
+                            Approve Request
+                          </Button>
+                        </div>
+                      )}
+
+                      {returnObj.status === 'approved' && (
+                        <Button 
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm transition-all py-5"
+                          disabled={updateMutation.isPending}
+                          onClick={() => handleUpdateStatus('received')}
+                        >
+                          Mark as Received
+                        </Button>
+                      )}
+
+                      {returnObj.status === 'received' && (
+                        <Button 
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all py-5"
+                          disabled={updateMutation.isPending}
+                          onClick={() => handleUpdateStatus(returnObj.type === 'exchange' ? 'resolved' : 'refunded')}
+                        >
+                          {returnObj.type === 'exchange' ? 'Mark Resolved' : 'Issue Refund'}
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
                     <div className="flex gap-2">
                       <Button 
                         variant="outline"
@@ -206,38 +283,28 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
                         disabled={updateMutation.isPending}
                         onClick={() => handleUpdateStatus('rejected')}
                       >
-                        Reject Request
+                        Reject
                       </Button>
                       <Button 
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition-all"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all"
                         disabled={updateMutation.isPending}
-                        onClick={() => handleUpdateStatus('approved')}
+                        onClick={() => handleUpdateStatus('resolved')}
                       >
-                        Approve Return
+                        Mark as Resolved
                       </Button>
                     </div>
                   )}
-
-                  {returnObj.status === 'approved' && (
-                    <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm transition-all py-5"
-                      disabled={updateMutation.isPending}
-                      onClick={() => handleUpdateStatus('received')}
-                    >
-                      Mark as Received
-                    </Button>
-                  )}
-
-                  {returnObj.status === 'received' && (
-                    <Button 
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all py-5"
-                      disabled={updateMutation.isPending}
-                      onClick={() => handleUpdateStatus('refunded')}
-                    >
-                      Issue Refund
-                    </Button>
-                  )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Show Resolution text if already resolved */}
+          {(returnObj.status === 'resolved' || returnObj.status === 'refunded' || returnObj.status === 'rejected') && returnObj.resolution && (
+            <div className="space-y-2.5 pt-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-500">Case Resolution</h4>
+              <div className="p-4 rounded-xl border border-emerald-900/50 bg-emerald-950/10 text-sm text-zinc-300">
+                <p className="leading-relaxed">{returnObj.resolution}</p>
               </div>
             </div>
           )}

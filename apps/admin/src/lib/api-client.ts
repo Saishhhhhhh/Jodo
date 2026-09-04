@@ -147,6 +147,7 @@ export const customersApi = {
 
 export const inventoryApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory', { params }),
+  intelligence: () => apiClient.get('/admin/inventory/intelligence'),
   update: (id: string, data: any) => apiClient.put(`/admin/inventory/${id}`, data),
 };
 
@@ -155,6 +156,13 @@ export const discountsApi = {
   create: (data: any) => apiClient.post('/admin/discounts', data),
   update: (id: string, data: any) => apiClient.put(`/admin/discounts/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/discounts/${id}`),
+};
+
+export const leadsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/leads', { params }),
+  create: (data: any) => apiClient.post('/admin/leads', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/leads/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/leads/${id}`),
 };
 
 export const appsApi = {
@@ -191,7 +199,7 @@ export const reviewsApi = {
 };
 
 export const returnsApi = {
-  list: () => apiClient.get('/admin/returns'),
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/returns', { params }),
   get: (id: string) => apiClient.get(`/admin/returns/${id}`),
   create: (data: any) => apiClient.post('/admin/returns', data),
   update: (id: string, data: any) => apiClient.put(`/admin/returns/${id}`, data),

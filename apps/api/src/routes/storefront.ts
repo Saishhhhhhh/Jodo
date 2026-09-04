@@ -4,6 +4,7 @@ import { Order } from '../models/Order';
 import { Store } from '../models/Store';
 import { Review } from '../models/Review';
 import { Collection } from '../models/Collection';
+import { InteraktService } from '../services/interakt';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -214,6 +215,20 @@ router.post('/checkout', async (req, res, next) => {
     });
 
     await order.save();
+    
+    // Trigger Interakt WhatsApp Notification
+    const interaktSettings = (store.settings as any)?.notifications?.interakt;
+    if (interaktSettings?.enabled && interaktSettings?.apiKey && interaktSettings?.orderPlacedTemplate) {
+      if (shippingAddress?.phone) {
+        InteraktService.sendTemplateMessage(
+          interaktSettings.apiKey,
+          shippingAddress.phone,
+          interaktSettings.orderPlacedTemplate,
+          'en',
+          [customerName, orderNumber, totalAmount.toString()]
+        ).catch((err: any) => console.error("Interakt Trigger Error", err));
+      }
+    }
     
     sendSuccess(res, order, 'Order placed successfully');
   } catch (error) {

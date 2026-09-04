@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { Order } from '../models/Order';
+import { Store } from '../models/Store';
+import { ShiprocketService } from '../services/shiprocket';
+import { InteraktService } from '../services/interakt';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -149,19 +152,76 @@ router.post('/:id/fulfill', async (req, res, next) => {
       order.fulfillments = [];
     }
 
-    order.fulfillments.push({
-      carrier,
-      trackingNumber,
-      trackingUrl,
-      notifyCustomer,
-      createdAt: new Date(),
-    });
+    if (carrier === 'shiprocket') {
+      const store = await Store.findOne({ _id: req.auth!.storeId });
+      const srSettings = (store?.settings as any)?.shipping?.shiprocket;
+      
+      if (!srSettings || !srSettings.email || !srSettings.password) {
+        return sendError(res, 'Shiprocket credentials are not configured in shipping settings', 400);
+      }
+
+      // Authenticate
+      const token = await ShiprocketService.authenticate(srSettings.email, srSettings.password);
+      
+      // Create Order in Shiprocket
+      const srOrderRes = await ShiprocketService.createOrder(token, order);
+      const srOrderId = srOrderRes.order_id;
+      const srShipmentId = srOrderRes.shipment_id;
+      
+      // Generate AWB
+      const awbRes = await ShiprocketService.generateAWB(token, srShipmentId);
+      const assignedAwb = awbRes?.response?.data?.awb_code || '';
+      
+      if (awbRes.error) {
+        console.warn('Shiprocket AWB generation failed:', awbRes.message);
+      }
+
+      order.fulfillments.push({
+        carrier: 'ShipRocket',
+        trackingNumber: assignedAwb || `SR-PENDING-${srOrderId}`,
+        trackingUrl: assignedAwb ? `https://shiprocket.co/tracking/${assignedAwb}` : '',
+        notifyCustomer,
+        createdAt: new Date(),
+      } as any);
+
+    } else {
+      if (!carrier || !trackingNumber) {
+        return sendError(res, 'Carrier and tracking number are required', 400);
+      }
+      
+      order.fulfillments.push({
+        carrier,
+        trackingNumber,
+        trackingUrl,
+        notifyCustomer,
+        createdAt: new Date(),
+      } as any);
+    }
 
     order.fulfillmentStatus = 'fulfilled';
 
     await order.save();
     
-    // In a real application, you would send an email here if notifyCustomer is true
+    // Interakt WhatsApp Notification for Order Shipped
+    if (notifyCustomer) {
+      // Store was already fetched if shiprocket was used, but to be safe let's ensure we have it
+      const store = await Store.findOne({ _id: req.auth!.storeId });
+      const interaktSettings = (store?.settings as any)?.notifications?.interakt;
+      
+      if (interaktSettings?.enabled && interaktSettings?.apiKey && interaktSettings?.orderShippedTemplate) {
+        if (order.shippingAddress?.phone) {
+          const recentFulfillment = order.fulfillments[order.fulfillments.length - 1];
+          const trackLink = recentFulfillment.trackingUrl || recentFulfillment.trackingNumber;
+          InteraktService.sendTemplateMessage(
+            interaktSettings.apiKey,
+            order.shippingAddress.phone,
+            interaktSettings.orderShippedTemplate,
+            'en',
+            [order.customerName, order.orderNumber, recentFulfillment.carrier, trackLink]
+          ).catch((err: any) => console.error("Interakt Trigger Error", err));
+        }
+      }
+    }
     
     sendSuccess(res, order, 'Order fulfilled successfully');
   } catch (error) {

@@ -48,6 +48,7 @@ import {
   Activity,
   Zap,
   HelpCircle,
+  Target,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -86,7 +87,7 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'All Orders', href: '/orders', icon: ShoppingCart },
       { label: 'Draft Orders', href: '/orders/draft', icon: FileText },
-      { label: 'Returns', href: '/returns', icon: RotateCcw },
+      { label: 'Returns & Complaints', href: '/returns', icon: RotateCcw },
       { label: 'Shipping Labels', href: '/shipping-labels', icon: Truck },
       { label: 'Fraud Review', href: '/fraud', icon: ShieldAlert },
     ],
@@ -102,6 +103,11 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    label: 'CRM / Leads',
+    href: '/leads',
+    icon: Target,
+  },
+  {
     label: 'Marketing',
     icon: Megaphone,
     children: [
@@ -109,6 +115,11 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Campaigns', href: '/campaigns', icon: Megaphone },
       { label: 'Email', href: '/marketing/email', icon: Mail },
     ],
+  },
+  {
+    label: 'WhatsApp',
+    href: '/whatsapp',
+    icon: MessageSquare,
   },
   {
     label: 'Content',

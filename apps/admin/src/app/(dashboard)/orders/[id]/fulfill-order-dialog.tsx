@@ -33,11 +33,11 @@ interface FulfillOrderDialogProps {
 }
 
 const CARRIERS = [
+  { id: 'shiprocket', name: 'ShipRocket (Auto)' },
   { id: 'fedex', name: 'FedEx' },
   { id: 'ups', name: 'UPS' },
   { id: 'usps', name: 'USPS' },
   { id: 'dhl', name: 'DHL' },
-  { id: 'shiprocket', name: 'ShipRocket' },
   { id: 'custom', name: 'Custom Carrier' },
 ];
 
@@ -69,14 +69,14 @@ export function FulfillOrderDialog({ orderId, items, open, onOpenChange }: Fulfi
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trackingNumber.trim()) {
+    if (carrier !== 'shiprocket' && !trackingNumber.trim()) {
       toast.error('Tracking number is required');
       return;
     }
     
     fulfillMutation.mutate({
       carrier,
-      trackingNumber,
+      trackingNumber: carrier === 'shiprocket' ? 'PENDING' : trackingNumber,
       trackingUrl: carrier === 'custom' ? trackingUrl : undefined,
       notifyCustomer,
     });
@@ -144,15 +144,17 @@ export function FulfillOrderDialog({ orderId, items, open, onOpenChange }: Fulfi
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>Tracking Number</Label>
-                  <Input 
-                    placeholder="e.g. 1Z9999999999999999" 
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    required
-                  />
-                </div>
+                {carrier !== 'shiprocket' && (
+                  <div className="space-y-2">
+                    <Label>Tracking Number</Label>
+                    <Input 
+                      placeholder="e.g. 1Z9999999999999999" 
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      required={carrier !== 'shiprocket'}
+                    />
+                  </div>
+                )}
               </div>
 
               {carrier === 'custom' && (
@@ -193,7 +195,9 @@ export function FulfillOrderDialog({ orderId, items, open, onOpenChange }: Fulfi
               Cancel
             </Button>
             <Button type="submit" disabled={fulfillMutation.isPending}>
-              {fulfillMutation.isPending ? 'Fulfilling...' : 'Fulfill items'}
+              {fulfillMutation.isPending 
+                ? (carrier === 'shiprocket' ? 'Sending to Shiprocket...' : 'Fulfilling...') 
+                : (carrier === 'shiprocket' ? 'Send to Shiprocket' : 'Fulfill items')}
             </Button>
           </DialogFooter>
         </form>

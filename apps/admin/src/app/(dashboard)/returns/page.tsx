@@ -15,10 +15,13 @@ type Return = {
   orderNumber: string;
   customerName: string;
   customerEmail: string;
+  type: string;
   items: any[];
-  status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected';
+  status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected' | 'resolved';
   refundAmount: number;
   createdAt: string;
+  images?: string[];
+  resolution?: string;
 };
 
 export default function ReturnsPage() {
@@ -44,10 +47,29 @@ export default function ReturnsPage() {
         return <Badge variant="secondary" className="capitalize bg-purple-500/10 text-purple-600 border-purple-500/20">Package Received</Badge>;
       case 'refunded':
         return <Badge variant="default" className="capitalize bg-green-600 hover:bg-green-700">Refunded</Badge>;
+      case 'resolved':
+        return <Badge variant="default" className="capitalize bg-emerald-600 hover:bg-emerald-700">Resolved</Badge>;
       case 'rejected':
         return <Badge variant="destructive" className="capitalize">Rejected</Badge>;
       default:
         return <Badge variant="secondary" className="capitalize">{status}</Badge>;
+    }
+  };
+
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'return':
+        return <Badge variant="outline" className="capitalize border-zinc-700">Return</Badge>;
+      case 'exchange':
+        return <Badge variant="outline" className="capitalize border-blue-500/50 text-blue-500">Exchange</Badge>;
+      case 'complaint':
+        return <Badge variant="outline" className="capitalize border-rose-500/50 text-rose-500">Complaint</Badge>;
+      case 'warranty':
+        return <Badge variant="outline" className="capitalize border-amber-500/50 text-amber-500">Warranty</Badge>;
+      case 'damaged':
+        return <Badge variant="outline" className="capitalize border-orange-500/50 text-orange-500">Damaged</Badge>;
+      default:
+        return <Badge variant="outline" className="capitalize">{type}</Badge>;
     }
   };
 
@@ -78,6 +100,11 @@ export default function ReturnsPage() {
       accessorKey: 'createdAt',
       header: 'Date Requested',
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
+    },
+    {
+      accessorKey: 'type',
+      header: 'Type',
+      cell: ({ row }) => getTypeBadge(row.getValue('type') || 'return'),
     },
     { accessorKey: 'customerName', header: 'Customer' },
     {
@@ -124,8 +151,8 @@ export default function ReturnsPage() {
     <div className="p-6 animate-fade-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Returns</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Manage customer return requests, package receiving, and refunds.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Returns & Complaints</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage customer return requests, exchanges, complaints, and warranty cases.</p>
         </div>
       </div>
 
@@ -133,11 +160,12 @@ export default function ReturnsPage() {
         {/* Tabs filters */}
         <div className="flex border-b pb-px gap-6 text-sm font-medium">
           {[
-            { id: 'all', label: 'All Returns' },
+            { id: 'all', label: 'All Cases' },
             { id: 'pending', label: 'Pending Review' },
             { id: 'approved', label: 'Approved' },
             { id: 'received', label: 'Received' },
             { id: 'refunded', label: 'Refunded' },
+            { id: 'resolved', label: 'Resolved' },
             { id: 'rejected', label: 'Rejected' },
           ].map((t) => (
             <button
