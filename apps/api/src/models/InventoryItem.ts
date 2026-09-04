@@ -8,6 +8,7 @@ export interface IInventoryItem extends Document {
   onHand: number;
   available: number;
   committed: number;
+  lowStockThreshold: number;
   status: 'in_stock' | 'low_stock' | 'out_of_stock';
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,7 @@ const inventoryItemSchema = new Schema<IInventoryItem>(
     onHand: { type: Number, default: 0 },
     available: { type: Number, default: 0 },
     committed: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number, default: 15 },
     status: {
       type: String,
       enum: ['in_stock', 'low_stock', 'out_of_stock'],

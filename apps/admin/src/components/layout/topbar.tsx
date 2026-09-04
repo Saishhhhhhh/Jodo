@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { inventoryApi } from '@/lib/api-client';
 import {
   Search,
   Bell,
@@ -36,6 +38,21 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
   const { user, logout } = useAuthStore();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+
+  // Fetch low stock alerts for notifications
+  const { data: intelligenceData } = useQuery({
+    queryKey: ['inventory', 'intelligence'],
+    queryFn: async () => {
+      const res = await inventoryApi.intelligence();
+      return res.data.data as any[];
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  const lowStockItems = React.useMemo(() => {
+    if (!intelligenceData) return [];
+    return intelligenceData.filter((item: any) => item.available < (item.lowStockThreshold || 15));
+  }, [intelligenceData]);
 
   const handleLogout = async () => {
     await logout();
@@ -78,15 +95,58 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
           </Tooltip>
 
           {/* Notifications */}
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-4 w-4" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
+                {lowStockItems.length > 0 && (
+                  <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                    {lowStockItems.length > 9 ? '9+' : lowStockItems.length}
+                  </span>
+                )}
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>Notifications</TooltipContent>
-          </Tooltip>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80" align="end">
+              <DropdownMenuLabel className="flex justify-between items-center">
+                Notifications
+                <span className="text-xs text-muted-foreground font-normal">{lowStockItems.length} new</span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {lowStockItems.length > 0 ? (
+                <div className="max-h-[300px] overflow-y-auto">
+                  {lowStockItems.map((item: any) => (
+                    <DropdownMenuItem 
+                      key={item._id} 
+                      className="flex flex-col items-start gap-1 p-3 cursor-pointer"
+                      onClick={() => router.push('/inventory')}
+                    >
+                      <div className="flex w-full justify-between items-start gap-2">
+                        <span className="font-semibold text-sm">Low Stock Alert</span>
+                        <span className="text-[10px] text-destructive bg-destructive/10 px-1.5 py-0.5 rounded font-medium">
+                          {item.available} Left
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground line-clamp-2">
+                        {item.product?.title || 'Unknown Product'} (SKU: {item.sku}) has fallen below the minimum threshold of {item.lowStockThreshold || 15}.
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No new notifications
+                </div>
+              )}
+              {lowStockItems.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="w-full text-center text-xs text-primary justify-center cursor-pointer" onClick={() => router.push('/inventory')}>
+                    View all in Inventory
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* User Menu */}
           <DropdownMenu>

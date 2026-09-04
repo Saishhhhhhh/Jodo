@@ -4,6 +4,9 @@ import { InventoryItem } from '../models/InventoryItem';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { sendSuccess, sendError } from '../utils/response';
+import { InteraktService } from '../services/interakt';
+import { User } from '../models/User';
+import { Tenant } from '../models/Tenant';
 
 const router = Router();
 
@@ -89,6 +92,7 @@ router.get('/intelligence', async (req, res, next) => {
         available: item.available,
         committed: item.committed,
         actualCommitted, // Used for tooltip explaining reserved stock
+        lowStockThreshold: item.lowStockThreshold,
         status: item.status,
         soldLast30Days,
         dailyVelocity: dailyVelocity.toFixed(2),
@@ -143,7 +147,7 @@ router.get('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { available, committed } = req.body;
+    const { available, committed, lowStockThreshold } = req.body;
 
     const item = await InventoryItem.findOne({
       _id: id,
@@ -155,8 +159,12 @@ router.put('/:id', async (req, res, next) => {
       return sendError(res, 'Inventory item not found', 404);
     }
 
+    const previousAvailable = item.available;
+    const previousThreshold = item.lowStockThreshold;
+
     if (available !== undefined) item.available = parseInt(available, 10);
     if (committed !== undefined) item.committed = parseInt(committed, 10);
+    if (lowStockThreshold !== undefined) item.lowStockThreshold = parseInt(lowStockThreshold, 10);
 
     // Recalculate totals
     item.onHand = item.available + item.committed;
@@ -164,13 +172,30 @@ router.put('/:id', async (req, res, next) => {
     // Transition stock status
     if (item.available === 0) {
       item.status = 'out_of_stock';
-    } else if (item.available < 15) {
+    } else if (item.available < item.lowStockThreshold) {
       item.status = 'low_stock';
     } else {
       item.status = 'in_stock';
     }
 
     await item.save();
+
+    // Trigger alert if it just crossed the threshold downwards
+    if (previousAvailable >= previousThreshold && item.available < item.lowStockThreshold) {
+      const admin = await User.findById(req.auth!.userId);
+      const tenant = await Tenant.findById(req.auth!.tenantId);
+      
+      if (admin?.phone && tenant?.settings?.interaktApiKey) {
+        // Run in background to avoid blocking response
+        InteraktService.sendTemplateMessage(
+          tenant.settings.interaktApiKey,
+          admin.phone,
+          'low_stock_alert', 
+          'en',
+          [item.sku, item.available.toString(), item.lowStockThreshold.toString()]
+        ).catch(e => console.error('Failed to send stock alert:', e));
+      }
+    }
 
     sendSuccess(res, item, 'Inventory updated successfully');
   } catch (error) {

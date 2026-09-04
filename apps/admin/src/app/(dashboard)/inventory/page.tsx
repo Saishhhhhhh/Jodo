@@ -30,6 +30,7 @@ type IntelligenceItem = {
   available: number;
   committed: number;
   actualCommitted: number;
+  lowStockThreshold: number;
   status: string;
   soldLast30Days: number;
   dailyVelocity: string;
@@ -47,6 +48,7 @@ export default function InventoryIntelligencePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [availableInput, setAvailableInput] = useState(0);
   const [committedInput, setCommittedInput] = useState(0);
+  const [thresholdInput, setThresholdInput] = useState(15);
 
   // Fetch intelligence data
   const { data: intelligenceData, isLoading } = useQuery({
@@ -59,8 +61,8 @@ export default function InventoryIntelligencePage() {
 
   // Update inventory mutation
   const updateMutation = useMutation({
-    mutationFn: ({ id, available, committed }: { id: string; available: number; committed: number }) =>
-      inventoryApi.update(id, { available, committed }),
+    mutationFn: ({ id, available, committed, lowStockThreshold }: { id: string; available: number; committed: number; lowStockThreshold: number }) =>
+      inventoryApi.update(id, { available, committed, lowStockThreshold }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       setIsDialogOpen(false);
@@ -75,6 +77,7 @@ export default function InventoryIntelligencePage() {
     setSelectedItem(item);
     setAvailableInput(item.available);
     setCommittedInput(item.committed);
+    setThresholdInput(item.lowStockThreshold || 15);
     setIsDialogOpen(true);
   };
 
@@ -84,7 +87,23 @@ export default function InventoryIntelligencePage() {
       id: selectedItem._id,
       available: availableInput,
       committed: committedInput,
+      lowStockThreshold: thresholdInput,
     });
+  };
+
+  const handleRestock = (item: IntelligenceItem) => {
+    if (!item.suggestedReorder) {
+      toast.info('No reorder needed');
+      return;
+    }
+    const newAvailable = item.available + item.suggestedReorder;
+    updateMutation.mutate({
+      id: item._id,
+      available: newAvailable,
+      committed: item.committed,
+      lowStockThreshold: item.lowStockThreshold || 15,
+    });
+    toast.info(`Restocking +${item.suggestedReorder} units...`);
   };
 
   // Aggregated KPIs
@@ -94,7 +113,7 @@ export default function InventoryIntelligencePage() {
       (acc, item) => {
         acc.totalSkus++;
         if (item.available === 0) acc.outOfStock++;
-        else if (item.available < 15) acc.lowStock++;
+        else if (item.available < (item.lowStockThreshold || 15)) acc.lowStock++;
         acc.totalReserved += item.committed;
         return acc;
       },
@@ -114,7 +133,7 @@ export default function InventoryIntelligencePage() {
 
   // Low Stock subset
   const lowStockData = useMemo(() => {
-    return filteredData.filter(item => item.available < 15 || item.suggestedReorder > 0);
+    return filteredData.filter(item => item.available < (item.lowStockThreshold || 15) || item.suggestedReorder > 0);
   }, [filteredData]);
 
   // Shared Product Cell
@@ -165,7 +184,7 @@ export default function InventoryIntelligencePage() {
 
           return (
             <Badge variant={badgeVariant} className={`text-xs capitalize font-medium ${customClass}`}>
-              {status.replace('_', ' ')}
+              {status.replace(/_/g, ' ')}
             </Badge>
           );
         },
@@ -245,7 +264,7 @@ export default function InventoryIntelligencePage() {
         accessorKey: 'available', 
         header: 'Current Stock',
         cell: ({ row }) => (
-          <span className={`font-mono font-medium ${row.original.available < 15 ? 'text-amber-600' : ''}`}>
+          <span className={`font-mono font-medium ${row.original.available < (row.original.lowStockThreshold || 15) ? 'text-amber-600' : ''}`}>
             {row.original.available}
           </span>
         )
@@ -263,6 +282,29 @@ export default function InventoryIntelligencePage() {
           );
         }
       },
+      {
+        id: 'actions',
+        cell: ({ row }) => {
+          const item = row.original;
+          return (
+            <div className="flex items-center justify-end gap-2 pr-4">
+              {item.suggestedReorder > 0 && (
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => handleRestock(item)}>
+                  Restock
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground"
+                onClick={() => handleEditClick(item)}
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            </div>
+          );
+        }
+      }
     ],
     []
   );
@@ -384,16 +426,29 @@ export default function InventoryIntelligencePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="committed">Reserved Quantity</Label>
+                <Label htmlFor="threshold">Low Stock Threshold</Label>
                 <Input
-                  id="committed"
+                  id="threshold"
                   type="number"
                   min="0"
-                  value={committedInput}
-                  onChange={(e) => setCommittedInput(parseInt(e.target.value, 10) || 0)}
+                  value={thresholdInput}
+                  onChange={(e) => setThresholdInput(parseInt(e.target.value, 10) || 0)}
                 />
-                <p className="text-[10px] text-amber-600 font-medium">Auto-calculated: {selectedItem?.actualCommitted} currently in pending orders.</p>
+                <p className="text-[10px] text-muted-foreground">Alert when stock drops below this</p>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="committed">Reserved Quantity</Label>
+              <Input
+                id="committed"
+                type="number"
+                min="0"
+                value={committedInput}
+                onChange={(e) => setCommittedInput(parseInt(e.target.value, 10) || 0)}
+                disabled
+              />
+              <p className="text-[10px] text-amber-600 font-medium">Auto-calculated: {selectedItem?.actualCommitted} currently in pending orders.</p>
             </div>
 
             <div className="rounded-lg bg-muted p-3 mt-2 flex items-center justify-between text-xs">
