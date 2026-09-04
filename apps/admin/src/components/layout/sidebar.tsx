@@ -48,8 +48,12 @@ import {
   Activity,
   Zap,
   HelpCircle,
+  Target,
   CheckSquare,
   User,
+  Copy,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -78,7 +82,6 @@ export const NAV_ITEMS: NavItem[] = [
       { label: 'Products', href: '/products', icon: Package },
       { label: 'Collections', href: '/collections', icon: Boxes },
       { label: 'Inventory', href: '/inventory', icon: ReceiptText },
-      { label: 'Inventory Intelligence', href: '/inventory/intelligence', icon: BarChart3 },
       { label: 'Gift Cards', href: '/gift-cards', icon: Tag },
       { label: 'Product Reviews', href: '/reviews', icon: Star },
     ],
@@ -89,7 +92,7 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'All Orders', href: '/orders', icon: ShoppingCart },
       { label: 'Draft Orders', href: '/orders/draft', icon: FileText },
-      { label: 'Returns', href: '/returns', icon: RotateCcw },
+      { label: 'Returns & Complaints', href: '/returns', icon: RotateCcw },
       { label: 'Shipping Labels', href: '/shipping-labels', icon: Truck },
       { label: 'Fraud Review', href: '/fraud', icon: ShieldAlert },
     ],
@@ -110,13 +113,18 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'Dashboard', href: '/tasks', icon: LayoutDashboard },
       { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
-      { label: 'All Tasks', href: '/tasks/all-tasks', icon: Users },
-      { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users2 },
-      { label: 'Overdue', href: '/tasks/overdue', icon: ShieldAlert },
-      { label: 'Completed', href: '/tasks/completed', icon: FileCheck },
-      { label: 'Templates', href: '/tasks/templates', icon: FileText },
+      { label: 'All Tasks', href: '/tasks/all-tasks', icon: FileText },
+      { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users },
+      { label: 'Overdue', href: '/tasks/overdue', icon: AlertTriangle },
+      { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
+      { label: 'Templates', href: '/tasks/templates', icon: Copy },
       { label: 'Reports', href: '/tasks/reports', icon: BarChart3 },
     ],
+  },
+  {
+    label: 'CRM / Leads',
+    href: '/leads',
+    icon: Target,
   },
   {
     label: 'Marketing',
@@ -128,6 +136,11 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    label: 'WhatsApp',
+    href: '/whatsapp',
+    icon: MessageSquare,
+  },
+  {
     label: 'Content',
     icon: FileText,
     children: [
@@ -137,22 +150,7 @@ export const NAV_ITEMS: NavItem[] = [
 
     ],
   },
-  {
-    label: 'Reports',
-    icon: FileText,
-    children: [
-      { label: 'Overview', href: '/reports', icon: LayoutDashboard },
-      { label: 'Daily Report', href: '/reports/daily', icon: FileText },
-      { label: 'Weekly Report', href: '/reports/weekly', icon: FileText },
-      { label: 'Sales Report', href: '/reports/sales', icon: LineChart },
-      { label: 'Orders Report', href: '/reports/orders', icon: ShoppingCart },
-      { label: 'Inventory Report', href: '/reports/inventory', icon: Package },
-      { label: 'Leads Report', href: '/reports/leads', icon: Users },
-      { label: 'Quotations Report', href: '/reports/quotations', icon: Tag },
-      { label: 'Support Cases', href: '/reports/support', icon: MessageSquare },
-      { label: 'Follow-ups', href: '/reports/follow-ups', icon: Bell },
-    ],
-  },
+
   {
     label: 'Analytics',
     icon: BarChart3,
