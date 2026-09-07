@@ -35,7 +35,7 @@ export function StockMovementsTab() {
         item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.referenceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.performedBy.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchType = typeFilter === 'ALL' || item.movementType === typeFilter;
@@ -48,17 +48,21 @@ export function StockMovementsTab() {
   const getMovementBadge = (type: StockMovementItem['movementType']) => {
     switch (type) {
       case 'Receipt':
-        return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/15 border-none">Receipt</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-none">Receipt</Badge>;
       case 'Dispatch':
-        return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/15 border-none">Dispatch</Badge>;
+        return <Badge className="bg-rose-500/10 text-rose-600 border-none">Dispatch</Badge>;
       case 'Adjustment':
-        return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/15 border-none">Adjustment</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-600 border-none">Adjustment</Badge>;
       case 'Transfer In':
-        return <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/15 border-none">Transfer In</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border-none">Transfer In</Badge>;
       case 'Transfer Out':
-        return <Badge className="bg-purple-500/10 text-purple-600 hover:bg-purple-500/15 border-none">Transfer Out</Badge>;
-      case 'QC Rejection':
-        return <Badge variant="destructive">QC Rejection</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-600 border-none">Transfer Out</Badge>;
+      case 'Reservation':
+        return <Badge className="bg-orange-500/10 text-orange-600 border-none">Reservation</Badge>;
+      case 'Reservation Release':
+        return <Badge className="bg-teal-500/10 text-teal-600 border-none">Reservation Release</Badge>;
+      case 'Return':
+        return <Badge className="bg-indigo-500/10 text-indigo-600 border-none">Return</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -91,7 +95,9 @@ export function StockMovementsTab() {
               <SelectItem value="Adjustment">Adjustment</SelectItem>
               <SelectItem value="Transfer In">Transfer In</SelectItem>
               <SelectItem value="Transfer Out">Transfer Out</SelectItem>
-              <SelectItem value="QC Rejection">QC Rejection</SelectItem>
+              <SelectItem value="Reservation">Reservation</SelectItem>
+              <SelectItem value="Reservation Release">Reservation Release</SelectItem>
+              <SelectItem value="Return">Return</SelectItem>
             </SelectContent>
           </Select>
 
@@ -123,7 +129,7 @@ export function StockMovementsTab() {
               <TableHead>Product & SKU</TableHead>
               <TableHead>Warehouse</TableHead>
               <TableHead>Movement Type</TableHead>
-              <TableHead>Reference</TableHead>
+              <TableHead>Reference ID</TableHead>
               <TableHead className="text-right">Qty In</TableHead>
               <TableHead className="text-right">Qty Out</TableHead>
               <TableHead className="text-right">Previous Stock</TableHead>
@@ -148,7 +154,7 @@ export function StockMovementsTab() {
                   <TableCell className="text-xs whitespace-nowrap">{item.warehouse}</TableCell>
                   <TableCell>{getMovementBadge(item.movementType)}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
-                    {item.reference}
+                    {item.referenceId}
                   </TableCell>
                   <TableCell className="text-right font-mono font-semibold text-xs">
                     {item.qtyIn > 0 ? (

@@ -46,10 +46,12 @@ export function TransfersTab({ onOpenCreate }: TransfersTabProps) {
         return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/15 border-none">Received</Badge>;
       case 'In Transit':
         return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/15 border-none">In Transit</Badge>;
-      case 'Dispatched':
-        return <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/15 border-none">Dispatched</Badge>;
+      case 'Approved':
+        return <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/15 border-none">Approved</Badge>;
       case 'Requested':
         return <Badge variant="secondary">Requested</Badge>;
+      case 'Draft':
+        return <Badge variant="outline">Draft</Badge>;
       case 'Cancelled':
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -122,7 +124,7 @@ export function TransfersTab({ onOpenCreate }: TransfersTabProps) {
                   </TableCell>
                   <TableCell>{getStatusBadge(item.status)}</TableCell>
                   <TableCell className="text-right">
-                    {item.status === 'In Transit' || item.status === 'Dispatched' ? (
+                    {item.status === 'In Transit' ? (
                       <Button
                         variant="outline"
                         size="sm"

@@ -24,16 +24,21 @@ import {
   Package,
   Plus,
   RotateCcw,
+  SlidersHorizontal,
   Truck,
+  TrendingUp,
 } from 'lucide-react';
-import { useWarehouseStore } from '@/stores/warehouse';
+import { useWarehouseStore, DelayAlertItem, StockItem } from '@/stores/warehouse';
+import { formatNumber } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface OverviewTabProps {
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: string, subTab?: string) => void;
   onOpenProcurement: () => void;
   onOpenProduction: () => void;
   onOpenQC: () => void;
   onOpenTransfer: () => void;
+  onOpenAdjust: (item?: StockItem) => void;
 }
 
 export function OverviewTab({
@@ -42,26 +47,83 @@ export function OverviewTab({
   onOpenProduction,
   onOpenQC,
   onOpenTransfer,
+  onOpenAdjust,
 }: OverviewTabProps) {
-  const { stock, alerts, stockMovements, procurements, productionOrders } = useWarehouseStore();
+  const { stock, alerts, stockMovements, resolveAlert } = useWarehouseStore();
 
-  const criticalStock = stock.filter((s) => s.status === 'Critical' || s.status === 'Out of Stock');
   const activeAlerts = alerts.filter((a) => !a.resolved);
-  const recentMovements = stockMovements.slice(0, 5);
+  const recentMovements = stockMovements.slice(0, 6);
 
-  // Warehouse breakdown
-  const warehouseStats = [
-    { name: 'Central Hub - BLR', location: 'Bengaluru', items: 3, stock: 7470, capacity: '82%' },
-    { name: 'North DC - DEL', location: 'Delhi NCR', items: 2, stock: 1050, capacity: '45%' },
-    { name: 'West DC - BOM', location: 'Mumbai', items: 2, stock: 740, capacity: '38%' },
+  // Watchlist: items where available <= reorderLevel
+  const lowStockWatchlist = stock.filter((s) => s.available <= s.reorderLevel);
+
+  // Regional Warehouse network data
+  const regionalWarehouses = [
+    {
+      name: 'Central Hub – BLR',
+      location: 'Bengaluru, Karnataka',
+      capacityUtilization: 82,
+      stockInHand: 7470,
+      availableStock: 5820,
+      reservedStock: 1650,
+      incomingStock: 2124,
+    },
+    {
+      name: 'North DC – DEL',
+      location: 'Gurugram, Delhi NCR',
+      capacityUtilization: 45,
+      stockInHand: 1050,
+      availableStock: 655,
+      reservedStock: 395,
+      incomingStock: 1150,
+    },
+    {
+      name: 'West DC – BOM',
+      location: 'Bhiwandi, Mumbai MMR',
+      capacityUtilization: 38,
+      stockInHand: 740,
+      availableStock: 300,
+      reservedStock: 440,
+      incomingStock: 2700,
+    },
   ];
+
+  const handleAlertAction = (alt: DelayAlertItem) => {
+    switch (alt.type) {
+      case 'Procurement Delay':
+      case 'Supplier Delay':
+        onTabChange('procurement');
+        break;
+      case 'Production Delay':
+      case 'Manufacturer Delay':
+      case 'Raw Material Shortage':
+        onTabChange('production-orders');
+        break;
+      case 'QC Delay':
+      case 'QC Failure':
+        onTabChange('quality-checks');
+        break;
+      case 'Stock Shortage':
+        onTabChange('stock', 'stock-in-hand');
+        break;
+      case 'Incoming Shipment Delay':
+        onTabChange('stock', 'incoming-stock');
+        break;
+      case 'Fulfilment Risk':
+        onTabChange('fulfilment');
+        break;
+      default:
+        resolveAlert(alt.id);
+        toast.success(`Action initiated for ${alt.entityId}`);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <WarehouseKPICards />
+      {/* 8 Metric KPI Cards with Clickable Drill-down */}
+      <WarehouseKPICards onDrillDown={onTabChange} />
 
-      {/* Action shortcuts bar */}
+      {/* Quick Operations Bar (Real Actions) */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-card rounded-xl border">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -81,57 +143,69 @@ export function OverviewTab({
           <Button size="sm" variant="outline" onClick={onOpenTransfer} className="gap-1.5 text-xs">
             <RotateCcw className="h-3.5 w-3.5" /> Transfer Stock
           </Button>
+          <Button size="sm" variant="secondary" onClick={() => onOpenAdjust()} className="gap-1.5 text-xs">
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Stock Adjustment
+          </Button>
         </div>
       </div>
 
-      {/* Critical Stock & Active Alerts Grid */}
+      {/* Delays & Alerts + Regional Warehouses */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Urgent Alerts */}
+        {/* Operational Delays & Critical Alerts */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
                 Operational Delays & Critical Alerts
               </CardTitle>
-              <CardDescription>Actionable exceptions requiring supply chain resolution</CardDescription>
+              <CardDescription>
+                Auto-detected supply chain blockers across procurement, factories, QC, and stock
+              </CardDescription>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-primary gap-1"
-              onClick={() => onTabChange('delays-alerts')}
-            >
-              View All ({activeAlerts.length}) <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+            <Badge variant="outline" className="text-xs font-mono text-destructive border-destructive/30">
+              {activeAlerts.length} Active
+            </Badge>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activeAlerts.slice(0, 3).map((alt) => (
+            {activeAlerts.slice(0, 4).map((alt) => (
               <div
                 key={alt.id}
-                className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-1 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Badge
                       variant={alt.severity === 'critical' ? 'destructive' : 'secondary'}
                       className="text-[10px] px-1.5 py-0"
                     >
                       {alt.type}
                     </Badge>
-                    <span className="text-xs font-semibold">{alt.title}</span>
+                    <span className="font-semibold text-xs text-foreground truncate">
+                      {alt.product}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      Ref: {alt.entityId}
+                    </span>
+                    {alt.daysDelayed > 0 && (
+                      <span className="text-[10px] font-bold text-destructive">
+                        +{alt.daysDelayed}d delayed
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{alt.description}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{alt.reason}</p>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Owner: <span className="font-medium text-foreground">{alt.responsibleParty}</span> • Reported {alt.createdTime}
+                  </p>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className="text-[11px] text-muted-foreground block">{alt.timestamp}</span>
+                <div className="flex items-center gap-2 shrink-0">
                   <Button
-                    variant="link"
                     size="sm"
-                    className="h-auto p-0 text-xs font-medium text-primary"
-                    onClick={() => onTabChange('delays-alerts')}
+                    variant="outline"
+                    className="h-8 text-xs font-medium gap-1 text-primary hover:text-primary"
+                    onClick={() => handleAlertAction(alt)}
                   >
-                    {alt.actionText}
+                    {alt.recommendedAction} <ExternalLink className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -139,32 +213,60 @@ export function OverviewTab({
           </CardContent>
         </Card>
 
-        {/* Warehouse Network Distribution */}
+        {/* Regional Warehouses (Interactive: Clickable to view details) */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
+              <Building className="h-4 w-4 text-primary" />
               Regional Warehouses
             </CardTitle>
-            <CardDescription>Live capacity & distribution</CardDescription>
+            <CardDescription>Live facility capacity & allocation</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {warehouseStats.map((wh) => (
-              <div key={wh.name} className="p-3 rounded-lg border bg-muted/20 space-y-2">
+            {regionalWarehouses.map((wh) => (
+              <div
+                key={wh.name}
+                onClick={() => onTabChange('stock', 'warehouse-wise')}
+                className="p-3.5 rounded-lg border bg-muted/20 hover:border-primary/50 hover:bg-muted/40 cursor-pointer transition-all space-y-2.5 group"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold">{wh.name}</p>
+                    <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
+                      {wh.name}
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </p>
                     <p className="text-[11px] text-muted-foreground">{wh.location}</p>
                   </div>
-                  <Badge variant="outline" className="text-[10px]">
-                    {wh.capacity} Full
+                  <Badge variant="outline" className="text-[10px] font-mono">
+                    {wh.capacityUtilization}% Full
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t">
-                  <span>In-Hand Units:</span>
-                  <span className="font-mono font-bold text-foreground">
-                    {wh.stock.toLocaleString()}
-                  </span>
+
+                <div className="grid grid-cols-4 gap-1 text-[11px] pt-2 border-t border-border/60">
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">In-Hand</span>
+                    <span className="font-mono font-bold text-foreground">
+                      {formatNumber(wh.stockInHand)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Available</span>
+                    <span className="font-mono font-semibold text-green-600 dark:text-green-400">
+                      {formatNumber(wh.availableStock)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Reserved</span>
+                    <span className="font-mono text-muted-foreground">
+                      {formatNumber(wh.reservedStock)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Incoming</span>
+                    <span className="font-mono text-blue-600 dark:text-blue-400">
+                      +{formatNumber(wh.incomingStock)}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -172,22 +274,24 @@ export function OverviewTab({
         </Card>
       </div>
 
-      {/* Stock Health & Recent Audit Log */}
+      {/* Low Stock Watchlist & Recent Movements */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Critical / Low Stock Watchlist */}
+        {/* Low Stock Watchlist */}
         <Card>
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-base font-semibold">Low Stock Watchlist</CardTitle>
-              <CardDescription>Items near or below reorder threshold</CardDescription>
+              <CardDescription>
+                Triggered automatically when Available ≤ Reorder Level or Available = 0
+              </CardDescription>
             </div>
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-primary gap-1"
-              onClick={() => onTabChange('stock')}
+              onClick={() => onTabChange('stock', 'stock-in-hand')}
             >
-              Manage Stock <ArrowRight className="h-3.5 w-3.5" />
+              Full Inventory <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -198,37 +302,52 @@ export function OverviewTab({
                     <TableHead>Product / SKU</TableHead>
                     <TableHead>Warehouse</TableHead>
                     <TableHead className="text-right">Available</TableHead>
+                    <TableHead className="text-right">Reorder</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {criticalStock.length > 0 ? (
-                    criticalStock.map((item) => (
+                  {lowStockWatchlist.length > 0 ? (
+                    lowStockWatchlist.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <div className="font-medium text-xs">{item.product}</div>
-                          <div className="text-[10px] font-mono text-muted-foreground">
-                            {item.sku}
-                          </div>
+                          <div className="font-medium text-xs text-foreground">{item.product}</div>
+                          <div className="text-[10px] font-mono text-muted-foreground">{item.sku}</div>
                         </TableCell>
-                        <TableCell className="text-xs">{item.warehouse}</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-xs text-destructive">
-                          {item.available}
+                        <TableCell className="text-xs whitespace-nowrap">{item.warehouse}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-xs">
+                          <span className={item.available === 0 ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'}>
+                            {item.available}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                          {item.reorderLevel}
                         </TableCell>
                         <TableCell>
                           <Badge
                             variant={item.status === 'Out of Stock' ? 'destructive' : 'outline'}
-                            className="text-[10px] text-destructive border-destructive/30"
+                            className={`text-[10px] ${item.status === 'Low Stock' ? 'text-amber-600 border-amber-500/30' : ''}`}
                           >
                             {item.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={onOpenProcurement}
+                          >
+                            Procure
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-xs text-muted-foreground h-16">
-                        All SKUs are above reorder threshold.
+                      <TableCell colSpan={6} className="text-center text-xs text-muted-foreground h-16">
+                        All SKUs are healthy and above reorder threshold.
                       </TableCell>
                     </TableRow>
                   )}
@@ -238,20 +357,20 @@ export function OverviewTab({
           </CardContent>
         </Card>
 
-        {/* Recent Stock Movements */}
+        {/* Recent Movements (Green positive, Red negative) */}
         <Card>
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base font-semibold">Recent Movements</CardTitle>
-              <CardDescription>Inbound receipts, dispatches, and transfers</CardDescription>
+              <CardTitle className="text-base font-semibold">Recent Stock Movements</CardTitle>
+              <CardDescription>Live audit entries of receipts, reservations, and dispatches</CardDescription>
             </div>
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-primary gap-1"
-              onClick={() => onTabChange('stock-movements')}
+              onClick={() => onTabChange('stock', 'stock-movements')}
             >
-              Full Audit Log <ArrowRight className="h-3.5 w-3.5" />
+              Audit Trail <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </CardHeader>
           <CardContent>
@@ -260,35 +379,48 @@ export function OverviewTab({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
+                    <TableHead>Date/Time</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead className="text-right">Qty</TableHead>
                     <TableHead className="text-right">New Level</TableHead>
+                    <TableHead>Ref ID</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentMovements.map((mov) => (
-                    <TableRow key={mov.id}>
-                      <TableCell>
-                        <div className="font-medium text-xs truncate max-w-[150px]">{mov.product}</div>
-                        <div className="text-[10px] text-muted-foreground">{mov.dateTime}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[10px]">
-                          {mov.movementType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-mono font-semibold text-xs">
-                        {mov.qtyIn > 0 ? (
-                          <span className="text-green-600 dark:text-green-400">+{mov.qtyIn}</span>
-                        ) : (
-                          <span className="text-destructive">-{mov.qtyOut}</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs font-medium">
-                        {mov.newStock}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {recentMovements.map((mov) => {
+                    const isPositive = mov.qtyIn > 0;
+                    return (
+                      <TableRow key={mov.id}>
+                        <TableCell>
+                          <div className="font-medium text-xs truncate max-w-[130px] text-foreground">
+                            {mov.product}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">{mov.warehouse}</div>
+                        </TableCell>
+                        <TableCell className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {mov.dateTime}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px]">
+                            {mov.movementType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-bold text-xs">
+                          {isPositive ? (
+                            <span className="text-green-600 dark:text-green-400">+{mov.qtyIn}</span>
+                          ) : (
+                            <span className="text-destructive">-{mov.qtyOut || mov.quantity}</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-xs font-semibold">
+                          {mov.newStock}
+                        </TableCell>
+                        <TableCell className="font-mono text-[10px] text-muted-foreground">
+                          {mov.referenceId}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

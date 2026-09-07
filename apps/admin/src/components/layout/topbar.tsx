@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/stores/auth';
+import { useWarehouseStore } from '@/stores/warehouse';
 import { getInitials } from '@/lib/utils';
 
 interface TopbarProps {
@@ -42,6 +43,7 @@ interface TopbarProps {
 
 export function Topbar({ onToggleSidebar }: TopbarProps) {
   const { user, logout } = useAuthStore();
+  const { alerts: warehouseAlerts, resolveAlert } = useWarehouseStore();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const queryClient = useQueryClient();
@@ -55,6 +57,29 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
     refetchInterval: 60000, // Poll every minute
   });
 
+  const activeWarehouseAlerts = useMemo(() => {
+    return warehouseAlerts
+      .filter((alt) => !alt.resolved)
+      .map((alt) => ({
+        _id: alt.id,
+        title: `${alt.type}: ${alt.product}`,
+        message: `${alt.reason} • Action: ${alt.recommendedAction}`,
+        severity: alt.severity,
+        createdAt: new Date().toISOString(),
+        isWarehouse: true,
+        metadata: {
+          alertState: alt.severity === 'critical' ? 'CRITICAL' : 'WARNING',
+          type: alt.type,
+          entityId: alt.entityId,
+        },
+      }));
+  }, [warehouseAlerts]);
+
+  const allNotifications = useMemo(() => {
+    const apiNotifs = notifications || [];
+    return [...activeWarehouseAlerts, ...apiNotifs];
+  }, [notifications, activeWarehouseAlerts]);
+
   const markAsRead = useMutation({
     mutationFn: (id: string) => notificationsApi.markAsRead(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
@@ -66,6 +91,11 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
   });
 
   const handleNotificationClick = (notif: any) => {
+    if (notif.isWarehouse) {
+      resolveAlert(notif._id);
+      router.push('/warehouse');
+      return;
+    }
     markAsRead.mutate(notif._id);
     if (notif.type === 'inventory_alert') {
       if (notif.metadata?.alertState === 'Out of Stock') {
@@ -123,22 +153,29 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-4 w-4" />
-                {notifications?.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
+                {allNotifications.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
                 )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 p-0">
               <div className="flex items-center justify-between px-4 py-3 border-b">
-                <h4 className="font-semibold text-sm">Notifications</h4>
-                {notifications?.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-sm">Notifications</h4>
+                  {allNotifications.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-mono">
+                      {allNotifications.length}
+                    </Badge>
+                  )}
+                </div>
+                {allNotifications.length > 0 && (
                   <Button variant="ghost" size="sm" onClick={() => markAllAsRead.mutate()} className="h-auto px-2 py-1 text-xs">
                     Mark all as read
                   </Button>
                 )}
               </div>
               <ScrollArea className="h-[300px]">
-                {notifications?.length === 0 ? (
+                {allNotifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <Bell className="h-8 w-8 text-muted-foreground/50 mb-2" />
                     <p className="text-sm font-medium">All caught up!</p>
@@ -146,7 +183,7 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
                   </div>
                 ) : (
                   <div className="flex flex-col">
-                    {notifications?.map((notif: any) => (
+                    {allNotifications.map((notif: any) => (
                       <button
                         key={notif._id}
                         onClick={() => handleNotificationClick(notif)}

@@ -29,89 +29,85 @@ export function AdjustStockDialog({
   const { adjustStock } = useWarehouseStore();
 
   const [onHandInput, setOnHandInput] = useState(0);
-  const [holdInput, setHoldInput] = useState(0);
-  const [reason, setReason] = useState('Periodic physical audit count');
+  const [reason, setReason] = useState('Periodic physical inventory audit');
 
   useEffect(() => {
     if (selectedStockItem) {
       setOnHandInput(selectedStockItem.stockInHand);
-      setHoldInput(selectedStockItem.hold);
     }
   }, [selectedStockItem, open]);
 
   const handleSave = () => {
     if (!selectedStockItem) return;
 
-    adjustStock(selectedStockItem.id, onHandInput, holdInput, reason);
-    toast.success('Stock levels and availability recalculated');
+    adjustStock(selectedStockItem.id, onHandInput, reason);
+    toast.success(`Adjusted ${selectedStockItem.product} stock to ${onHandInput} units. Stock movement audit entry logged.`);
     onOpenChange(false);
   };
 
-  const calculatedAvailable = Math.max(
-    0,
-    onHandInput - (selectedStockItem?.reserved || 0) - holdInput
-  );
+  const currentOnHand = selectedStockItem?.stockInHand || 0;
+  const reserved = selectedStockItem?.reserved || 0;
+  const calculatedAvailable = Math.max(0, onHandInput - reserved);
+  const difference = onHandInput - currentOnHand;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <DialogTitle>Adjust Stock & Hold</DialogTitle>
+          <DialogTitle>Adjust Stock Level</DialogTitle>
           <DialogDescription>
-            Update physical count for <span className="font-semibold">{selectedStockItem?.product}</span> (SKU: {selectedStockItem?.sku}) at <span className="font-semibold">{selectedStockItem?.warehouse}</span>.
+            Record physical inventory adjustment for <span className="font-semibold text-foreground">{selectedStockItem?.product}</span> ({selectedStockItem?.sku}) at <span className="font-semibold text-foreground">{selectedStockItem?.warehouse}</span>.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="p-3 bg-muted/40 rounded-md border text-xs space-y-1.5">
+        <div className="space-y-4 py-3">
+          <div className="p-3 bg-muted/40 rounded-lg border text-xs space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Current Stock in Hand:</span>
+              <span className="font-mono font-semibold">{currentOnHand} units</span>
+            </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Reserved for Orders:</span>
-              <span className="font-mono font-semibold">{selectedStockItem?.reserved || 0} units</span>
+              <span className="font-mono font-semibold text-amber-500">{reserved} units</span>
             </div>
-            <div className="flex justify-between text-primary font-medium">
+            <div className="flex justify-between text-muted-foreground text-[11px] pt-0.5">
               <span>Formula:</span>
-              <span>Available = Stock-in-Hand - Reserved - Hold</span>
+              <span className="font-medium text-foreground">Available = Stock-in-Hand - Reserved</span>
             </div>
-            <div className="flex justify-between font-bold pt-1 border-t">
-              <span>Resulting Available:</span>
-              <span className="font-mono text-sm text-foreground">{calculatedAvailable} units</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="stock-on-hand">Physical Stock-in-Hand</Label>
-              <Input
-                id="stock-on-hand"
-                type="number"
-                min="0"
-                value={onHandInput}
-                onChange={(e) => setOnHandInput(parseInt(e.target.value, 10) || 0)}
-              />
-              <p className="text-[10px] text-muted-foreground">Total units in warehouse</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="stock-hold">Hold / Damaged</Label>
-              <Input
-                id="stock-hold"
-                type="number"
-                min="0"
-                value={holdInput}
-                onChange={(e) => setHoldInput(parseInt(e.target.value, 10) || 0)}
-              />
-              <p className="text-[10px] text-muted-foreground">Quarantined from sale</p>
+            <div className="flex justify-between font-bold pt-1.5 border-t">
+              <span>Resulting Available Stock:</span>
+              <span className={`font-mono text-sm ${calculatedAvailable <= 0 ? 'text-rose-500' : 'text-emerald-400'}`}>
+                {calculatedAvailable} units
+              </span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="adjust-reason">Reason for Adjustment</Label>
+            <Label htmlFor="stock-on-hand">New Counted Stock-in-Hand</Label>
+            <Input
+              id="stock-on-hand"
+              type="number"
+              min="0"
+              value={onHandInput}
+              onChange={(e) => setOnHandInput(Math.max(0, parseInt(e.target.value, 10) || 0))}
+            />
+            <div className="flex justify-between text-[11px] text-muted-foreground">
+              <span>Physical count in warehouse</span>
+              <span className={`font-medium ${difference > 0 ? 'text-emerald-400' : difference < 0 ? 'text-rose-400' : 'text-muted-foreground'}`}>
+                {difference > 0 ? `+${difference}` : difference} units difference
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="adjust-reason">Reason for Adjustment / Audit Reference</Label>
             <Input
               id="adjust-reason"
-              placeholder="e.g. Physical inventory audit discrepancy"
+              placeholder="e.g. Physical inventory cycle count / Damaged goods written off"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
+            <p className="text-[10px] text-muted-foreground">An immutable stock movement and audit trail entry will be recorded.</p>
           </div>
         </div>
 
@@ -119,7 +115,9 @@ export function AdjustStockDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Adjustment</Button>
+          <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            Save Adjustment & Log Audit
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

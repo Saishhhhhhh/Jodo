@@ -1,26 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   CheckCircle2,
   Clock,
   Factory,
   Search,
-  ArrowRight,
   TrendingUp,
   AlertTriangle,
+  ArrowRight,
   Layers,
 } from 'lucide-react';
-import { useWarehouseStore, ProductionTrackingItem } from '@/stores/warehouse';
+import { useWarehouseStore, ProductionTrackingItem, ProductionTrackingStageName } from '@/stores/warehouse';
 import { formatNumber } from '@/lib/utils';
 import { toast } from 'sonner';
 
+const STAGES_ORDER: ProductionTrackingStageName[] = [
+  'Scheduled',
+  'Materials Allocated',
+  'Production Started',
+  'In Production',
+  'Production Completed',
+  'Quality Check',
+  'Ready for Stock-In',
+];
+
 export function ProductionTrackingTab() {
-  const { productionTracking, updateProductionProgress } = useWarehouseStore();
+  const { productionTracking, updateProductionStage } = useWarehouseStore();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredData = productionTracking.filter(
@@ -30,20 +39,18 @@ export function ProductionTrackingTab() {
       item.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleQuickAddOutput = (item: ProductionTrackingItem) => {
-    const input = window.prompt(
-      `Log produced units for ${item.orderId} (${item.product}):\nCurrent produced: ${item.produced} / ${item.ordered}\nEnter batch increment quantity:`,
-      '100'
-    );
-    if (!input) return;
-    const addQty = parseInt(input, 10);
-    if (isNaN(addQty) || addQty <= 0) {
-      toast.error('Please enter a valid quantity');
-      return;
+  const handleQuickAdvance = (item: ProductionTrackingItem) => {
+    const currentIndex = STAGES_ORDER.indexOf(item.currentStage);
+    if (currentIndex < STAGES_ORDER.length - 1) {
+      const nextStage = STAGES_ORDER[currentIndex + 1];
+      const newQty = nextStage === 'Production Completed' || nextStage === 'Quality Check'
+        ? item.orderedQty
+        : Math.round(item.orderedQty * ((currentIndex + 1) / (STAGES_ORDER.length - 1)));
+      updateProductionStage(item.orderId, nextStage, newQty);
+      toast.success(`Advanced ${item.orderId} to stage: ${nextStage}`);
+    } else {
+      toast.info('Order has reached final Ready for Stock-In stage');
     }
-    const total = Math.min(item.ordered, item.produced + addQty);
-    updateProductionProgress(item.orderId, total);
-    toast.success(`Logged ${addQty} units for ${item.orderId}`);
   };
 
   return (
@@ -60,140 +67,187 @@ export function ProductionTrackingTab() {
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
-        <span className="text-xs text-muted-foreground">
-          {filteredData.length} production orders actively tracked
-        </span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="h-2 w-2 rounded-full bg-green-500" /> Live Visual Tracking Pipeline (7 Stages)
+        </div>
       </div>
 
       {/* Visual Tracking Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredData.map((item) => (
-          <Card key={item.id} className="overflow-hidden border">
-            <CardHeader className="pb-3 bg-muted/20 border-b">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-foreground">
-                      Production Order: {item.orderId}
-                    </span>
-                    <Badge variant="outline" className="text-[10px]">
-                      {item.currentStage}
-                    </Badge>
-                  </div>
-                  <h3 className="font-semibold text-sm text-foreground mt-1">{item.product}</h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                    <Factory className="h-3.5 w-3.5" />
-                    {item.manufacturer}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-bold font-mono text-primary">
-                    {item.productionPercent}%
-                  </span>
-                  <span className="text-[10px] text-muted-foreground block">Completed</span>
-                </div>
-              </div>
-            </CardHeader>
+        {filteredData.map((item) => {
+          const currentStageIdx = STAGES_ORDER.indexOf(item.currentStage);
 
-            <CardContent className="p-5 space-y-4">
-              {/* Progress metrics row */}
-              <div className="grid grid-cols-3 gap-3 p-3 bg-muted/40 rounded-lg border text-center">
-                <div>
-                  <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider block">
-                    Ordered
-                  </span>
-                  <span className="text-base font-bold font-mono text-foreground">
-                    {formatNumber(item.ordered)}
-                  </span>
-                </div>
-                <div className="border-x border-border/50">
-                  <span className="text-[10px] uppercase font-semibold text-green-600 dark:text-green-400 tracking-wider block">
-                    Produced
-                  </span>
-                  <span className="text-base font-bold font-mono text-green-600 dark:text-green-400">
-                    {formatNumber(item.produced)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider block">
-                    Remaining
-                  </span>
-                  <span className="text-base font-bold font-mono text-foreground">
-                    {formatNumber(item.remaining)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground font-medium flex items-center gap-1">
-                    <Layers className="h-3.5 w-3.5" /> Stage Status:
-                    <span className="text-foreground font-semibold ml-1">{item.currentStatus}</span>
-                  </span>
-                  <span className="font-mono text-muted-foreground">
-                    Est: {item.expectedDate}
-                  </span>
-                </div>
-                <div className="w-full bg-secondary h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-primary h-full rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, Math.max(0, item.productionPercent))}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Milestone Stage Stepper */}
-              <div className="space-y-2 pt-1 border-t">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                  Production Pipeline:
-                </span>
-                <div className="space-y-1.5">
-                  {item.stages.map((stg, sIdx) => (
-                    <div
-                      key={sIdx}
-                      className="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        {stg.completed ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
-                        ) : stg.current ? (
-                          <Clock className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
-                        ) : (
-                          <span className="h-2 w-2 rounded-full bg-muted-foreground/30 ml-0.5 mr-1" />
-                        )}
-                        <span
-                          className={
-                            stg.completed
-                              ? 'text-muted-foreground line-through'
-                              : stg.current
-                              ? 'font-semibold text-foreground'
-                              : 'text-muted-foreground'
-                          }
-                        >
-                          {stg.name}
+          return (
+            <Card key={item.id} className="overflow-hidden border bg-card">
+              <CardHeader className="pb-3 bg-muted/20 border-b">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-sm text-foreground">
+                        {item.orderId}
+                      </span>
+                      <Badge
+                        variant={item.delayDays > 0 ? 'destructive' : 'outline'}
+                        className="text-[10px]"
+                      >
+                        {item.currentStage}
+                      </Badge>
+                      {item.delayDays > 0 && (
+                        <span className="text-[10px] text-destructive font-semibold flex items-center gap-0.5">
+                          <AlertTriangle className="h-3 w-3" /> +{item.delayDays}d Delay
                         </span>
-                      </div>
-                      <span className="text-[11px] font-mono text-muted-foreground">{stg.date}</span>
+                      )}
                     </div>
-                  ))}
+                    <h3 className="font-semibold text-sm text-foreground mt-1">{item.product}</h3>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                      <Factory className="h-3.5 w-3.5" />
+                      {item.manufacturer}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold font-mono text-primary">
+                      {item.progress}%
+                    </span>
+                    <span className="text-[10px] text-muted-foreground block">Overall Progress</span>
+                  </div>
                 </div>
-              </div>
+              </CardHeader>
 
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs gap-1"
-                  onClick={() => handleQuickAddOutput(item)}
-                >
-                  <TrendingUp className="h-3.5 w-3.5" /> Log Batch Output
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              <CardContent className="p-5 space-y-4">
+                {/* Metrics Row */}
+                <div className="grid grid-cols-4 gap-2 p-2.5 bg-muted/40 rounded-lg border text-center font-mono">
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-muted-foreground tracking-wider block">
+                      Ordered
+                    </span>
+                    <span className="text-sm font-bold text-foreground">
+                      {formatNumber(item.orderedQty)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-green-600 dark:text-green-400 tracking-wider block">
+                      Completed
+                    </span>
+                    <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                      {formatNumber(item.completedQty)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-muted-foreground tracking-wider block">
+                      Remaining
+                    </span>
+                    <span className="text-sm font-bold text-foreground">
+                      {formatNumber(item.orderedQty - item.completedQty)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase font-semibold text-muted-foreground tracking-wider block">
+                      Est. Due
+                    </span>
+                    <span className="text-xs font-semibold text-foreground whitespace-nowrap block pt-0.5">
+                      {item.expectedCompletion}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar with current status banner */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Layers className="h-3.5 w-3.5 text-primary" /> Current Stage:
+                      <span className="font-semibold text-foreground ml-1">{item.currentStage}</span>
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      Started: {item.startDate}
+                    </span>
+                  </div>
+                  <div className="w-full bg-secondary h-2.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        item.delayDays > 0 ? 'bg-amber-500' : 'bg-primary'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.max(0, item.progress))}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* 7-Stage Visual Pipeline Stepper */}
+                <div className="space-y-2 pt-1 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      7-Stage Supply Pipeline:
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      Stage {currentStageIdx + 1} of 7
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {STAGES_ORDER.map((stageName, sIdx) => {
+                      const isCompleted = sIdx < currentStageIdx;
+                      const isCurrent = sIdx === currentStageIdx;
+
+                      return (
+                        <div
+                          key={stageName}
+                          className={`flex items-center justify-between text-xs py-1 px-2.5 rounded transition-colors ${
+                            isCurrent
+                              ? 'bg-primary/10 border border-primary/20'
+                              : 'hover:bg-muted/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {isCompleted ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0" />
+                            ) : isCurrent ? (
+                              <Clock className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
+                            ) : (
+                              <span className="h-2 w-2 rounded-full bg-muted-foreground/30 ml-0.5 mr-1" />
+                            )}
+                            <span
+                              className={
+                                isCompleted
+                                  ? 'text-muted-foreground line-through'
+                                  : isCurrent
+                                  ? 'font-bold text-foreground'
+                                  : 'text-muted-foreground'
+                              }
+                            >
+                              {stageName}
+                            </span>
+                          </div>
+                          {isCurrent && (
+                            <Badge variant="outline" className="text-[9px] font-semibold text-primary border-primary/30">
+                              Active
+                            </Badge>
+                          )}
+                          {isCompleted && (
+                            <span className="text-[10px] text-green-600 dark:text-green-400 font-mono">Done</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-between pt-2 border-t text-xs">
+                  <span className="text-[11px] text-muted-foreground">
+                    Status: <span className="font-medium text-foreground">{item.status}</span>
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1.5"
+                    onClick={() => handleQuickAdvance(item)}
+                  >
+                    <TrendingUp className="h-3 w-3" /> Advance Stage
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

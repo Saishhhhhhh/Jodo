@@ -38,7 +38,7 @@ export function AddManufacturerDrawer({ open, onOpenChange }: AddManufacturerDra
   const [capacity, setCapacity] = useState('');
   const [leadTime, setLeadTime] = useState('14 days');
   const [qualityRating, setQualityRating] = useState('4.8');
-  const [status, setStatus] = useState<'Active' | 'Under Audit' | 'Inactive'>('Active');
+  const [status, setStatus] = useState<'Active' | 'At Capacity' | 'Temporarily Unavailable' | 'Inactive'>('Active');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,16 +53,18 @@ export function AddManufacturerDrawer({ open, onOpenChange }: AddManufacturerDra
       phone: phone || '+91 98000 00000',
       email: email || 'vendor@example.com',
       location,
-      products: productsStr
+      productCategories: productsStr
         ? productsStr.split(',').map((p) => p.trim())
         : ['Apparel', 'Fabrics'],
-      capacity: capacity || '50,000 units/mo',
-      leadTime: leadTime || '14 days',
-      qualityRating: parseFloat(qualityRating) || 4.5,
+      productionCapacity: capacity || '50,000 units/mo',
+      currentUtilization: 45,
+      averageLeadTime: leadTime || '14 days',
+      qualityRating: parseFloat(qualityRating) || 4.8,
+      onTimeDeliveryRate: 96.0,
       status,
     });
 
-    toast.success('Manufacturer onboarded successfully');
+    toast.success('Contract manufacturer onboarded successfully');
     onOpenChange(false);
 
     setName('');
@@ -193,7 +195,8 @@ export function AddManufacturerDrawer({ open, onOpenChange }: AddManufacturerDra
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Under Audit">Under Audit</SelectItem>
+                  <SelectItem value="At Capacity">At Capacity</SelectItem>
+                  <SelectItem value="Temporarily Unavailable">Temporarily Unavailable</SelectItem>
                   <SelectItem value="Inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>

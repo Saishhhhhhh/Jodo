@@ -29,31 +29,31 @@ interface RecordQCDrawerProps {
 }
 
 export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawerProps) {
-  const { qualityChecks, recordQC } = useWarehouseStore();
+  const { qualityChecks, recordQualityCheck } = useWarehouseStore();
 
   const [qcId, setQcId] = useState('');
   const [passed, setPassed] = useState('0');
   const [failed, setFailed] = useState('0');
-  const [damaged, setDamaged] = useState('0');
   const [inspector, setInspector] = useState('Rahul Sharma');
+  const [defectType, setDefectType] = useState<QualityCheckItem['defectType']>('None');
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (selectedQC) {
       setQcId(selectedQC.id);
-      setPassed(selectedQC.passed.toString());
-      setFailed(selectedQC.failed.toString());
-      setDamaged(selectedQC.damaged.toString());
+      setPassed(selectedQC.passedQuantity.toString());
+      setFailed(selectedQC.failedQuantity.toString());
       setInspector(selectedQC.inspector || 'Rahul Sharma');
-      setNotes(selectedQC.notes || '');
+      setDefectType(selectedQC.defectType || 'None');
+      setNotes(selectedQC.defectNotes || '');
     } else if (qualityChecks.length > 0) {
       const first = qualityChecks[0];
       setQcId(first.id);
-      setPassed(first.passed.toString());
-      setFailed(first.failed.toString());
-      setDamaged(first.damaged.toString());
+      setPassed(first.passedQuantity.toString());
+      setFailed(first.failedQuantity.toString());
       setInspector(first.inspector || 'Rahul Sharma');
-      setNotes(first.notes || '');
+      setDefectType(first.defectType || 'None');
+      setNotes(first.defectNotes || '');
     }
   }, [selectedQC, qualityChecks, open]);
 
@@ -66,16 +66,21 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
       return;
     }
 
-    recordQC({
+    const pQty = parseInt(passed, 10) || 0;
+    const fQty = parseInt(failed, 10) || 0;
+
+    recordQualityCheck({
       qcId,
-      passed: parseInt(passed, 10) || 0,
-      failed: parseInt(failed, 10) || 0,
-      damaged: parseInt(damaged, 10) || 0,
+      passedQuantity: pQty,
+      failedQuantity: fQty,
       inspector,
-      notes,
+      defectType,
+      defectNotes: notes,
     });
 
-    toast.success('Quality check recorded and inventory updated');
+    toast.success(
+      `Quality inspection recorded. ${pQty} approved units credited to stock. ${fQty} failed units quarantined.`
+    );
     onOpenChange(false);
   };
 
@@ -85,13 +90,13 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
         <SheetHeader>
           <SheetTitle>Record Quality Inspection</SheetTitle>
           <SheetDescription>
-            Inspect batch quality, record passed/failed units, and credit approved items to inventory.
+            Inspect batch quality against tolerance standards. Only QC-approved units will move into sellable stock.
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4 py-4 text-xs">
           <div className="space-y-1.5">
-            <Label htmlFor="qc-select">Select Inspection Batch *</Label>
+            <Label htmlFor="qc-select">Inspection Batch *</Label>
             <Select value={qcId} onValueChange={setQcId}>
               <SelectTrigger id="qc-select">
                 <SelectValue placeholder="Choose QC record" />
@@ -99,7 +104,7 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
               <SelectContent>
                 {qualityChecks.map((q) => (
                   <SelectItem key={q.id} value={q.id}>
-                    {q.id} — {q.product} ({q.received} units)
+                    {q.id} — {q.product} ({q.batchNumber})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -113,6 +118,10 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
                 <span className="font-semibold text-foreground">{currentItem.product}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-muted-foreground">Batch Number:</span>
+                <span className="font-mono">{currentItem.batchNumber}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-muted-foreground">Production Order:</span>
                 <span className="font-mono">{currentItem.productionOrder}</span>
               </div>
@@ -120,16 +129,18 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
                 <span className="text-muted-foreground">Manufacturer:</span>
                 <span>{currentItem.manufacturer}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Received:</span>
-                <span className="font-bold">{currentItem.received} units</span>
+              <div className="flex justify-between font-bold pt-1 border-t text-foreground">
+                <span>Quantity to Inspect:</span>
+                <span>{currentItem.quantityInspected} units</span>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="qc-passed" className="text-green-600 dark:text-green-400">Passed *</Label>
+              <Label htmlFor="qc-passed" className="text-green-600 dark:text-green-400">
+                Passed Quantity *
+              </Label>
               <Input
                 id="qc-passed"
                 type="number"
@@ -138,9 +149,13 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
                 onChange={(e) => setPassed(e.target.value)}
                 required
               />
+              <p className="text-[10px] text-muted-foreground">Will move to available stock</p>
             </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="qc-failed" className="text-amber-600 dark:text-amber-400">Failed</Label>
+              <Label htmlFor="qc-failed" className="text-destructive">
+                Failed Quantity
+              </Label>
               <Input
                 id="qc-failed"
                 type="number"
@@ -148,17 +163,25 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
                 value={failed}
                 onChange={(e) => setFailed(e.target.value)}
               />
+              <p className="text-[10px] text-muted-foreground">Quarantined from inventory</p>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="qc-damaged" className="text-destructive">Damaged</Label>
-              <Input
-                id="qc-damaged"
-                type="number"
-                min="0"
-                value={damaged}
-                onChange={(e) => setDamaged(e.target.value)}
-              />
-            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="qc-defect-type">Defect Classification</Label>
+            <Select value={defectType} onValueChange={(val: any) => setDefectType(val)}>
+              <SelectTrigger id="qc-defect-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="None">None (Zero Defect)</SelectItem>
+                <SelectItem value="Stitching & Seam">Stitching & Seam</SelectItem>
+                <SelectItem value="Color Mismatch">Color Mismatch / Shading</SelectItem>
+                <SelectItem value="Sizing & Dimensions">Sizing & Dimensions</SelectItem>
+                <SelectItem value="Fabric Flaw">Fabric Flaw / Pilling</SelectItem>
+                <SelectItem value="Hardware Issue">Hardware Issue (Zipper/Buttons)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
@@ -172,10 +195,10 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="qc-notes">Inspection Observations & Findings</Label>
+            <Label htmlFor="qc-notes">Defect Notes & Observations</Label>
             <Textarea
               id="qc-notes"
-              placeholder="e.g. Seam stitching tension verified. Color fastness approved against Pantone standards."
+              placeholder="e.g. 40 units failed due to double-needle hem skipping on waistband."
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

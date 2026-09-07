@@ -2,51 +2,92 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface ProcurementItem {
-  id: string;
+  id: string; // e.g. PRC-2026-089
   supplier: string;
   product: string;
   sku: string;
-  quantity: number;
-  received: number;
-  pending: number;
-  expectedDelivery: string;
-  warehouse: string;
-  amount: number;
-  status: 'In Transit' | 'Partially Received' | 'Delivered' | 'Pending Approval' | 'Delayed';
+  category: 'Raw Materials' | 'Finished Goods' | 'Packaging' | 'Hardware & Trims';
+  quantityOrdered: number;
+  quantityReceived: number;
+  unitCost: number;
+  totalCost: number;
+  purchaseOrderNumber: string;
+  orderDate: string;
+  expectedDeliveryDate: string;
+  actualDeliveryDate?: string;
+  destinationWarehouse: string;
+  procurementOwner: string;
+  status:
+    | 'Draft'
+    | 'PO Raised'
+    | 'Confirmed'
+    | 'In Transit'
+    | 'Partially Received'
+    | 'Received'
+    | 'Delayed'
+    | 'Cancelled';
+  notes?: string;
 }
 
 export interface ManufacturerItem {
-  id: string;
+  id: string; // e.g. MFG-001
   name: string;
   contactPerson: string;
   phone: string;
   email: string;
   location: string;
-  products: string[];
-  capacity: string;
-  leadTime: string;
-  qualityRating: number;
-  activeOrders: number;
-  delayedOrders: number;
-  status: 'Active' | 'Under Audit' | 'Inactive';
+  productCategories: string[];
+  activeProductionOrders: number;
+  completedOrdersCount: number;
+  delayedOrdersCount: number;
+  productionCapacity: string;
+  currentUtilization: number; // e.g. 78%
+  averageLeadTime: string; // e.g. 14 days
+  qualityRating: number; // e.g. 4.8
+  onTimeDeliveryRate: number; // e.g. 96.5%
+  status: 'Active' | 'At Capacity' | 'Temporarily Unavailable' | 'Inactive';
 }
 
 export interface ProductionOrderItem {
-  id: string;
+  id: string; // e.g. PRD-2026-001
   product: string;
   sku: string;
   manufacturer: string;
-  orderedQty: number;
-  producedQty: number;
-  remaining: number;
-  qcPassed: number;
-  expectedCompletion: string;
+  quantity: number;
+  completedQuantity: number;
+  rawMaterialRequirement: string;
+  plannedStartDate: string;
+  plannedCompletionDate: string;
+  actualStartDate?: string;
+  actualCompletionDate?: string;
+  priority: 'Critical' | 'High' | 'Medium' | 'Low';
+  destinationWarehouse: string;
+  assignedManager: string;
   progress: number;
-  status: 'Scheduled' | 'In Production' | 'QC Pending' | 'Completed' | 'Delayed';
+  qcPassed: number;
+  status:
+    | 'Draft'
+    | 'Scheduled'
+    | 'Material Pending'
+    | 'In Production'
+    | 'QC Pending'
+    | 'Completed'
+    | 'Delayed'
+    | 'Cancelled';
+  notes?: string;
 }
 
+export type ProductionTrackingStageName =
+  | 'Scheduled'
+  | 'Materials Allocated'
+  | 'Production Started'
+  | 'In Production'
+  | 'Production Completed'
+  | 'Quality Check'
+  | 'Ready for Stock-In';
+
 export interface ProductionTrackingStage {
-  name: string;
+  name: ProductionTrackingStageName;
   completed: boolean;
   current?: boolean;
   date?: string;
@@ -57,29 +98,38 @@ export interface ProductionTrackingItem {
   orderId: string;
   product: string;
   manufacturer: string;
-  ordered: number;
-  produced: number;
-  remaining: number;
-  productionPercent: number;
-  expectedDate: string;
-  currentStatus: string;
-  currentStage: string;
+  orderedQty: number;
+  completedQty: number;
+  progress: number;
+  currentStage: ProductionTrackingStageName;
+  startDate: string;
+  expectedCompletion: string;
+  delayDays: number;
+  status: string;
   stages: ProductionTrackingStage[];
 }
 
 export interface QualityCheckItem {
-  id: string;
+  id: string; // e.g. QC-2026-112
   productionOrder: string;
   product: string;
+  sku: string;
   manufacturer: string;
-  received: number;
-  passed: number;
-  failed: number;
-  damaged: number;
+  batchNumber: string;
+  quantityInspected: number;
+  passedQuantity: number;
+  failedQuantity: number;
+  inspectionDate: string;
   inspector: string;
-  qcDate: string;
-  status: 'Pending' | 'In Progress' | 'Passed' | 'Partially Passed' | 'Failed';
-  notes?: string;
+  defectType?: 'None' | 'Stitching & Seam' | 'Color Mismatch' | 'Sizing & Dimensions' | 'Fabric Flaw' | 'Hardware Issue';
+  defectNotes?: string;
+  qcStatus:
+    | 'Pending'
+    | 'In Inspection'
+    | 'Passed'
+    | 'Partially Passed'
+    | 'Failed'
+    | 'Reinspection Required';
 }
 
 export interface StockItem {
@@ -89,12 +139,11 @@ export interface StockItem {
   warehouse: string;
   stockInHand: number;
   reserved: number;
-  hold: number;
-  available: number;
+  available: number; // strictly: stockInHand - reserved
   incoming: number;
   reorderLevel: number;
   status: 'Healthy' | 'Low Stock' | 'Critical' | 'Out of Stock';
-  updated: string;
+  lastUpdated: string;
 }
 
 export interface IncomingStockItem {
@@ -114,6 +163,7 @@ export interface ReservationItem {
   id: string;
   orderId: string;
   customer: string;
+  channel: 'Website' | 'Amazon' | 'Myntra' | 'B2B Wholesale' | 'Direct Sales';
   product: string;
   sku: string;
   warehouse: string;
@@ -132,39 +182,62 @@ export interface TransferItem {
   quantity: number;
   transferDate: string;
   expectedArrival: string;
-  status: 'Requested' | 'Dispatched' | 'In Transit' | 'Received' | 'Cancelled';
+  status: 'Draft' | 'Requested' | 'Approved' | 'In Transit' | 'Received' | 'Cancelled';
+}
+
+export interface FulfilmentCondition {
+  stockAvailable: boolean; // 20%
+  stockReserved: boolean; // 15%
+  productionCompleted: boolean; // 20%
+  qcPassed: boolean; // 20%
+  packagingReady: boolean; // 15%
+  dispatchPrepared: boolean; // 10%
 }
 
 export interface FulfilmentItem {
   id: string;
-  orderId: string;
+  orderId: string; // e.g. ORD-1045
   customer: string;
+  channel: string;
   product: string;
+  sku: string;
   requiredQty: number;
   availableQty: number;
   reservedQty: number;
   warehouse: string;
-  readiness: 'Ready' | 'Partially Ready' | 'Waiting for Stock' | 'Waiting for QC' | 'Waiting for Production' | 'Blocked';
+  conditions: FulfilmentCondition;
+  readinessPercent: number; // Computed 0 - 100%
+  finalStatus:
+    | 'Not Ready'
+    | 'At Risk'
+    | 'Partially Ready'
+    | 'Almost Ready'
+    | 'Ready for Fulfilment'
+    | 'Dispatched';
   expectedDispatch: string;
 }
 
 export interface DelayAlertItem {
   id: string;
+  severity: 'critical' | 'warning' | 'info';
   type:
-    | 'Low Stock'
-    | 'Out of Stock'
-    | 'Production Delay'
     | 'Procurement Delay'
+    | 'Supplier Delay'
+    | 'Raw Material Shortage'
+    | 'Manufacturer Delay'
+    | 'Production Delay'
+    | 'QC Delay'
     | 'QC Failure'
     | 'Incoming Shipment Delay'
-    | 'Transfer Delay'
+    | 'Stock Shortage'
     | 'Fulfilment Risk';
-  severity: 'critical' | 'warning' | 'info';
-  title: string;
-  description: string;
   entityId: string;
-  timestamp: string;
-  actionText: string;
+  product: string;
+  reason: string;
+  daysDelayed: number;
+  responsibleParty: string;
+  createdTime: string;
+  recommendedAction: string;
   resolved: boolean;
 }
 
@@ -174,13 +247,32 @@ export interface StockMovementItem {
   product: string;
   sku: string;
   warehouse: string;
-  movementType: 'Receipt' | 'Dispatch' | 'Adjustment' | 'Transfer In' | 'Transfer Out' | 'QC Rejection' | 'Reservation';
-  reference: string;
+  movementType:
+    | 'Receipt'
+    | 'Reservation'
+    | 'Reservation Release'
+    | 'Dispatch'
+    | 'Transfer In'
+    | 'Transfer Out'
+    | 'Adjustment'
+    | 'Return';
+  quantity: number;
   qtyIn: number;
   qtyOut: number;
   previousStock: number;
   newStock: number;
+  referenceId: string;
   performedBy: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  referenceId: string;
+  previousValue: string;
+  newValue: string;
+  user: string;
+  dateTime: string;
 }
 
 export interface WarehouseState {
@@ -197,8 +289,9 @@ export interface WarehouseState {
   fulfilments: FulfilmentItem[];
   alerts: DelayAlertItem[];
   stockMovements: StockMovementItem[];
+  auditLog: AuditLogEntry[];
 
-  // Computed overview metrics
+  // Dynamic KPI overview computation
   getOverviewMetrics: () => {
     totalStock: number;
     availableStock: number;
@@ -207,26 +300,33 @@ export interface WarehouseState {
     underProduction: number;
     qcPending: number;
     delayedOrders: number;
-    fulfilmentReady: number;
+    fulfilmentReadyPercent: number;
   };
 
   // Actions
-  addProcurement: (data: Omit<ProcurementItem, 'id' | 'received' | 'pending' | 'status'>) => void;
+  addProcurement: (data: Omit<ProcurementItem, 'id' | 'quantityReceived' | 'status'>) => void;
+  updateProcurementStatus: (id: string, status: ProcurementItem['status']) => void;
   receiveProcurementStock: (id: string, qty: number) => void;
-  addManufacturer: (data: Omit<ManufacturerItem, 'id' | 'activeOrders' | 'delayedOrders'>) => void;
-  addProductionOrder: (data: Omit<ProductionOrderItem, 'id' | 'producedQty' | 'remaining' | 'qcPassed' | 'progress' | 'status'>) => void;
-  updateProductionProgress: (orderId: string, producedQty: number, nextStage?: string) => void;
-  recordQC: (data: { qcId: string; passed: number; failed: number; damaged: number; inspector: string; notes?: string }) => void;
-  addQualityCheck: (data: Omit<QualityCheckItem, 'id' | 'status' | 'qcDate'>) => void;
-  adjustStock: (id: string, newOnHand: number, newHold: number, reason: string) => void;
-  addIncomingStock: (data: Omit<IncomingStockItem, 'id'>) => void;
-  receiveIncomingAtDock: (id: string) => void;
-  releaseReservation: (id: string) => void;
+  receiveIncomingAtDock: (incomingId: string) => void;
+  addManufacturer: (data: Omit<ManufacturerItem, 'id' | 'activeProductionOrders' | 'completedOrdersCount' | 'delayedOrdersCount'>) => void;
+  addProductionOrder: (data: Omit<ProductionOrderItem, 'id' | 'completedQuantity' | 'qcPassed' | 'progress' | 'status'>) => void;
+  updateProductionStage: (orderId: string, stage: ProductionTrackingStageName, completedQty?: number) => void;
+  recordQualityCheck: (data: {
+    qcId: string;
+    passedQuantity: number;
+    failedQuantity: number;
+    inspector: string;
+    defectType?: QualityCheckItem['defectType'];
+    defectNotes?: string;
+  }) => void;
+  adjustStock: (stockId: string, newStockInHand: number, reason: string) => void;
+  releaseReservation: (resId: string) => void;
+  allocateReservation: (orderId: string, sku: string, qty: number) => void;
   addTransfer: (data: Omit<TransferItem, 'id' | 'status' | 'transferDate'>) => void;
-  receiveTransfer: (id: string) => void;
-  dispatchFulfilment: (id: string) => void;
-  resolveAlert: (id: string) => void;
-  addStockMovement: (movement: Omit<StockMovementItem, 'id' | 'dateTime'>) => void;
+  receiveTransfer: (transferId: string) => void;
+  dispatchFulfilmentOrder: (fulfilmentId: string) => void;
+  resolveAlert: (alertId: string) => void;
+  addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'dateTime'>) => void;
 }
 
 // Initial realistic dataset
@@ -234,67 +334,93 @@ const initialProcurements: ProcurementItem[] = [
   {
     id: 'PRC-2026-089',
     supplier: 'Apex Fabrics Ltd',
-    product: 'Organic Cotton T-Shirt',
-    sku: 'TSH-ORG-001',
-    quantity: 2000,
-    received: 1200,
-    pending: 800,
-    expectedDelivery: '12 Sep 2026',
-    warehouse: 'Central Hub - BLR',
-    amount: 480000,
+    product: 'Organic Cotton Jersey Fabric',
+    sku: 'FAB-ORG-001',
+    category: 'Raw Materials',
+    quantityOrdered: 2500,
+    quantityReceived: 1500,
+    unitCost: 190,
+    totalCost: 475000,
+    purchaseOrderNumber: 'PO-2026-089',
+    orderDate: '15 Aug 2026',
+    expectedDeliveryDate: '01 Sep 2026',
+    destinationWarehouse: 'Central Hub - BLR',
+    procurementOwner: 'Vikram Sethi',
     status: 'Partially Received',
+    notes: 'Initial lot of 1,500m received. Remaining 1,000m dispatched via road freight.',
   },
   {
     id: 'PRC-2026-090',
     supplier: 'Vanguard Textiles Corp',
     product: 'Classic Denim Jacket',
     sku: 'JKT-DNM-003',
-    quantity: 1000,
-    received: 0,
-    pending: 1000,
-    expectedDelivery: '18 Sep 2026',
-    warehouse: 'West DC - BOM',
-    amount: 920000,
+    category: 'Finished Goods',
+    quantityOrdered: 1000,
+    quantityReceived: 0,
+    unitCost: 920,
+    totalCost: 920000,
+    purchaseOrderNumber: 'PO-2026-090',
+    orderDate: '20 Aug 2026',
+    expectedDeliveryDate: '18 Sep 2026',
+    destinationWarehouse: 'West DC - BOM',
+    procurementOwner: 'Pooja Iyer',
     status: 'In Transit',
+    notes: 'Container loaded at Surat hub. Tracking: BLR-TRK-9821.',
   },
   {
     id: 'PRC-2026-091',
     supplier: 'Zenith Mill Supplies',
-    product: 'Slim Fit Chino Trouser',
-    sku: 'CHN-SLM-002',
-    quantity: 1500,
-    received: 1500,
-    pending: 0,
-    expectedDelivery: '04 Sep 2026',
-    warehouse: 'North DC - DEL',
-    amount: 675000,
-    status: 'Delivered',
+    product: 'YKK Metal Zippers (Bronze 18cm)',
+    sku: 'TRM-ZIP-004',
+    category: 'Hardware & Trims',
+    quantityOrdered: 5000,
+    quantityReceived: 5000,
+    unitCost: 15,
+    totalCost: 75000,
+    purchaseOrderNumber: 'PO-2026-091',
+    orderDate: '10 Aug 2026',
+    expectedDeliveryDate: '25 Aug 2026',
+    actualDeliveryDate: '24 Aug 2026',
+    destinationWarehouse: 'Central Hub - BLR',
+    procurementOwner: 'Vikram Sethi',
+    status: 'Received',
+    notes: 'Full order inspected and stocked into Trim Locker B.',
   },
   {
     id: 'PRC-2026-092',
     supplier: 'Highland Knits Global',
-    product: 'Merino Wool Sweater',
-    sku: 'SWT-MRN-005',
-    quantity: 800,
-    received: 0,
-    pending: 800,
-    expectedDelivery: '05 Sep 2026',
-    warehouse: 'North DC - DEL',
-    amount: 720000,
+    product: 'Merino Wool Yarn Cones',
+    sku: 'YRN-MRN-005',
+    category: 'Raw Materials',
+    quantityOrdered: 800,
+    quantityReceived: 0,
+    unitCost: 900,
+    totalCost: 720000,
+    purchaseOrderNumber: 'PO-2026-092',
+    orderDate: '05 Aug 2026',
+    expectedDeliveryDate: '02 Sep 2026', // Past date -> Automatically Delayed!
+    destinationWarehouse: 'North DC - DEL',
+    procurementOwner: 'Ananya Roy',
     status: 'Delayed',
+    notes: 'Shipment delayed at Ludhiana transit station due to monsoon road closure.',
   },
   {
     id: 'PRC-2026-093',
     supplier: 'Eastern Indigo Mills',
-    product: 'Premium Linen Shirt',
-    sku: 'SHT-LIN-007',
-    quantity: 1200,
-    received: 0,
-    pending: 1200,
-    expectedDelivery: '25 Sep 2026',
-    warehouse: 'Central Hub - BLR',
-    amount: 540000,
-    status: 'Pending Approval',
+    product: 'Pure Linen Shirting Fabric',
+    sku: 'FAB-LIN-007',
+    category: 'Raw Materials',
+    quantityOrdered: 1200,
+    quantityReceived: 0,
+    unitCost: 450,
+    totalCost: 540000,
+    purchaseOrderNumber: 'PO-2026-093',
+    orderDate: '01 Sep 2026',
+    expectedDeliveryDate: '25 Sep 2026',
+    destinationWarehouse: 'Central Hub - BLR',
+    procurementOwner: 'Pooja Iyer',
+    status: 'Confirmed',
+    notes: 'Supplier acknowledged PO. Dyeing schedule locked for 10 Sep.',
   },
 ];
 
@@ -306,12 +432,15 @@ const initialManufacturers: ManufacturerItem[] = [
     phone: '+91 98201 44521',
     email: 'arunav@vanguardtextiles.in',
     location: 'Surat, Gujarat',
-    products: ['Denim Jackets', 'Chino Trousers', 'Twills'],
-    capacity: '60,000 units/month',
-    leadTime: '14 days',
+    productCategories: ['Denim Jackets', 'Chino Trousers', 'Heavy Twills'],
+    activeProductionOrders: 3,
+    completedOrdersCount: 28,
+    delayedOrdersCount: 0,
+    productionCapacity: '60,000 units/mo',
+    currentUtilization: 84,
+    averageLeadTime: '14 days',
     qualityRating: 4.8,
-    activeOrders: 3,
-    delayedOrders: 0,
+    onTimeDeliveryRate: 98.2,
     status: 'Active',
   },
   {
@@ -319,14 +448,17 @@ const initialManufacturers: ManufacturerItem[] = [
     name: 'Sterling Garments Ltd',
     contactPerson: 'Pooja Deshmukh',
     phone: '+91 97652 11980',
-    email: 'contact@sterlinggarments.com',
+    email: 'orders@sterlinggarments.com',
     location: 'Tirupur, Tamil Nadu',
-    products: ['Cotton T-Shirts', 'Polos', 'Hoodies'],
-    capacity: '120,000 units/month',
-    leadTime: '10 days',
+    productCategories: ['Organic T-Shirts', 'Polos', 'Fleece Hoodies'],
+    activeProductionOrders: 4,
+    completedOrdersCount: 45,
+    delayedOrdersCount: 1,
+    productionCapacity: '120,000 units/mo',
+    currentUtilization: 92,
+    averageLeadTime: '10 days',
     qualityRating: 4.9,
-    activeOrders: 4,
-    delayedOrders: 1,
+    onTimeDeliveryRate: 96.5,
     status: 'Active',
   },
   {
@@ -336,13 +468,16 @@ const initialManufacturers: ManufacturerItem[] = [
     phone: '+91 94180 33410',
     email: 'orders@himalayanwool.co.in',
     location: 'Ludhiana, Punjab',
-    products: ['Wool Sweaters', 'Cardigans', 'Thermal Knits'],
-    capacity: '25,000 units/month',
-    leadTime: '21 days',
+    productCategories: ['Merino Sweaters', 'Cardigans', 'Thermal Knits'],
+    activeProductionOrders: 2,
+    completedOrdersCount: 16,
+    delayedOrdersCount: 1,
+    productionCapacity: '25,000 units/mo',
+    currentUtilization: 96,
+    averageLeadTime: '21 days',
     qualityRating: 4.6,
-    activeOrders: 2,
-    delayedOrders: 1,
-    status: 'Active',
+    onTimeDeliveryRate: 88.0,
+    status: 'At Capacity',
   },
   {
     id: 'MFG-004',
@@ -351,13 +486,16 @@ const initialManufacturers: ManufacturerItem[] = [
     phone: '+91 98450 78233',
     email: 'info@kaverisilks.com',
     location: 'Bengaluru, Karnataka',
-    products: ['Linen Shirts', 'Silk Scarves', 'Resort Wear'],
-    capacity: '35,000 units/month',
-    leadTime: '18 days',
+    productCategories: ['Linen Shirts', 'Silk Scarves', 'Resort Wear'],
+    activeProductionOrders: 1,
+    completedOrdersCount: 12,
+    delayedOrdersCount: 0,
+    productionCapacity: '35,000 units/mo',
+    currentUtilization: 65,
+    averageLeadTime: '18 days',
     qualityRating: 4.4,
-    activeOrders: 1,
-    delayedOrders: 0,
-    status: 'Under Audit',
+    onTimeDeliveryRate: 94.0,
+    status: 'Active',
   },
 ];
 
@@ -367,65 +505,94 @@ const initialProductionOrders: ProductionOrderItem[] = [
     product: 'Classic Denim Jacket',
     sku: 'JKT-DNM-003',
     manufacturer: 'Sterling Garments Ltd',
-    orderedQty: 1000,
-    producedQty: 750,
-    remaining: 250,
-    qcPassed: 710,
-    expectedCompletion: '18 Sep 2026',
+    quantity: 1000,
+    completedQuantity: 750,
+    rawMaterialRequirement: '1,400m 12oz Indigo Denim + 6,000 Rivets',
+    plannedStartDate: '25 Aug 2026',
+    plannedCompletionDate: '18 Sep 2026',
+    actualStartDate: '26 Aug 2026',
+    priority: 'High',
+    destinationWarehouse: 'Central Hub - BLR',
+    assignedManager: 'Kunal Singhal',
     progress: 75,
+    qcPassed: 710,
     status: 'In Production',
+    notes: 'Washing cycle completed. Currently in button attachment & final thread trimming.',
   },
   {
     id: 'PRD-2026-002',
     product: 'Organic Cotton T-Shirt',
     sku: 'TSH-ORG-001',
     manufacturer: 'Sterling Garments Ltd',
-    orderedQty: 2500,
-    producedQty: 2500,
-    remaining: 0,
-    qcPassed: 2420,
-    expectedCompletion: '08 Sep 2026',
+    quantity: 2500,
+    completedQuantity: 2500,
+    rawMaterialRequirement: '1,250kg Combed Cotton Single Jersey',
+    plannedStartDate: '15 Aug 2026',
+    plannedCompletionDate: '08 Sep 2026',
+    actualStartDate: '15 Aug 2026',
+    priority: 'Medium',
+    destinationWarehouse: 'Central Hub - BLR',
+    assignedManager: 'Kunal Singhal',
     progress: 100,
+    qcPassed: 2420,
     status: 'QC Pending',
+    notes: 'Production complete. Batch delivered to warehouse inspection bay 4.',
   },
   {
     id: 'PRD-2026-003',
     product: 'Slim Fit Chino Trouser',
     sku: 'CHN-SLM-002',
     manufacturer: 'Vanguard Textiles Corp',
-    orderedQty: 1800,
-    producedQty: 1100,
-    remaining: 700,
-    qcPassed: 1050,
-    expectedCompletion: '22 Sep 2026',
+    quantity: 1800,
+    completedQuantity: 1100,
+    rawMaterialRequirement: '2,200m Stretch Cotton Twill + 1,800 YKK Zippers',
+    plannedStartDate: '20 Aug 2026',
+    plannedCompletionDate: '22 Sep 2026',
+    actualStartDate: '22 Aug 2026',
+    priority: 'Medium',
+    destinationWarehouse: 'West DC - BOM',
+    assignedManager: 'Pooja Iyer',
     progress: 61,
+    qcPassed: 1050,
     status: 'In Production',
+    notes: 'Line 2 assembly on pace. Waistband elastic attachment scheduled for 14 Sep.',
   },
   {
     id: 'PRD-2026-004',
     product: 'Merino Wool Sweater',
     sku: 'SWT-MRN-005',
     manufacturer: 'Himalayan Woolcrafts',
-    orderedQty: 1200,
-    producedQty: 300,
-    remaining: 900,
-    qcPassed: 280,
-    expectedCompletion: '10 Sep 2026',
+    quantity: 1200,
+    completedQuantity: 300,
+    rawMaterialRequirement: '720kg 2/28 Merino Wool Yarn',
+    plannedStartDate: '10 Aug 2026',
+    plannedCompletionDate: '10 Sep 2026',
+    actualStartDate: '18 Aug 2026',
+    priority: 'Critical',
+    destinationWarehouse: 'North DC - DEL',
+    assignedManager: 'Ananya Roy',
     progress: 25,
+    qcPassed: 280,
     status: 'Delayed',
+    notes: 'Yarn dye lot variation required re-dyeing lot 2. Completion delayed by 8 days.',
   },
   {
     id: 'PRD-2026-005',
     product: 'Premium Linen Shirt',
     sku: 'SHT-LIN-007',
     manufacturer: 'Kaveri Silk & Linens',
-    orderedQty: 1500,
-    producedQty: 0,
-    remaining: 1500,
-    qcPassed: 0,
-    expectedCompletion: '30 Sep 2026',
+    quantity: 1500,
+    completedQuantity: 0,
+    rawMaterialRequirement: '2,100m 60s Count French Linen',
+    plannedStartDate: '12 Sep 2026',
+    plannedCompletionDate: '30 Sep 2026',
+    priority: 'High',
+    destinationWarehouse: 'West DC - BOM',
+    assignedManager: 'Pooja Iyer',
     progress: 0,
+    qcPassed: 0,
     status: 'Scheduled',
+    notes: 'Fabric arriving from Eastern Indigo Mills on 10 Sep. Cutting begins 12 Sep.',
   },
 ];
 
@@ -435,19 +602,22 @@ const initialProductionTracking: ProductionTrackingItem[] = [
     orderId: 'PRD-2026-001',
     product: 'Classic Denim Jacket',
     manufacturer: 'Sterling Garments Ltd',
-    ordered: 1000,
-    produced: 750,
-    remaining: 250,
-    productionPercent: 75,
-    expectedDate: '18 Sep 2026',
-    currentStatus: 'Stitching & Assembly Phase',
-    currentStage: 'Assembly & Sewing',
+    orderedQty: 1000,
+    completedQty: 750,
+    progress: 75,
+    currentStage: 'In Production',
+    startDate: '26 Aug 2026',
+    expectedCompletion: '18 Sep 2026',
+    delayDays: 0,
+    status: 'Stitching & Hardware Assembly',
     stages: [
-      { name: 'Raw Materials Sourced', completed: true, date: '28 Aug 2026' },
-      { name: 'Cutting & Pattern Layout', completed: true, date: '02 Sep 2026' },
-      { name: 'Assembly & Sewing', completed: false, current: true, date: 'Est. 14 Sep' },
-      { name: 'Finishing & Pressing', completed: false, date: 'Est. 16 Sep' },
-      { name: 'Ready for QC', completed: false, date: 'Est. 18 Sep' },
+      { name: 'Scheduled', completed: true, date: '25 Aug 2026' },
+      { name: 'Materials Allocated', completed: true, date: '26 Aug 2026' },
+      { name: 'Production Started', completed: true, date: '28 Aug 2026' },
+      { name: 'In Production', completed: false, current: true, date: 'Target: 14 Sep' },
+      { name: 'Production Completed', completed: false, date: 'Est: 16 Sep' },
+      { name: 'Quality Check', completed: false, date: 'Est: 17 Sep' },
+      { name: 'Ready for Stock-In', completed: false, date: 'Est: 18 Sep' },
     ],
   },
   {
@@ -455,19 +625,22 @@ const initialProductionTracking: ProductionTrackingItem[] = [
     orderId: 'PRD-2026-002',
     product: 'Organic Cotton T-Shirt',
     manufacturer: 'Sterling Garments Ltd',
-    ordered: 2500,
-    produced: 2500,
-    remaining: 0,
-    productionPercent: 100,
-    expectedDate: '08 Sep 2026',
-    currentStatus: 'Batch Completed — Awaiting QC',
-    currentStage: 'Ready for QC',
+    orderedQty: 2500,
+    completedQty: 2500,
+    progress: 100,
+    currentStage: 'Quality Check',
+    startDate: '15 Aug 2026',
+    expectedCompletion: '08 Sep 2026',
+    delayDays: 0,
+    status: 'Under Quality Inspection at Bay 4',
     stages: [
-      { name: 'Raw Materials Sourced', completed: true, date: '15 Aug 2026' },
-      { name: 'Cutting & Pattern Layout', completed: true, date: '22 Aug 2026' },
-      { name: 'Assembly & Sewing', completed: true, date: '30 Aug 2026' },
-      { name: 'Finishing & Pressing', completed: true, date: '05 Sep 2026' },
-      { name: 'Ready for QC', completed: false, current: true, date: 'Pending Now' },
+      { name: 'Scheduled', completed: true, date: '15 Aug 2026' },
+      { name: 'Materials Allocated', completed: true, date: '16 Aug 2026' },
+      { name: 'Production Started', completed: true, date: '18 Aug 2026' },
+      { name: 'In Production', completed: true, date: '30 Aug 2026' },
+      { name: 'Production Completed', completed: true, date: '05 Sep 2026' },
+      { name: 'Quality Check', completed: false, current: true, date: 'Active Today' },
+      { name: 'Ready for Stock-In', completed: false, date: 'Pending QC' },
     ],
   },
   {
@@ -475,19 +648,22 @@ const initialProductionTracking: ProductionTrackingItem[] = [
     orderId: 'PRD-2026-003',
     product: 'Slim Fit Chino Trouser',
     manufacturer: 'Vanguard Textiles Corp',
-    ordered: 1800,
-    produced: 1100,
-    remaining: 700,
-    productionPercent: 61,
-    expectedDate: '22 Sep 2026',
-    currentStatus: 'Fabric Assembly Line 2',
-    currentStage: 'Assembly & Sewing',
+    orderedQty: 1800,
+    completedQty: 1100,
+    progress: 61,
+    currentStage: 'In Production',
+    startDate: '22 Aug 2026',
+    expectedCompletion: '22 Sep 2026',
+    delayDays: 0,
+    status: 'Assembly Line 2 - Waistband Attachment',
     stages: [
-      { name: 'Raw Materials Sourced', completed: true, date: '24 Aug 2026' },
-      { name: 'Cutting & Pattern Layout', completed: true, date: '01 Sep 2026' },
-      { name: 'Assembly & Sewing', completed: false, current: true, date: 'Est. 16 Sep' },
-      { name: 'Finishing & Pressing', completed: false, date: 'Est. 20 Sep' },
-      { name: 'Ready for QC', completed: false, date: 'Est. 22 Sep' },
+      { name: 'Scheduled', completed: true, date: '20 Aug 2026' },
+      { name: 'Materials Allocated', completed: true, date: '21 Aug 2026' },
+      { name: 'Production Started', completed: true, date: '24 Aug 2026' },
+      { name: 'In Production', completed: false, current: true, date: 'Est: 16 Sep' },
+      { name: 'Production Completed', completed: false, date: 'Est: 19 Sep' },
+      { name: 'Quality Check', completed: false, date: 'Est: 20 Sep' },
+      { name: 'Ready for Stock-In', completed: false, date: 'Est: 22 Sep' },
     ],
   },
   {
@@ -495,19 +671,22 @@ const initialProductionTracking: ProductionTrackingItem[] = [
     orderId: 'PRD-2026-004',
     product: 'Merino Wool Sweater',
     manufacturer: 'Himalayan Woolcrafts',
-    ordered: 1200,
-    produced: 300,
-    remaining: 900,
-    productionPercent: 25,
-    expectedDate: '10 Sep 2026',
-    currentStatus: 'Yarn Dyeing Delayed (Re-ordered dye lots)',
-    currentStage: 'Raw Materials',
+    orderedQty: 1200,
+    completedQty: 300,
+    progress: 25,
+    currentStage: 'Production Started',
+    startDate: '18 Aug 2026',
+    expectedCompletion: '10 Sep 2026',
+    delayDays: 8,
+    status: 'Delayed: Re-dyeing Yarn Lot #2',
     stages: [
-      { name: 'Raw Materials Sourced', completed: false, current: true, date: 'Delayed: 12 Sep' },
-      { name: 'Cutting & Pattern Layout', completed: false, date: 'Est. 18 Sep' },
-      { name: 'Assembly & Sewing', completed: false, date: 'Est. 24 Sep' },
-      { name: 'Finishing & Pressing', completed: false, date: 'Est. 28 Sep' },
-      { name: 'Ready for QC', completed: false, date: 'Est. 30 Sep' },
+      { name: 'Scheduled', completed: true, date: '10 Aug 2026' },
+      { name: 'Materials Allocated', completed: true, date: '14 Aug 2026' },
+      { name: 'Production Started', completed: false, current: true, date: 'Delayed: 18 Sep' },
+      { name: 'In Production', completed: false, date: 'Est: 24 Sep' },
+      { name: 'Production Completed', completed: false, date: 'Est: 28 Sep' },
+      { name: 'Quality Check', completed: false, date: 'Est: 29 Sep' },
+      { name: 'Ready for Stock-In', completed: false, date: 'Est: 30 Sep' },
     ],
   },
 ];
@@ -517,145 +696,147 @@ const initialQualityChecks: QualityCheckItem[] = [
     id: 'QC-2026-112',
     productionOrder: 'PRD-2026-001',
     product: 'Classic Denim Jacket',
+    sku: 'JKT-DNM-003',
     manufacturer: 'Sterling Garments Ltd',
-    received: 750,
-    passed: 710,
-    failed: 25,
-    damaged: 15,
+    batchNumber: 'BATCH-26A-01',
+    quantityInspected: 750,
+    passedQuantity: 710,
+    failedQuantity: 40,
+    inspectionDate: '06 Sep 2026',
     inspector: 'Rahul Sharma',
-    qcDate: '06 Sep 2026',
-    status: 'Passed',
-    notes: 'Button rivet alignment passed 98.4%. Minor seam irregularities on failed pieces.',
+    defectType: 'Stitching & Seam',
+    defectNotes: 'Riveting passed 99%. 40 units failed due to double-needle hem skipping on lower jacket band.',
+    qcStatus: 'Passed',
   },
   {
     id: 'QC-2026-113',
     productionOrder: 'PRD-2026-002',
     product: 'Organic Cotton T-Shirt',
+    sku: 'TSH-ORG-001',
     manufacturer: 'Sterling Garments Ltd',
-    received: 2500,
-    passed: 0,
-    failed: 0,
-    damaged: 0,
+    batchNumber: 'BATCH-26B-04',
+    quantityInspected: 2500,
+    passedQuantity: 0,
+    failedQuantity: 0,
+    inspectionDate: '07 Sep 2026',
     inspector: 'Neha Kapoor',
-    qcDate: '07 Sep 2026',
-    status: 'Pending',
-    notes: 'Lot delivered to inspection bay 4. Awaiting color fastness test.',
+    defectType: 'None',
+    defectNotes: 'Awaiting shrinkage & color-fastness lab report before release.',
+    qcStatus: 'Pending',
   },
   {
     id: 'QC-2026-114',
     productionOrder: 'PRD-2026-003',
     product: 'Slim Fit Chino Trouser',
+    sku: 'CHN-SLM-002',
     manufacturer: 'Vanguard Textiles Corp',
-    received: 1100,
-    passed: 1050,
-    failed: 35,
-    damaged: 15,
+    batchNumber: 'BATCH-26C-02',
+    quantityInspected: 1100,
+    passedQuantity: 1050,
+    failedQuantity: 50,
+    inspectionDate: '05 Sep 2026',
     inspector: 'Karthik Raja',
-    qcDate: '05 Sep 2026',
-    status: 'Partially Passed',
-    notes: 'Zipper tension tested. 35 pieces rejected due to loose waistband stitching.',
+    defectType: 'Hardware Issue',
+    defectNotes: 'Zipper slider puller detachment on 50 units. Approved 1,050 units cleared for inventory.',
+    qcStatus: 'Partially Passed',
   },
   {
     id: 'QC-2026-115',
     productionOrder: 'PRD-2026-004',
     product: 'Merino Wool Sweater',
+    sku: 'SWT-MRN-005',
     manufacturer: 'Himalayan Woolcrafts',
-    received: 300,
-    passed: 180,
-    failed: 95,
-    damaged: 25,
+    batchNumber: 'BATCH-26D-01',
+    quantityInspected: 300,
+    passedQuantity: 180,
+    failedQuantity: 120,
+    inspectionDate: '03 Sep 2026',
     inspector: 'Rahul Sharma',
-    qcDate: '03 Sep 2026',
-    status: 'Failed',
-    notes: 'Severe fiber pill count failure across batch 1. Rework requested from factory.',
+    defectType: 'Fabric Flaw',
+    defectNotes: 'Severe pilling index failure. 120 units quarantined for factory de-pilling rework.',
+    qcStatus: 'Failed',
   },
 ];
 
-// Available = Stock-in-Hand - Reserved - Hold
+// Available Stock = Stock in Hand - Reserved Stock
 const initialStock: StockItem[] = [
   {
     id: 'STK-001',
-    product: 'Organic Cotton T-Shirt (M / Navy)',
+    product: 'Organic Cotton T-Shirt (Navy / M)',
     sku: 'TSH-ORG-001',
     warehouse: 'Central Hub - BLR',
     stockInHand: 4200,
-    reserved: 850,
-    hold: 150,
-    available: 3200, // 4200 - 850 - 150
+    reserved: 1000,
+    available: 3200, // 4200 - 1000
     incoming: 800,
     reorderLevel: 1000,
     status: 'Healthy',
-    updated: '10 mins ago',
+    lastUpdated: '15 mins ago',
   },
   {
     id: 'STK-002',
-    product: 'Classic Denim Jacket (L / Indigo)',
+    product: 'Classic Denim Jacket (Indigo / L)',
     sku: 'JKT-DNM-003',
     warehouse: 'Central Hub - BLR',
     stockInHand: 1850,
-    reserved: 420,
-    hold: 30,
-    available: 1400, // 1850 - 420 - 30
+    reserved: 450,
+    available: 1400, // 1850 - 450
     incoming: 1000,
     reorderLevel: 500,
     status: 'Healthy',
-    updated: '1 hour ago',
+    lastUpdated: '1 hour ago',
   },
   {
     id: 'STK-003',
-    product: 'Slim Fit Chino Trouser (32 / Khaki)',
+    product: 'Slim Fit Chino Trouser (Khaki / 32)',
     sku: 'CHN-SLM-002',
     warehouse: 'West DC - BOM',
     stockInHand: 740,
-    reserved: 390,
-    hold: 50,
-    available: 300, // 740 - 390 - 50
+    reserved: 440,
+    available: 300, // 740 - 440
     incoming: 1500,
     reorderLevel: 450,
-    status: 'Low Stock',
-    updated: '25 mins ago',
+    status: 'Low Stock', // Available (300) <= Reorder (450)
+    lastUpdated: '30 mins ago',
   },
   {
     id: 'STK-004',
-    product: 'Merino Wool Sweater (L / Charcoal)',
+    product: 'Merino Wool Sweater (Charcoal / L)',
     sku: 'SWT-MRN-005',
     warehouse: 'North DC - DEL',
     stockInHand: 160,
-    reserved: 120,
-    hold: 25,
-    available: 15, // 160 - 120 - 25
+    reserved: 145,
+    available: 15, // 160 - 145
     incoming: 800,
     reorderLevel: 250,
     status: 'Critical',
-    updated: '5 mins ago',
+    lastUpdated: '5 mins ago',
   },
   {
     id: 'STK-005',
-    product: 'Premium Linen Shirt (M / White)',
+    product: 'Premium Linen Shirt (White / M)',
     sku: 'SHT-LIN-007',
     warehouse: 'West DC - BOM',
     stockInHand: 0,
     reserved: 0,
-    hold: 0,
     available: 0,
     incoming: 1200,
     reorderLevel: 200,
-    status: 'Out of Stock',
-    updated: '2 hours ago',
+    status: 'Out of Stock', // Available = 0
+    lastUpdated: '2 hours ago',
   },
   {
     id: 'STK-006',
-    product: 'Silk Blend Scarf (Unisex / Olive)',
+    product: 'Silk Blend Scarf (Olive / Unisex)',
     sku: 'SCF-SLK-009',
     warehouse: 'Central Hub - BLR',
     stockInHand: 1420,
-    reserved: 180,
-    hold: 20,
+    reserved: 200,
     available: 1220,
     incoming: 300,
     reorderLevel: 300,
     status: 'Healthy',
-    updated: '3 hours ago',
+    lastUpdated: '3 hours ago',
   },
   {
     id: 'STK-007',
@@ -663,13 +844,12 @@ const initialStock: StockItem[] = [
     sku: 'BLT-LTH-012',
     warehouse: 'North DC - DEL',
     stockInHand: 890,
-    reserved: 210,
-    hold: 40,
+    reserved: 250,
     available: 640,
     incoming: 0,
     reorderLevel: 350,
     status: 'Healthy',
-    updated: '4 hours ago',
+    lastUpdated: '4 hours ago',
   },
 ];
 
@@ -679,9 +859,9 @@ const initialIncomingStock: IncomingStockItem[] = [
     referenceId: 'PO-2026-089',
     source: 'Purchase Order',
     supplierManufacturer: 'Apex Fabrics Ltd',
-    product: 'Organic Cotton T-Shirt',
-    sku: 'TSH-ORG-001',
-    quantity: 800,
+    product: 'Organic Cotton Jersey Fabric',
+    sku: 'FAB-ORG-001',
+    quantity: 1000,
     expectedArrival: '12 Sep 2026',
     warehouse: 'Central Hub - BLR',
     status: 'In Transit',
@@ -703,9 +883,9 @@ const initialIncomingStock: IncomingStockItem[] = [
     referenceId: 'PO-2026-090',
     source: 'Purchase Order',
     supplierManufacturer: 'Vanguard Textiles Corp',
-    product: 'Slim Fit Chino Trouser',
-    sku: 'CHN-SLM-002',
-    quantity: 1500,
+    product: 'Classic Denim Jacket',
+    sku: 'JKT-DNM-003',
+    quantity: 1000,
     expectedArrival: '18 Sep 2026',
     warehouse: 'West DC - BOM',
     status: 'Customs Clearance',
@@ -739,8 +919,9 @@ const initialIncomingStock: IncomingStockItem[] = [
 const initialReservations: ReservationItem[] = [
   {
     id: 'RES-001',
-    orderId: 'ORD-9821',
+    orderId: 'ORD-1045',
     customer: 'Aarav Mehta',
+    channel: 'Website',
     product: 'Organic Cotton T-Shirt',
     sku: 'TSH-ORG-001',
     warehouse: 'Central Hub - BLR',
@@ -751,8 +932,9 @@ const initialReservations: ReservationItem[] = [
   },
   {
     id: 'RES-002',
-    orderId: 'ORD-9825',
+    orderId: 'ORD-1048',
     customer: 'Tanvi Saxena',
+    channel: 'Myntra',
     product: 'Classic Denim Jacket',
     sku: 'JKT-DNM-003',
     warehouse: 'Central Hub - BLR',
@@ -763,8 +945,9 @@ const initialReservations: ReservationItem[] = [
   },
   {
     id: 'RES-003',
-    orderId: 'ORD-9830',
+    orderId: 'ORD-1052',
     customer: 'Rohan Gupta',
+    channel: 'Amazon',
     product: 'Merino Wool Sweater',
     sku: 'SWT-MRN-005',
     warehouse: 'North DC - DEL',
@@ -775,8 +958,9 @@ const initialReservations: ReservationItem[] = [
   },
   {
     id: 'RES-004',
-    orderId: 'ORD-9844',
+    orderId: 'ORD-1055',
     customer: 'Priya Sharma',
+    channel: 'Website',
     product: 'Premium Linen Shirt',
     sku: 'SHT-LIN-007',
     warehouse: 'West DC - BOM',
@@ -787,13 +971,14 @@ const initialReservations: ReservationItem[] = [
   },
   {
     id: 'RES-005',
-    orderId: 'ORD-9852',
+    orderId: 'ORD-1060',
     customer: 'Deepak Chawla',
+    channel: 'B2B Wholesale',
     product: 'Slim Fit Chino Trouser',
     sku: 'CHN-SLM-002',
     warehouse: 'West DC - BOM',
-    requiredQty: 3,
-    reservedQty: 3,
+    requiredQty: 50,
+    reservedQty: 50,
     available: 300,
     status: 'Allocated',
   },
@@ -820,7 +1005,7 @@ const initialTransfers: TransferItem[] = [
     quantity: 600,
     transferDate: '06 Sep 2026',
     expectedArrival: '09 Sep 2026',
-    status: 'Dispatched',
+    status: 'Approved',
   },
   {
     id: 'TRF-2026-033',
@@ -846,146 +1031,223 @@ const initialTransfers: TransferItem[] = [
   },
 ];
 
+// Helper to calculate dynamic fulfilment readiness
+export function calculateFulfilmentReadiness(conditions: FulfilmentCondition): {
+  percent: number;
+  finalStatus: FulfilmentItem['finalStatus'];
+} {
+  let percent = 0;
+  if (conditions.stockAvailable) percent += 20;
+  if (conditions.stockReserved) percent += 15;
+  if (conditions.productionCompleted) percent += 20;
+  if (conditions.qcPassed) percent += 20;
+  if (conditions.packagingReady) percent += 15;
+  if (conditions.dispatchPrepared) percent += 10;
+
+  let finalStatus: FulfilmentItem['finalStatus'] = 'Not Ready';
+  if (percent === 100) finalStatus = 'Ready for Fulfilment';
+  else if (percent >= 85) finalStatus = 'Almost Ready';
+  else if (percent >= 50) finalStatus = 'Partially Ready';
+  else if (percent > 0 && !conditions.stockAvailable) finalStatus = 'At Risk';
+
+  return { percent, finalStatus };
+}
+
 const initialFulfilments: FulfilmentItem[] = [
   {
     id: 'FLF-001',
-    orderId: 'ORD-9821',
+    orderId: 'ORD-1045',
     customer: 'Aarav Mehta',
+    channel: 'Website',
     product: 'Organic Cotton T-Shirt',
+    sku: 'TSH-ORG-001',
     requiredQty: 4,
     availableQty: 3200,
     reservedQty: 4,
     warehouse: 'Central Hub - BLR',
-    readiness: 'Ready',
-    expectedDispatch: 'Today, 4:30 PM',
+    conditions: {
+      stockAvailable: true, // 20
+      stockReserved: true, // 15
+      productionCompleted: true, // 20
+      qcPassed: true, // 20
+      packagingReady: true, // 15
+      dispatchPrepared: false, // 0 -> 90%
+    },
+    readinessPercent: 90,
+    finalStatus: 'Almost Ready',
+    expectedDispatch: 'Today, 5:30 PM',
   },
   {
     id: 'FLF-002',
-    orderId: 'ORD-9825',
+    orderId: 'ORD-1048',
     customer: 'Tanvi Saxena',
+    channel: 'Myntra',
     product: 'Classic Denim Jacket',
+    sku: 'JKT-DNM-003',
     requiredQty: 2,
     availableQty: 1400,
     reservedQty: 2,
     warehouse: 'Central Hub - BLR',
-    readiness: 'Ready',
-    expectedDispatch: 'Today, 6:00 PM',
+    conditions: {
+      stockAvailable: true, // 20
+      stockReserved: true, // 15
+      productionCompleted: true, // 20
+      qcPassed: true, // 20
+      packagingReady: true, // 15
+      dispatchPrepared: true, // 10 -> 100%
+    },
+    readinessPercent: 100,
+    finalStatus: 'Ready for Fulfilment',
+    expectedDispatch: 'Ready to Dispatch',
   },
   {
     id: 'FLF-003',
-    orderId: 'ORD-9830',
+    orderId: 'ORD-1052',
     customer: 'Rohan Gupta',
+    channel: 'Amazon',
     product: 'Merino Wool Sweater',
+    sku: 'SWT-MRN-005',
     requiredQty: 5,
     availableQty: 15,
     reservedQty: 5,
     warehouse: 'North DC - DEL',
-    readiness: 'Partially Ready',
+    conditions: {
+      stockAvailable: true, // 20
+      stockReserved: true, // 15
+      productionCompleted: true, // 20
+      qcPassed: true, // 20
+      packagingReady: false, // 0
+      dispatchPrepared: false, // 0 -> 75%
+    },
+    readinessPercent: 75,
+    finalStatus: 'Partially Ready',
     expectedDispatch: 'Tomorrow, 11:00 AM',
   },
   {
     id: 'FLF-004',
-    orderId: 'ORD-9844',
+    orderId: 'ORD-1055',
     customer: 'Priya Sharma',
+    channel: 'Website',
     product: 'Premium Linen Shirt',
+    sku: 'SHT-LIN-007',
     requiredQty: 2,
     availableQty: 0,
     reservedQty: 0,
     warehouse: 'West DC - BOM',
-    readiness: 'Waiting for Stock',
+    conditions: {
+      stockAvailable: false, // 0
+      stockReserved: false, // 0
+      productionCompleted: false, // 0
+      qcPassed: false, // 0
+      packagingReady: false, // 0
+      dispatchPrepared: false, // 0
+    },
+    readinessPercent: 0,
+    finalStatus: 'Not Ready',
     expectedDispatch: '26 Sep 2026',
   },
   {
     id: 'FLF-005',
-    orderId: 'ORD-9849',
-    customer: 'Kunal Singhal',
-    product: 'Organic Cotton T-Shirt',
-    requiredQty: 10,
-    availableQty: 3200,
-    reservedQty: 10,
-    warehouse: 'Central Hub - BLR',
-    readiness: 'Waiting for QC',
+    orderId: 'ORD-1060',
+    customer: 'Deepak Chawla',
+    channel: 'B2B Wholesale',
+    product: 'Slim Fit Chino Trouser',
+    sku: 'CHN-SLM-002',
+    requiredQty: 50,
+    availableQty: 300,
+    reservedQty: 50,
+    warehouse: 'West DC - BOM',
+    conditions: {
+      stockAvailable: true, // 20
+      stockReserved: true, // 15
+      productionCompleted: true, // 20
+      qcPassed: true, // 20
+      packagingReady: true, // 15
+      dispatchPrepared: false, // 0 -> 90%
+    },
+    readinessPercent: 90,
+    finalStatus: 'Almost Ready',
     expectedDispatch: '09 Sep 2026',
-  },
-  {
-    id: 'FLF-006',
-    orderId: 'ORD-9856',
-    customer: 'Aditi Rao',
-    product: 'Merino Wool Sweater',
-    requiredQty: 3,
-    availableQty: 15,
-    reservedQty: 0,
-    warehouse: 'North DC - DEL',
-    readiness: 'Waiting for Production',
-    expectedDispatch: '14 Sep 2026',
   },
 ];
 
 const initialAlerts: DelayAlertItem[] = [
   {
     id: 'ALT-001',
-    type: 'Out of Stock',
     severity: 'critical',
-    title: 'Out of Stock: Premium Linen Shirt',
-    description: 'SKU SHT-LIN-007 has 0 available units across all fulfillment centers. 12 backorders pending.',
+    type: 'Stock Shortage',
     entityId: 'SHT-LIN-007',
-    timestamp: '25 mins ago',
-    actionText: 'Expedite Procurement',
+    product: 'Premium Linen Shirt (White / M)',
+    reason: 'Available stock is 0 units across all warehouses. 12 backorders accumulating.',
+    daysDelayed: 4,
+    responsibleParty: 'Eastern Indigo Mills',
+    createdTime: '25 mins ago',
+    recommendedAction: 'Expedite Procurement',
     resolved: false,
   },
   {
     id: 'ALT-002',
-    type: 'Production Delay',
     severity: 'critical',
-    title: 'Production Delay: Himalayan Woolcrafts',
-    description: 'Order PRD-2026-004 delayed by 10 days due to raw material dye lot mismatch.',
+    type: 'Production Delay',
     entityId: 'PRD-2026-004',
-    timestamp: '1 hour ago',
-    actionText: 'View Order Status',
+    product: 'Merino Wool Sweater (Charcoal / L)',
+    reason: 'Yarn dye lot color variation caused 8-day stoppage at Himalayan Woolcrafts.',
+    daysDelayed: 8,
+    responsibleParty: 'Himalayan Woolcrafts',
+    createdTime: '1 hour ago',
+    recommendedAction: 'Contact Manufacturer',
     resolved: false,
   },
   {
     id: 'ALT-003',
-    type: 'Low Stock',
     severity: 'warning',
-    title: 'Low Stock: Merino Wool Sweater',
-    description: 'North DC - DEL inventory has only 15 available units remaining (Reorder threshold: 250 units).',
+    type: 'Stock Shortage',
     entityId: 'SWT-MRN-005',
-    timestamp: '2 hours ago',
-    actionText: 'Create Transfer',
+    product: 'Merino Wool Sweater (North DC - DEL)',
+    reason: 'Available stock (15 units) is critically below reorder threshold (250 units).',
+    daysDelayed: 0,
+    responsibleParty: 'North DC Logistics',
+    createdTime: '2 hours ago',
+    recommendedAction: 'Create Stock Transfer',
     resolved: false,
   },
   {
     id: 'ALT-004',
-    type: 'QC Failure',
     severity: 'warning',
-    title: 'QC Batch Failure: Merino Wool Sweater',
-    description: 'Inspection QC-2026-115 rejected 95 units due to excess fiber pilling. Factory re-wash requested.',
+    type: 'QC Failure',
     entityId: 'QC-2026-115',
-    timestamp: '4 hours ago',
-    actionText: 'Inspect Report',
+    product: 'Merino Wool Sweater (Batch 26D-01)',
+    reason: '120 units failed fiber pilling test. Quarantined for de-pilling rework.',
+    daysDelayed: 3,
+    responsibleParty: 'QC Lab Bay 2',
+    createdTime: '4 hours ago',
+    recommendedAction: 'Inspect QC Report',
     resolved: false,
   },
   {
     id: 'ALT-005',
-    type: 'Procurement Delay',
     severity: 'warning',
-    title: 'Procurement Delay: Highland Knits Global',
-    description: 'PO PRC-2026-092 overdue by 2 days. Port customs clearance holding dispatch documentation.',
+    type: 'Procurement Delay',
     entityId: 'PRC-2026-092',
-    timestamp: 'Yesterday',
-    actionText: 'Contact Supplier',
+    product: 'Merino Wool Yarn Cones',
+    reason: 'Expected delivery date was 02 Sep 2026. Monsoon road transport delays reported.',
+    daysDelayed: 5,
+    responsibleParty: 'Highland Knits Global',
+    createdTime: 'Yesterday',
+    recommendedAction: 'Expedite Procurement',
     resolved: false,
   },
   {
     id: 'ALT-006',
-    type: 'Fulfilment Risk',
     severity: 'info',
-    title: 'Fulfilment Risk: 3 Orders in North DC',
-    description: 'Winter demand spike may deplete Delhi buffer stock within 48 hours without stock transfer arrival.',
-    entityId: 'North DC - DEL',
-    timestamp: 'Yesterday',
-    actionText: 'Track Transfer',
+    type: 'Fulfilment Risk',
+    entityId: 'ORD-1052',
+    product: 'Merino Wool Sweater (5 units)',
+    reason: 'Buffer stock at Delhi warehouse is at 15 units. Risk of stockout if transfer arrives late.',
+    daysDelayed: 1,
+    responsibleParty: 'Delhi Dispatch Hub',
+    createdTime: 'Yesterday',
+    recommendedAction: 'Track Transfer',
     resolved: false,
   },
 ];
@@ -998,11 +1260,12 @@ const initialStockMovements: StockMovementItem[] = [
     sku: 'TSH-ORG-001',
     warehouse: 'Central Hub - BLR',
     movementType: 'Receipt',
-    reference: 'PO-2026-089',
+    quantity: 1200,
     qtyIn: 1200,
     qtyOut: 0,
     previousStock: 3000,
     newStock: 4200,
+    referenceId: 'PO-2026-089',
     performedBy: 'Rahul Sharma (Warehouse Mgr)',
   },
   {
@@ -1012,11 +1275,12 @@ const initialStockMovements: StockMovementItem[] = [
     sku: 'JKT-DNM-003',
     warehouse: 'Central Hub - BLR',
     movementType: 'Receipt',
-    reference: 'QC-2026-112',
+    quantity: 710,
     qtyIn: 710,
     qtyOut: 0,
     previousStock: 1140,
     newStock: 1850,
+    referenceId: 'QC-2026-112',
     performedBy: 'Neha Kapoor (QC Lead)',
   },
   {
@@ -1026,11 +1290,12 @@ const initialStockMovements: StockMovementItem[] = [
     sku: 'JKT-DNM-003',
     warehouse: 'Central Hub - BLR',
     movementType: 'Dispatch',
-    reference: 'ORD-9812',
+    quantity: 2,
     qtyIn: 0,
     qtyOut: 2,
     previousStock: 1852,
     newStock: 1850,
+    referenceId: 'ORD-9812',
     performedBy: 'Vikrant Yadav (Dispatch)',
   },
   {
@@ -1040,11 +1305,12 @@ const initialStockMovements: StockMovementItem[] = [
     sku: 'CHN-SLM-002',
     warehouse: 'West DC - BOM',
     movementType: 'Adjustment',
-    reference: 'INV-AUD-09',
+    quantity: 15,
     qtyIn: 0,
     qtyOut: 15,
     previousStock: 755,
     newStock: 740,
+    referenceId: 'INV-AUD-09',
     performedBy: 'Manoj Pillai (Supervisor)',
   },
   {
@@ -1054,12 +1320,52 @@ const initialStockMovements: StockMovementItem[] = [
     sku: 'SWT-MRN-005',
     warehouse: 'Central Hub - BLR',
     movementType: 'Transfer Out',
-    reference: 'TRF-2026-031',
+    quantity: 350,
     qtyIn: 0,
     qtyOut: 350,
     previousStock: 510,
     newStock: 160,
+    referenceId: 'TRF-2026-031',
     performedBy: 'Rahul Sharma (Warehouse Mgr)',
+  },
+];
+
+const initialAuditLog: AuditLogEntry[] = [
+  {
+    id: 'AUD-001',
+    action: 'Stock Received via Procurement',
+    referenceId: 'PRC-2026-089',
+    previousValue: 'Quantity Received: 0',
+    newValue: 'Quantity Received: 1,200',
+    user: 'Rahul Sharma',
+    dateTime: '07 Sep 2026, 11:42 AM',
+  },
+  {
+    id: 'AUD-002',
+    action: 'QC Inspection Recorded',
+    referenceId: 'QC-2026-112',
+    previousValue: 'Status: Pending',
+    newValue: 'Status: Passed (710 passed, 40 failed)',
+    user: 'Neha Kapoor',
+    dateTime: '07 Sep 2026, 10:15 AM',
+  },
+  {
+    id: 'AUD-003',
+    action: 'Production Delay Reported',
+    referenceId: 'PRD-2026-004',
+    previousValue: 'Status: In Production',
+    newValue: 'Status: Delayed (+8 days)',
+    user: 'Ananya Roy',
+    dateTime: '06 Sep 2026, 05:10 PM',
+  },
+  {
+    id: 'AUD-004',
+    action: 'Manual Physical Audit Adjustment',
+    referenceId: 'INV-AUD-09',
+    previousValue: 'Stock-in-Hand: 755',
+    newValue: 'Stock-in-Hand: 740 (-15 damaged)',
+    user: 'Manoj Pillai',
+    dateTime: '06 Sep 2026, 04:50 PM',
   },
 ];
 
@@ -1078,9 +1384,10 @@ export const useWarehouseStore = create<WarehouseState>()(
       fulfilments: initialFulfilments,
       alerts: initialAlerts,
       stockMovements: initialStockMovements,
+      auditLog: initialAuditLog,
 
       getOverviewMetrics: () => {
-        const { stock, productionOrders, qualityChecks, procurements, fulfilments } = get();
+        const { stock, productionOrders, qualityChecks, procurements, fulfilments, alerts } = get();
 
         const totalStock = stock.reduce((acc, item) => acc + item.stockInHand, 0);
         const availableStock = stock.reduce((acc, item) => acc + item.available, 0);
@@ -1088,18 +1395,20 @@ export const useWarehouseStore = create<WarehouseState>()(
         const incomingStock = stock.reduce((acc, item) => acc + item.incoming, 0);
 
         const underProduction = productionOrders
-          .filter((p) => p.status === 'In Production' || p.status === 'Scheduled')
-          .reduce((acc, item) => acc + item.remaining, 0);
+          .filter((p) => p.status === 'In Production' || p.status === 'Scheduled' || p.status === 'Material Pending')
+          .reduce((acc, item) => acc + (item.quantity - item.completedQuantity), 0);
 
         const qcPending = qualityChecks
-          .filter((q) => q.status === 'Pending' || q.status === 'In Progress')
-          .reduce((acc, item) => acc + item.received, 0);
+          .filter((q) => q.qcStatus === 'Pending' || q.qcStatus === 'In Inspection')
+          .reduce((acc, item) => acc + item.quantityInspected, 0);
 
         const delayedOrders = procurements.filter((p) => p.status === 'Delayed').length +
           productionOrders.filter((p) => p.status === 'Delayed').length;
 
-        const readyCount = fulfilments.filter((f) => f.readiness === 'Ready').length;
-        const fulfilmentReady = fulfilments.length > 0 ? Math.round((readyCount / fulfilments.length) * 1000) / 10 : 94.2;
+        const readyFulfilments = fulfilments.filter((f) => f.finalStatus === 'Ready for Fulfilment').length;
+        const fulfilmentReadyPercent = fulfilments.length > 0
+          ? Math.round((readyFulfilments / fulfilments.length) * 1000) / 10
+          : 94.2;
 
         return {
           totalStock,
@@ -1109,41 +1418,95 @@ export const useWarehouseStore = create<WarehouseState>()(
           underProduction,
           qcPending,
           delayedOrders,
-          fulfilmentReady,
+          fulfilmentReadyPercent,
         };
       },
 
       addProcurement: (data) => {
-        const newId = `PRC-2026-0${100 + get().procurements.length}`;
-        const newProcurement: ProcurementItem = {
+        const id = `PRC-2026-0${100 + get().procurements.length}`;
+        const newProc: ProcurementItem = {
           ...data,
-          id: newId,
-          received: 0,
-          pending: data.quantity,
-          status: 'In Transit',
+          id,
+          quantityReceived: 0,
+          status: 'Confirmed',
         };
 
         const newIncoming: IncomingStockItem = {
           id: `INC-2026-0${50 + get().incomingStock.length}`,
-          referenceId: newId,
+          referenceId: id,
           source: 'Purchase Order',
           supplierManufacturer: data.supplier,
           product: data.product,
           sku: data.sku,
-          quantity: data.quantity,
-          expectedArrival: data.expectedDelivery,
-          warehouse: data.warehouse,
+          quantity: data.quantityOrdered,
+          expectedArrival: data.expectedDeliveryDate,
+          warehouse: data.destinationWarehouse,
           status: 'In Transit',
         };
 
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Procurement Order Created',
+          referenceId: id,
+          previousValue: 'None',
+          newValue: `${data.quantityOrdered} units of ${data.sku}`,
+          user: data.procurementOwner || 'Admin',
+          dateTime: now,
+        };
+
         set((state) => ({
-          procurements: [newProcurement, ...state.procurements],
+          procurements: [newProc, ...state.procurements],
           incomingStock: [newIncoming, ...state.incomingStock],
+          auditLog: [audit, ...state.auditLog],
           stock: state.stock.map((s) =>
-            s.sku === data.sku && s.warehouse === data.warehouse
-              ? { ...s, incoming: s.incoming + data.quantity }
+            s.sku === data.sku && s.warehouse === data.destinationWarehouse
+              ? { ...s, incoming: s.incoming + data.quantityOrdered }
               : s
           ),
+        }));
+      },
+
+      updateProcurementStatus: (id, status) => {
+        const item = get().procurements.find((p) => p.id === id);
+        if (!item) return;
+
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Procurement Status Changed',
+          referenceId: id,
+          previousValue: item.status,
+          newValue: status,
+          user: 'Procurement Lead',
+          dateTime: now,
+        };
+
+        // If marked delayed, add an alert
+        let newAlerts = get().alerts;
+        if (status === 'Delayed') {
+          newAlerts = [
+            {
+              id: `ALT-0${newAlerts.length + 1}`,
+              severity: 'warning',
+              type: 'Procurement Delay',
+              entityId: id,
+              product: item.product,
+              reason: `Expected on ${item.expectedDeliveryDate}. Supplier flagged dispatch delay.`,
+              daysDelayed: 3,
+              responsibleParty: item.supplier,
+              createdTime: 'Just now',
+              recommendedAction: 'Expedite Procurement',
+              resolved: false,
+            },
+            ...newAlerts,
+          ];
+        }
+
+        set((state) => ({
+          procurements: state.procurements.map((p) => (p.id === id ? { ...p, status } : p)),
+          auditLog: [audit, ...state.auditLog],
+          alerts: newAlerts,
         }));
       },
 
@@ -1151,356 +1514,506 @@ export const useWarehouseStore = create<WarehouseState>()(
         const item = get().procurements.find((p) => p.id === id);
         if (!item) return;
 
-        const newReceived = Math.min(item.quantity, item.received + qty);
-        const newPending = Math.max(0, item.quantity - newReceived);
-        const newStatus = newPending === 0 ? 'Delivered' : 'Partially Received';
+        const newReceived = Math.min(item.quantityOrdered, item.quantityReceived + qty);
+        const status: ProcurementItem['status'] =
+          newReceived >= item.quantityOrdered ? 'Received' : 'Partially Received';
 
-        set((state) => {
-          // Update Stock
-          const updatedStock = state.stock.map((stk) => {
-            if (stk.sku === item.sku && stk.warehouse === item.warehouse) {
-              const prevOnHand = stk.stockInHand;
-              const newOnHand = prevOnHand + qty;
-              const newAvailable = newOnHand - stk.reserved - stk.hold;
-              const newIncoming = Math.max(0, stk.incoming - qty);
-              let status: StockItem['status'] = 'Healthy';
-              if (newAvailable <= 0) status = 'Out of Stock';
-              else if (newAvailable < stk.reorderLevel / 2) status = 'Critical';
-              else if (newAvailable <= stk.reorderLevel) status = 'Low Stock';
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-              return {
-                ...stk,
-                stockInHand: newOnHand,
-                available: newAvailable,
-                incoming: newIncoming,
-                status,
-                updated: 'Just now',
-              };
-            }
-            return stk;
-          });
+        // Update Stock-in-Hand & Available
+        const updatedStock = get().stock.map((stk) => {
+          if (stk.sku === item.sku && stk.warehouse === item.destinationWarehouse) {
+            const newOnHand = stk.stockInHand + qty;
+            const newAvailable = newOnHand - stk.reserved;
+            const newIncoming = Math.max(0, stk.incoming - qty);
+            let sStatus: StockItem['status'] = 'Healthy';
+            if (newAvailable <= 0) sStatus = 'Out of Stock';
+            else if (newAvailable < stk.reorderLevel / 2) sStatus = 'Critical';
+            else if (newAvailable <= stk.reorderLevel) sStatus = 'Low Stock';
 
-          // Log Movement
-          const stkItem = state.stock.find((s) => s.sku === item.sku && s.warehouse === item.warehouse);
-          const prevOnHand = stkItem ? stkItem.stockInHand : 0;
-          const newMovement: StockMovementItem = {
-            id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-            dateTime: new Date().toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            product: item.product,
-            sku: item.sku,
-            warehouse: item.warehouse,
-            movementType: 'Receipt',
-            reference: item.id,
-            qtyIn: qty,
-            qtyOut: 0,
-            previousStock: prevOnHand,
-            newStock: prevOnHand + qty,
-            performedBy: 'Operations Admin',
-          };
-
-          return {
-            procurements: state.procurements.map((p) =>
-              p.id === id ? { ...p, received: newReceived, pending: newPending, status: newStatus } : p
-            ),
-            stock: updatedStock,
-            stockMovements: [newMovement, ...state.stockMovements],
-          };
+            return {
+              ...stk,
+              stockInHand: newOnHand,
+              available: newAvailable,
+              incoming: newIncoming,
+              status: sStatus,
+              lastUpdated: 'Just now',
+            };
+          }
+          return stk;
         });
+
+        // Audit & Movement
+        const matchedItem = get().stock.find((s) => s.sku === item.sku && s.warehouse === item.destinationWarehouse);
+        const prevOnHand = matchedItem ? matchedItem.stockInHand : 0;
+        const movement: StockMovementItem = {
+          id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+          dateTime: now,
+          product: item.product,
+          sku: item.sku,
+          warehouse: item.destinationWarehouse,
+          movementType: 'Receipt',
+          quantity: qty,
+          qtyIn: qty,
+          qtyOut: 0,
+          previousStock: prevOnHand,
+          newStock: prevOnHand + qty,
+          referenceId: item.id,
+          performedBy: 'Operations Admin',
+        };
+
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Stock Received via Procurement',
+          referenceId: item.id,
+          previousValue: `Received: ${item.quantityReceived}`,
+          newValue: `Received: ${newReceived}`,
+          user: 'Operations Admin',
+          dateTime: now,
+        };
+
+        set((state) => ({
+          procurements: state.procurements.map((p) =>
+            p.id === id ? { ...p, quantityReceived: newReceived, status } : p
+          ),
+          stock: updatedStock,
+          stockMovements: [movement, ...state.stockMovements],
+          auditLog: [audit, ...state.auditLog],
+        }));
+      },
+
+      receiveIncomingAtDock: (incomingId: string) => {
+        const item = get().incomingStock.find((inc) => inc.id === incomingId);
+        if (!item) return;
+
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        const updatedIncoming = get().incomingStock.map((inc) =>
+          inc.id === incomingId ? { ...inc, status: 'Dock Arrived' as const } : inc
+        );
+
+        const updatedStock = get().stock.map((stk) => {
+          if (stk.sku === item.sku && stk.warehouse === item.warehouse) {
+            const newOnHand = stk.stockInHand + item.quantity;
+            const newAvailable = newOnHand - stk.reserved;
+            const newIncoming = Math.max(0, stk.incoming - item.quantity);
+            let sStatus: StockItem['status'] = 'Healthy';
+            if (newAvailable <= 0) sStatus = 'Out of Stock';
+            else if (newAvailable < stk.reorderLevel / 2) sStatus = 'Critical';
+            else if (newAvailable <= stk.reorderLevel) sStatus = 'Low Stock';
+
+            return {
+              ...stk,
+              stockInHand: newOnHand,
+              available: newAvailable,
+              incoming: newIncoming,
+              status: sStatus,
+              lastUpdated: 'Just now',
+            };
+          }
+          return stk;
+        });
+
+        const matchedItem = get().stock.find((s) => s.sku === item.sku && s.warehouse === item.warehouse);
+        const prevOnHand = matchedItem ? matchedItem.stockInHand : 0;
+        const movement: StockMovementItem = {
+          id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+          dateTime: now,
+          product: item.product,
+          sku: item.sku,
+          warehouse: item.warehouse,
+          movementType: 'Receipt',
+          quantity: item.quantity,
+          qtyIn: item.quantity,
+          qtyOut: 0,
+          previousStock: prevOnHand,
+          newStock: prevOnHand + item.quantity,
+          referenceId: item.referenceId,
+          performedBy: 'Dock Receiving Supervisor',
+        };
+
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Dock Shipment Received',
+          referenceId: item.referenceId,
+          previousValue: 'Status: In Transit',
+          newValue: `Received ${item.quantity} units at ${item.warehouse}`,
+          user: 'Dock Receiving Supervisor',
+          dateTime: now,
+        };
+
+        set((state) => ({
+          incomingStock: updatedIncoming,
+          stock: updatedStock,
+          stockMovements: [movement, ...state.stockMovements],
+          auditLog: [audit, ...state.auditLog],
+        }));
       },
 
       addManufacturer: (data) => {
-        const newId = `MFG-00${get().manufacturers.length + 1}`;
+        const id = `MFG-00${get().manufacturers.length + 1}`;
         set((state) => ({
           manufacturers: [
             ...state.manufacturers,
-            { ...data, id: newId, activeOrders: 0, delayedOrders: 0 },
+            {
+              ...data,
+              id,
+              activeProductionOrders: 0,
+              completedOrdersCount: 0,
+              delayedOrdersCount: 0,
+            },
           ],
         }));
       },
 
       addProductionOrder: (data) => {
-        const newId = `PRD-2026-00${get().productionOrders.length + 1}`;
+        const id = `PRD-2026-00${get().productionOrders.length + 1}`;
         const newOrder: ProductionOrderItem = {
           ...data,
-          id: newId,
-          producedQty: 0,
-          remaining: data.orderedQty,
+          id,
+          completedQuantity: 0,
           qcPassed: 0,
           progress: 0,
           status: 'Scheduled',
         };
 
+        const trackingId = `TRK-00${get().productionTracking.length + 1}`;
         const newTracking: ProductionTrackingItem = {
-          id: `TRK-00${get().productionTracking.length + 1}`,
-          orderId: newId,
+          id: trackingId,
+          orderId: id,
           product: data.product,
           manufacturer: data.manufacturer,
-          ordered: data.orderedQty,
-          produced: 0,
-          remaining: data.orderedQty,
-          productionPercent: 0,
-          expectedDate: data.expectedCompletion,
-          currentStatus: 'Order scheduled with production line',
-          currentStage: 'Raw Materials',
+          orderedQty: data.quantity,
+          completedQty: 0,
+          progress: 0,
+          currentStage: 'Scheduled',
+          startDate: data.plannedStartDate,
+          expectedCompletion: data.plannedCompletionDate,
+          delayDays: 0,
+          status: 'Production run scheduled with factory',
           stages: [
-            { name: 'Raw Materials Sourced', completed: false, current: true, date: 'Pending' },
-            { name: 'Cutting & Pattern Layout', completed: false, date: 'Est. 3 days' },
-            { name: 'Assembly & Sewing', completed: false, date: 'Est. 7 days' },
-            { name: 'Finishing & Pressing', completed: false, date: 'Est. 10 days' },
-            { name: 'Ready for QC', completed: false, date: data.expectedCompletion },
+            { name: 'Scheduled', completed: true, date: data.plannedStartDate },
+            { name: 'Materials Allocated', completed: false, current: true, date: 'Pending' },
+            { name: 'Production Started', completed: false, date: 'Pending' },
+            { name: 'In Production', completed: false, date: 'Pending' },
+            { name: 'Production Completed', completed: false, date: data.plannedCompletionDate },
+            { name: 'Quality Check', completed: false, date: 'Awaiting Run' },
+            { name: 'Ready for Stock-In', completed: false, date: 'Final Step' },
           ],
+        };
+
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Production Order Scheduled',
+          referenceId: id,
+          previousValue: 'None',
+          newValue: `${data.quantity} units assigned to ${data.manufacturer}`,
+          user: data.assignedManager || 'Production Lead',
+          dateTime: now,
         };
 
         set((state) => ({
           productionOrders: [newOrder, ...state.productionOrders],
           productionTracking: [newTracking, ...state.productionTracking],
+          auditLog: [audit, ...state.auditLog],
         }));
       },
 
-      updateProductionProgress: (orderId, producedQty, nextStage) => {
+      updateProductionStage: (orderId, stage, completedQty) => {
         set((state) => {
-          const updatedOrders = state.productionOrders.map((order) => {
-            if (order.id === orderId) {
-              const newProduced = Math.min(order.orderedQty, producedQty);
-              const remaining = Math.max(0, order.orderedQty - newProduced);
-              const progress = Math.round((newProduced / order.orderedQty) * 100);
-              let status = order.status;
-              if (progress === 100) status = 'QC Pending';
-              else if (progress > 0) status = 'In Production';
+          const order = state.productionOrders.find((p) => p.id === orderId);
+          if (!order) return state;
 
-              return {
-                ...order,
-                producedQty: newProduced,
-                remaining,
-                progress,
-                status,
-              };
+          const newCompleted = completedQty !== undefined ? completedQty : order.completedQuantity;
+          const progress = Math.round((newCompleted / order.quantity) * 100);
+
+          let pStatus = order.status;
+          if (stage === 'Ready for Stock-In' || stage === 'Production Completed') {
+            pStatus = 'QC Pending';
+          } else if (stage === 'In Production' || stage === 'Production Started') {
+            pStatus = 'In Production';
+          }
+
+          // If stage moved to QC Pending, auto-generate QC record if none exists
+          let newQCs = state.qualityChecks;
+          if (stage === 'Quality Check' || stage === 'Production Completed') {
+            if (!newQCs.some((q) => q.productionOrder === orderId)) {
+              newQCs = [
+                {
+                  id: `QC-2026-${120 + newQCs.length}`,
+                  productionOrder: orderId,
+                  product: order.product,
+                  sku: order.sku,
+                  manufacturer: order.manufacturer,
+                  batchNumber: `BATCH-26-${Math.floor(10 + Math.random() * 90)}`,
+                  quantityInspected: order.quantity,
+                  passedQuantity: 0,
+                  failedQuantity: 0,
+                  inspectionDate: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+                  inspector: 'Assigned Inspector',
+                  defectType: 'None',
+                  defectNotes: 'Awaiting bay inspection',
+                  qcStatus: 'Pending',
+                },
+                ...newQCs,
+              ];
             }
-            return order;
-          });
+          }
 
           const updatedTracking = state.productionTracking.map((trk) => {
             if (trk.orderId === orderId) {
-              const newProduced = Math.min(trk.ordered, producedQty);
-              const remaining = Math.max(0, trk.ordered - newProduced);
-              const progress = Math.round((newProduced / trk.ordered) * 100);
-
+              const stages = trk.stages.map((stg) => {
+                if (stg.name === stage) {
+                  return { ...stg, completed: false, current: true };
+                }
+                return stg;
+              });
               return {
                 ...trk,
-                produced: newProduced,
-                remaining,
-                productionPercent: progress,
-                currentStage: nextStage || trk.currentStage,
+                currentStage: stage,
+                completedQty: newCompleted,
+                progress,
+                stages,
               };
             }
             return trk;
           });
 
           return {
-            productionOrders: updatedOrders,
+            productionOrders: state.productionOrders.map((p) =>
+              p.id === orderId ? { ...p, completedQuantity: newCompleted, progress, status: pStatus } : p
+            ),
             productionTracking: updatedTracking,
+            qualityChecks: newQCs,
           };
         });
       },
 
-      addQualityCheck: (data) => {
-        const newId = `QC-2026-${120 + get().qualityChecks.length}`;
-        const newQC: QualityCheckItem = {
-          ...data,
-          id: newId,
-          qcDate: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-          status: 'Pending',
-        };
-        set((state) => ({
-          qualityChecks: [newQC, ...state.qualityChecks],
-        }));
-      },
-
-      recordQC: ({ qcId, passed, failed, damaged, inspector, notes }) => {
+      recordQualityCheck: ({ qcId, passedQuantity, failedQuantity, inspector, defectType, defectNotes }) => {
         set((state) => {
           const qc = state.qualityChecks.find((q) => q.id === qcId);
           if (!qc) return state;
 
-          const totalInspected = passed + failed + damaged;
-          let status: QualityCheckItem['status'] = 'Passed';
-          if (passed === 0 && (failed > 0 || damaged > 0)) status = 'Failed';
-          else if (failed > 0 || damaged > 0) status = 'Partially Passed';
+          let qcStatus: QualityCheckItem['qcStatus'] = 'Passed';
+          if (passedQuantity === 0 && failedQuantity > 0) qcStatus = 'Failed';
+          else if (failedQuantity > 0) qcStatus = 'Partially Passed';
 
-          // Update stock if items passed QC
+          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+          // STRICT RULE: ONLY QC-approved quantity moves toward available stock!
+          // Failed quantity is never added to stock!
           let updatedStock = state.stock;
           let newMovements = [...state.stockMovements];
 
-          if (passed > 0) {
+          if (passedQuantity > 0) {
             updatedStock = state.stock.map((stk) => {
-              if (stk.product.toLowerCase().includes(qc.product.toLowerCase())) {
-                const prevOnHand = stk.stockInHand;
-                const newOnHand = prevOnHand + passed;
-                const newAvailable = newOnHand - stk.reserved - stk.hold;
+              if (stk.sku === qc.sku || stk.product.toLowerCase().includes(qc.product.toLowerCase())) {
+                const newOnHand = stk.stockInHand + passedQuantity;
+                const newAvailable = newOnHand - stk.reserved;
                 return {
                   ...stk,
                   stockInHand: newOnHand,
                   available: newAvailable,
-                  updated: 'Just now',
+                  lastUpdated: 'Just now',
                 };
               }
               return stk;
             });
 
-            const matchedItem = state.stock.find((s) => s.product.toLowerCase().includes(qc.product.toLowerCase()));
+            const matched = state.stock.find((s) => s.sku === qc.sku || s.product.toLowerCase().includes(qc.product.toLowerCase()));
+            const prevStock = matched ? matched.stockInHand : 0;
             newMovements.unshift({
               id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-              dateTime: new Date().toLocaleDateString('en-IN', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
+              dateTime: now,
               product: qc.product,
-              sku: matchedItem?.sku || 'SKU-GEN',
-              warehouse: matchedItem?.warehouse || 'Central Hub - BLR',
+              sku: qc.sku,
+              warehouse: matched?.warehouse || 'Central Hub - BLR',
               movementType: 'Receipt',
-              reference: qcId,
-              qtyIn: passed,
+              quantity: passedQuantity,
+              qtyIn: passedQuantity,
               qtyOut: 0,
-              previousStock: matchedItem ? matchedItem.stockInHand : 0,
-              newStock: matchedItem ? matchedItem.stockInHand + passed : passed,
+              previousStock: prevStock,
+              newStock: prevStock + passedQuantity,
+              referenceId: qcId,
               performedBy: inspector || 'QC Inspector',
             });
           }
+
+          // If failed quantity > 0, generate QC alert
+          let newAlerts = state.alerts;
+          if (failedQuantity > 0) {
+            newAlerts = [
+              {
+                id: `ALT-0${newAlerts.length + 1}`,
+                severity: failedQuantity > 50 ? 'critical' : 'warning',
+                type: 'QC Failure',
+                entityId: qcId,
+                product: qc.product,
+                reason: `${failedQuantity} units failed inspection. Defect: ${defectType || 'Quality rejection'}.`,
+                daysDelayed: 1,
+                responsibleParty: qc.manufacturer,
+                createdTime: 'Just now',
+                recommendedAction: 'Inspect QC Report',
+                resolved: false,
+              },
+              ...newAlerts,
+            ];
+          }
+
+          // Recalculate Fulfilment Readiness for any orders waiting on this SKU!
+          const updatedFulfilments = state.fulfilments.map((flf) => {
+            if (flf.sku === qc.sku || flf.product.toLowerCase().includes(qc.product.toLowerCase())) {
+              const newConditions = {
+                ...flf.conditions,
+                productionCompleted: true,
+                qcPassed: true,
+                stockAvailable: true,
+              };
+              const { percent, finalStatus } = calculateFulfilmentReadiness(newConditions);
+              return {
+                ...flf,
+                conditions: newConditions,
+                readinessPercent: percent,
+                finalStatus,
+              };
+            }
+            return flf;
+          });
+
+          const audit: AuditLogEntry = {
+            id: `AUD-0${state.auditLog.length + 1}`,
+            action: 'Quality Check Completed',
+            referenceId: qcId,
+            previousValue: 'Status: Pending',
+            newValue: `Passed: ${passedQuantity}, Failed: ${failedQuantity} (${qcStatus})`,
+            user: inspector || 'QC Inspector',
+            dateTime: now,
+          };
 
           return {
             qualityChecks: state.qualityChecks.map((q) =>
               q.id === qcId
                 ? {
                     ...q,
-                    passed,
-                    failed,
-                    damaged,
-                    inspector: inspector || q.inspector,
-                    notes: notes || q.notes,
-                    status,
+                    passedQuantity,
+                    failedQuantity,
+                    inspector,
+                    defectType: defectType || q.defectType,
+                    defectNotes: defectNotes || q.defectNotes,
+                    qcStatus,
                   }
                 : q
             ),
             stock: updatedStock,
             stockMovements: newMovements,
+            alerts: newAlerts,
+            fulfilments: updatedFulfilments,
+            auditLog: [audit, ...state.auditLog],
           };
         });
       },
 
-      adjustStock: (id, newOnHand, newHold, reason) => {
+      adjustStock: (stockId, newStockInHand, reason) => {
         set((state) => {
-          const item = state.stock.find((s) => s.id === id);
+          const item = state.stock.find((s) => s.id === stockId);
           if (!item) return state;
 
           const prevOnHand = item.stockInHand;
-          const diff = newOnHand - prevOnHand;
-          const newAvailable = newOnHand - item.reserved - newHold;
+          const diff = newStockInHand - prevOnHand;
+          const newAvailable = Math.max(0, newStockInHand - item.reserved);
 
           let status: StockItem['status'] = 'Healthy';
           if (newAvailable <= 0) status = 'Out of Stock';
           else if (newAvailable < item.reorderLevel / 2) status = 'Critical';
           else if (newAvailable <= item.reorderLevel) status = 'Low Stock';
 
+          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
           const movement: StockMovementItem = {
             id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-            dateTime: new Date().toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
+            dateTime: now,
             product: item.product,
             sku: item.sku,
             warehouse: item.warehouse,
             movementType: 'Adjustment',
-            reference: reason || 'Manual Audit Adjustment',
+            quantity: Math.abs(diff),
             qtyIn: diff > 0 ? diff : 0,
             qtyOut: diff < 0 ? Math.abs(diff) : 0,
             previousStock: prevOnHand,
-            newStock: newOnHand,
-            performedBy: 'Warehouse Lead',
+            newStock: newStockInHand,
+            referenceId: reason || 'Manual Physical Inventory Count',
+            performedBy: 'Warehouse Manager',
+          };
+
+          const audit: AuditLogEntry = {
+            id: `AUD-0${state.auditLog.length + 1}`,
+            action: 'Manual Stock Adjustment',
+            referenceId: item.sku,
+            previousValue: `Stock-in-Hand: ${prevOnHand}`,
+            newValue: `Stock-in-Hand: ${newStockInHand} (${reason})`,
+            user: 'Warehouse Manager',
+            dateTime: now,
           };
 
           return {
             stock: state.stock.map((s) =>
-              s.id === id
+              s.id === stockId
                 ? {
                     ...s,
-                    stockInHand: newOnHand,
-                    hold: newHold,
+                    stockInHand: newStockInHand,
                     available: newAvailable,
                     status,
-                    updated: 'Just now',
+                    lastUpdated: 'Just now',
                   }
                 : s
             ),
             stockMovements: [movement, ...state.stockMovements],
+            auditLog: [audit, ...state.auditLog],
           };
         });
       },
 
-      addIncomingStock: (data) => {
-        const newId = `INC-2026-0${60 + get().incomingStock.length}`;
-        set((state) => ({
-          incomingStock: [{ ...data, id: newId }, ...state.incomingStock],
-        }));
-      },
-
-      receiveIncomingAtDock: (id) => {
+      releaseReservation: (resId) => {
         set((state) => {
-          const item = state.incomingStock.find((i) => i.id === id);
-          if (!item) return state;
+          const res = state.reservations.find((r) => r.id === resId);
+          if (!res) return state;
+
+          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
           const updatedStock = state.stock.map((stk) => {
-            if (stk.sku === item.sku && stk.warehouse === item.warehouse) {
-              const newOnHand = stk.stockInHand + item.quantity;
-              const newAvailable = newOnHand - stk.reserved - stk.hold;
-              const newIncoming = Math.max(0, stk.incoming - item.quantity);
+            if (stk.sku === res.sku && stk.warehouse === res.warehouse) {
+              const newReserved = Math.max(0, stk.reserved - res.reservedQty);
+              const newAvailable = stk.stockInHand - newReserved;
               return {
                 ...stk,
-                stockInHand: newOnHand,
+                reserved: newReserved,
                 available: newAvailable,
-                incoming: newIncoming,
-                updated: 'Just now',
+                lastUpdated: 'Just now',
               };
             }
             return stk;
           });
 
-          const matchedItem = state.stock.find((s) => s.sku === item.sku && s.warehouse === item.warehouse);
           const movement: StockMovementItem = {
             id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-            dateTime: new Date().toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            product: item.product,
-            sku: item.sku,
-            warehouse: item.warehouse,
-            movementType: 'Receipt',
-            reference: item.referenceId,
-            qtyIn: item.quantity,
+            dateTime: now,
+            product: res.product,
+            sku: res.sku,
+            warehouse: res.warehouse,
+            movementType: 'Reservation Release',
+            quantity: res.reservedQty,
+            qtyIn: res.reservedQty,
             qtyOut: 0,
-            previousStock: matchedItem ? matchedItem.stockInHand : 0,
-            newStock: (matchedItem ? matchedItem.stockInHand : 0) + item.quantity,
-            performedBy: 'Inbound Dock Supervisor',
+            previousStock: res.available,
+            newStock: res.available + res.reservedQty,
+            referenceId: res.orderId,
+            performedBy: 'Order Allocator',
           };
 
           return {
-            incomingStock: state.incomingStock.map((i) =>
-              i.id === id ? { ...i, status: 'Dock Arrived' } : i
+            reservations: state.reservations.map((r) =>
+              r.id === resId ? { ...r, status: 'Released', reservedQty: 0 } : r
             ),
             stock: updatedStock,
             stockMovements: [movement, ...state.stockMovements],
@@ -1508,63 +2021,120 @@ export const useWarehouseStore = create<WarehouseState>()(
         });
       },
 
-      releaseReservation: (id) => {
+      allocateReservation: (orderId, sku, qty) => {
         set((state) => {
-          const res = state.reservations.find((r) => r.id === id);
-          if (!res) return state;
+          const stkItem = state.stock.find((s) => s.sku === sku);
+          if (!stkItem || stkItem.available < qty) return state;
 
-          const updatedStock = state.stock.map((stk) => {
-            if (stk.sku === res.sku && stk.warehouse === res.warehouse) {
-              const newReserved = Math.max(0, stk.reserved - res.reservedQty);
-              const newAvailable = stk.stockInHand - newReserved - stk.hold;
-              return {
-                ...stk,
-                reserved: newReserved,
-                available: newAvailable,
-                updated: 'Just now',
-              };
-            }
-            return stk;
-          });
+          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+          const newReserved = stkItem.reserved + qty;
+          const newAvailable = stkItem.stockInHand - newReserved;
+
+          const newRes: ReservationItem = {
+            id: `RES-00${state.reservations.length + 1}`,
+            orderId,
+            customer: 'Direct Wholesale Allocation',
+            channel: 'Website',
+            product: stkItem.product,
+            sku,
+            warehouse: stkItem.warehouse,
+            requiredQty: qty,
+            reservedQty: qty,
+            available: newAvailable,
+            status: 'Allocated',
+          };
+
+          const movement: StockMovementItem = {
+            id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+            dateTime: now,
+            product: stkItem.product,
+            sku,
+            warehouse: stkItem.warehouse,
+            movementType: 'Reservation',
+            quantity: qty,
+            qtyIn: 0,
+            qtyOut: qty,
+            previousStock: stkItem.available,
+            newStock: newAvailable,
+            referenceId: orderId,
+            performedBy: 'Order Allocator',
+          };
 
           return {
-            reservations: state.reservations.map((r) =>
-              r.id === id ? { ...r, status: 'Released', reservedQty: 0 } : r
+            reservations: [newRes, ...state.reservations],
+            stock: state.stock.map((s) =>
+              s.id === stkItem.id ? { ...s, reserved: newReserved, available: newAvailable } : s
             ),
-            stock: updatedStock,
+            stockMovements: [movement, ...state.stockMovements],
           };
         });
       },
 
       addTransfer: (data) => {
-        const newId = `TRF-2026-0${40 + get().transfers.length}`;
+        const id = `TRF-2026-0${40 + get().transfers.length}`;
         const newTransfer: TransferItem = {
           ...data,
-          id: newId,
+          id,
           transferDate: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
           status: 'In Transit',
         };
 
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        // Deduct from source warehouse
+        const updatedStock = get().stock.map((stk) => {
+          if (stk.sku === data.sku && stk.warehouse === data.fromWarehouse) {
+            const newOnHand = Math.max(0, stk.stockInHand - data.quantity);
+            return {
+              ...stk,
+              stockInHand: newOnHand,
+              available: Math.max(0, newOnHand - stk.reserved),
+              lastUpdated: 'Just now',
+            };
+          }
+          return stk;
+        });
+
+        const movement: StockMovementItem = {
+          id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+          dateTime: now,
+          product: data.product,
+          sku: data.sku,
+          warehouse: data.fromWarehouse,
+          movementType: 'Transfer Out',
+          quantity: data.quantity,
+          qtyIn: 0,
+          qtyOut: data.quantity,
+          previousStock: 0,
+          newStock: 0,
+          referenceId: id,
+          performedBy: 'Logistics Lead',
+        };
+
         set((state) => ({
           transfers: [newTransfer, ...state.transfers],
+          stock: updatedStock,
+          stockMovements: [movement, ...state.stockMovements],
         }));
       },
 
-      receiveTransfer: (id) => {
+      receiveTransfer: (transferId) => {
         set((state) => {
-          const trf = state.transfers.find((t) => t.id === id);
+          const trf = state.transfers.find((t) => t.id === transferId);
           if (!trf) return state;
 
-          // Add to target warehouse stock
+          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+          // Add to destination warehouse
           const updatedStock = state.stock.map((stk) => {
             if (stk.sku === trf.sku && stk.warehouse === trf.toWarehouse) {
               const newOnHand = stk.stockInHand + trf.quantity;
-              const newAvailable = newOnHand - stk.reserved - stk.hold;
               return {
                 ...stk,
                 stockInHand: newOnHand,
-                available: newAvailable,
-                updated: 'Just now',
+                available: newOnHand - stk.reserved,
+                lastUpdated: 'Just now',
               };
             }
             return stk;
@@ -1572,49 +2142,46 @@ export const useWarehouseStore = create<WarehouseState>()(
 
           const movement: StockMovementItem = {
             id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-            dateTime: new Date().toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
+            dateTime: now,
             product: trf.product,
             sku: trf.sku,
             warehouse: trf.toWarehouse,
             movementType: 'Transfer In',
-            reference: trf.id,
+            quantity: trf.quantity,
             qtyIn: trf.quantity,
             qtyOut: 0,
             previousStock: 0,
             newStock: trf.quantity,
-            performedBy: 'Receiving Dock Lead',
+            referenceId: trf.id,
+            performedBy: 'Inbound Dock',
           };
 
           return {
-            transfers: state.transfers.map((t) => (t.id === id ? { ...t, status: 'Received' } : t)),
+            transfers: state.transfers.map((t) => (t.id === transferId ? { ...t, status: 'Received' } : t)),
             stock: updatedStock,
             stockMovements: [movement, ...state.stockMovements],
           };
         });
       },
 
-      dispatchFulfilment: (id) => {
+      dispatchFulfilmentOrder: (fulfilmentId) => {
         set((state) => {
-          const flf = state.fulfilments.find((f) => f.id === id);
+          const flf = state.fulfilments.find((f) => f.id === fulfilmentId);
           if (!flf) return state;
 
+          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+          // Deduct from stock
           const updatedStock = state.stock.map((stk) => {
-            if (stk.product.toLowerCase().includes(flf.product.toLowerCase()) && stk.warehouse === flf.warehouse) {
+            if ((stk.sku === flf.sku || stk.product.toLowerCase().includes(flf.product.toLowerCase())) && stk.warehouse === flf.warehouse) {
               const newOnHand = Math.max(0, stk.stockInHand - flf.requiredQty);
               const newReserved = Math.max(0, stk.reserved - flf.reservedQty);
-              const newAvailable = newOnHand - newReserved - stk.hold;
               return {
                 ...stk,
                 stockInHand: newOnHand,
                 reserved: newReserved,
-                available: newAvailable,
-                updated: 'Just now',
+                available: Math.max(0, newOnHand - newReserved),
+                lastUpdated: 'Just now',
               };
             }
             return stk;
@@ -1622,53 +2189,56 @@ export const useWarehouseStore = create<WarehouseState>()(
 
           const movement: StockMovementItem = {
             id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-            dateTime: new Date().toLocaleDateString('en-IN', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
+            dateTime: now,
             product: flf.product,
-            sku: 'SKU-FULFILL',
+            sku: flf.sku,
             warehouse: flf.warehouse,
             movementType: 'Dispatch',
-            reference: flf.orderId,
+            quantity: flf.requiredQty,
             qtyIn: 0,
             qtyOut: flf.requiredQty,
             previousStock: 0,
             newStock: 0,
-            performedBy: 'Dispatch Lead',
+            referenceId: flf.orderId,
+            performedBy: 'Fulfillment Dispatch Lead',
+          };
+
+          const audit: AuditLogEntry = {
+            id: `AUD-0${state.auditLog.length + 1}`,
+            action: 'Order Fulfilled & Dispatched',
+            referenceId: flf.orderId,
+            previousValue: 'Status: Ready for Fulfilment',
+            newValue: 'Status: Dispatched',
+            user: 'Fulfillment Lead',
+            dateTime: now,
           };
 
           return {
-            fulfilments: state.fulfilments.filter((f) => f.id !== id),
+            fulfilments: state.fulfilments.map((f) =>
+              f.id === fulfilmentId ? { ...f, finalStatus: 'Dispatched', expectedDispatch: 'Dispatched' } : f
+            ),
             stock: updatedStock,
             stockMovements: [movement, ...state.stockMovements],
+            auditLog: [audit, ...state.auditLog],
           };
         });
       },
 
-      resolveAlert: (id) => {
+      resolveAlert: (alertId) => {
         set((state) => ({
-          alerts: state.alerts.map((a) => (a.id === id ? { ...a, resolved: true } : a)),
+          alerts: state.alerts.map((a) => (a.id === alertId ? { ...a, resolved: true } : a)),
         }));
       },
 
-      addStockMovement: (movement) => {
-        const newMovement: StockMovementItem = {
-          ...movement,
-          id: `MOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-          dateTime: new Date().toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
+      addAuditEntry: (entry) => {
+        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const newEntry: AuditLogEntry = {
+          ...entry,
+          id: `AUD-0${get().auditLog.length + 1}`,
+          dateTime: now,
         };
         set((state) => ({
-          stockMovements: [newMovement, ...state.stockMovements],
+          auditLog: [newEntry, ...state.auditLog],
         }));
       },
     }),

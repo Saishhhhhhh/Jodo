@@ -39,10 +39,11 @@ export function AlertsTab({ onTabChange }: AlertsTabProps) {
   const filteredAlerts = useMemo(() => {
     return alerts.filter((alt) => {
       const matchSearch =
-        alt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alt.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alt.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alt.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
         alt.entityId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        alt.type.toLowerCase().includes(searchTerm.toLowerCase());
+        alt.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alt.responsibleParty.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchType = typeFilter === 'ALL' || alt.type === typeFilter;
       return matchSearch && matchType;
@@ -51,46 +52,52 @@ export function AlertsTab({ onTabChange }: AlertsTabProps) {
 
   const handleAction = (alt: DelayAlertItem) => {
     switch (alt.type) {
-      case 'Out of Stock':
-      case 'Low Stock':
+      case 'Stock Shortage':
         onTabChange('stock');
         break;
       case 'Production Delay':
+      case 'Raw Material Shortage':
         onTabChange('production-orders');
         break;
       case 'QC Failure':
+      case 'QC Delay':
         onTabChange('quality-checks');
         break;
       case 'Procurement Delay':
+      case 'Supplier Delay':
         onTabChange('procurement');
         break;
       case 'Incoming Shipment Delay':
-        onTabChange('incoming-stock');
+        onTabChange('stock');
         break;
-      case 'Transfer Delay':
+      case 'Manufacturer Delay':
+        onTabChange('manufacturers');
+        break;
       case 'Fulfilment Risk':
-        onTabChange('transfers');
+        onTabChange('fulfilment');
         break;
       default:
         resolveAlert(alt.id);
-        toast.success(`Alert acknowledged: ${alt.title}`);
+        toast.success(`Alert acknowledged: ${alt.product}`);
     }
   };
 
   const getTypeIcon = (type: DelayAlertItem['type']) => {
     switch (type) {
-      case 'Low Stock':
-      case 'Out of Stock':
+      case 'Stock Shortage':
         return <Package className="h-4 w-4 text-destructive" />;
       case 'Production Delay':
+      case 'Raw Material Shortage':
         return <Factory className="h-4 w-4 text-amber-500" />;
       case 'QC Failure':
+      case 'QC Delay':
         return <ClipboardCheck className="h-4 w-4 text-destructive" />;
       case 'Procurement Delay':
+      case 'Supplier Delay':
       case 'Incoming Shipment Delay':
         return <Truck className="h-4 w-4 text-amber-500" />;
-      case 'Transfer Delay':
-        return <RotateCcw className="h-4 w-4 text-blue-500" />;
+      case 'Manufacturer Delay':
+        return <Factory className="h-4 w-4 text-blue-500" />;
       case 'Fulfilment Risk':
         return <AlertTriangle className="h-4 w-4 text-amber-500" />;
       default:
@@ -165,7 +172,7 @@ export function AlertsTab({ onTabChange }: AlertsTabProps) {
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-sm text-foreground">
-                          {alt.title}
+                          {alt.product} - {alt.type}
                         </span>
                         <Badge
                           variant={alt.severity === 'critical' ? 'destructive' : 'secondary'}
@@ -178,10 +185,10 @@ export function AlertsTab({ onTabChange }: AlertsTabProps) {
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        {alt.description}
+                        {alt.reason}
                       </p>
                       <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-0.5">
-                        <Clock className="h-3 w-3" /> Reported {alt.timestamp}
+                        <Clock className="h-3 w-3" /> Reported {alt.createdTime}
                         {alt.resolved && (
                           <span className="text-green-600 dark:text-green-400 font-medium flex items-center gap-1 ml-2">
                             <CheckCircle2 className="h-3 w-3" /> Resolved
@@ -210,7 +217,7 @@ export function AlertsTab({ onTabChange }: AlertsTabProps) {
                           className="h-8 text-xs gap-1.5"
                           onClick={() => handleAction(alt)}
                         >
-                          {alt.actionText} <ExternalLink className="h-3 w-3" />
+                          {alt.recommendedAction} <ExternalLink className="h-3 w-3" />
                         </Button>
                       </>
                     ) : (
