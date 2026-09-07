@@ -22,10 +22,12 @@ import {
   History, 
   User, 
   CheckCircle2, 
-  MessageSquarePlus 
+  MessageSquarePlus,
+  Pencil
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { StatusRemarkModal } from '@/components/tasks/status-remark-modal';
+import { EditTaskModal } from '@/components/tasks/edit-task-modal';
 
 export default function TaskDetailPage() {
   const params = useParams();
@@ -41,6 +43,7 @@ export default function TaskDetailPage() {
   const [isSubmittingRemark, setIsSubmittingRemark] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStatus, setModalStatus] = useState<TaskStatus | undefined>(undefined);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (tasks.length === 0) {
@@ -116,10 +119,16 @@ export default function TaskDetailPage() {
           </div>
         </div>
 
-        <Button onClick={() => handleOpenStatusModal(task.status)} className="gap-2">
-          <MessageSquare className="w-4 h-4" />
-          Update Status & Remark
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setIsEditModalOpen(true)} className="gap-2">
+            <Pencil className="w-4 h-4" />
+            Edit Task
+          </Button>
+          <Button onClick={() => handleOpenStatusModal(task.status)} className="gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Update Status & Remark
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -428,6 +437,13 @@ export default function TaskDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={task}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+      />
 
       {/* Status and Remark Modal */}
       <StatusRemarkModal

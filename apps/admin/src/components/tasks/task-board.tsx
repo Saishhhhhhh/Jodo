@@ -7,16 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus } from 'lucide-react';
+import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusRemarkModal } from './status-remark-modal';
+import { EditTaskModal } from './edit-task-modal';
 
 export function TaskBoard({ tasks }: { tasks: Task[] }) {
   const router = useRouter();
   const [modalTask, setModalTask] = useState<Task | null>(null);
   const [modalInitialStatus, setModalInitialStatus] = useState<TaskStatus | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [editModalTask, setEditModalTask] = useState<Task | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const openRemarkModal = (task: Task, newStatus?: TaskStatus) => {
     setModalTask(task);
@@ -175,6 +179,18 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      title="Edit Task"
+                      onClick={() => {
+                        setEditModalTask(t);
+                        setIsEditModalOpen(true);
+                      }}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
                       title="Update Status & Remark"
                       onClick={() => openRemarkModal(t)}
                     >
@@ -184,6 +200,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-red-500"
+                      title="Delete Task"
                       onClick={() => {
                         if (confirm('Are you sure you want to delete this task?')) {
                           useTasksStore.getState().deleteTask(taskId);
@@ -207,6 +224,13 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
           )}
         </TableBody>
       </Table>
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={editModalTask}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+      />
 
       {/* Status and Remark Modal */}
       <StatusRemarkModal

@@ -34,6 +34,8 @@ export interface Task {
   description: string;
   type: TaskType;
   department: Department;
+  category?: string;
+  taskType?: string;
   priority: TaskPriority;
   status: TaskStatus;
   assignedTo: any;
