@@ -40,127 +40,88 @@ export interface Task {
 
 interface TasksState {
   tasks: Task[];
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'activities'>) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
-  addActivity: (taskId: string, activity: Omit<TaskActivity, 'id' | 'timestamp'>) => void;
-  toggleChecklistItem: (taskId: string, checklistItemId: string) => void;
+  fetchTasks: (params?: any) => Promise<void>;
+  addTask: (task: any) => Promise<void>;
+  updateTask: (id: string, updates: any) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  addActivity: (taskId: string, activity: any) => Promise<void>;
+  toggleChecklistItem: (taskId: string, checklistItemId: string) => Promise<void>;
 }
 
-// Initial Mock Data
-const MOCK_TASKS: Task[] = [
-  {
-    id: 'JODO-TASK-10452',
-    title: 'Follow up with ABC Pvt Ltd',
-    description: 'Call the customer to discuss the recent quotation.',
-    type: 'Follow-up',
-    department: 'Sales',
-    priority: 'High',
-    status: 'Pending',
-    assignedTo: 'Rahul',
-    createdBy: 'Amit',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    dueDate: new Date(Date.now() + 86400000).toISOString(),
-    dueTime: '17:00',
-    tags: ['Customer', 'Follow-up'],
-    checklist: [
-      { id: '1', label: 'Call customer', completed: false },
-      { id: '2', label: 'Prepare quotation', completed: true },
-    ],
-    activities: [
-      { id: 'a1', timestamp: new Date(Date.now() - 86400000).toISOString(), user: 'Amit', action: 'created this task' },
-    ]
-  },
-  {
-    id: 'JODO-TASK-10453',
-    title: 'Update CRM for Q3 Deals',
-    description: 'Ensure all deals for Q3 are properly tracked and updated in the system.',
-    type: 'Admin',
-    department: 'Sales',
-    priority: 'Medium',
-    status: 'In Progress',
-    assignedTo: 'Rahul',
-    createdBy: 'System',
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    dueDate: new Date(Date.now() - 3600000).toISOString(), // Overdue
-    tags: ['CRM', 'Quarterly'],
-    checklist: [],
-    activities: [
-      { id: 'a1', timestamp: new Date(Date.now() - 172800000).toISOString(), user: 'System', action: 'created this task' },
-      { id: 'a2', timestamp: new Date(Date.now() - 86400000).toISOString(), user: 'Rahul', action: 'changed status to In Progress' },
-    ]
-  }
-];
-
+import { tasksApi } from '../lib/api-client';
 import { toast } from 'sonner';
 
 export const useTasksStore = create<TasksState>((set, get) => ({
-  tasks: MOCK_TASKS,
-  addTask: (taskData) => set((state) => {
-    const newTask: Task = {
-      ...taskData,
-      id: `JODO-TASK-${Math.floor(10000 + Math.random() * 90000)}`,
-      createdAt: new Date().toISOString(),
-      activities: [
-        {
-          id: Math.random().toString(),
-          timestamp: new Date().toISOString(),
-          user: taskData.createdBy,
-          action: 'created this task'
-        }
-      ]
-    };
-    
-    // Notify Assignee
-    setTimeout(() => {
-      toast.success(`New Task Assigned: ${newTask.title}`, {
-        description: `Assigned by ${newTask.createdBy}`,
-      });
-    }, 500);
-
-    return { tasks: [newTask, ...state.tasks] };
-  }),
-  updateTask: (id, updates) => set((state) => {
-    const task = state.tasks.find(t => t.id === id);
-    if (task && updates.status && updates.status !== task.status) {
-      // Notify Admin / Creator that the status changed
-      setTimeout(() => {
-        toast.info(`Task Status Updated`, {
-          description: `${task.assignedTo} changed "${task.title}" to ${updates.status}`,
-        });
-      }, 500);
+  tasks: [],
+  fetchTasks: async (params) => {
+    try {
+      const res = await tasksApi.list(params);
+      set({ tasks: res.data.data });
+    } catch (error) {
+      console.error('Failed to fetch tasks', error);
+      toast.error('Failed to fetch tasks');
     }
-    
-    return {
-      tasks: state.tasks.map(t => (t.id === id ? { ...t, ...updates } : t))
-    };
-  }),
-  deleteTask: (id) => set((state) => ({
-    tasks: state.tasks.filter(t => t.id !== id)
-  })),
-  addActivity: (taskId, activityData) => set((state) => ({
-    tasks: state.tasks.map(t => {
-      if (t.id === taskId) {
-        return {
-          ...t,
-          activities: [
-            ...t.activities,
-            { ...activityData, id: Math.random().toString(), timestamp: new Date().toISOString() }
-          ]
-        };
+  },
+  addTask: async (taskData) => {
+    try {
+      const res = await tasksApi.create(taskData);
+      set((state) => ({ tasks: [res.data.data, ...state.tasks] }));
+      toast.success('Task created successfully');
+    } catch (error) {
+      toast.error('Failed to create task');
+      throw error;
+    }
+  },
+  updateTask: async (id, updates) => {
+    try {
+      const res = await tasksApi.update(id, updates);
+      set((state) => ({
+        tasks: state.tasks.map(t => (t.id === id ? res.data.data : t))
+      }));
+      toast.success('Task updated');
+    } catch (error) {
+      toast.error('Failed to update task');
+      throw error;
+    }
+  },
+  deleteTask: async (id) => {
+    try {
+      await tasksApi.delete(id);
+      set((state) => ({
+        tasks: state.tasks.filter(t => t.id !== id)
+      }));
+      toast.success('Task deleted');
+    } catch (error) {
+      toast.error('Failed to delete task');
+      throw error;
+    }
+  },
+  addActivity: async (taskId, activityData) => {
+    // Activities are mostly auto-generated by the backend, 
+    // but if it's a comment, we use the addComment API.
+    if (activityData.action === 'commented') {
+      try {
+        const res = await tasksApi.addComment(taskId, { message: (activityData as any).details?.message || activityData.action });
+        // Refetch or update local state manually
+        // For simplicity, we just update the specific task's comments in the state if needed, 
+        // but ideally we should fetch the task again.
+        get().fetchTasks(); 
+      } catch (error) {
+        toast.error('Failed to add comment');
       }
-      return t;
-    })
-  })),
-  toggleChecklistItem: (taskId, checklistItemId) => set((state) => ({
-    tasks: state.tasks.map(t => {
-      if (t.id === taskId) {
-        return {
-          ...t,
-          checklist: t.checklist.map(c => c.id === checklistItemId ? { ...c, completed: !c.completed } : c)
-        };
-      }
-      return t;
-    })
-  }))
+    }
+  },
+  toggleChecklistItem: async (taskId, checklistItemId) => {
+    try {
+      // Find current item
+      const task = get().tasks.find(t => t.id === taskId);
+      const item = task?.checklist?.find(c => c.id === checklistItemId);
+      if (!item) return;
+
+      await tasksApi.updateChecklist(taskId, { id: checklistItemId, isCompleted: !item.completed });
+      get().fetchTasks();
+    } catch (error) {
+      toast.error('Failed to update checklist');
+    }
+  }
 }));

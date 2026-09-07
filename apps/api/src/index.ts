@@ -32,6 +32,7 @@ import campaignsRoutes from './routes/campaigns';
 import bannersRoutes from './routes/banners';
 import mediaRoutes from './routes/media';
 import navigationRoutes from './routes/navigation';
+import tasksRoutes from './routes/tasks';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 import reportsRoutes from './routes/reports';
@@ -133,6 +134,7 @@ app.use('/api/admin/banners', bannersRoutes);
 app.use('/api/admin/media', mediaRoutes);
 app.use('/api/admin/navigation', navigationRoutes);
 app.use('/api/admin/reports', reportsRoutes);
+app.use('/api/admin/tasks', tasksRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================

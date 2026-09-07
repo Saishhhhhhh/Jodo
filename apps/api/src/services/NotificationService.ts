@@ -64,7 +64,7 @@ export class NotificationService {
         existingNotif.state = 'resolved';
         await existingNotif.save();
         
-        const prod = await Product.findOne({ sku: item.sku }).select('title category').lean();
+        const prod: any = await Product.findOne({ sku: item.sku }).select('title category').lean();
         await Notification.create({
           tenantId: item.tenantId,
           storeId: item.storeId,
@@ -98,7 +98,7 @@ export class NotificationService {
         await existingNotif.save();
       }
       
-      const prod = await Product.findOne({ sku: item.sku }).select('title category').lean();
+      const prod: any = await Product.findOne({ sku: item.sku }).select('title category').lean();
       
       message = `${prod?.title || item.sku} is ${currentState}. Available: ${availableStock}. Reorder level is ${reorderLevel}.`;
       

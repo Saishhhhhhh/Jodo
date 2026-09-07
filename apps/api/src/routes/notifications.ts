@@ -18,8 +18,8 @@ router.get('/', async (req, res, next) => {
     
     // We should filter by user role, but for now we assume they can see targets if they have access
     // Assuming req.auth.role exists. We can do: query.targetRoles = req.auth.role;
-    if (req.auth!.role) {
-      query.targetRoles = req.auth!.role;
+    if ((req.auth as any)!.role) {
+      query.targetRoles = (req.auth as any)!.role;
     }
     
     if (state && state !== 'all') {
@@ -72,7 +72,7 @@ router.patch('/read-all', async (req, res, next) => {
       storeId: req.auth!.storeId,
       state: 'unread'
     };
-    if (req.auth!.role) query.targetRoles = req.auth!.role;
+    if ((req.auth as any)!.role) query.targetRoles = (req.auth as any)!.role;
     
     await Notification.updateMany(query, { state: 'read' });
     sendSuccess(res, { message: 'All marked as read' });

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTasksStore } from '@/stores/tasks';
@@ -19,7 +19,11 @@ import { format } from 'date-fns';
 
 export default function TasksDashboardPage() {
   const router = useRouter();
-  const tasks = useTasksStore(state => state.tasks);
+  const { tasks, fetchTasks } = useTasksStore();
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const totalTasks = tasks.length;
   const pending = tasks.filter(t => t.status === 'Pending').length;
@@ -40,7 +44,7 @@ export default function TasksDashboardPage() {
   });
 
   const recentActivity = tasks.flatMap(t => 
-    t.activities.map(a => ({ ...a, taskTitle: t.title, taskId: t.id }))
+    t.activities ? t.activities.map(a => ({ ...a, taskTitle: t.title, taskId: t.id })) : []
   ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5);
 
   const summaryCards = [
@@ -101,7 +105,7 @@ export default function TasksDashboardPage() {
                       {todayTasks.map((t) => (
                         <TableRow key={t.id} onClick={() => router.push(`/tasks/${t.id}`)} className="cursor-pointer hover:bg-muted/10">
                           <TableCell className="font-medium text-sm py-3">{t.title}</TableCell>
-                          <TableCell className="text-sm py-3">{t.assignedTo}</TableCell>
+                          <TableCell className="text-sm py-3">{(t as any).assignedTo?.name || (t as any).assignedTo || 'Unassigned'}</TableCell>
                           <TableCell className="py-3">
                             <Badge variant="outline" className="text-[10px]">{t.priority}</Badge>
                           </TableCell>
@@ -141,7 +145,7 @@ export default function TasksDashboardPage() {
                       {tasks.filter(t => new Date(t.dueDate) < new Date() && t.status !== 'Completed' && t.status !== 'Closed').map((t) => (
                         <TableRow key={t.id} onClick={() => router.push(`/tasks/${t.id}`)} className="cursor-pointer hover:bg-red-500/5">
                           <TableCell className="font-medium text-sm py-3">{t.title}</TableCell>
-                          <TableCell className="text-sm py-3">{t.assignedTo}</TableCell>
+                          <TableCell className="text-sm py-3">{(t as any).assignedTo?.name || (t as any).assignedTo || 'Unassigned'}</TableCell>
                           <TableCell className="text-sm py-3 text-red-400">
                             {format(new Date(t.dueDate), 'MMM d, yyyy')}
                           </TableCell>
@@ -163,11 +167,11 @@ export default function TasksDashboardPage() {
             <CardContent>
               <div className="space-y-4">
                 {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex gap-3 text-sm">
+                  <div key={activity.id || Math.random()} className="flex gap-3 text-sm">
                     <div className="w-2 h-2 mt-1.5 rounded-full bg-primary shrink-0" />
                     <div>
                       <p className="text-foreground">
-                        <span className="font-medium">{activity.user}</span> {activity.action}
+                        <span className="font-medium">{(activity as any).user?.name || (activity as any).user || 'System'}</span> {activity.action}
                       </p>
                       <Link href={`/tasks/${activity.taskId}`} className="text-xs text-primary hover:underline">
                         {activity.taskTitle}
