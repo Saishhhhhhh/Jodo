@@ -251,7 +251,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
         label: 'Tasks',
         icon: CheckSquare,
         children: [
-          { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
+          { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
           { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
         ],
       }

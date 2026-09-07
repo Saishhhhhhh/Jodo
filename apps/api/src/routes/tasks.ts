@@ -189,31 +189,82 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { tenantId, storeId, sub: userId } = req.auth!;
-    
+    const user = await User.findById(userId).populate('roleIds', 'name');
+    const isTeamMember = user?.roleIds?.some((r: any) => r.name === 'TEAM_MEMBER');
+    const userName = user?.name || 'Employee';
+
     const taskData = req.body;
     
+    // Determine assignedTo: if employee creates task without assigning or selects self, assign to themselves
+    let assignedToId: mongoose.Types.ObjectId | undefined;
+    if (taskData.assignedTo && taskData.assignedTo !== 'unassigned') {
+      assignedToId = new mongoose.Types.ObjectId(taskData.assignedTo);
+    } else if (isTeamMember) {
+      assignedToId = new mongoose.Types.ObjectId(userId);
+    }
+
+    const remarkText = taskData.remark ? taskData.remark.trim() : '';
+
     const newTask = new Task({
       ...taskData,
       tenantId: new mongoose.Types.ObjectId(tenantId),
       storeId: new mongoose.Types.ObjectId(storeId),
       createdBy: new mongoose.Types.ObjectId(userId),
-      assignedTo: taskData.assignedTo && taskData.assignedTo !== 'unassigned'
-        ? new mongoose.Types.ObjectId(taskData.assignedTo)
-        : undefined,
+      assignedTo: assignedToId,
+      remark: remarkText || undefined,
+      remarkUpdatedAt: remarkText ? new Date() : undefined,
+      remarkUpdatedBy: remarkText ? new mongoose.Types.ObjectId(userId) : undefined,
+      remarks: remarkText ? [
+        {
+          text: remarkText,
+          statusAtTime: taskData.status || 'Pending',
+          user: new mongoose.Types.ObjectId(userId),
+          userName,
+          createdAt: new Date(),
+        }
+      ] : [],
       activities: [
-        createActivity('Task created', userId)
+        createActivity(isTeamMember ? 'Task self-created by employee' : 'Task created', userId, {
+          title: taskData.title,
+          assignedTo: assignedToId,
+          remark: remarkText || undefined,
+        })
       ]
     });
 
-    if (taskData.assignedTo && taskData.assignedTo !== 'unassigned') {
-      newTask.activities.push(createActivity('Task assigned', userId, { assignedTo: taskData.assignedTo }));
+    if (assignedToId && (!isTeamMember || String(assignedToId) !== String(userId))) {
+      newTask.activities.push(createActivity('Task assigned', userId, { assignedTo: assignedToId }));
     }
 
     await newTask.save();
+
+    // Create Notification for admin
+    try {
+      const remarkSnippet = remarkText ? ` Remark: "${remarkText}"` : '';
+      await Notification.create({
+        tenantId: new mongoose.Types.ObjectId(tenantId),
+        storeId: new mongoose.Types.ObjectId(storeId),
+        type: 'system_alert',
+        title: isTeamMember ? `New Task Created by ${userName}` : 'New Task Created',
+        message: `${userName} created task "${newTask.title}".${remarkSnippet}`,
+        severity: 'info',
+        targetRoles: ['admin', 'manager'],
+        metadata: {
+          taskId: newTask._id,
+          createdByName: userName,
+          assignedTo: assignedToId,
+          remark: remarkText,
+        },
+      });
+    } catch (notifErr) {
+      console.error('Failed to create notification for task creation:', notifErr);
+    }
     
     const populatedTask = await Task.findById(newTask._id)
       .populate('assignedTo', 'name email avatarUrl')
-      .populate('createdBy', 'name email avatarUrl');
+      .populate('createdBy', 'name email avatarUrl')
+      .populate('remarkUpdatedBy', 'name email avatarUrl')
+      .populate('remarks.user', 'name email avatarUrl');
 
     sendSuccess(res, populatedTask, 'Task created successfully');
   } catch (error: any) {
@@ -298,8 +349,8 @@ router.patch('/:id', async (req: Request, res: Response) => {
         const userName = user ? user.name : 'A team member';
         const remarkNote = updates.remark ? ` Remark: "${updates.remark}"` : (task.remark ? ` Remark: "${task.remark}"` : '');
         await Notification.create({
-          tenantId,
-          storeId,
+          tenantId: new mongoose.Types.ObjectId(tenantId),
+          storeId: new mongoose.Types.ObjectId(storeId),
           type: 'system_alert',
           title: `Task Status Updated: ${updates.status}`,
           message: `${userName} updated task "${task.title}" to ${updates.status}.${remarkNote}`,
@@ -320,8 +371,8 @@ router.patch('/:id', async (req: Request, res: Response) => {
       try {
         const userName = user ? user.name : 'A team member';
         await Notification.create({
-          tenantId,
-          storeId,
+          tenantId: new mongoose.Types.ObjectId(tenantId),
+          storeId: new mongoose.Types.ObjectId(storeId),
           type: 'system_alert',
           title: `New Remark on Task "${task.title}"`,
           message: `${userName} added remark on task "${task.title}": "${updates.remark}" (Status: ${task.status})`,
@@ -543,8 +594,8 @@ router.post('/:id/remarks', async (req: Request, res: Response) => {
     // Create Notification for admin
     try {
       await Notification.create({
-        tenantId,
-        storeId,
+        tenantId: new mongoose.Types.ObjectId(tenantId),
+        storeId: new mongoose.Types.ObjectId(storeId),
         type: 'system_alert',
         title: `Task Remark Added: ${task.title}`,
         message: `${userName} added a remark on task "${task.title}": "${remarkText}" (Status: ${targetStatus})`,
