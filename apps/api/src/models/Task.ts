@@ -25,6 +25,15 @@ export interface ITaskComment {
   createdAt: Date;
 }
 
+export interface ITaskRemark {
+  id?: string;
+  text: string;
+  statusAtTime?: string;
+  user: Types.ObjectId;
+  userName?: string;
+  createdAt: Date;
+}
+
 export interface ITaskAttachment {
   id: string;
   name: string;
@@ -59,6 +68,11 @@ export interface ITask extends Document {
   comments: ITaskComment[];
   attachments: ITaskAttachment[];
   tags: string[];
+
+  remark?: string;
+  remarkUpdatedAt?: Date;
+  remarkUpdatedBy?: Types.ObjectId;
+  remarks: ITaskRemark[];
 
   completedAt?: Date;
   completedBy?: Types.ObjectId;
@@ -141,6 +155,19 @@ const taskSchema = new Schema<ITask>(
     ],
     tags: [{ type: String }],
     
+    remark: { type: String },
+    remarkUpdatedAt: { type: Date },
+    remarkUpdatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    remarks: [
+      {
+        text: { type: String, required: true },
+        statusAtTime: { type: String },
+        user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        userName: { type: String },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ],
+
     completedAt: { type: Date },
     completedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },

@@ -18,16 +18,26 @@ export interface TaskActivity {
   action: string;
 }
 
+export interface TaskRemark {
+  id?: string;
+  text: string;
+  statusAtTime?: string;
+  user?: any;
+  userName?: string;
+  createdAt: string;
+}
+
 export interface Task {
   id: string;
+  _id?: string;
   title: string;
   description: string;
   type: TaskType;
   department: Department;
   priority: TaskPriority;
   status: TaskStatus;
-  assignedTo: string;
-  createdBy: string;
+  assignedTo: any;
+  createdBy: any;
   createdAt: string;
   startDate?: string;
   dueDate: string;
@@ -36,6 +46,10 @@ export interface Task {
   tags: string[];
   checklist: TaskChecklistItem[];
   activities: TaskActivity[];
+  remark?: string;
+  remarkUpdatedAt?: string;
+  remarkUpdatedBy?: any;
+  remarks?: TaskRemark[];
 }
 
 interface TasksState {
@@ -43,6 +57,7 @@ interface TasksState {
   fetchTasks: (params?: any) => Promise<void>;
   addTask: (task: any) => Promise<void>;
   updateTask: (id: string, updates: any) => Promise<void>;
+  addRemark: (id: string, remark: string, status?: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   addActivity: (taskId: string, activity: any) => Promise<void>;
   toggleChecklistItem: (taskId: string, checklistItemId: string) => Promise<void>;
@@ -81,6 +96,18 @@ export const useTasksStore = create<TasksState>((set, get) => ({
       toast.success('Task updated');
     } catch (error) {
       toast.error('Failed to update task');
+      throw error;
+    }
+  },
+  addRemark: async (id, remark, status) => {
+    try {
+      const res = await tasksApi.addRemark(id, { remark, status });
+      set((state) => ({
+        tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
+      }));
+      toast.success('Remark added successfully');
+    } catch (error) {
+      toast.error('Failed to add remark');
       throw error;
     }
   },

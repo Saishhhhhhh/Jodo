@@ -273,6 +273,7 @@ export const tasksApi = {
   update: (id: string, data: any) => apiClient.patch(`/admin/tasks/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/tasks/${id}`),
   addComment: (id: string, data: { message: string }) => apiClient.post(`/admin/tasks/${id}/comments`, data),
+  addRemark: (id: string, data: { remark: string; status?: string }) => apiClient.post(`/admin/tasks/${id}/remarks`, data),
   updateChecklist: (id: string, data: { id?: string; title?: string; isCompleted?: boolean }) => apiClient.post(`/admin/tasks/${id}/checklist`, data),
 };
 

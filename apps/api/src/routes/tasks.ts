@@ -62,6 +62,8 @@ router.get('/', async (req: Request, res: Response) => {
     const tasks = await Task.find(query)
       .populate('assignedTo', 'name email avatarUrl')
       .populate('createdBy', 'name email avatarUrl')
+      .populate('remarkUpdatedBy', 'name email avatarUrl')
+      .populate('remarks.user', 'name email avatarUrl')
       .sort({ createdAt: -1 });
 
     sendSuccess(res, tasks);
@@ -89,6 +91,8 @@ router.get('/my', async (req: Request, res: Response) => {
     const tasks = await Task.find(query)
       .populate('createdBy', 'name email avatarUrl')
       .populate('assignedTo', 'name email avatarUrl')
+      .populate('remarkUpdatedBy', 'name email avatarUrl')
+      .populate('remarks.user', 'name email avatarUrl')
       .sort({ dueDate: 1, createdAt: -1 });
 
     sendSuccess(res, tasks);
@@ -163,6 +167,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     const task = await Task.findOne({ _id: req.params.id, tenantId, storeId })
       .populate('assignedTo', 'name email avatarUrl')
       .populate('createdBy', 'name email avatarUrl')
+      .populate('remarkUpdatedBy', 'name email avatarUrl')
+      .populate('remarks.user', 'name email avatarUrl')
       .populate('activities.user', 'name avatarUrl')
       .populate('comments.user', 'name avatarUrl');
 
@@ -228,7 +234,42 @@ router.patch('/:id', async (req: Request, res: Response) => {
     const task = await Task.findOne({ _id: req.params.id, tenantId, storeId });
     if (!task) return sendError(res, 'Task not found', 404);
 
+    const user = await User.findById(userId).populate('roleIds', 'name');
+    const isTeamMember = user?.roleIds?.some((r: any) => r.name === 'TEAM_MEMBER');
+    if (isTeamMember && task.assignedTo && String(task.assignedTo) !== String(userId)) {
+      return sendError(res, 'You can only update tasks assigned to you', 403);
+    }
+
     let shouldSave = false;
+
+    // Handle Remark
+    if (updates.remark !== undefined && typeof updates.remark === 'string' && updates.remark.trim() !== '') {
+      const remarkText = updates.remark.trim();
+      const userName = user?.name || 'Team Member';
+      const statusAtTime = updates.status || task.status;
+
+      task.remark = remarkText;
+      task.remarkUpdatedAt = new Date();
+      task.remarkUpdatedBy = new mongoose.Types.ObjectId(userId);
+
+      if (!task.remarks) task.remarks = [];
+      task.remarks.push({
+        text: remarkText,
+        statusAtTime,
+        user: new mongoose.Types.ObjectId(userId),
+        userName,
+        createdAt: new Date()
+      });
+
+      task.activities.push(
+        createActivity(
+          `Added remark: "${remarkText}" (Status: ${statusAtTime})`,
+          userId,
+          { remark: remarkText, status: statusAtTime }
+        )
+      );
+      shouldSave = true;
+    }
 
     // Check status change
     if (updates.status && updates.status !== task.status) {
@@ -254,19 +295,43 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
       // Create Notification
       try {
-        const user = await User.findById(userId).select('name');
         const userName = user ? user.name : 'A team member';
+        const remarkNote = updates.remark ? ` Remark: "${updates.remark}"` : (task.remark ? ` Remark: "${task.remark}"` : '');
         await Notification.create({
           tenantId,
           storeId,
           type: 'system_alert',
-          title: 'Task Status Updated',
-          message: `${userName} updated task "${task.title}" to ${updates.status}.`,
+          title: `Task Status Updated: ${updates.status}`,
+          message: `${userName} updated task "${task.title}" to ${updates.status}.${remarkNote}`,
           severity: updates.status === 'Blocked' ? 'warning' : 'info',
           targetRoles: ['admin', 'manager'],
           metadata: {
             taskId: task._id,
             newStatus: updates.status,
+            remark: updates.remark || task.remark,
+            updatedBy: userName
+          },
+        });
+      } catch (notifErr) {
+        console.error('Failed to create notification:', notifErr);
+      }
+    } else if (updates.remark) {
+      // Status didn't change, but remark was added
+      try {
+        const userName = user ? user.name : 'A team member';
+        await Notification.create({
+          tenantId,
+          storeId,
+          type: 'system_alert',
+          title: `New Remark on Task "${task.title}"`,
+          message: `${userName} added remark on task "${task.title}": "${updates.remark}" (Status: ${task.status})`,
+          severity: task.status === 'Blocked' ? 'warning' : 'info',
+          targetRoles: ['admin', 'manager'],
+          metadata: {
+            taskId: task._id,
+            status: task.status,
+            remark: updates.remark,
+            updatedBy: userName
           },
         });
       } catch (notifErr) {
@@ -309,6 +374,8 @@ router.patch('/:id', async (req: Request, res: Response) => {
     const populatedTask = await Task.findById(task._id)
       .populate('assignedTo', 'name email avatarUrl')
       .populate('createdBy', 'name email avatarUrl')
+      .populate('remarkUpdatedBy', 'name email avatarUrl')
+      .populate('remarks.user', 'name email avatarUrl')
       .populate('activities.user', 'name avatarUrl')
       .populate('comments.user', 'name avatarUrl');
 
@@ -407,4 +474,106 @@ router.post('/:id/checklist', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /api/admin/tasks/:id/remarks
+ * Add remark to task (with optional status change)
+ */
+router.post('/:id/remarks', async (req: Request, res: Response) => {
+  try {
+    const { tenantId, storeId, sub: userId } = req.auth!;
+    const { remark, status } = req.body;
+
+    if (!remark || typeof remark !== 'string' || remark.trim() === '') {
+      return sendError(res, 'Remark text is required', 400);
+    }
+
+    const task = await Task.findOne({ _id: req.params.id, tenantId, storeId });
+    if (!task) return sendError(res, 'Task not found', 404);
+
+    const user = await User.findById(userId).populate('roleIds', 'name');
+    const isTeamMember = user?.roleIds?.some((r: any) => r.name === 'TEAM_MEMBER');
+    if (isTeamMember && task.assignedTo && String(task.assignedTo) !== String(userId)) {
+      return sendError(res, 'You can only update tasks assigned to you', 403);
+    }
+
+    const remarkText = remark.trim();
+    const userName = user?.name || 'Team Member';
+    const targetStatus = status || task.status;
+
+    if (status && status !== task.status) {
+      if (status === 'Completed') {
+        task.progress = 100;
+        task.completedAt = new Date();
+        task.completedBy = new mongoose.Types.ObjectId(userId);
+        task.activities.push(createActivity('Task completed', userId));
+      } else {
+        task.activities.push(createActivity(`Changed status from ${task.status} to ${status}`, userId));
+        if (task.status === 'Completed') {
+          task.completedAt = undefined;
+          task.completedBy = undefined;
+          if (task.progress === 100) task.progress = 0;
+        }
+      }
+      task.status = status;
+    }
+
+    task.remark = remarkText;
+    task.remarkUpdatedAt = new Date();
+    task.remarkUpdatedBy = new mongoose.Types.ObjectId(userId);
+
+    if (!task.remarks) task.remarks = [];
+    task.remarks.push({
+      text: remarkText,
+      statusAtTime: targetStatus,
+      user: new mongoose.Types.ObjectId(userId),
+      userName,
+      createdAt: new Date()
+    });
+
+    task.activities.push(
+      createActivity(
+        `Added remark: "${remarkText}" (Status: ${targetStatus})`,
+        userId,
+        { remark: remarkText, status: targetStatus }
+      )
+    );
+
+    await task.save();
+
+    // Create Notification for admin
+    try {
+      await Notification.create({
+        tenantId,
+        storeId,
+        type: 'system_alert',
+        title: `Task Remark Added: ${task.title}`,
+        message: `${userName} added a remark on task "${task.title}": "${remarkText}" (Status: ${targetStatus})`,
+        severity: targetStatus === 'Blocked' ? 'warning' : 'info',
+        targetRoles: ['admin', 'manager'],
+        metadata: {
+          taskId: task._id,
+          status: targetStatus,
+          remark: remarkText,
+          updatedBy: userName
+        },
+      });
+    } catch (notifErr) {
+      console.error('Failed to create notification:', notifErr);
+    }
+
+    const populatedTask = await Task.findById(task._id)
+      .populate('assignedTo', 'name email avatarUrl')
+      .populate('createdBy', 'name email avatarUrl')
+      .populate('remarkUpdatedBy', 'name email avatarUrl')
+      .populate('remarks.user', 'name email avatarUrl')
+      .populate('activities.user', 'name avatarUrl')
+      .populate('comments.user', 'name avatarUrl');
+
+    sendSuccess(res, populatedTask, 'Remark added successfully');
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to add remark', 500);
+  }
+});
+
 export default router;
+
