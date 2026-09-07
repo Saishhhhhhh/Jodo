@@ -54,6 +54,7 @@ import {
   Copy,
   AlertTriangle,
   CheckCircle,
+  BarChart2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -123,8 +124,13 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'CRM / Leads',
-    href: '/leads',
     icon: Target,
+    href: '/leads',
+  },
+  {
+    label: 'Reports & Digest',
+    icon: BarChart2,
+    href: '/reports',
   },
   {
     label: 'Marketing',

@@ -34,6 +34,7 @@ import mediaRoutes from './routes/media';
 import navigationRoutes from './routes/navigation';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
+import reportsRoutes from './routes/reports';
 
 const app = express();
 
@@ -123,6 +124,7 @@ app.use('/api/admin/leads', leadsRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);
+app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/collections', collectionsRoutes);
 app.use('/api/admin/gift-cards', giftCardsRoutes);
 app.use('/api/admin/reviews', reviewsRoutes);

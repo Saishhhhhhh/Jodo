@@ -130,6 +130,11 @@ export const productsApi = {
   bulkImport: (products: any[]) => apiClient.post('/admin/products/bulk-import', { products }),
 };
 
+export const reportsApi = {
+  getDigest: () => apiClient.get('/admin/reports/digest'),
+  sendDigest: (targetPhone: string) => apiClient.post('/admin/reports/send-digest', { targetPhone }),
+};
+
 export const ordersApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/orders', { params }),
   get: (id: string) => apiClient.get(`/admin/orders/${id}`),
