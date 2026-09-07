@@ -54,6 +54,7 @@ import {
   Copy,
   AlertTriangle,
   CheckCircle,
+  Warehouse,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -125,6 +126,11 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'CRM / Leads',
     href: '/leads',
     icon: Target,
+  },
+  {
+    label: 'Warehouse',
+    href: '/warehouse',
+    icon: Warehouse,
   },
   {
     label: 'Marketing',

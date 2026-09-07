@@ -8,6 +8,14 @@ const nextConfig = {
       { protocol: 'https', hostname: 'ui-avatars.com' },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/admin/warehouse',
+        destination: '/warehouse',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
