@@ -9,7 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react';
 
 export default function AllTasksPage() {
-  const allTasks = useTasksStore(state => state.tasks);
+  const { tasks: allTasks, fetchTasks } = useTasksStore();
+  
+  React.useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
   
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('All');

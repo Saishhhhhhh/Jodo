@@ -36,6 +36,7 @@ import tasksRoutes from './routes/tasks';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 import reportsRoutes from './routes/reports';
+import teamMembersRoutes from './routes/teamMembers';
 
 const app = express();
 
@@ -135,6 +136,7 @@ app.use('/api/admin/media', mediaRoutes);
 app.use('/api/admin/navigation', navigationRoutes);
 app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/tasks', tasksRoutes);
+app.use('/api/admin/team-members', teamMembersRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================

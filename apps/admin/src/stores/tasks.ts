@@ -76,7 +76,7 @@ export const useTasksStore = create<TasksState>((set, get) => ({
     try {
       const res = await tasksApi.update(id, updates);
       set((state) => ({
-        tasks: state.tasks.map(t => (t.id === id ? res.data.data : t))
+        tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
       }));
       toast.success('Task updated');
     } catch (error) {
@@ -88,7 +88,7 @@ export const useTasksStore = create<TasksState>((set, get) => ({
     try {
       await tasksApi.delete(id);
       set((state) => ({
-        tasks: state.tasks.filter(t => t.id !== id)
+        tasks: state.tasks.filter((t: any) => (t._id || t.id) !== id)
       }));
       toast.success('Task deleted');
     } catch (error) {
@@ -114,7 +114,7 @@ export const useTasksStore = create<TasksState>((set, get) => ({
   toggleChecklistItem: async (taskId, checklistItemId) => {
     try {
       // Find current item
-      const task = get().tasks.find(t => t.id === taskId);
+      const task = get().tasks.find((t: any) => (t._id || t.id) === taskId);
       const item = task?.checklist?.find(c => c.id === checklistItemId);
       if (!item) return;
 

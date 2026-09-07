@@ -2,7 +2,7 @@ import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export type TaskCategory = 'Sales' | 'Operations' | 'Content' | 'Support' | 'Follow-up';
 export type TaskType = 'General' | 'Call' | 'Meeting' | 'Email' | 'Follow-up' | 'Review' | 'Approval' | 'Documentation' | 'Quotation' | 'Data Entry' | 'Content Creation' | 'Customer Issue' | 'Internal' | 'Other';
-export type TaskStatus = 'Pending' | 'In Progress' | 'Blocked' | 'Completed' | 'Cancelled';
+export type TaskStatus = 'Pending' | 'In Progress' | 'Blocked' | 'Completed' | 'Cancelled' | 'Closed';
 export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
 export interface ITaskActivity {
@@ -85,7 +85,7 @@ const taskSchema = new Schema<ITask>(
     },
     status: {
       type: String,
-      enum: ['Pending', 'In Progress', 'Blocked', 'Completed', 'Cancelled'],
+      enum: ['Pending', 'In Progress', 'Blocked', 'Completed', 'Cancelled', 'Closed'],
       default: 'Pending',
       index: true
     },

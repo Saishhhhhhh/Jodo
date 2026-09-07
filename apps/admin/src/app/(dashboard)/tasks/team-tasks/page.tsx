@@ -7,7 +7,11 @@ import { CreateTaskModal } from '@/components/tasks/create-task-modal';
 import { Users2 } from 'lucide-react';
 
 export default function TeamTasksPage() {
-  const allTasks = useTasksStore(state => state.tasks);
+  const { tasks: allTasks, fetchTasks } = useTasksStore();
+  
+  React.useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
   
   // Assuming current user is in 'Sales' department
   const teamTasks = allTasks.filter(t => t.department === 'Sales');

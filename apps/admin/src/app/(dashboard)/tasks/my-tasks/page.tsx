@@ -6,10 +6,21 @@ import { TaskBoard } from '@/components/tasks/task-board';
 import { CreateTaskModal } from '@/components/tasks/create-task-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import { useAuthStore } from '@/stores/auth';
+
 export default function MyTasksPage() {
-  const allTasks = useTasksStore(state => state.tasks);
-  // In a real app, 'Rahul' would be replaced by the current user's name/ID
-  const currentUserTasks = allTasks.filter(t => t.assignedTo === 'Rahul');
+  const { tasks: allTasks, fetchTasks } = useTasksStore();
+  const user = useAuthStore(state => state.user);
+
+  React.useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+  
+  const currentUserTasks = allTasks.filter(t => {
+    if (!t.assignedTo) return false;
+    const assignedId = typeof t.assignedTo === 'object' ? (t.assignedTo as any)._id : t.assignedTo;
+    return assignedId === user?.id;
+  });
   
   const [filter, setFilter] = useState('All');
 

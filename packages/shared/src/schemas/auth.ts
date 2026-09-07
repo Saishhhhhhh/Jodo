@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // --- Auth Schemas ---
 export const LoginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().min(2, 'Please enter a valid email or Member ID'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   rememberMe: z.boolean().optional().default(false),
 });

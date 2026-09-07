@@ -174,7 +174,7 @@ router.get('/demand-signals', async (req, res, next) => {
                 demand: unitsSold, // value for chart
                 demandLevel,
                 unitsSold,
-                estimatedDays
+                estimatedDays: estDays
             };
         }).filter(Boolean).sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 10);
         (0, response_1.sendSuccess)(res, result);
@@ -287,7 +287,7 @@ router.post('/reservations', async (req, res, next) => {
             reservedQuantity,
             status: 'active',
             expiryDate,
-            createdBy: req.auth.userId
+            createdBy: req.auth.sub
         });
         await reservation.save();
         // Update inventory item
@@ -300,7 +300,7 @@ router.post('/reservations', async (req, res, next) => {
             movementType: 'Stock Reserved',
             quantity: reservedQuantity,
             reference: `${referenceType}-${referenceId}`,
-            updatedBy: req.auth.userId
+            updatedBy: req.auth.sub
         });
         (0, response_1.sendSuccess)(res, reservation, 'Stock reservation created successfully');
     }
@@ -329,7 +329,7 @@ router.patch('/reservations/:id/release', async (req, res, next) => {
             movementType: 'Reservation Released',
             quantity: reservation.reservedQuantity,
             reference: `${reservation.referenceType}-${reservation.referenceId}`,
-            updatedBy: req.auth.userId
+            updatedBy: req.auth.sub
         });
         (0, response_1.sendSuccess)(res, reservation, 'Reservation released');
     }
@@ -359,7 +359,7 @@ router.patch('/reservations/:id/convert', async (req, res, next) => {
             movementType: 'Order Confirmed',
             quantity: -reservation.reservedQuantity, // Reduced stock
             reference: `${reservation.referenceType}-${reservation.referenceId}`,
-            updatedBy: req.auth.userId
+            updatedBy: req.auth.sub
         });
         (0, response_1.sendSuccess)(res, reservation, 'Reservation converted');
     }

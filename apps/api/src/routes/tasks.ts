@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { Task } from '../models/Task';
 import { User } from '../models/User';
+import { Notification } from '../models/Notification';
 import { sendSuccess, sendError } from '../utils/response';
 import mongoose from 'mongoose';
 
@@ -31,12 +32,22 @@ router.get('/', async (req: Request, res: Response) => {
     const { tenantId, storeId } = req.auth!;
     const { status, category, priority, assignedTo, search } = req.query;
 
-    const query: any = { tenantId, storeId };
+    const query: any = {
+      tenantId: new mongoose.Types.ObjectId(tenantId),
+      storeId: new mongoose.Types.ObjectId(storeId),
+    };
     
     if (status) query.status = status;
     if (category) query.category = category;
     if (priority) query.priority = priority;
-    if (assignedTo) {
+    
+    // Check if user is a TEAM_MEMBER
+    const user = await User.findById(req.auth!.sub).populate('roleIds', 'name');
+    const isTeamMember = user?.roleIds.some((r: any) => r.name === 'TEAM_MEMBER');
+
+    if (isTeamMember) {
+      query.assignedTo = new mongoose.Types.ObjectId(req.auth!.sub);
+    } else if (assignedTo) {
       if (assignedTo === 'unassigned') query.assignedTo = { $exists: false };
       else query.assignedTo = assignedTo;
     }
@@ -55,6 +66,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     sendSuccess(res, tasks);
   } catch (error: any) {
+    console.error('Tasks GET error:', error);
     sendError(res, error.message || 'Failed to fetch tasks', 500);
   }
 });
@@ -176,15 +188,18 @@ router.post('/', async (req: Request, res: Response) => {
     
     const newTask = new Task({
       ...taskData,
-      tenantId,
-      storeId,
-      createdBy: userId,
+      tenantId: new mongoose.Types.ObjectId(tenantId),
+      storeId: new mongoose.Types.ObjectId(storeId),
+      createdBy: new mongoose.Types.ObjectId(userId),
+      assignedTo: taskData.assignedTo && taskData.assignedTo !== 'unassigned'
+        ? new mongoose.Types.ObjectId(taskData.assignedTo)
+        : undefined,
       activities: [
         createActivity('Task created', userId)
       ]
     });
 
-    if (taskData.assignedTo) {
+    if (taskData.assignedTo && taskData.assignedTo !== 'unassigned') {
       newTask.activities.push(createActivity('Task assigned', userId, { assignedTo: taskData.assignedTo }));
     }
 
@@ -196,6 +211,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     sendSuccess(res, populatedTask, 'Task created successfully');
   } catch (error: any) {
+    console.error('Task CREATE error:', error);
     sendError(res, error.message || 'Failed to create task', 500);
   }
 });
@@ -235,6 +251,27 @@ router.patch('/:id', async (req: Request, res: Response) => {
         task.blockedReason = updates.blockedReason;
       }
       shouldSave = true;
+
+      // Create Notification
+      try {
+        const user = await User.findById(userId).select('name');
+        const userName = user ? user.name : 'A team member';
+        await Notification.create({
+          tenantId,
+          storeId,
+          type: 'system_alert',
+          title: 'Task Status Updated',
+          message: `${userName} updated task "${task.title}" to ${updates.status}.`,
+          severity: updates.status === 'Blocked' ? 'warning' : 'info',
+          targetRoles: ['admin', 'manager'],
+          metadata: {
+            taskId: task._id,
+            newStatus: updates.status,
+          },
+        });
+      } catch (notifErr) {
+        console.error('Failed to create notification:', notifErr);
+      }
     }
 
     // Check assignment change

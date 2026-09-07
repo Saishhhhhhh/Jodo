@@ -5,7 +5,8 @@ export interface IUser extends Document {
   tenantId: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
   name: string;
-  email: string;
+  email?: string;
+  memberId?: string;
   phone?: string;
   passwordHash: string;
   avatarUrl?: string;
@@ -27,7 +28,8 @@ const UserSchema = new Schema<IUser>(
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     storeId: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, lowercase: true, trim: true },
+    email: { type: String, lowercase: true, trim: true },
+    memberId: { type: String, trim: true, uppercase: true },
     phone: { type: String, trim: true },
     passwordHash: { type: String, required: true, select: false },
     avatarUrl: { type: String },
@@ -46,8 +48,10 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// Compound unique index: one email per tenant
-UserSchema.index({ tenantId: 1, email: 1 }, { unique: true });
+// Compound unique index: one email per tenant (sparse for Team Members without email)
+UserSchema.index({ tenantId: 1, email: 1 }, { unique: true, sparse: true });
+// Compound unique index for memberId
+UserSchema.index({ tenantId: 1, memberId: 1 }, { unique: true, sparse: true });
 UserSchema.index({ tenantId: 1, storeId: 1, status: 1 });
 
 // Hash password before save

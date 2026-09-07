@@ -17,7 +17,7 @@ export default function TaskDetailPage() {
   const router = useRouter();
   const taskId = params.id as string;
   
-  const task = useTasksStore(state => state.tasks.find(t => t.id === taskId));
+  const task = useTasksStore(state => state.tasks.find((t: any) => (t._id || t.id) === taskId));
   const updateTask = useTasksStore(state => state.updateTask);
   const addActivity = useTasksStore(state => state.addActivity);
   const toggleChecklist = useTasksStore(state => state.toggleChecklistItem);
@@ -35,8 +35,8 @@ export default function TaskDetailPage() {
   }
 
   const handleStatusChange = (newStatus: TaskStatus) => {
-    updateTask(task.id, { status: newStatus });
-    addActivity(task.id, {
+    updateTask((task as any)._id || task.id, { status: newStatus });
+    addActivity((task as any)._id || task.id, {
       user: 'Current User',
       action: `changed status to ${newStatus}`
     });
@@ -44,7 +44,7 @@ export default function TaskDetailPage() {
 
   const handleAddComment = () => {
     if (!comment.trim()) return;
-    addActivity(task.id, {
+    addActivity((task as any)._id || task.id, {
       user: 'Current User',
       action: `commented: "${comment}"`
     });
@@ -67,7 +67,7 @@ export default function TaskDetailPage() {
             </Badge>
             {isOverdue && <Badge variant="destructive">Overdue</Badge>}
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5 font-mono">{task.id}</p>
+          <p className="text-sm text-muted-foreground mt-0.5 font-mono">{(task as any)._id || task.id}</p>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export default function TaskDetailPage() {
                         <Checkbox 
                           id={`check-${item.id}`} 
                           checked={item.completed} 
-                          onCheckedChange={() => toggleChecklist(task.id, item.id)}
+                          onCheckedChange={() => toggleChecklist((task as any)._id || task.id, item.id)}
                         />
                         <label 
                           htmlFor={`check-${item.id}`}
@@ -128,13 +128,13 @@ export default function TaskDetailPage() {
             <CardContent>
               <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
                 {task.activities.map((activity, i) => (
-                  <div key={activity.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div key={activity.id || Math.random()} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full border border-border bg-card shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                      {activity.user.charAt(0)}
+                      {((activity as any).user?.name || (activity as any).user || 'U').charAt(0)}
                     </div>
                     <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border border-border bg-card shadow-sm space-y-1">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold">{activity.user}</h4>
+                        <h4 className="text-sm font-semibold">{(activity as any).user?.name || (activity as any).user || 'System'}</h4>
                         <time className="text-[10px] text-muted-foreground">{format(new Date(activity.timestamp), 'MMM d, h:mm a')}</time>
                       </div>
                       <p className="text-xs text-muted-foreground">{activity.action}</p>
@@ -182,7 +182,7 @@ export default function TaskDetailPage() {
 
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Assigned To</p>
-                <p className="text-sm font-medium">{task.assignedTo}</p>
+                <p className="text-sm font-medium">{(task as any).assignedTo?.name || (task as any).assignedTo || 'Unassigned'}</p>
               </div>
 
               <div className="space-y-1">

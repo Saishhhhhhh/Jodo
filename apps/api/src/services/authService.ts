@@ -20,6 +20,8 @@ export interface LoginResult {
     id: string;
     name: string;
     email: string;
+    memberId?: string;
+    roles?: string[];
     avatarUrl?: string;
     tenantId: string;
     storeId: string;
@@ -29,44 +31,84 @@ export interface LoginResult {
 export class AuthService {
   /**
    * Login with email and password.
-   * Returns access + refresh tokens.
    */
   async login(input: LoginInput, ip?: string, userAgent?: string): Promise<LoginResult> {
-    // ---------------------------------------------------------
-    // MOCKED LOGIN TO BYPASS DATABASE CONNECTION ERROR
-    // ---------------------------------------------------------
-    
+    let user;
+    if (input.email.includes('@')) {
+      user = await User.findOne({ email: input.email.toLowerCase() }).select('+passwordHash').populate('roleIds', 'name');
+    } else {
+      user = await User.findOne({ memberId: input.email.toUpperCase() }).select('+passwordHash').populate('roleIds', 'name');
+    }
+
+    if (!user) {
+      throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
+    }
+
+    if (user.status !== 'active') {
+      throw Object.assign(new Error('Account is inactive'), { statusCode: 401 });
+    }
+
+    const isValid = await user.comparePassword(input.password);
+    if (!isValid) {
+      throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
+    }
+
     // Generate token family for rotation tracking
     const family = generateTokenFamily();
 
-    const mockUserId = "64c7b8f9e4b01234567890ab";
-    const mockTenantId = "64c7b8f9e4b01234567890ac";
-    const mockStoreId = "64c7b8f9e4b01234567890ad";
-
     // Sign tokens
     const accessToken = signAccessToken({
-      sub: mockUserId,
-      tenantId: mockTenantId,
-      storeId: mockStoreId,
-      email: input.email.toLowerCase(),
-      name: 'Admin User',
+      sub: String(user._id),
+      tenantId: String(user.tenantId),
+      storeId: String(user.storeId),
+      email: user.email || user.memberId || '',
+      name: user.name,
     });
 
     const refreshTokenValue = signRefreshToken({
-      sub: mockUserId,
-      tenantId: mockTenantId,
+      sub: String(user._id),
+      tenantId: String(user.tenantId),
       family,
     });
+
+    await RefreshToken.create({
+      userId: user._id,
+      tenantId: user.tenantId,
+      token: refreshTokenValue,
+      family,
+      expiresAt: getRefreshTokenExpiry(),
+      ip,
+      userAgent,
+    });
+
+    // Log login activity
+    await AuditLog.create({
+      tenantId: user.tenantId,
+      storeId: user.storeId,
+      actorUserId: user._id,
+      actorType: 'user',
+      action: 'LOGIN_SUCCESS',
+      resourceType: 'Auth',
+      ip,
+      userAgent,
+    });
+
+    // Update last login
+    user.lastLoginAt = new Date();
+    await user.save();
 
     return {
       accessToken,
       refreshToken: refreshTokenValue,
       user: {
-        id: mockUserId,
-        name: 'Admin User',
-        email: input.email.toLowerCase(),
-        tenantId: mockTenantId,
-        storeId: mockStoreId,
+        id: String(user._id),
+        name: user.name,
+        email: user.email || user.memberId || '',
+        memberId: user.memberId,
+        roles: (user.roleIds as any[]).map(r => r.name),
+        avatarUrl: user.avatarUrl,
+        tenantId: String(user.tenantId),
+        storeId: String(user.storeId),
       },
     };
   }
@@ -146,16 +188,7 @@ export class AuthService {
    * Get current user profile.
    */
   async getMe(userId: string): Promise<IUser | null> {
-    // return User.findById(userId).populate('roleIds', 'name permissions').lean() as unknown as IUser | null;
-    return {
-      _id: userId,
-      name: 'Admin User',
-      email: 'admin@example.com',
-      tenantId: '64c7b8f9e4b01234567890ac',
-      storeId: '64c7b8f9e4b01234567890ad',
-      status: 'active',
-      roleIds: []
-    } as unknown as IUser;
+    return User.findById(userId).populate('roleIds', 'name permissions').lean() as unknown as IUser | null;
   }
 }
 

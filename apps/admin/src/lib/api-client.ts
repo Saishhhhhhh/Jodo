@@ -275,3 +275,11 @@ export const tasksApi = {
   addComment: (id: string, data: { message: string }) => apiClient.post(`/admin/tasks/${id}/comments`, data),
   updateChecklist: (id: string, data: { id?: string; title?: string; isCompleted?: boolean }) => apiClient.post(`/admin/tasks/${id}/checklist`, data),
 };
+
+export const leadsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/leads', { params }),
+  get: (id: string) => apiClient.get(`/admin/leads/${id}`),
+  create: (data: any) => apiClient.post('/admin/leads', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/leads/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/leads/${id}`),
+};

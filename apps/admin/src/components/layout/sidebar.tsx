@@ -112,7 +112,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CheckSquare,
     children: [
       { label: 'Dashboard', href: '/tasks', icon: LayoutDashboard },
-      { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
+      { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
       { label: 'All Tasks', href: '/tasks/all-tasks', icon: FileText },
       { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users },
       { label: 'Overdue', href: '/tasks/overdue', icon: AlertTriangle },
@@ -225,6 +225,39 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
     return href === bestMatch;
   }
 
+  const isTeamMember = user?.roles?.includes('TEAM_MEMBER');
+
+  const visibleNavItems = React.useMemo<NavItem[]>(() => {
+    if (!isTeamMember) {
+      // Super Admin / Regular Admin: Add 'Team Members' to the Tasks children
+      const nav = [...NAV_ITEMS];
+      const tasksIndex = nav.findIndex(n => n.label === 'Tasks');
+      if (tasksIndex !== -1) {
+        // Clone the tasks section to modify it
+        const tasksSection = { ...nav[tasksIndex], children: [...(nav[tasksIndex].children || [])] };
+        
+        // Add Team Members if it doesn't exist
+        if (!tasksSection.children.some(c => c.label === 'Team Members')) {
+          tasksSection.children.splice(4, 0, { label: 'Team Members', href: '/tasks/team-members', icon: Users2 });
+        }
+        nav[tasksIndex] = tasksSection;
+      }
+      return nav;
+    }
+
+    // Team Member: Only show a subset of Tasks
+    return [
+      {
+        label: 'Tasks',
+        icon: CheckSquare,
+        children: [
+          { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
+          { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
+        ],
+      }
+    ];
+  }, [isTeamMember]);
+
   function isGroupActive(item: NavItem) {
     return item.children?.some((child) => child.href && isActive(child.href));
   }
@@ -262,8 +295,8 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
 
         {/* Navigation */}
         <ScrollArea className="flex-1 py-3">
-          <nav className="px-2 space-y-0.5">
-            {NAV_ITEMS.map((item) => {
+          <nav className="flex flex-col gap-1.5 p-3">
+            {visibleNavItems.map((item, index) => {
               if (!item.children) {
                 // Top-level link (Dashboard)
                 const active = item.href ? isActive(item.href) : false;
