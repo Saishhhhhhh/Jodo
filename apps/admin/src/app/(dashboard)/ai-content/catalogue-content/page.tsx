@@ -89,8 +89,14 @@ export default function CatalogueContentPage() {
       setIsBulkGenerating(false);
       toast.success(`Generated ${selectedIds.length} catalogue draft(s)!`);
       setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+        if (resultRef.current) {
+          resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const mainEl = document.querySelector('main');
+        if (mainEl) {
+          mainEl.scrollTo({ top: mainEl.scrollHeight, behavior: 'smooth' });
+        }
+      }, 150);
     }, 900);
   };
 
@@ -211,7 +217,7 @@ export default function CatalogueContentPage() {
             </span>
           </div>
 
-          <ContentEditorPanel item={activeItem} />
+          <ContentEditorPanel key={activeItem.id} item={activeItem} />
         </div>
       )}
     </div>

@@ -135,8 +135,14 @@ export default function CampaignContentPage() {
       setIsGenerating(false);
       toast.success(`Multi-channel campaign content generated for "${campaignName}"!`);
       setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+        if (resultRef.current) {
+          resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const mainEl = document.querySelector('main');
+        if (mainEl) {
+          mainEl.scrollTo({ top: mainEl.scrollHeight, behavior: 'smooth' });
+        }
+      }, 150);
     }, 800);
   };
 

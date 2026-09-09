@@ -163,8 +163,14 @@ export default function ProductDescriptionsPage() {
       setIsGenerating(false);
       toast.success(`Description generated for "${productName}"!`);
       setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+        if (resultRef.current) {
+          resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const mainEl = document.querySelector('main');
+        if (mainEl) {
+          mainEl.scrollTo({ top: mainEl.scrollHeight, behavior: 'smooth' });
+        }
+      }, 150);
     }, 700);
   };
 
@@ -363,7 +369,7 @@ export default function ProductDescriptionsPage() {
             </span>
           </div>
 
-          <ContentEditorPanel item={generatedItem} />
+          <ContentEditorPanel key={generatedItem.id} item={generatedItem} />
         </div>
       )}
     </div>

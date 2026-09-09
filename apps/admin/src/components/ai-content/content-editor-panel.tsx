@@ -54,6 +54,24 @@ export function ContentEditorPanel({ item }: ContentEditorPanelProps) {
   const [seoMetaTitle, setSeoMetaTitle] = useState(initialContent.seoMetaTitle || initialContent.metaTitle || '');
   const [seoMetaDescription, setSeoMetaDescription] = useState(initialContent.seoMetaDescription || initialContent.metaDescription || '');
 
+  // Reset local state whenever a new item is selected or generated
+  React.useEffect(() => {
+    const fresh = item.editedContent || item.generatedContent || {};
+    setTitle(fresh.productTitle || fresh.catalogueTitle || fresh.productListingTitle || fresh.campaignName || item.title || '');
+    setShortDescription(fresh.shortDescription || fresh.offer || '');
+    setFullDescription(fresh.fullDescription || fresh.detailedDescription || (fresh.email ? fresh.email.body : ''));
+    setKeyFeaturesStr(
+      Array.isArray(fresh.keyFeatures)
+        ? fresh.keyFeatures.join('\n')
+        : Array.isArray(fresh.bulletPoints)
+        ? fresh.bulletPoints.join('\n')
+        : ''
+    );
+    setSeoMetaTitle(fresh.seoMetaTitle || fresh.metaTitle || '');
+    setSeoMetaDescription(fresh.seoMetaDescription || fresh.metaDescription || '');
+    setIsEditing(false);
+  }, [item]);
+
   const [savedNotice, setSavedNotice] = useState(false);
 
   const handleSaveDraft = () => {
