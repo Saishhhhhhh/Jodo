@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -137,6 +138,7 @@ export function QuickContentGenerator() {
       });
 
       setIsGenerating(false);
+      toast.success(`Draft generated for "${selectedProduct.title}"! Redirecting...`);
 
       // Navigate to the appropriate module tab
       if (contentType === 'product_description') {
@@ -327,6 +329,7 @@ export function QuickContentGenerator() {
           Generates a draft with anti-hallucination validation. Never published automatically.
         </span>
         <Button
+          type="button"
           onClick={handleGenerate}
           disabled={isGenerating}
           className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2 shadow-sm font-semibold"

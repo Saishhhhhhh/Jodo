@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,7 @@ export default function ListingCopyPage() {
   const [selectedChannel, setSelectedChannel] = useState<string>('Amazon');
   const [keywordsStr, setKeywordsStr] = useState<string>('floating platform bed, solid oak bedframe, king size platform bed, japanese minimalist bed');
   const [isGenerating, setIsGenerating] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   // Active preview item
   const [activeItem, setActiveItem] = useState<AiContentItem | null>(
@@ -61,6 +63,10 @@ export default function ListingCopyPage() {
 
       setActiveItem(newItem);
       setIsGenerating(false);
+      toast.success(`${selectedChannel} listing copy generated!`);
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }, 700);
   };
 
@@ -167,6 +173,7 @@ export default function ListingCopyPage() {
         {/* Generate Button */}
         <div className="flex justify-end pt-3 border-t">
           <Button
+            type="button"
             onClick={handleGenerateListing}
             disabled={isGenerating}
             className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 shadow-sm font-semibold text-xs px-6"
@@ -179,7 +186,7 @@ export default function ListingCopyPage() {
 
       {/* Editor & Preview Panel */}
       {activeItem && (
-        <div className="space-y-4 pt-2">
+        <div ref={resultRef} className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-foreground">Marketplace Listing Output</h2>
             <span className="text-xs text-muted-foreground">

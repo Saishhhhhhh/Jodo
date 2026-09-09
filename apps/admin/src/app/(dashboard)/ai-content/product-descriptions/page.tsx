@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -116,6 +117,7 @@ export default function ProductDescriptionsPage() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedItem, setGeneratedItem] = useState<AiContentItem | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   // When product selection changes, update inputs
   const handleProductSelect = (p: typeof CMS_PRODUCTS_LIST[0]) => {
@@ -159,6 +161,10 @@ export default function ProductDescriptionsPage() {
 
       setGeneratedItem(item);
       setIsGenerating(false);
+      toast.success(`Description generated for "${productName}"!`);
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }, 700);
   };
 
@@ -336,6 +342,7 @@ export default function ProductDescriptionsPage() {
         {/* Generate Button */}
         <div className="flex justify-end pt-3 border-t">
           <Button
+            type="button"
             onClick={handleGenerate}
             disabled={isGenerating}
             className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 shadow-sm font-semibold text-xs px-6"
@@ -348,7 +355,7 @@ export default function ProductDescriptionsPage() {
 
       {/* AI Generated Result & Side-by-Side Editor (Section 5) */}
       {generatedItem && (
-        <div className="space-y-4 pt-4">
+        <div ref={resultRef} className="space-y-4 pt-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-foreground">AI Generated Result</h2>
             <span className="text-xs text-muted-foreground">

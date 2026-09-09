@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ export default function CatalogueContentPage() {
 
   const [isBulkGenerating, setIsBulkGenerating] = useState(false);
   const [bulkGeneratedCount, setBulkGeneratedCount] = useState<number | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   // Active preview item
   const [activeItem, setActiveItem] = useState<AiContentItem | null>(
@@ -85,6 +87,10 @@ export default function CatalogueContentPage() {
       }
       setBulkGeneratedCount(selectedIds.length);
       setIsBulkGenerating(false);
+      toast.success(`Generated ${selectedIds.length} catalogue draft(s)!`);
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }, 900);
   };
 
@@ -170,6 +176,7 @@ export default function CatalogueContentPage() {
             Generates specs, material details, care guidelines, and collection briefs.
           </span>
           <Button
+            type="button"
             onClick={handleGenerateCatalogue}
             disabled={selectedIds.length === 0 || isBulkGenerating}
             className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2 shadow-sm font-semibold text-xs px-6"
@@ -196,7 +203,7 @@ export default function CatalogueContentPage() {
 
       {/* Individual Result Preview & Editor */}
       {activeItem && (
-        <div className="space-y-4 pt-2">
+        <div ref={resultRef} className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-foreground">Catalogue Specification & Copy</h2>
             <span className="text-xs text-muted-foreground">

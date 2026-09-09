@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,6 +55,7 @@ export default function CampaignContentPage() {
   const [showRegenModal, setShowRegenModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   // Active campaign item
   const existingCampaign = items.find((i) => i.contentType === 'campaign_content') || items[2] || items[0];
@@ -131,6 +133,10 @@ export default function CampaignContentPage() {
       }
 
       setIsGenerating(false);
+      toast.success(`Multi-channel campaign content generated for "${campaignName}"!`);
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }, 800);
   };
 
@@ -239,6 +245,7 @@ export default function CampaignContentPage() {
 
         <div className="flex justify-end pt-3 border-t">
           <Button
+            type="button"
             onClick={handleGenerateCampaign}
             disabled={isGenerating}
             className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 shadow-sm font-semibold text-xs px-6"
@@ -257,7 +264,7 @@ export default function CampaignContentPage() {
       )}
 
       {/* Multi-Channel AI Output (Section 9) */}
-      <div className="space-y-4 pt-2">
+      <div ref={resultRef} className="space-y-4 pt-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-bold text-foreground">Campaign Output by Channel</h2>

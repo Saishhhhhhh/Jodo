@@ -818,7 +818,8 @@ export const useAiContentStore = create<AiContentState>()(
 
         // Fire-and-forget sync to backend API if running
         try {
-          fetch('/api/ai-content/generate', {
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+          fetch(`${API_BASE}/api/ai-content/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(input),
