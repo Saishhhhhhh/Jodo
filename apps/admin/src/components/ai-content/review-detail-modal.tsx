@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ export function ReviewDetailModal({
     setTimeout(() => {
       onApprove(item.id);
       setIsSubmitting(false);
+      toast.success(`Content ${item.id} approved successfully! Ready for CMS publishing.`);
       onClose();
     }, 400);
   };
@@ -68,8 +70,10 @@ export function ReviewDetailModal({
     setTimeout(() => {
       if (actionType === 'request_changes') {
         onRequestChanges(item.id, feedbackNotes);
+        toast.warning(`Changes requested for ${item.id}.`);
       } else if (actionType === 'reject') {
         onReject(item.id, feedbackNotes);
+        toast.error(`Content ${item.id} rejected.`);
       }
       setIsSubmitting(false);
       setShowFeedbackInput(false);

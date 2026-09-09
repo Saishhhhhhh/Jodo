@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -261,7 +262,10 @@ export default function DraftsPage() {
                         {item.status !== 'Approved' && item.status !== 'Published' && (
                           <button
                             type="button"
-                            onClick={() => submitForReview(item.id, 'Admin')}
+                            onClick={() => {
+                              submitForReview(item.id, 'Admin');
+                              toast.success(`Draft ${item.id} submitted for review!`);
+                            }}
                             title="Send for Review"
                             className="p-1.5 hover:bg-muted rounded-md text-primary hover:text-primary/80 transition-colors"
                           >
@@ -272,7 +276,10 @@ export default function DraftsPage() {
                         {/* Delete */}
                         <button
                           type="button"
-                          onClick={() => deleteItem(item.id)}
+                          onClick={() => {
+                            deleteItem(item.id);
+                            toast.error(`Draft ${item.id} deleted.`);
+                          }}
                           title="Delete Draft"
                           className="p-1.5 hover:bg-rose-50 text-muted-foreground hover:text-rose-600 rounded-md transition-colors"
                         >

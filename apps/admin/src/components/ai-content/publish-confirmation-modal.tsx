@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export function PublishConfirmationModal({
     setIsPublishing(true);
     try {
       await onConfirm();
+      toast.success(`Published "${item.productName || item.title}" to CMS live storefront!`);
       onClose();
     } finally {
       setIsPublishing(false);

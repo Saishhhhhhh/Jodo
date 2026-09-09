@@ -865,7 +865,8 @@ export const useAiContentStore = create<AiContentState>()(
           return { items, activities: [act, ...state.activities] };
         });
 
-        fetch(`/api/ai-content/${id}`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        fetch(`${API_BASE}/api/ai-content/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ editedContent }),
@@ -910,7 +911,8 @@ export const useAiContentStore = create<AiContentState>()(
           return { items, activities: [act, ...state.activities] };
         });
 
-        fetch(`/api/ai-content/${id}/submit-review`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        fetch(`${API_BASE}/api/ai-content/${id}/submit-review`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ submittedBy }),
@@ -955,7 +957,8 @@ export const useAiContentStore = create<AiContentState>()(
           return { items, activities: [act, ...state.activities] };
         });
 
-        fetch(`/api/ai-content/${id}/approve`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        fetch(`${API_BASE}/api/ai-content/${id}/approve`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reviewer }),
@@ -988,7 +991,8 @@ export const useAiContentStore = create<AiContentState>()(
           return { items, activities: [act, ...state.activities] };
         });
 
-        fetch(`/api/ai-content/${id}/reject`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        fetch(`${API_BASE}/api/ai-content/${id}/reject`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reason }),
@@ -1021,7 +1025,8 @@ export const useAiContentStore = create<AiContentState>()(
           return { items, activities: [act, ...state.activities] };
         });
 
-        fetch(`/api/ai-content/${id}/request-changes`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        fetch(`${API_BASE}/api/ai-content/${id}/request-changes`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ feedback }),
@@ -1080,7 +1085,8 @@ export const useAiContentStore = create<AiContentState>()(
         });
 
         try {
-          await fetch(`/api/ai-content/${id}/publish`, {
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+          await fetch(`${API_BASE}/api/ai-content/${id}/publish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ publishedBy }),
@@ -1140,7 +1146,8 @@ export const useAiContentStore = create<AiContentState>()(
           return { items, activities: [act, ...state.activities] };
         });
 
-        fetch(`/api/ai-content/${id}/regenerate`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        fetch(`${API_BASE}/api/ai-content/${id}/regenerate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ instruction }),

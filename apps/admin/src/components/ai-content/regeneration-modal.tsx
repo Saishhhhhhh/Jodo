@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ export function RegenerationModal({
     setTimeout(() => {
       onRegenerate(finalInstruction);
       setIsGenerating(false);
+      toast.info(`Regenerated draft with instruction: "${finalInstruction}"`);
       onClose();
     }, 600);
   };
