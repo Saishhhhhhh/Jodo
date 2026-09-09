@@ -3,43 +3,80 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authService = exports.AuthService = void 0;
 const User_1 = require("../models/User");
 const RefreshToken_1 = require("../models/RefreshToken");
+const AuditLog_1 = require("../models/AuditLog");
 const jwt_1 = require("../utils/jwt");
 class AuthService {
     /**
      * Login with email and password.
-     * Returns access + refresh tokens.
      */
     async login(input, ip, userAgent) {
-        // ---------------------------------------------------------
-        // MOCKED LOGIN TO BYPASS DATABASE CONNECTION ERROR
-        // ---------------------------------------------------------
+        let user;
+        if (input.email.includes('@')) {
+            user = await User_1.User.findOne({ email: input.email.toLowerCase() }).select('+passwordHash').populate('roleIds', 'name');
+        }
+        else {
+            user = await User_1.User.findOne({ memberId: input.email.toUpperCase() }).select('+passwordHash').populate('roleIds', 'name');
+        }
+        if (!user) {
+            throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
+        }
+        if (user.status !== 'active') {
+            throw Object.assign(new Error('Account is inactive'), { statusCode: 401 });
+        }
+        const isValid = await user.comparePassword(input.password);
+        if (!isValid) {
+            throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
+        }
         // Generate token family for rotation tracking
         const family = (0, jwt_1.generateTokenFamily)();
-        const mockUserId = "64c7b8f9e4b01234567890ab";
-        const mockTenantId = "64c7b8f9e4b01234567890ac";
-        const mockStoreId = "64c7b8f9e4b01234567890ad";
         // Sign tokens
         const accessToken = (0, jwt_1.signAccessToken)({
-            sub: mockUserId,
-            tenantId: mockTenantId,
-            storeId: mockStoreId,
-            email: input.email.toLowerCase(),
-            name: 'Admin User',
+            sub: String(user._id),
+            tenantId: String(user.tenantId),
+            storeId: String(user.storeId),
+            email: user.email || user.memberId || '',
+            name: user.name,
         });
         const refreshTokenValue = (0, jwt_1.signRefreshToken)({
-            sub: mockUserId,
-            tenantId: mockTenantId,
+            sub: String(user._id),
+            tenantId: String(user.tenantId),
             family,
         });
+        await RefreshToken_1.RefreshToken.create({
+            userId: user._id,
+            tenantId: user.tenantId,
+            token: refreshTokenValue,
+            family,
+            expiresAt: (0, jwt_1.getRefreshTokenExpiry)(),
+            ip,
+            userAgent,
+        });
+        // Log login activity
+        await AuditLog_1.AuditLog.create({
+            tenantId: user.tenantId,
+            storeId: user.storeId,
+            actorUserId: user._id,
+            actorType: 'user',
+            action: 'LOGIN_SUCCESS',
+            resourceType: 'Auth',
+            ip,
+            userAgent,
+        });
+        // Update last login
+        user.lastLoginAt = new Date();
+        await user.save();
         return {
             accessToken,
             refreshToken: refreshTokenValue,
             user: {
-                id: mockUserId,
-                name: 'Admin User',
-                email: input.email.toLowerCase(),
-                tenantId: mockTenantId,
-                storeId: mockStoreId,
+                id: String(user._id),
+                name: user.name,
+                email: user.email || user.memberId || '',
+                memberId: user.memberId,
+                roles: user.roleIds.map(r => r.name),
+                avatarUrl: user.avatarUrl,
+                tenantId: String(user.tenantId),
+                storeId: String(user.storeId),
             },
         };
     }
@@ -79,7 +116,7 @@ class AuthService {
             sub: String(user._id),
             tenantId: String(user.tenantId),
             storeId: String(user.storeId),
-            email: user.email,
+            email: user.email || '',
             name: user.name,
         });
         const newRefreshToken = (0, jwt_1.signRefreshToken)({
@@ -106,16 +143,7 @@ class AuthService {
      * Get current user profile.
      */
     async getMe(userId) {
-        // return User.findById(userId).populate('roleIds', 'name permissions').lean() as unknown as IUser | null;
-        return {
-            _id: userId,
-            name: 'Admin User',
-            email: 'admin@example.com',
-            tenantId: '64c7b8f9e4b01234567890ac',
-            storeId: '64c7b8f9e4b01234567890ad',
-            status: 'active',
-            roleIds: []
-        };
+        return User_1.User.findById(userId).populate('roleIds', 'name permissions').lean();
     }
 }
 exports.AuthService = AuthService;

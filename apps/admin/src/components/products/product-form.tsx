@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadCloud, X, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { UploadCloud, X, Link as LinkIcon, Image as ImageIcon, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -72,6 +73,7 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormProps) {
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
   const modelFileInputRef = useRef<HTMLInputElement>(null);
@@ -666,17 +668,53 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
 
             {/* Rich Details Card */}
             <div className="bg-card rounded-xl border shadow-sm p-6 space-y-4">
-              <h3 className="font-semibold text-lg border-b pb-3 mb-4">Rich Details (Premium Layout)</h3>
+              <div className="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 className="font-semibold text-lg">Rich Details (Premium Layout)</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/ai-content/product-descriptions?productId=${initialData?._id || ''}`)}
+                  className="gap-1.5 text-xs text-primary border-primary/20 hover:bg-primary/5 font-semibold"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Generate with AI
+                </Button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField control={form.control} name="shortDescription" render={({ field }) => (
-                  <FormItem><FormLabel>Short Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Short Description</FormLabel>
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/ai-content/product-descriptions?productId=${initialData?._id || ''}`)}
+                        className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
+                      >
+                        <Sparkles className="w-3 h-3 text-amber-500" /> Generate with AI
+                      </button>
+                    </div>
+                    <FormControl><Input {...field} /></FormControl>
+                  </FormItem>
                 )} />
                 <FormField control={form.control} name="emiStartingFrom" render={({ field }) => (
                   <FormItem><FormLabel>EMI Starting From (₹)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem>
                 )} />
               </div>
               <FormField control={form.control} name="longDescription" render={({ field }) => (
-                <FormItem><FormLabel>Long Description</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Long Description</FormLabel>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/ai-content/product-descriptions?productId=${initialData?._id || ''}`)}
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-500" /> Generate with AI
+                    </button>
+                  </div>
+                  <FormControl><Textarea className="h-24" {...field} /></FormControl>
+                </FormItem>
               )} />
               <FormField control={form.control} name="additionalOffersStr" render={({ field }) => (
                 <FormItem><FormLabel>Additional Offers (One per line)</FormLabel><FormControl><Textarea className="h-24" {...field} /></FormControl></FormItem>

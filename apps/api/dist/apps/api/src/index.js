@@ -39,6 +39,9 @@ const tasks_1 = __importDefault(require("./routes/tasks"));
 const storefront_1 = __importDefault(require("./routes/storefront"));
 const storefront_auth_1 = __importDefault(require("./routes/storefront-auth"));
 const reports_1 = __importDefault(require("./routes/reports"));
+const teamMembers_1 = __importDefault(require("./routes/teamMembers"));
+const warehouse_1 = __importDefault(require("./routes/warehouse"));
+const ai_content_1 = __importDefault(require("./routes/ai-content"));
 const app = (0, express_1.default)();
 // ============================================================
 // Security Middleware
@@ -125,6 +128,11 @@ app.use('/api/admin/media', media_1.default);
 app.use('/api/admin/navigation', navigation_1.default);
 app.use('/api/admin/reports', reports_1.default);
 app.use('/api/admin/tasks', tasks_1.default);
+app.use('/api/admin/team-members', teamMembers_1.default);
+app.use('/api/warehouse', warehouse_1.default);
+app.use('/api/admin/warehouse', warehouse_1.default);
+app.use('/api/ai-content', ai_content_1.default);
+app.use('/api/admin/ai-content', ai_content_1.default);
 app.use('/api/storefront', storefront_1.default);
 app.use('/api/storefront/auth', storefront_auth_1.default);
 // ============================================================

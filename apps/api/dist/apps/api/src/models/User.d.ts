@@ -3,7 +3,8 @@ export interface IUser extends Document {
     tenantId: mongoose.Types.ObjectId;
     storeId: mongoose.Types.ObjectId;
     name: string;
-    email: string;
+    email?: string;
+    memberId?: string;
     phone?: string;
     passwordHash: string;
     avatarUrl?: string;

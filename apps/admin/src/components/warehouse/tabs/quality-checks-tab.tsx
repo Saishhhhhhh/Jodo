@@ -98,8 +98,82 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
     }
   };
 
+  // Summary Metrics as required by Section 13
+  const totalBatchesInspected = qualityChecks.length;
+  const totalPassedUnits = qualityChecks.reduce((acc, q) => acc + q.passedQuantity, 0);
+  const totalFailedUnits = qualityChecks.reduce((acc, q) => acc + q.failedQuantity, 0);
+  const totalInspectedUnits = qualityChecks.reduce((acc, q) => acc + q.quantityInspected, 0);
+  const rejectionRate = totalInspectedUnits > 0
+    ? ((totalFailedUnits / totalInspectedUnits) * 100).toFixed(1)
+    : '0.0';
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Top 4 Summary Cards - Section 13 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-card border rounded-lg p-4 shadow-sm">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+            Total Batches Inspected
+          </span>
+          <div className="flex items-baseline justify-between mt-1.5">
+            <span className="text-2xl font-bold font-mono text-foreground">
+              {formatNumber(totalBatchesInspected)}
+            </span>
+            <ClipboardCheck className="h-5 w-5 text-primary" />
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            {formatNumber(totalInspectedUnits)} total units sampled
+          </span>
+        </div>
+
+        <div className="bg-card border rounded-lg p-4 shadow-sm">
+          <span className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider block">
+            Total Passed Units
+          </span>
+          <div className="flex items-baseline justify-between mt-1.5">
+            <span className="text-2xl font-bold font-mono text-green-600 dark:text-green-400">
+              {formatNumber(totalPassedUnits)}
+            </span>
+            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Cleared & released to available stock
+          </span>
+        </div>
+
+        <div className="bg-card border rounded-lg p-4 shadow-sm">
+          <span className="text-xs font-semibold text-destructive uppercase tracking-wider block">
+            Total Failed Units
+          </span>
+          <div className="flex items-baseline justify-between mt-1.5">
+            <span className="text-2xl font-bold font-mono text-destructive">
+              {formatNumber(totalFailedUnits)}
+            </span>
+            <XCircle className="h-5 w-5 text-destructive" />
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Quarantined / pending vendor rework
+          </span>
+        </div>
+
+        <div className="bg-card border rounded-lg p-4 shadow-sm">
+          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
+            Rejection Rate
+          </span>
+          <div className="flex items-baseline justify-between mt-1.5">
+            <span className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">
+              {rejectionRate}%
+            </span>
+            <span className="text-xs font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-600">
+              {Number(rejectionRate) < 5 ? 'Healthy' : 'Investigate'}
+            </span>
+          </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">
+            Threshold alert limit: 5.0%
+          </span>
+        </div>
+      </div>
+
       {/* Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 flex-1">
@@ -194,36 +268,47 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
                   </TableCell>
                   <TableCell>{getStatusBadge(item.qcStatus)}</TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onOpenRecordQC(item)}>
-                          <ClipboardCheck className="mr-2 h-4 w-4" /> Record Inspection
-                        </DropdownMenuItem>
-                        {item.qcStatus === 'Pending' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleQuickPassAll(item)} className="text-green-600">
-                              <CheckCircle2 className="mr-2 h-4 w-4" /> Pass All & Stock In
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleQuickFail(item)} className="text-destructive">
-                              <XCircle className="mr-2 h-4 w-4" /> Fail & Quarantine
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const note = window.prompt('Add inspector observation:', item.defectNotes || '');
-                            if (note) toast.success('Notes attached to QC record');
-                          }}
-                        >
-                          <FileText className="mr-2 h-4 w-4" /> Add Notes
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs gap-1 px-2"
+                        onClick={() => onOpenRecordQC(item)}
+                      >
+                        <ClipboardCheck className="h-3.5 w-3.5 text-primary" />
+                        <span>Inspect</span>
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onOpenRecordQC(item)}>
+                            <ClipboardCheck className="mr-2 h-4 w-4" /> Detailed Inspection
+                          </DropdownMenuItem>
+                          {item.qcStatus === 'Pending' && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleQuickPassAll(item)} className="text-green-600">
+                                <CheckCircle2 className="mr-2 h-4 w-4" /> Pass All & Stock In
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleQuickFail(item)} className="text-destructive">
+                                <XCircle className="mr-2 h-4 w-4" /> Fail & Quarantine
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              const note = window.prompt('Add inspector observation:', item.defectNotes || '');
+                              if (note) toast.success('Notes attached to QC record');
+                            }}
+                          >
+                            <FileText className="mr-2 h-4 w-4" /> Add Notes
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

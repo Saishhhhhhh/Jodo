@@ -50,12 +50,14 @@ import { toast } from 'sonner';
 interface StockTabProps {
   onOpenAdjust: (item?: StockItem) => void;
   onOpenTransfer: () => void;
+  onViewHistory?: (item: StockItem) => void;
   initialSubView?: string;
 }
 
 export function StockTab({
   onOpenAdjust,
   onOpenTransfer,
+  onViewHistory,
   initialSubView = 'stock-in-hand',
 }: StockTabProps) {
   const {
@@ -72,6 +74,7 @@ export function StockTab({
   const [activeSubView, setActiveSubView] = useState(initialSubView);
   const [searchTerm, setSearchTerm] = useState('');
   const [warehouseFilter, setWarehouseFilter] = useState('ALL');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
   // Summary Metrics
@@ -91,15 +94,31 @@ export function StockTab({
         item.warehouse.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchWarehouse = warehouseFilter === 'ALL' || item.warehouse === warehouseFilter;
+      const matchCategory =
+        categoryFilter === 'ALL' ||
+        (categoryFilter === 'Apparel' &&
+          (item.product.toLowerCase().includes('hoodie') ||
+            item.product.toLowerCase().includes('t-shirt') ||
+            item.product.toLowerCase().includes('jacket') ||
+            item.product.toLowerCase().includes('cargo'))) ||
+        (categoryFilter === 'Accessories' &&
+          (item.product.toLowerCase().includes('cap') ||
+            item.product.toLowerCase().includes('tote') ||
+            item.product.toLowerCase().includes('beanie'))) ||
+        (categoryFilter === 'Packaging' &&
+          (item.product.toLowerCase().includes('box') ||
+            item.product.toLowerCase().includes('poly') ||
+            item.product.toLowerCase().includes('bag')));
+
       let matchStatus = statusFilter === 'ALL' || item.status === statusFilter;
 
       if (activeSubView === 'available-stock') {
         matchStatus = item.available > 0;
       }
 
-      return matchSearch && matchWarehouse && matchStatus;
+      return matchSearch && matchWarehouse && matchCategory && matchStatus;
     });
-  }, [stock, searchTerm, warehouseFilter, statusFilter, activeSubView]);
+  }, [stock, searchTerm, warehouseFilter, categoryFilter, statusFilter, activeSubView]);
 
   // Filtered Incoming Stock
   const filteredIncoming = useMemo(() => {
@@ -305,7 +324,7 @@ export function StockTab({
           </div>
 
           <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
-            <SelectTrigger className="w-44 h-9 text-xs">
+            <SelectTrigger className="w-40 h-9 text-xs">
               <SelectValue placeholder="All Warehouses" />
             </SelectTrigger>
             <SelectContent>
@@ -315,6 +334,20 @@ export function StockTab({
               <SelectItem value="West DC - BOM">West DC - BOM</SelectItem>
             </SelectContent>
           </Select>
+
+          {(activeSubView === 'stock-in-hand' || activeSubView === 'available-stock') && (
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-36 h-9 text-xs">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Categories</SelectItem>
+                <SelectItem value="Apparel">Apparel</SelectItem>
+                <SelectItem value="Accessories">Accessories</SelectItem>
+                <SelectItem value="Packaging">Packaging</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
 
           {(activeSubView === 'stock-in-hand' || activeSubView === 'available-stock') && (
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -358,52 +391,84 @@ export function StockTab({
             </TableHeader>
             <TableBody>
               {filteredStock.length > 0 ? (
-                filteredStock.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-muted/40 transition-colors">
-                    <TableCell>
-                      <div className="font-semibold text-xs text-foreground">{item.product}</div>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{item.sku}</TableCell>
-                    <TableCell className="text-xs">{item.warehouse}</TableCell>
-                    <TableCell className="text-right font-mono font-bold text-xs text-foreground">
-                      {formatNumber(item.stockInHand)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                      {formatNumber(item.reserved)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-bold text-xs">
-                      <span
-                        className={
-                          item.available <= 0
-                            ? 'text-destructive font-extrabold'
-                            : item.available <= item.reorderLevel
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-green-600 dark:text-green-400'
-                        }
-                      >
-                        {formatNumber(item.available)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs text-blue-600 dark:text-blue-400">
-                      +{formatNumber(item.incoming)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                      {formatNumber(item.reorderLevel)}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{item.lastUpdated}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs gap-1"
-                        onClick={() => onOpenAdjust(item)}
-                      >
-                        <SlidersHorizontal className="h-3 w-3" /> Adjust
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredStock.map((item) => {
+                  const isLow = item.available <= item.reorderLevel;
+                  const isOut = item.available <= 0;
+                  return (
+                    <TableRow
+                      key={item.id}
+                      className={`transition-colors ${
+                        isOut
+                          ? 'bg-destructive/10 hover:bg-destructive/15 border-l-2 border-l-destructive'
+                          : isLow
+                          ? 'bg-amber-500/10 hover:bg-amber-500/15 border-l-2 border-l-amber-500'
+                          : 'hover:bg-muted/40'
+                      }`}
+                    >
+                      <TableCell>
+                        <div className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                          {item.product}
+                          {isOut ? (
+                            <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">OUT</Badge>
+                          ) : isLow ? (
+                            <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[9px] px-1 py-0 h-4 border-none">LOW</Badge>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{item.sku}</TableCell>
+                      <TableCell className="text-xs">{item.warehouse}</TableCell>
+                      <TableCell className="text-right font-mono font-bold text-xs text-foreground">
+                        {formatNumber(item.stockInHand)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                        {formatNumber(item.reserved)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-bold text-xs">
+                        <span
+                          className={
+                            item.available <= 0
+                              ? 'text-destructive font-extrabold'
+                              : item.available <= item.reorderLevel
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-green-600 dark:text-green-400'
+                          }
+                        >
+                          {formatNumber(item.available)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-blue-600 dark:text-blue-400">
+                        +{formatNumber(item.incoming)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
+                        {formatNumber(item.reorderLevel)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(item.status)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{item.lastUpdated}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs gap-1 px-2"
+                            onClick={() => onOpenAdjust(item)}
+                          >
+                            <SlidersHorizontal className="h-3 w-3" /> Adjust
+                          </Button>
+                          {onViewHistory && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs gap-1 px-2 text-muted-foreground hover:text-foreground"
+                              onClick={() => onViewHistory(item)}
+                            >
+                              <Clock className="h-3 w-3" /> History
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={11} className="h-28 text-center text-xs text-muted-foreground">

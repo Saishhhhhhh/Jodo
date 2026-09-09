@@ -10,6 +10,7 @@ export function formatCurrency(
   currency = 'INR',
   locale = 'en-IN'
 ): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return '₹0';
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -19,12 +20,14 @@ export function formatCurrency(
 }
 
 export function formatNumber(num: number): string {
+  if (num === null || num === undefined || isNaN(num)) return '0';
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
   if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
   return num.toString();
 }
 
 export function formatPercentage(value: number, decimals = 1): string {
+  if (value === null || value === undefined || isNaN(value)) return '0%';
   return `${value.toFixed(decimals)}%`;
 }
 

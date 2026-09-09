@@ -141,7 +141,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const tenantId = new mongoose.Types.ObjectId(req.auth!.tenantId);
-    const userId = new mongoose.Types.ObjectId(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.params.id as string);
 
     const user = await User.findOne({ _id: userId, tenantId })
       .select('-passwordHash -inviteToken -inviteTokenExpiresAt')
@@ -174,7 +174,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const tenantId = new mongoose.Types.ObjectId(req.auth!.tenantId);
-    const userId = new mongoose.Types.ObjectId(req.params.id);
+    const userId = new mongoose.Types.ObjectId(req.params.id as string);
     const { name, email, phone, team, status, password } = req.body;
 
     const user = await User.findOne({ _id: userId, tenantId });

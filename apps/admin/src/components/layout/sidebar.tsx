@@ -55,6 +55,11 @@ import {
   AlertTriangle,
   CheckCircle,
   Warehouse,
+  Factory,
+  ClipboardCheck,
+  Sparkles,
+  BookOpen,
+  FileEdit,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -131,6 +136,32 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Warehouse',
     href: '/warehouse',
     icon: Warehouse,
+    children: [
+      { label: 'Dashboard', href: '/warehouse', icon: LayoutDashboard },
+      { label: 'Procurement', href: '/warehouse/procurement', icon: Truck },
+      { label: 'Contract Manufacturers', href: '/warehouse/contract-manufacturers', icon: Building },
+      { label: 'Production Orders', href: '/warehouse/production-orders', icon: Factory },
+      { label: 'Production Tracking', href: '/warehouse/production-tracking', icon: Activity },
+      { label: 'Delays & Issues', href: '/warehouse/delays-issues', icon: AlertTriangle },
+      { label: 'Quality Checks', href: '/warehouse/quality-checks', icon: ClipboardCheck },
+      { label: 'Stock-in-Hand', href: '/warehouse/stock-in-hand', icon: Package },
+      { label: 'Fulfilment Readiness', href: '/warehouse/fulfilment-readiness', icon: CheckSquare },
+    ],
+  },
+  {
+    label: 'AI Content',
+    icon: Sparkles,
+    badge: 'AI',
+    children: [
+      { label: 'Dashboard', href: '/ai-content', icon: LayoutDashboard },
+      { label: 'Product Descriptions', href: '/ai-content/product-descriptions', icon: FileEdit },
+      { label: 'Catalogue Content', href: '/ai-content/catalogue-content', icon: BookOpen },
+      { label: 'Listing Copy', href: '/ai-content/listing-copy', icon: ShoppingBag },
+      { label: 'Campaign Content', href: '/ai-content/campaign-content', icon: Megaphone },
+      { label: 'Drafts', href: '/ai-content/drafts', icon: Copy },
+      { label: 'Review & Approval', href: '/ai-content/review-approval', icon: ClipboardCheck },
+      { label: 'Published Content', href: '/ai-content/published', icon: CheckCircle },
+    ],
   },
   {
     label: 'Marketing',
@@ -196,7 +227,7 @@ interface SidebarProps {
 export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuthStore();
-  const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders', 'Warehouse', 'AI Content']);
 
   function toggleGroup(label: string) {
     setOpenGroups((prev) =>
@@ -345,16 +376,30 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                 return (
                   <Tooltip key={item.label}>
                     <TooltipTrigger asChild>
-                      <button
-                        className={cn(
-                          'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
-                          groupActive
-                            ? 'bg-sidebar-accent text-primary'
-                            : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
-                        )}
-                      >
-                        <item.icon className="h-4 w-4" />
-                      </button>
+                      {item.href ? (
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
+                            groupActive
+                              ? 'bg-sidebar-accent text-primary'
+                              : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                        </Link>
+                      ) : (
+                        <button
+                          className={cn(
+                            'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
+                            groupActive
+                              ? 'bg-sidebar-accent text-primary'
+                              : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                        </button>
+                      )}
                     </TooltipTrigger>
                     <TooltipContent side="right" className="flex flex-col gap-1 p-2">
                       <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-1">
@@ -377,28 +422,61 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
 
               return (
                 <div key={item.label}>
-                  <button
-                    onClick={() => toggleGroup(item.label)}
+                  <div
                     className={cn(
-                      'flex items-center gap-3 w-full rounded-md px-2.5 py-2 text-sm font-medium transition-all duration-150',
+                      'flex items-center w-full rounded-md text-sm font-medium transition-all duration-150',
                       groupActive
                         ? 'text-sidebar-accent-foreground'
                         : 'text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/40'
                     )}
                   >
-                    <item.icon
-                      className={cn(
-                        'shrink-0 h-4 w-4',
-                        groupActive ? 'text-primary' : 'text-sidebar-foreground/50'
-                      )}
-                    />
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {isOpen ? (
-                      <ChevronDown className="h-3.5 w-3.5 text-sidebar-foreground/40" />
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={() => {
+                          if (!openGroups.includes(item.label)) {
+                            setOpenGroups((prev) => [...prev, item.label]);
+                          }
+                        }}
+                        className="flex items-center gap-3 flex-1 px-2.5 py-2 text-left"
+                      >
+                        <item.icon
+                          className={cn(
+                            'shrink-0 h-4 w-4',
+                            groupActive ? 'text-primary' : 'text-sidebar-foreground/50'
+                          )}
+                        />
+                        <span className="flex-1 text-left">{item.label}</span>
+                      </Link>
                     ) : (
-                      <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/40" />
+                      <button
+                        onClick={() => toggleGroup(item.label)}
+                        className="flex items-center gap-3 flex-1 px-2.5 py-2 text-left"
+                      >
+                        <item.icon
+                          className={cn(
+                            'shrink-0 h-4 w-4',
+                            groupActive ? 'text-primary' : 'text-sidebar-foreground/50'
+                          )}
+                        />
+                        <span className="flex-1 text-left">{item.label}</span>
+                      </button>
                     )}
-                  </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroup(item.label);
+                      }}
+                      className="px-2 py-2 text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+                      aria-label="Toggle submenu"
+                    >
+                      {isOpen ? (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
 
                   {isOpen && (
                     <div className="ml-3 mt-0.5 pl-3.5 border-l border-sidebar-border/60 space-y-0.5">

@@ -156,7 +156,7 @@ export class AuthService {
       sub: String(user._id),
       tenantId: String(user.tenantId),
       storeId: String(user.storeId),
-      email: user.email,
+      email: user.email || '',
       name: user.name,
     });
 

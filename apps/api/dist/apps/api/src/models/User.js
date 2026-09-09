@@ -43,7 +43,8 @@ const UserSchema = new mongoose_1.Schema({
     tenantId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     storeId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, lowercase: true, trim: true },
+    email: { type: String, lowercase: true, trim: true },
+    memberId: { type: String, trim: true, uppercase: true },
     phone: { type: String, trim: true },
     passwordHash: { type: String, required: true, select: false },
     avatarUrl: { type: String },
@@ -59,8 +60,10 @@ const UserSchema = new mongoose_1.Schema({
     inviteToken: { type: String, select: false },
     inviteTokenExpiresAt: { type: Date, select: false },
 }, { timestamps: true });
-// Compound unique index: one email per tenant
-UserSchema.index({ tenantId: 1, email: 1 }, { unique: true });
+// Compound unique index: one email per tenant (sparse for Team Members without email)
+UserSchema.index({ tenantId: 1, email: 1 }, { unique: true, sparse: true });
+// Compound unique index for memberId
+UserSchema.index({ tenantId: 1, memberId: 1 }, { unique: true, sparse: true });
 UserSchema.index({ tenantId: 1, storeId: 1, status: 1 });
 // Hash password before save
 UserSchema.pre('save', async function (next) {

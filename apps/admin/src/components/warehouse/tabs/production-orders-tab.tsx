@@ -78,7 +78,7 @@ export function ProductionOrdersTab({ onOpenCreate, onOpenQC }: ProductionOrders
   const handleUpdateOutput = (order: ProductionOrderItem) => {
     const input = window.prompt(
       `Update completed quantity for ${order.id} (${order.product}):\nCurrently completed: ${order.completedQuantity} / ${order.quantity}\nEnter new completed quantity:`,
-      order.completedQuantity.toString()
+      (order.completedQuantity ?? 0).toString()
     );
     if (!input) return;
     const qty = parseInt(input, 10);

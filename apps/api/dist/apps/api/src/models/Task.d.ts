@@ -1,7 +1,7 @@
 import mongoose, { Document, Types } from 'mongoose';
 export type TaskCategory = 'Sales' | 'Operations' | 'Content' | 'Support' | 'Follow-up';
 export type TaskType = 'General' | 'Call' | 'Meeting' | 'Email' | 'Follow-up' | 'Review' | 'Approval' | 'Documentation' | 'Quotation' | 'Data Entry' | 'Content Creation' | 'Customer Issue' | 'Internal' | 'Other';
-export type TaskStatus = 'Pending' | 'In Progress' | 'Blocked' | 'Completed' | 'Cancelled';
+export type TaskStatus = 'Pending' | 'In Progress' | 'Blocked' | 'Completed' | 'Cancelled' | 'Closed';
 export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 export interface ITaskActivity {
     action: string;
@@ -18,6 +18,14 @@ export interface ITaskComment {
     id: string;
     user: Types.ObjectId;
     message: string;
+    createdAt: Date;
+}
+export interface ITaskRemark {
+    id?: string;
+    text: string;
+    statusAtTime?: string;
+    user: Types.ObjectId;
+    userName?: string;
     createdAt: Date;
 }
 export interface ITaskAttachment {
@@ -51,6 +59,10 @@ export interface ITask extends Document {
     comments: ITaskComment[];
     attachments: ITaskAttachment[];
     tags: string[];
+    remark?: string;
+    remarkUpdatedAt?: Date;
+    remarkUpdatedBy?: Types.ObjectId;
+    remarks: ITaskRemark[];
     completedAt?: Date;
     completedBy?: Types.ObjectId;
     createdAt: Date;

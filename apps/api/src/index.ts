@@ -37,6 +37,8 @@ import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 import reportsRoutes from './routes/reports';
 import teamMembersRoutes from './routes/teamMembers';
+import warehouseRoutes from './routes/warehouse';
+import aiContentRoutes from './routes/ai-content';
 
 const app = express();
 
@@ -137,6 +139,10 @@ app.use('/api/admin/navigation', navigationRoutes);
 app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/tasks', tasksRoutes);
 app.use('/api/admin/team-members', teamMembersRoutes);
+app.use('/api/warehouse', warehouseRoutes);
+app.use('/api/admin/warehouse', warehouseRoutes);
+app.use('/api/ai-content', aiContentRoutes);
+app.use('/api/admin/ai-content', aiContentRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================

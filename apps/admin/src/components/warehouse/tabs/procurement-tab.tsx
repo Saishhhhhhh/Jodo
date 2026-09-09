@@ -70,7 +70,7 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
     }
     const input = window.prompt(
       `Receive stock for ${item.product} (${item.id})\nPending units: ${pending}\nEnter quantity to receive:`,
-      pending.toString()
+      (pending ?? 0).toString()
     );
     if (!input) return;
     const qty = parseInt(input, 10);

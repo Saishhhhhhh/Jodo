@@ -93,18 +93,31 @@ export function FulfilmentTab() {
     }
   };
 
-  // Summary counts
+  // Summary counts matching Section 17
   const readyCount = fulfilments.filter((f) => f.finalStatus === 'Ready for Fulfilment').length;
-  const almostReadyCount = fulfilments.filter((f) => f.finalStatus === 'Almost Ready').length;
-  const waitingCount = fulfilments.filter((f) => f.finalStatus === 'Partially Ready' || f.finalStatus === 'Not Ready' || f.finalStatus === 'At Risk').length;
+  const atRiskCount = fulfilments.filter((f) => f.finalStatus === 'At Risk' || f.finalStatus === 'Not Ready').length;
+  const shortageQty = fulfilments
+    .filter((f) => f.finalStatus !== 'Ready for Fulfilment' && f.finalStatus !== 'Dispatched')
+    .reduce((acc, f) => acc + (!f.conditions.stockAvailable ? f.requiredQty : Math.round(f.requiredQty * (1 - f.readinessPercent / 100))), 0);
+  const nextDispatchDate = '12 Oct 2026';
+
+  const getBottleneck = (conditions: FulfilmentItem['conditions']) => {
+    if (!conditions.stockAvailable) return 'Stock Shortage';
+    if (!conditions.stockReserved) return 'Stock Unallocated';
+    if (!conditions.productionCompleted) return 'Production running';
+    if (!conditions.qcPassed) return 'Waiting QC Release';
+    if (!conditions.packagingReady) return 'Kitting & Packaging';
+    if (!conditions.dispatchPrepared) return 'Carrier Manifesting';
+    return 'None — Cleared';
+  };
 
   return (
     <div className="space-y-6">
-      {/* Top Fulfilment Summary Metrics */}
+      {/* Top Fulfilment Summary Metrics - Section 17 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card className="p-4 bg-card border">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-            Ready for Fulfilment
+            Orders Ready to Fulfil
           </span>
           <div className="flex items-baseline justify-between mt-1.5">
             <span className="text-2xl font-bold font-mono text-green-600 dark:text-green-400">
@@ -116,40 +129,42 @@ export function FulfilmentTab() {
         </Card>
 
         <Card className="p-4 bg-card border">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-            Almost Ready (≥85%)
+          <span className="text-xs font-semibold text-destructive uppercase tracking-wider block">
+            Orders at Risk
           </span>
           <div className="flex items-baseline justify-between mt-1.5">
-            <span className="text-2xl font-bold font-mono text-blue-600 dark:text-blue-400">
-              {almostReadyCount} Orders
+            <span className="text-2xl font-bold font-mono text-destructive">
+              {atRiskCount} Orders
             </span>
-            <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <AlertTriangle className="h-5 w-5 text-destructive" />
           </div>
-          <span className="text-[11px] text-muted-foreground mt-1 block">Final packing or dispatch pending</span>
+          <span className="text-[11px] text-muted-foreground mt-1 block">Blocked by stock or production delays</span>
         </Card>
 
         <Card className="p-4 bg-card border">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-            Pending Production / QC
+          <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
+            Shortage Quantity
           </span>
           <div className="flex items-baseline justify-between mt-1.5">
             <span className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">
-              {waitingCount} Orders
+              {formatNumber(shortageQty)} Units
             </span>
-            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <Package className="h-5 w-5 text-amber-500" />
           </div>
-          <span className="text-[11px] text-muted-foreground mt-1 block">Awaiting stock, run, or QC release</span>
+          <span className="text-[11px] text-muted-foreground mt-1 block">Deficit across unfulfilled orders</span>
         </Card>
 
         <Card className="p-4 bg-card border">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-            Readiness Scoring Formula
+            Next Expected Dispatch
           </span>
-          <div className="text-[10px] text-muted-foreground mt-1 space-y-0.5">
-            <div>Stock (20%) + Reserved (15%) + Run (20%)</div>
-            <div>+ QC (20%) + Pack (15%) + Dispatch (10%)</div>
-            <span className="font-semibold text-primary">= 100% Total Gate Score</span>
+          <div className="flex items-baseline justify-between mt-1.5">
+            <span className="text-2xl font-bold font-mono text-primary">
+              {nextDispatchDate}
+            </span>
+            <Clock className="h-5 w-5 text-primary" />
           </div>
+          <span className="text-[11px] text-muted-foreground mt-1 block">Next priority shipping window</span>
         </Card>
       </div>
 
@@ -197,13 +212,14 @@ export function FulfilmentTab() {
               <TableHead>Customer / Channel</TableHead>
               <TableHead>Product</TableHead>
               <TableHead className="text-right">Qty</TableHead>
-              <TableHead className="text-center">Stock Avail (20%)</TableHead>
-              <TableHead className="text-center">Reserved (15%)</TableHead>
-              <TableHead className="text-center">Production (20%)</TableHead>
-              <TableHead className="text-center">QC Pass (20%)</TableHead>
+              <TableHead className="text-center">Stock (20%)</TableHead>
+              <TableHead className="text-center">Res. (15%)</TableHead>
+              <TableHead className="text-center">Prod. (20%)</TableHead>
+              <TableHead className="text-center">QC (20%)</TableHead>
               <TableHead className="text-center">Pack (15%)</TableHead>
-              <TableHead className="text-center">Dispatch (10%)</TableHead>
-              <TableHead className="w-32">Readiness</TableHead>
+              <TableHead className="text-center">Disp. (10%)</TableHead>
+              <TableHead className="w-28">Readiness</TableHead>
+              <TableHead>Bottleneck</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
@@ -291,39 +307,55 @@ export function FulfilmentTab() {
                       </div>
                     </div>
                   </TableCell>
+                  <TableCell>
+                      <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                        {getBottleneck(item.conditions)}
+                      </span>
+                    </TableCell>
 
-                  <TableCell>{getFinalStatusBadge(item.finalStatus)}</TableCell>
+                    <TableCell>{getFinalStatusBadge(item.finalStatus)}</TableCell>
 
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                        onClick={() => setSelectedOrder(item)}
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </Button>
-                      {item.finalStatus === 'Ready for Fulfilment' ? (
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
-                          size="sm"
-                          className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white font-medium"
-                          onClick={() => handleDispatch(item)}
-                        >
-                          <Send className="h-3 w-3" /> Dispatch
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
                           onClick={() => setSelectedOrder(item)}
                         >
-                          Checklist
+                          <Eye className="h-3.5 w-3.5" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
+                        {item.finalStatus === 'Ready for Fulfilment' ? (
+                          <Button
+                            size="sm"
+                            className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white font-medium"
+                            onClick={() => handleDispatch(item)}
+                          >
+                            <Send className="h-3 w-3" /> Dispatch
+                          </Button>
+                        ) : !item.conditions.stockReserved ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              toast.success(`Allocated available stock for Order ${item.orderId}`);
+                            }}
+                          >
+                            Allocate Stock
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => setSelectedOrder(item)}
+                          >
+                            Checklist
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                 </TableRow>
               ))
             ) : (

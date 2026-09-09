@@ -18,35 +18,38 @@ import { toast } from 'sonner';
 interface AdjustStockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedStockItem: StockItem | null;
+  selectedStockItem?: StockItem | null;
+  item?: StockItem | null;
 }
 
 export function AdjustStockDialog({
   open,
   onOpenChange,
   selectedStockItem,
+  item,
 }: AdjustStockDialogProps) {
   const { adjustStock } = useWarehouseStore();
+  const currentItem = selectedStockItem ?? item ?? null;
 
   const [onHandInput, setOnHandInput] = useState(0);
   const [reason, setReason] = useState('Periodic physical inventory audit');
 
   useEffect(() => {
-    if (selectedStockItem) {
-      setOnHandInput(selectedStockItem.stockInHand);
+    if (currentItem) {
+      setOnHandInput(currentItem.stockInHand);
     }
-  }, [selectedStockItem, open]);
+  }, [currentItem, open]);
 
   const handleSave = () => {
-    if (!selectedStockItem) return;
+    if (!currentItem) return;
 
-    adjustStock(selectedStockItem.id, onHandInput, reason);
-    toast.success(`Adjusted ${selectedStockItem.product} stock to ${onHandInput} units. Stock movement audit entry logged.`);
+    adjustStock(currentItem.id, onHandInput, reason);
+    toast.success(`Adjusted ${currentItem.product} stock to ${onHandInput} units. Stock movement audit entry logged.`);
     onOpenChange(false);
   };
 
-  const currentOnHand = selectedStockItem?.stockInHand || 0;
-  const reserved = selectedStockItem?.reserved || 0;
+  const currentOnHand = currentItem?.stockInHand || 0;
+  const reserved = currentItem?.reserved || 0;
   const calculatedAvailable = Math.max(0, onHandInput - reserved);
   const difference = onHandInput - currentOnHand;
 
@@ -56,7 +59,7 @@ export function AdjustStockDialog({
         <DialogHeader>
           <DialogTitle>Adjust Stock Level</DialogTitle>
           <DialogDescription>
-            Record physical inventory adjustment for <span className="font-semibold text-foreground">{selectedStockItem?.product}</span> ({selectedStockItem?.sku}) at <span className="font-semibold text-foreground">{selectedStockItem?.warehouse}</span>.
+            Record physical inventory adjustment for <span className="font-semibold text-foreground">{currentItem?.product}</span> ({currentItem?.sku}) at <span className="font-semibold text-foreground">{currentItem?.warehouse}</span>.
           </DialogDescription>
         </DialogHeader>
 

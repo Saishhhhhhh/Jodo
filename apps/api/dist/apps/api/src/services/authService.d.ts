@@ -9,6 +9,8 @@ export interface LoginResult {
         id: string;
         name: string;
         email: string;
+        memberId?: string;
+        roles?: string[];
         avatarUrl?: string;
         tenantId: string;
         storeId: string;
@@ -17,7 +19,6 @@ export interface LoginResult {
 export declare class AuthService {
     /**
      * Login with email and password.
-     * Returns access + refresh tokens.
      */
     login(input: LoginInput, ip?: string, userAgent?: string): Promise<LoginResult>;
     /**

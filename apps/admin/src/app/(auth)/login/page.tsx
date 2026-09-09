@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/auth';
 import { LoginSchema, type LoginInput } from '@jodo/shared';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -183,8 +184,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
-
-function cn(...args: (string | undefined | false)[]): string {
-  return args.filter(Boolean).join(' ');
 }

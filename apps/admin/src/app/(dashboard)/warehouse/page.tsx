@@ -1,35 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Plus,
-  Boxes,
-  Truck,
-  Building,
-  Factory,
-  Activity,
-  ClipboardCheck,
-  Package,
-  CheckSquare,
-  AlertTriangle,
   RotateCcw,
+  Search,
+  Bell,
   SlidersHorizontal,
+  Calendar,
+  Building,
+  Filter,
 } from 'lucide-react';
 import { useWarehouseStore, QualityCheckItem, StockItem } from '@/stores/warehouse';
-
-// The 8 Refined Primary Tabs
 import { OverviewTab } from '@/components/warehouse/tabs/overview-tab';
-import { ProcurementTab } from '@/components/warehouse/tabs/procurement-tab';
-import { ManufacturersTab } from '@/components/warehouse/tabs/manufacturers-tab';
-import { ProductionOrdersTab } from '@/components/warehouse/tabs/production-orders-tab';
-import { ProductionTrackingTab } from '@/components/warehouse/tabs/production-tracking-tab';
-import { QualityChecksTab } from '@/components/warehouse/tabs/quality-checks-tab';
-import { StockTab } from '@/components/warehouse/tabs/stock-tab';
-import { FulfilmentTab } from '@/components/warehouse/tabs/fulfilment-tab';
 
 // Modals / Drawers
 import { CreateProcurementDrawer } from '@/components/warehouse/modals/create-procurement-drawer';
@@ -38,29 +31,22 @@ import { AddManufacturerDrawer } from '@/components/warehouse/modals/add-manufac
 import { RecordQCDrawer } from '@/components/warehouse/modals/record-qc-drawer';
 import { AdjustStockDialog } from '@/components/warehouse/modals/adjust-stock-dialog';
 import { CreateTransferDrawer } from '@/components/warehouse/modals/create-transfer-drawer';
+import { WarehouseNotificationsDrawer } from '@/components/warehouse/modals/warehouse-notifications-drawer';
+import { WarehouseSearchDialog } from '@/components/warehouse/modals/warehouse-search-dialog';
+import { toast } from 'sonner';
 
-const PRIMARY_TABS = [
-  { id: 'overview', label: 'Overview', icon: Boxes },
-  { id: 'procurement', label: 'Procurement', icon: Truck },
-  { id: 'manufacturers', label: 'Manufacturers', icon: Building },
-  { id: 'production-orders', label: 'Production Orders', icon: Factory },
-  { id: 'production-tracking', label: 'Production Tracking', icon: Activity },
-  { id: 'quality-checks', label: 'Quality Checks', icon: ClipboardCheck },
-  { id: 'stock', label: 'Stock', icon: Package },
-  { id: 'fulfilment', label: 'Fulfilment', icon: CheckSquare },
-];
-
-export default function WarehousePage() {
+function WarehouseDashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabParam || 'overview');
-  const [stockSubView, setStockSubView] = useState('stock-in-hand');
+  // Filters from Section 2
+  const [dateRange, setDateRange] = useState('Last 30 Days');
+  const [warehouseFilter, setWarehouseFilter] = useState('ALL');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { alerts, qualityChecks } = useWarehouseStore();
-  const criticalAlertCount = alerts.filter((a) => !a.resolved && a.severity === 'critical').length;
-  const qcPendingCount = qualityChecks.filter((q) => q.qcStatus === 'Pending').length;
+  const { notifications } = useWarehouseStore();
+  const unreadNotifs = (notifications || []).filter((n) => !n.read).length;
 
   // Drawers & Dialogs
   const [isProcurementOpen, setIsProcurementOpen] = useState(false);
@@ -69,29 +55,38 @@ export default function WarehousePage() {
   const [isQCOpen, setIsQCOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-  // Selected item contexts
-  const [selectedQC, setSelectedQC] = useState<QualityCheckItem | null>(null);
+  // Selected item context
   const [selectedStockItem, setSelectedStockItem] = useState<StockItem | null>(null);
 
+  // If someone accessed with ?tab=procurement, redirect them to dedicated page
   useEffect(() => {
-    if (tabParam && PRIMARY_TABS.some((t) => t.id === tabParam)) {
-      setActiveTab(tabParam);
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      const tabMap: Record<string, string> = {
+        procurement: '/warehouse/procurement',
+        manufacturers: '/warehouse/contract-manufacturers',
+        'production-orders': '/warehouse/production-orders',
+        'production-tracking': '/warehouse/production-tracking',
+        'quality-checks': '/warehouse/quality-checks',
+        stock: '/warehouse/stock-in-hand',
+        fulfilment: '/warehouse/fulfilment-readiness',
+        alerts: '/warehouse/delays-issues',
+      };
+      if (tabMap[tabParam]) {
+        router.replace(tabMap[tabParam]);
+      }
     }
-  }, [tabParam]);
+  }, [searchParams, router]);
 
-  const handleTabSelect = (tabId: string, subView?: string) => {
-    // If targeted a sub-view inside stock (like incoming-stock or transfers)
-    if (tabId === 'stock' && subView) {
-      setStockSubView(subView);
-    }
-    setActiveTab(tabId);
-    router.replace(`/warehouse?tab=${tabId}`, { scroll: false });
-  };
-
-  const handleOpenQC = (item?: QualityCheckItem) => {
-    setSelectedQC(item || null);
-    setIsQCOpen(true);
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success('Warehouse operational telemetry refreshed');
+    }, 400);
   };
 
   const handleOpenAdjust = (item?: StockItem) => {
@@ -100,124 +95,157 @@ export default function WarehousePage() {
   };
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
-      {/* Page Header (Consistent with JODO Admin Panel) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Warehouse</h1>
-            <Badge variant="outline" className="text-xs font-mono">
-              Live Operations
-            </Badge>
+    <div className="p-4 sm:p-6 space-y-6 animate-fade-in">
+      {/* Section 2: Warehouse Header with Title, Subtitle, Filters, Refresh */}
+      <div className="flex flex-col gap-4 border-b pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Warehouse</h1>
+              <Badge variant="outline" className="text-xs font-mono border-primary/30 text-primary">
+                Live Operations
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1 max-w-3xl">
+              Monitor procurement, manufacturing, production, quality, inventory and fulfilment operations from one place.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Supply Chain Management – Track procurement, contract manufacturers, production orders, production status, delays, quality checks, stock-in-hand and fulfilment readiness.
-          </p>
+
+          {/* Search, Notifications & Quick Actions */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 text-xs"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <Search className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="hidden sm:inline">Search Warehouse</span>
+              <kbd className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border ml-1">
+                ⌘K
+              </kbd>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs relative px-2.5"
+              onClick={() => setIsNotifOpen(true)}
+              aria-label="Alerts & Notifications"
+            >
+              <Bell className="h-4 w-4" />
+              {unreadNotifs > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                  {unreadNotifs}
+                </span>
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs px-2.5"
+              onClick={handleRefresh}
+              title="Refresh telemetry"
+            >
+              <RotateCcw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+
+            <Button
+              size="sm"
+              className="h-9 text-xs gap-1.5"
+              onClick={() => setIsProcurementOpen(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Create PO</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Action button on right */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Button onClick={() => setIsProcurementOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" /> New Procurement
-          </Button>
+        {/* Filters Bar: Date filter, Warehouse/Location, Product/Category */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Date filter */}
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="h-8 text-xs w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Today">Today</SelectItem>
+                  <SelectItem value="Last 7 Days">Last 7 Days</SelectItem>
+                  <SelectItem value="Last 30 Days">Last 30 Days</SelectItem>
+                  <SelectItem value="This Month">This Month</SelectItem>
+                  <SelectItem value="Custom Date Range">Custom Range</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Location filter */}
+            <div className="flex items-center gap-1.5">
+              <Building className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+                <SelectTrigger className="h-8 text-xs w-[160px]">
+                  <SelectValue placeholder="All Warehouses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Warehouses</SelectItem>
+                  <SelectItem value="BLR">Central Hub - BLR</SelectItem>
+                  <SelectItem value="DEL">North DC - DEL</SelectItem>
+                  <SelectItem value="BOM">West DC - BOM</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Category filter */}
+            <div className="flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-8 text-xs w-[160px]">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Categories</SelectItem>
+                  <SelectItem value="Raw Materials">Raw Materials</SelectItem>
+                  <SelectItem value="Finished Goods">Finished Goods</SelectItem>
+                  <SelectItem value="Packaging">Packaging</SelectItem>
+                  <SelectItem value="Hardware & Trims">Hardware & Trims</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs gap-1"
+              onClick={() => setIsProductionOpen(true)}
+            >
+              <Plus className="h-3 w-3" /> New Production
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs gap-1 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+              onClick={() => setIsQCOpen(true)}
+            >
+              <Plus className="h-3 w-3" /> Record QC
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Exactly 8 Clean Primary Navigation Tabs */}
-      <Tabs value={activeTab} onValueChange={(val) => handleTabSelect(val)} className="space-y-4">
-        <div className="border-b border-border/80 pb-1">
-          <TabsList className="inline-flex h-auto w-full justify-start gap-1.5 bg-transparent p-0 overflow-x-auto scrollbar-none flex-nowrap">
-            {PRIMARY_TABS.map((t) => {
-              const Icon = t.icon;
-              const isQC = t.id === 'quality-checks';
-              const isOverview = t.id === 'overview';
+      {/* Main Central Dashboard Sections */}
+      <OverviewTab
+        onOpenProcurement={() => setIsProcurementOpen(true)}
+        onOpenProduction={() => setIsProductionOpen(true)}
+        onOpenQC={() => setIsQCOpen(true)}
+        onOpenAdjust={handleOpenAdjust}
+      />
 
-              return (
-                <TabsTrigger
-                  key={t.id}
-                  value={t.id}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-md border border-transparent whitespace-nowrap transition-all data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:border-border data-[state=active]:shadow-sm hover:text-foreground text-muted-foreground"
-                >
-                  <Icon className="h-3.5 w-3.5 shrink-0" />
-                  <span>{t.label}</span>
-                  {isOverview && criticalAlertCount > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="ml-0.5 h-4 min-w-[16px] px-1 text-[9px] font-bold rounded-full justify-center"
-                    >
-                      {criticalAlertCount}
-                    </Badge>
-                  )}
-                  {isQC && qcPendingCount > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="ml-0.5 h-4 min-w-[16px] px-1 text-[9px] font-semibold rounded-full justify-center"
-                    >
-                      {qcPendingCount}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
-        </div>
-
-        {/* 1. Overview */}
-        <TabsContent value="overview" className="mt-0 focus-visible:outline-none">
-          <OverviewTab
-            onTabChange={handleTabSelect}
-            onOpenProcurement={() => setIsProcurementOpen(true)}
-            onOpenProduction={() => setIsProductionOpen(true)}
-            onOpenQC={() => handleOpenQC()}
-            onOpenTransfer={() => setIsTransferOpen(true)}
-            onOpenAdjust={handleOpenAdjust}
-          />
-        </TabsContent>
-
-        {/* 2. Procurement */}
-        <TabsContent value="procurement" className="mt-0 focus-visible:outline-none">
-          <ProcurementTab onOpenCreate={() => setIsProcurementOpen(true)} />
-        </TabsContent>
-
-        {/* 3. Manufacturers */}
-        <TabsContent value="manufacturers" className="mt-0 focus-visible:outline-none">
-          <ManufacturersTab onOpenCreate={() => setIsManufacturerOpen(true)} />
-        </TabsContent>
-
-        {/* 4. Production Orders */}
-        <TabsContent value="production-orders" className="mt-0 focus-visible:outline-none">
-          <ProductionOrdersTab
-            onOpenCreate={() => setIsProductionOpen(true)}
-            onOpenQC={() => handleOpenQC()}
-          />
-        </TabsContent>
-
-        {/* 5. Production Tracking */}
-        <TabsContent value="production-tracking" className="mt-0 focus-visible:outline-none">
-          <ProductionTrackingTab />
-        </TabsContent>
-
-        {/* 6. Quality Checks */}
-        <TabsContent value="quality-checks" className="mt-0 focus-visible:outline-none">
-          <QualityChecksTab onOpenRecordQC={handleOpenQC} />
-        </TabsContent>
-
-        {/* 7. Stock (Consolidated single module with all stock sub-functions) */}
-        <TabsContent value="stock" className="mt-0 focus-visible:outline-none">
-          <StockTab
-            onOpenAdjust={handleOpenAdjust}
-            onOpenTransfer={() => setIsTransferOpen(true)}
-            initialSubView={stockSubView}
-          />
-        </TabsContent>
-
-        {/* 8. Fulfilment (Dedicated readiness analysis & gating) */}
-        <TabsContent value="fulfilment" className="mt-0 focus-visible:outline-none">
-          <FulfilmentTab />
-        </TabsContent>
-      </Tabs>
-
-      {/* Drawers & Dialogs */}
+      {/* Global Modals & Drawers */}
       <CreateProcurementDrawer
         open={isProcurementOpen}
         onOpenChange={setIsProcurementOpen}
@@ -233,7 +261,6 @@ export default function WarehousePage() {
       <RecordQCDrawer
         open={isQCOpen}
         onOpenChange={setIsQCOpen}
-        selectedQC={selectedQC}
       />
       <CreateTransferDrawer
         open={isTransferOpen}
@@ -244,6 +271,22 @@ export default function WarehousePage() {
         onOpenChange={setIsAdjustStockOpen}
         selectedStockItem={selectedStockItem}
       />
+      <WarehouseNotificationsDrawer
+        open={isNotifOpen}
+        onOpenChange={setIsNotifOpen}
+      />
+      <WarehouseSearchDialog
+        open={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+      />
     </div>
+  );
+}
+
+export default function WarehousePage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading Warehouse Dashboard...</div>}>
+      <WarehouseDashboardContent />
+    </Suspense>
   );
 }

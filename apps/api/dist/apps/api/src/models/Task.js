@@ -53,7 +53,7 @@ const taskSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'In Progress', 'Blocked', 'Completed', 'Cancelled'],
+        enum: ['Pending', 'In Progress', 'Blocked', 'Completed', 'Cancelled', 'Closed'],
         default: 'Pending',
         index: true
     },
@@ -106,6 +106,18 @@ const taskSchema = new mongoose_1.Schema({
         }
     ],
     tags: [{ type: String }],
+    remark: { type: String },
+    remarkUpdatedAt: { type: Date },
+    remarkUpdatedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    remarks: [
+        {
+            text: { type: String, required: true },
+            statusAtTime: { type: String },
+            user: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+            userName: { type: String },
+            createdAt: { type: Date, default: Date.now }
+        }
+    ],
     completedAt: { type: Date },
     completedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
 }, {

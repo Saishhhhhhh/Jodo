@@ -123,6 +123,9 @@ export interface QualityCheckItem {
   inspector: string;
   defectType?: 'None' | 'Stitching & Seam' | 'Color Mismatch' | 'Sizing & Dimensions' | 'Fabric Flaw' | 'Hardware Issue';
   defectNotes?: string;
+  defectDescription?: string;
+  checkpoints?: Record<string, 'Pass' | 'Fail' | 'NA'>;
+  images?: string[];
   qcStatus:
     | 'Pending'
     | 'In Inspection'
@@ -241,6 +244,53 @@ export interface DelayAlertItem {
   resolved: boolean;
 }
 
+export interface WarehouseIssueItem {
+  id: string; // e.g. ISS-2026-001
+  relatedOrder: string;
+  type:
+    | 'Procurement Delay'
+    | 'Production Delay'
+    | 'Material Shortage'
+    | 'Quality Failure'
+    | 'Manufacturer Issue'
+    | 'Transportation Delay'
+    | 'Other';
+  product: string;
+  sku?: string;
+  supplierManufacturer: string;
+  issue: string;
+  expectedDate: string;
+  daysDelayed: number;
+  severity: 'Low' | 'Medium' | 'High' | 'Critical';
+  assignedTo: string;
+  status: 'Open' | 'Investigating' | 'Resolved';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WarehouseNotificationItem {
+  id: string; // e.g. NOTIF-001
+  title: string;
+  message: string;
+  type:
+    | 'low_stock'
+    | 'out_of_stock'
+    | 'po_delayed'
+    | 'prod_delayed'
+    | 'qc_failed'
+    | 'qc_waiting'
+    | 'mfg_delayed'
+    | 'stock_received'
+    | 'prod_completed'
+    | 'fulfilment_ready';
+  severity: 'info' | 'warning' | 'critical';
+  timestamp: string;
+  read: boolean;
+  orderId?: string;
+  link?: string;
+}
+
 export interface StockMovementItem {
   id: string;
   dateTime: string;
@@ -288,6 +338,8 @@ export interface WarehouseState {
   transfers: TransferItem[];
   fulfilments: FulfilmentItem[];
   alerts: DelayAlertItem[];
+  issues: WarehouseIssueItem[];
+  notifications: WarehouseNotificationItem[];
   stockMovements: StockMovementItem[];
   auditLog: AuditLogEntry[];
 
@@ -318,6 +370,9 @@ export interface WarehouseState {
     inspector: string;
     defectType?: QualityCheckItem['defectType'];
     defectNotes?: string;
+    defectDescription?: string;
+    checkpoints?: Record<string, 'Pass' | 'Fail' | 'NA'>;
+    images?: string[];
   }) => void;
   adjustStock: (stockId: string, newStockInHand: number, reason: string) => void;
   releaseReservation: (resId: string) => void;
@@ -326,6 +381,12 @@ export interface WarehouseState {
   receiveTransfer: (transferId: string) => void;
   dispatchFulfilmentOrder: (fulfilmentId: string) => void;
   resolveAlert: (alertId: string) => void;
+  addIssue: (data: Omit<WarehouseIssueItem, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateIssueStatus: (id: string, status: WarehouseIssueItem['status'], notes?: string) => void;
+  assignIssue: (id: string, assignedTo: string) => void;
+  addNotification: (data: Omit<WarehouseNotificationItem, 'id' | 'timestamp' | 'read'>) => void;
+  dismissNotification: (id: string) => void;
+  markAllNotificationsRead: () => void;
   addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'dateTime'>) => void;
 }
 
@@ -1369,6 +1430,163 @@ const initialAuditLog: AuditLogEntry[] = [
   },
 ];
 
+const initialIssues: WarehouseIssueItem[] = [
+  {
+    id: 'ISS-2026-001',
+    relatedOrder: 'PRD-2026-004',
+    type: 'Production Delay',
+    product: 'Merino Wool Sweater',
+    sku: 'SWT-MRN-005',
+    supplierManufacturer: 'Himalayan Woolcrafts',
+    issue: 'Dye lot variation and yarn re-spinning required after initial spool audit failed.',
+    expectedDate: '01 Sep 2026',
+    daysDelayed: 8,
+    severity: 'Critical',
+    assignedTo: 'Rahul Sharma',
+    status: 'Investigating',
+    createdAt: '01 Sep 2026',
+    updatedAt: '08 Sep 2026',
+  },
+  {
+    id: 'ISS-2026-002',
+    relatedOrder: 'PRC-2026-092',
+    type: 'Procurement Delay',
+    product: 'YKK Antique Brass Metal Zippers',
+    sku: 'TRM-ZIP-004',
+    supplierManufacturer: 'TrimTech Fasteners Ltd',
+    issue: 'Port customs clearance hold at Chennai seaport due to import tariff verification.',
+    expectedDate: '04 Sep 2026',
+    daysDelayed: 5,
+    severity: 'High',
+    assignedTo: 'Vikram Sethi',
+    status: 'Open',
+    createdAt: '04 Sep 2026',
+    updatedAt: '08 Sep 2026',
+  },
+  {
+    id: 'ISS-2026-003',
+    relatedOrder: 'QC-2026-115',
+    type: 'Quality Failure',
+    product: 'Merino Wool Sweater',
+    sku: 'SWT-MRN-005',
+    supplierManufacturer: 'Himalayan Woolcrafts',
+    issue: 'Severe pilling index failure. 120 units quarantined for factory de-pilling rework.',
+    expectedDate: '03 Sep 2026',
+    daysDelayed: 6,
+    severity: 'Critical',
+    assignedTo: 'Neha Kapoor',
+    status: 'Investigating',
+    createdAt: '03 Sep 2026',
+    updatedAt: '07 Sep 2026',
+  },
+  {
+    id: 'ISS-2026-004',
+    relatedOrder: 'PRD-2026-002',
+    type: 'Material Shortage',
+    product: 'Organic Cotton T-Shirt',
+    sku: 'TSH-ORG-001',
+    supplierManufacturer: 'Sterling Garments Ltd',
+    issue: 'Remaining 1,000m fabric roll batch in transit; knit line paused at cutting table.',
+    expectedDate: '07 Sep 2026',
+    daysDelayed: 2,
+    severity: 'Medium',
+    assignedTo: 'Vikram Sethi',
+    status: 'Open',
+    createdAt: '07 Sep 2026',
+    updatedAt: '08 Sep 2026',
+  },
+  {
+    id: 'ISS-2026-005',
+    relatedOrder: 'MFG-002',
+    type: 'Manufacturer Issue',
+    product: 'Slim Fit Chino Trouser',
+    sku: 'CHN-SLM-002',
+    supplierManufacturer: 'Vanguard Textiles Corp',
+    issue: 'Spinning machine breakdown on Line 3. Reduced output capacity by 35% for 48 hours.',
+    expectedDate: '06 Sep 2026',
+    daysDelayed: 3,
+    severity: 'Medium',
+    assignedTo: 'Ananya Roy',
+    status: 'Resolved',
+    createdAt: '06 Sep 2026',
+    updatedAt: '08 Sep 2026',
+  },
+  {
+    id: 'ISS-2026-006',
+    relatedOrder: 'ORD-1052',
+    type: 'Transportation Delay',
+    product: 'Premium Silk Scarf',
+    sku: 'SCF-SLK-007',
+    supplierManufacturer: 'BlueDart Logistics',
+    issue: 'Heavy rainfall route diversion along Western corridor delayed line-haul truck.',
+    expectedDate: '08 Sep 2026',
+    daysDelayed: 1,
+    severity: 'Low',
+    assignedTo: 'Manoj Pillai',
+    status: 'Resolved',
+    createdAt: '08 Sep 2026',
+    updatedAt: '09 Sep 2026',
+  },
+];
+
+const initialNotifications: WarehouseNotificationItem[] = [
+  {
+    id: 'NOTIF-001',
+    title: 'Production Delay Warning',
+    message: 'Production Order PRD-2026-004 (Merino Wool Sweater) is 8 days behind schedule.',
+    type: 'prod_delayed',
+    severity: 'critical',
+    timestamp: '15m ago',
+    read: false,
+    orderId: 'PRD-2026-004',
+    link: '/warehouse/delays-issues',
+  },
+  {
+    id: 'NOTIF-002',
+    title: 'Low Stock Alert',
+    message: 'Merino Wool Sweater (SWT-MRN-005) available stock (160) dropped below reorder level (200).',
+    type: 'low_stock',
+    severity: 'warning',
+    timestamp: '1h ago',
+    read: false,
+    orderId: 'SWT-MRN-005',
+    link: '/warehouse/stock-in-hand',
+  },
+  {
+    id: 'NOTIF-003',
+    title: 'Quality Check Required',
+    message: '12 inspection batches waiting for bay tolerance audit.',
+    type: 'qc_waiting',
+    severity: 'warning',
+    timestamp: '3h ago',
+    read: false,
+    orderId: 'QC-2026-113',
+    link: '/warehouse/quality-checks',
+  },
+  {
+    id: 'NOTIF-004',
+    title: 'Stock Received at Dock',
+    message: 'PO-2026-089: 1,500m Organic Cotton Fabric received at Central Hub - BLR.',
+    type: 'stock_received',
+    severity: 'info',
+    timestamp: '5h ago',
+    read: true,
+    orderId: 'PO-2026-089',
+    link: '/warehouse/procurement',
+  },
+  {
+    id: 'NOTIF-005',
+    title: 'Orders Ready for Dispatch',
+    message: '42 customer orders have passed all 6 gates and are ready for warehouse dispatch.',
+    type: 'fulfilment_ready',
+    severity: 'info',
+    timestamp: '1d ago',
+    read: true,
+    orderId: 'ORD-1045',
+    link: '/warehouse/fulfilment-readiness',
+  },
+];
+
 export const useWarehouseStore = create<WarehouseState>()(
   persist(
     (set, get) => ({
@@ -1383,6 +1601,8 @@ export const useWarehouseStore = create<WarehouseState>()(
       transfers: initialTransfers,
       fulfilments: initialFulfilments,
       alerts: initialAlerts,
+      issues: initialIssues,
+      notifications: initialNotifications,
       stockMovements: initialStockMovements,
       auditLog: initialAuditLog,
 
@@ -1790,7 +2010,17 @@ export const useWarehouseStore = create<WarehouseState>()(
         });
       },
 
-      recordQualityCheck: ({ qcId, passedQuantity, failedQuantity, inspector, defectType, defectNotes }) => {
+      recordQualityCheck: ({
+        qcId,
+        passedQuantity,
+        failedQuantity,
+        inspector,
+        defectType,
+        defectNotes,
+        defectDescription,
+        checkpoints,
+        images,
+      }) => {
         set((state) => {
           const qc = state.qualityChecks.find((q) => q.id === qcId);
           if (!qc) return state;
@@ -1799,7 +2029,18 @@ export const useWarehouseStore = create<WarehouseState>()(
           if (passedQuantity === 0 && failedQuantity > 0) qcStatus = 'Failed';
           else if (failedQuantity > 0) qcStatus = 'Partially Passed';
 
-          const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const now = new Date().toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          const todayDate = new Date().toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          });
 
           // STRICT RULE: ONLY QC-approved quantity moves toward available stock!
           // Failed quantity is never added to stock!
@@ -1840,9 +2081,12 @@ export const useWarehouseStore = create<WarehouseState>()(
             });
           }
 
-          // If failed quantity > 0, generate QC alert
+          // If failed quantity > 0, generate QC alert & create automatic Issue
           let newAlerts = state.alerts;
-          if (failedQuantity > 0) {
+          let newIssues = state.issues || [];
+          let newNotifications = state.notifications || [];
+
+          if (failedQuantity > 0 || (defectType && defectType !== 'None')) {
             newAlerts = [
               {
                 id: `ALT-0${newAlerts.length + 1}`,
@@ -1858,6 +2102,55 @@ export const useWarehouseStore = create<WarehouseState>()(
                 resolved: false,
               },
               ...newAlerts,
+            ];
+
+            const issueItem: WarehouseIssueItem = {
+              id: `ISS-2026-${Math.floor(100 + Math.random() * 900)}`,
+              relatedOrder: qc.productionOrder,
+              type: 'Quality Failure',
+              product: qc.product,
+              sku: qc.sku,
+              supplierManufacturer: qc.manufacturer,
+              issue: `QC inspection failed for batch ${qc.batchNumber}: ${defectDescription || defectNotes || defectType || 'Tolerance standard not met'}`,
+              expectedDate: todayDate,
+              daysDelayed: 1,
+              severity: failedQuantity > 50 ? 'Critical' : 'High',
+              assignedTo: inspector || 'Senior QC Inspector',
+              status: 'Open',
+              notes: defectDescription || defectNotes,
+              createdAt: todayDate,
+              updatedAt: todayDate,
+            };
+            newIssues = [issueItem, ...newIssues];
+
+            newNotifications = [
+              {
+                id: `NOTIF-${Date.now()}`,
+                title: 'Quality Check Failed',
+                message: `Batch ${qc.batchNumber} (${qc.product}) failed inspection with ${failedQuantity} rejected units.`,
+                type: 'qc_failed',
+                severity: 'critical',
+                timestamp: 'Just now',
+                read: false,
+                orderId: qc.productionOrder,
+                link: '/warehouse/quality-checks',
+              },
+              ...newNotifications,
+            ];
+          } else if (passedQuantity > 0) {
+            newNotifications = [
+              {
+                id: `NOTIF-${Date.now()}`,
+                title: 'QC Passed & Stock Credited',
+                message: `${passedQuantity} approved units of ${qc.product} credited to stock-in-hand.`,
+                type: 'stock_received',
+                severity: 'info',
+                timestamp: 'Just now',
+                read: false,
+                orderId: qc.productionOrder,
+                link: '/warehouse/stock-in-hand',
+              },
+              ...newNotifications,
             ];
           }
 
@@ -1901,6 +2194,9 @@ export const useWarehouseStore = create<WarehouseState>()(
                     inspector,
                     defectType: defectType || q.defectType,
                     defectNotes: defectNotes || q.defectNotes,
+                    defectDescription: defectDescription || q.defectDescription,
+                    checkpoints: checkpoints || q.checkpoints,
+                    images: images || q.images,
                     qcStatus,
                   }
                 : q
@@ -1908,6 +2204,8 @@ export const useWarehouseStore = create<WarehouseState>()(
             stock: updatedStock,
             stockMovements: newMovements,
             alerts: newAlerts,
+            issues: newIssues,
+            notifications: newNotifications,
             fulfilments: updatedFulfilments,
             auditLog: [audit, ...state.auditLog],
           };
@@ -2230,8 +2528,88 @@ export const useWarehouseStore = create<WarehouseState>()(
         }));
       },
 
+      addIssue: (data) => {
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+        const newIssue: WarehouseIssueItem = {
+          ...data,
+          id: `ISS-2026-${Math.floor(100 + Math.random() * 900)}`,
+          createdAt: now,
+          updatedAt: now,
+        };
+        set((state) => ({
+          issues: [newIssue, ...(state.issues || [])],
+        }));
+      },
+
+      updateIssueStatus: (id, status, notes) => {
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+        set((state) => ({
+          issues: (state.issues || []).map((issue) =>
+            issue.id === id
+              ? {
+                  ...issue,
+                  status,
+                  notes: notes || issue.notes,
+                  updatedAt: now,
+                }
+              : issue
+          ),
+        }));
+      },
+
+      assignIssue: (id, assignedTo) => {
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+        set((state) => ({
+          issues: (state.issues || []).map((issue) =>
+            issue.id === id ? { ...issue, assignedTo, updatedAt: now } : issue
+          ),
+        }));
+      },
+
+      addNotification: (data) => {
+        const newNotif: WarehouseNotificationItem = {
+          ...data,
+          id: `NOTIF-${Date.now()}`,
+          timestamp: 'Just now',
+          read: false,
+        };
+        set((state) => ({
+          notifications: [newNotif, ...(state.notifications || [])],
+        }));
+      },
+
+      dismissNotification: (id) => {
+        set((state) => ({
+          notifications: (state.notifications || []).filter((n) => n.id !== id),
+        }));
+      },
+
+      markAllNotificationsRead: () => {
+        set((state) => ({
+          notifications: (state.notifications || []).map((n) => ({ ...n, read: true })),
+        }));
+      },
+
       addAuditEntry: (entry) => {
-        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
         const newEntry: AuditLogEntry = {
           ...entry,
           id: `AUD-0${get().auditLog.length + 1}`,
@@ -2244,6 +2622,24 @@ export const useWarehouseStore = create<WarehouseState>()(
     }),
     {
       name: 'jodo-warehouse-store',
+      migrate: (persistedState: any) => {
+        if (persistedState) {
+          if (!Array.isArray(persistedState.issues) || persistedState.issues.length === 0) {
+            persistedState.issues = initialIssues;
+          }
+          if (!Array.isArray(persistedState.notifications) || persistedState.notifications.length === 0) {
+            persistedState.notifications = initialNotifications;
+          }
+          if (Array.isArray(persistedState.qualityChecks)) {
+            persistedState.qualityChecks = persistedState.qualityChecks.map((qc: any) => ({
+              ...qc,
+              passedQuantity: qc.passedQuantity ?? 0,
+              failedQuantity: qc.failedQuantity ?? 0,
+            }));
+          }
+        }
+        return persistedState;
+      },
     }
   )
 );

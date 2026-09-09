@@ -4,7 +4,7 @@ exports.UpdatePasswordSchema = exports.CreateRoleSchema = exports.InviteStaffSch
 const zod_1 = require("zod");
 // --- Auth Schemas ---
 exports.LoginSchema = zod_1.z.object({
-    email: zod_1.z.string().email('Please enter a valid email address'),
+    email: zod_1.z.string().min(2, 'Please enter a valid email or Member ID'),
     password: zod_1.z.string().min(6, 'Password must be at least 6 characters'),
     rememberMe: zod_1.z.boolean().optional().default(false),
 });
