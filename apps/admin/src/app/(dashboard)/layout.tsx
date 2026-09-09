@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white">
+    <div className="flex h-full overflow-hidden bg-background print:h-auto print:overflow-visible print:bg-white">
       <div className="print:hidden">
         <AppSidebar collapsed={sidebarCollapsed} />
       </div>

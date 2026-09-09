@@ -102,6 +102,16 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Next.js root div must also be full-height for scroll chain to work */
+  #__next {
+    height: 100%;
+  }
+
   /* Scrollbar styling */
   ::-webkit-scrollbar {
     width: 6px;
