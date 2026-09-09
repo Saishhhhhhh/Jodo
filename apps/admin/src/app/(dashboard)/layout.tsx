@@ -14,11 +14,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="print:hidden">
         <AppSidebar collapsed={sidebarCollapsed} />
       </div>
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden mb-16 md:mb-0 print:mb-0 print:overflow-visible">
-        <div className="print:hidden">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden mb-16 md:mb-0 print:mb-0 print:overflow-visible">
+        <div className="flex-shrink-0 print:hidden">
           <Topbar onToggleSidebar={() => setSidebarCollapsed((p) => !p)} />
         </div>
-        <main className="flex-1 overflow-auto bg-muted/10 relative print:overflow-visible print:bg-white">
+        <main className="flex-1 min-h-0 overflow-y-auto bg-muted/10 relative print:overflow-visible print:bg-white">
           <div className="flex flex-col min-h-full">{children}</div>
         </main>
       </div>
