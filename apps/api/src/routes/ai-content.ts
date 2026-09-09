@@ -168,7 +168,7 @@ router.post('/generate', async (req: Request, res: Response, next: NextFunction)
       }
     }
 
-    const { content, quality } = await AiContentService.generate(input);
+    const { content, quality, generatedBy } = await AiContentService.generate(input);
 
     const count = await AiContent.countDocuments({}).catch(() => 100);
     const contentId = `AIC-2026-${String(count + 1).padStart(3, '0')}`;
@@ -223,6 +223,7 @@ router.post('/generate', async (req: Request, res: Response, next: NextFunction)
     sendCreated(res, {
       item: newAiContent,
       quality,
+      generatedBy,
     }, 'Draft content generated successfully');
   } catch (err) {
     next(err);
@@ -397,7 +398,7 @@ router.post('/:id/regenerate', async (req: Request, res: Response, next: NextFun
       keywords: item.seoKeywords,
     };
 
-    const { content, quality } = await AiContentService.regenerate(
+    const { content, quality, generatedBy } = await AiContentService.regenerate(
       item.editedContent || item.generatedContent,
       genInput,
       instruction
@@ -429,7 +430,7 @@ router.post('/:id/regenerate', async (req: Request, res: Response, next: NextFun
       type: 'regenerated',
     });
 
-    sendSuccess(res, { item, quality }, 'Content regenerated successfully');
+    sendSuccess(res, { item, quality, generatedBy }, 'Content regenerated successfully');
   } catch (err) {
     next(err);
   }

@@ -11,6 +11,11 @@ const EnvSchema = z.object({
   ADMIN_SEED_EMAIL: z.string().email().default('admin@jodo.dev'),
   ADMIN_SEED_PASSWORD: z.string().default('Admin@123456'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  OPENAI_API_KEY_1: z.string().optional(),
+  OPENAI_API_KEY_2: z.string().optional(),
+  OPENAI_API_KEY_3: z.string().optional(),
+  OPENAI_API_KEY_4: z.string().optional(),
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
 });
 
 // Load dotenv in dev mode

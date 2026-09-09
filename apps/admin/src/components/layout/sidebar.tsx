@@ -62,7 +62,6 @@ import {
   FileEdit,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/stores/auth';
 import { getImageUrl } from '@/lib/api-client';
@@ -331,7 +330,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <ScrollArea className="flex-1 py-3">
+        <div className="flex-1 overflow-y-auto py-3 scrollbar-thin">
           <nav className="flex flex-col gap-1.5 p-3">
             {visibleNavItems.map((item, index) => {
               if (!item.children) {
@@ -504,7 +503,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
               );
             })}
           </nav>
-        </ScrollArea>
+        </div>
 
         {/* Bottom */}
         {!collapsed && (
