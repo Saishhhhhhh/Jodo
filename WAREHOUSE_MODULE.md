@@ -380,3 +380,57 @@ migrate: (persistedState: any) => {
 2. Review orders sorted by readiness percentage.
 3. Filter by **"Ready for Fulfilment"** (100% score).
 4. Click **"Dispatch"** -> Order updates to `Dispatched`, creates an audit log entry, and deducts reserved stock.
+
+---
+
+## 9. Plain-English Architecture: How We Built It & Why
+
+If you look under the hood of our Warehouse module, here is how everything connects together in simple terms:
+
+### 1. The Central "Brain" (Zustand Store)
+- Instead of making every screen fetch from scratch, we built a single unified store: [`apps/admin/src/stores/warehouse.ts`](file:///c:/Users/Admin/Downloads/Jodo_Project/apps/admin/src/stores/warehouse.ts).
+- **Why this matters:** When you pass a Quality Check on the QC tab, you don't need to refresh the page to see your Stock-In-Hand number increase or your Fulfilment tab update. All tabs listen to the same reactive state in real time.
+
+### 2. The "Self-Healing" Memory (LocalStorage Persistence & Migrations)
+- All warehouse activities, purchase orders, and stock movements are saved right into your browser's offline storage (`jodo-warehouse-store`).
+- **The Self-Healing Trick (`migrate`):** If an older session had an incomplete data structure (e.g., missing `productCategories` or missing `conditions`), our custom migration function catches it and auto-fills sensible defaults so the screen never crashes with a red error box.
+
+### 3. The Visual Control Deck (Next.js + Tailwind + Radix Drawers)
+- Traditional warehouse software looks like a boring 1990s spreadsheet.
+- We built clean, interactive **slide-out Drawers** (`Sheet` components) for tasks like creating POs, assigning factory runs, or performing QC. Operators never lose their place in the table when performing an action.
+
+### 4. The 6-Point Formula Engine
+- Fulfilment readiness isn't a manual guess. The engine calculates an exact 0–100% percentage by scoring:
+  - **Stock Availability (20%)**
+  - **Stock Reservation (15%)**
+  - **Production Completion (20%)**
+  - **Quality Check Approval (20%)**
+  - **Packaging Readiness (15%)**
+  - **Carrier Manifesting (10%)**
+- This mathematically guarantees that orders can **only** be dispatched when every operational requirement has truly been cleared.
+
+---
+
+## 10. Optimized Workflow: Recommended Best-Practice Flow
+
+Here is the recommended workflow designed to eliminate inventory errors, factory halts, and customer shipment delays:
+
+```
+[ Step 1: Supplier PO ] ────► [ Step 2: Bay Receipt ] ────► [ Step 3: Factory Allocation ]
+   Raise PO in Procurement      Click "Receive Goods"         Assign to Factory under 85% capacity
+                                                                            │
+                                                                            ▼
+[ Step 6: One-Click Ship ] ◄── [ Step 5: Fulfilment Gating ] ◄── [ Step 4: 7-Stage Run & QC ]
+   Click "Dispatch" on 100%       Review 6-Point Checklist       Advance stages -> Pass QC -> Auto Stock-In
+```
+
+### The 4 Smart Automations Built Into This Workflow:
+1. **Auto Stock-In on QC Pass:**
+   You don't need to record a QC inspection and then separately go to the Stock page to type numbers. When you click "Passed" in the QC drawer, the approved units are immediately credited to available stock.
+2. **Automated Bottleneck Detection:**
+   If an order is stuck at 80% or 60%, the system tells you exactly why (e.g., *"Waiting QC Release"* or *"Stock Shortage"*), so your team knows which department to nudge.
+3. **Multi-Location Safety Triggers:**
+   When physical stock dips below the safety buffer (`reorderLevel`), an amber/red warning flag immediately lights up on the Overview dashboard.
+4. **Resilient Data Rendering:**
+   Every array and nested object uses safe navigation fallbacks (`|| []` and `?.`), ensuring uninterrupted operations on the warehouse floor even during rapid data entry.
+
