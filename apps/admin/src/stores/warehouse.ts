@@ -1093,23 +1093,24 @@ const initialTransfers: TransferItem[] = [
 ];
 
 // Helper to calculate dynamic fulfilment readiness
-export function calculateFulfilmentReadiness(conditions: FulfilmentCondition): {
+export function calculateFulfilmentReadiness(conditions?: Partial<FulfilmentCondition>): {
   percent: number;
   finalStatus: FulfilmentItem['finalStatus'];
 } {
+  const safe = conditions || {};
   let percent = 0;
-  if (conditions.stockAvailable) percent += 20;
-  if (conditions.stockReserved) percent += 15;
-  if (conditions.productionCompleted) percent += 20;
-  if (conditions.qcPassed) percent += 20;
-  if (conditions.packagingReady) percent += 15;
-  if (conditions.dispatchPrepared) percent += 10;
+  if (safe.stockAvailable) percent += 20;
+  if (safe.stockReserved) percent += 15;
+  if (safe.productionCompleted) percent += 20;
+  if (safe.qcPassed) percent += 20;
+  if (safe.packagingReady) percent += 15;
+  if (safe.dispatchPrepared) percent += 10;
 
   let finalStatus: FulfilmentItem['finalStatus'] = 'Not Ready';
   if (percent === 100) finalStatus = 'Ready for Fulfilment';
   else if (percent >= 85) finalStatus = 'Almost Ready';
   else if (percent >= 50) finalStatus = 'Partially Ready';
-  else if (percent > 0 && !conditions.stockAvailable) finalStatus = 'At Risk';
+  else if (percent > 0 && !safe.stockAvailable) finalStatus = 'At Risk';
 
   return { percent, finalStatus };
 }
@@ -2158,7 +2159,14 @@ export const useWarehouseStore = create<WarehouseState>()(
           const updatedFulfilments = state.fulfilments.map((flf) => {
             if (flf.sku === qc.sku || flf.product.toLowerCase().includes(qc.product.toLowerCase())) {
               const newConditions = {
-                ...flf.conditions,
+                ...(flf.conditions || {
+                  stockAvailable: false,
+                  stockReserved: false,
+                  productionCompleted: false,
+                  qcPassed: false,
+                  packagingReady: false,
+                  dispatchPrepared: false,
+                }),
                 productionCompleted: true,
                 qcPassed: true,
                 stockAvailable: true,
@@ -2635,6 +2643,33 @@ export const useWarehouseStore = create<WarehouseState>()(
               ...qc,
               passedQuantity: qc.passedQuantity ?? 0,
               failedQuantity: qc.failedQuantity ?? 0,
+            }));
+          }
+          if (Array.isArray(persistedState.fulfilments)) {
+            persistedState.fulfilments = persistedState.fulfilments.map((flf: any) => ({
+              ...flf,
+              conditions: flf.conditions ?? {
+                stockAvailable: (flf.availableQty ?? 0) >= (flf.requiredQty ?? 0),
+                stockReserved: (flf.reservedQty ?? 0) >= (flf.requiredQty ?? 0),
+                productionCompleted: true,
+                qcPassed: true,
+                packagingReady: true,
+                dispatchPrepared: flf.finalStatus === 'Ready for Fulfilment',
+              },
+            }));
+          }
+          if (Array.isArray(persistedState.manufacturers)) {
+            persistedState.manufacturers = persistedState.manufacturers.map((m: any) => ({
+              ...m,
+              productCategories: Array.isArray(m.productCategories) && m.productCategories.length > 0
+                ? m.productCategories
+                : ['Apparel', 'Fabrics'],
+              qualityRating: typeof m.qualityRating === 'number' ? m.qualityRating : 4.8,
+              onTimeDeliveryRate: typeof m.onTimeDeliveryRate === 'number' ? m.onTimeDeliveryRate : 95.0,
+              currentUtilization: typeof m.currentUtilization === 'number' ? m.currentUtilization : 50,
+              activeProductionOrders: m.activeProductionOrders ?? 0,
+              completedOrdersCount: m.completedOrdersCount ?? 0,
+              delayedOrdersCount: m.delayedOrdersCount ?? 0,
             }));
           }
         }

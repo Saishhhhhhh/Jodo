@@ -27,7 +27,7 @@ const CMS_PRODUCTS = [
 ];
 
 export default function ListingCopyPage() {
-  const { items, generateContent } = useAiContentStore();
+  const { items, selectedItemId, generateContent } = useAiContentStore();
 
   const [selectedProduct, setSelectedProduct] = useState(CMS_PRODUCTS[0]);
   const [selectedChannel, setSelectedChannel] = useState<string>('Amazon');
@@ -39,6 +39,13 @@ export default function ListingCopyPage() {
   const [activeItem, setActiveItem] = useState<AiContentItem | null>(
     items.find((i) => i.contentType === 'listing_copy') || items[0] || null
   );
+
+  React.useEffect(() => {
+    if (selectedItemId) {
+      const selected = items.find((i) => i.id === selectedItemId && i.contentType === 'listing_copy');
+      if (selected) setActiveItem(selected);
+    }
+  }, [items, selectedItemId]);
 
   const handleGenerateListing = () => {
     setIsGenerating(true);

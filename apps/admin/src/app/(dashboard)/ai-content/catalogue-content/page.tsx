@@ -28,7 +28,7 @@ const CATALOGUE_PRODUCTS_POOL = [
 ];
 
 export default function CatalogueContentPage() {
-  const { items, generateContent } = useAiContentStore();
+  const { items, selectedItemId, generateContent } = useAiContentStore();
 
   const [selectedIds, setSelectedIds] = useState<string[]>(['cat_01', 'cat_02']);
   const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
@@ -42,6 +42,13 @@ export default function CatalogueContentPage() {
   const [activeItem, setActiveItem] = useState<AiContentItem | null>(
     items.find((i) => i.contentType === 'catalogue_content') || items[0] || null
   );
+
+  React.useEffect(() => {
+    if (selectedItemId) {
+      const selected = items.find((i) => i.id === selectedItemId && i.contentType === 'catalogue_content');
+      if (selected) setActiveItem(selected);
+    }
+  }, [items, selectedItemId]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === CATALOGUE_PRODUCTS_POOL.length) {

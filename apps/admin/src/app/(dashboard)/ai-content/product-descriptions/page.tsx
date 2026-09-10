@@ -91,7 +91,7 @@ export default function ProductDescriptionsPage() {
   const searchParams = useSearchParams();
   const queryProductId = searchParams.get('productId');
 
-  const { items, generateContent } = useAiContentStore();
+  const { items, selectedItemId, generateContent } = useAiContentStore();
 
   // Find initial product based on query param or default
   const [selectedProduct, setSelectedProduct] = useState(
@@ -174,13 +174,20 @@ export default function ProductDescriptionsPage() {
     }, 700);
   };
 
-  // Pre-load existing draft if available
+  // Pre-load existing draft or newly generated item if available
   useEffect(() => {
+    if (selectedItemId) {
+      const selected = items.find((i) => i.id === selectedItemId && i.contentType === 'product_description');
+      if (selected) {
+        setGeneratedItem(selected);
+        return;
+      }
+    }
     const existing = items.find((i) => i.contentType === 'product_description');
     if (existing && !generatedItem) {
       setGeneratedItem(existing);
     }
-  }, [items, generatedItem]);
+  }, [items, selectedItemId, generatedItem]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">

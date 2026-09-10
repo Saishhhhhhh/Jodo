@@ -98,10 +98,11 @@ export function FulfilmentTab() {
   const atRiskCount = fulfilments.filter((f) => f.finalStatus === 'At Risk' || f.finalStatus === 'Not Ready').length;
   const shortageQty = fulfilments
     .filter((f) => f.finalStatus !== 'Ready for Fulfilment' && f.finalStatus !== 'Dispatched')
-    .reduce((acc, f) => acc + (!f.conditions.stockAvailable ? f.requiredQty : Math.round(f.requiredQty * (1 - f.readinessPercent / 100))), 0);
+    .reduce((acc, f) => acc + (!f.conditions?.stockAvailable ? f.requiredQty : Math.round(f.requiredQty * (1 - (f.readinessPercent || 0) / 100))), 0);
   const nextDispatchDate = '12 Oct 2026';
 
-  const getBottleneck = (conditions: FulfilmentItem['conditions']) => {
+  const getBottleneck = (conditions?: FulfilmentItem['conditions']) => {
+    if (!conditions) return 'None — Cleared';
     if (!conditions.stockAvailable) return 'Stock Shortage';
     if (!conditions.stockReserved) return 'Stock Unallocated';
     if (!conditions.productionCompleted) return 'Production running';
@@ -245,42 +246,42 @@ export function FulfilmentTab() {
 
                   {/* 6 Visual Condition Checkpoints */}
                   <TableCell className="text-center">
-                    {item.conditions.stockAvailable ? (
+                    {item.conditions?.stockAvailable ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
                     ) : (
                       <XCircle className="h-4 w-4 text-destructive mx-auto" />
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.conditions.stockReserved ? (
+                    {item.conditions?.stockReserved ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground/40 mx-auto" />
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.conditions.productionCompleted ? (
+                    {item.conditions?.productionCompleted ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground/40 mx-auto" />
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.conditions.qcPassed ? (
+                    {item.conditions?.qcPassed ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground/40 mx-auto" />
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.conditions.packagingReady ? (
+                    {item.conditions?.packagingReady ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground/40 mx-auto" />
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.conditions.dispatchPrepared ? (
+                    {item.conditions?.dispatchPrepared ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mx-auto" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground/40 mx-auto" />
@@ -333,7 +334,7 @@ export function FulfilmentTab() {
                           >
                             <Send className="h-3 w-3" /> Dispatch
                           </Button>
-                        ) : !item.conditions.stockReserved ? (
+                        ) : !item.conditions?.stockReserved ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -416,7 +417,7 @@ export function FulfilmentTab() {
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between py-1 px-2 rounded bg-muted/30">
                     <div className="flex items-center gap-2">
-                      {selectedOrder.conditions.stockAvailable ? (
+                      {selectedOrder.conditions?.stockAvailable ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />
@@ -424,13 +425,13 @@ export function FulfilmentTab() {
                       <span className="font-medium">1. Stock Available</span>
                     </div>
                     <span className="font-mono font-semibold">
-                      {selectedOrder.conditions.stockAvailable ? '✓ 20%' : '✕ 0%'}
+                      {selectedOrder.conditions?.stockAvailable ? '✓ 20%' : '✕ 0%'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-1 px-2 rounded bg-muted/30">
                     <div className="flex items-center gap-2">
-                      {selectedOrder.conditions.stockReserved ? (
+                      {selectedOrder.conditions?.stockReserved ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />
@@ -438,13 +439,13 @@ export function FulfilmentTab() {
                       <span className="font-medium">2. Stock Reserved against Order</span>
                     </div>
                     <span className="font-mono font-semibold">
-                      {selectedOrder.conditions.stockReserved ? '✓ 15%' : '✕ 0%'}
+                      {selectedOrder.conditions?.stockReserved ? '✓ 15%' : '✕ 0%'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-1 px-2 rounded bg-muted/30">
                     <div className="flex items-center gap-2">
-                      {selectedOrder.conditions.productionCompleted ? (
+                      {selectedOrder.conditions?.productionCompleted ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />
@@ -452,13 +453,13 @@ export function FulfilmentTab() {
                       <span className="font-medium">3. Production Completed</span>
                     </div>
                     <span className="font-mono font-semibold">
-                      {selectedOrder.conditions.productionCompleted ? '✓ 20%' : '✕ 0%'}
+                      {selectedOrder.conditions?.productionCompleted ? '✓ 20%' : '✕ 0%'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-1 px-2 rounded bg-muted/30">
                     <div className="flex items-center gap-2">
-                      {selectedOrder.conditions.qcPassed ? (
+                      {selectedOrder.conditions?.qcPassed ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />
@@ -466,13 +467,13 @@ export function FulfilmentTab() {
                       <span className="font-medium">4. Quality Check Passed</span>
                     </div>
                     <span className="font-mono font-semibold">
-                      {selectedOrder.conditions.qcPassed ? '✓ 20%' : '✕ 0%'}
+                      {selectedOrder.conditions?.qcPassed ? '✓ 20%' : '✕ 0%'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-1 px-2 rounded bg-muted/30">
                     <div className="flex items-center gap-2">
-                      {selectedOrder.conditions.packagingReady ? (
+                      {selectedOrder.conditions?.packagingReady ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />
@@ -480,13 +481,13 @@ export function FulfilmentTab() {
                       <span className="font-medium">5. Packaging Ready</span>
                     </div>
                     <span className="font-mono font-semibold">
-                      {selectedOrder.conditions.packagingReady ? '✓ 15%' : '✕ 0%'}
+                      {selectedOrder.conditions?.packagingReady ? '✓ 15%' : '✕ 0%'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-1 px-2 rounded bg-muted/30">
                     <div className="flex items-center gap-2">
-                      {selectedOrder.conditions.dispatchPrepared ? (
+                      {selectedOrder.conditions?.dispatchPrepared ? (
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-destructive" />
@@ -494,7 +495,7 @@ export function FulfilmentTab() {
                       <span className="font-medium">6. Dispatch Prepared</span>
                     </div>
                     <span className="font-mono font-semibold">
-                      {selectedOrder.conditions.dispatchPrepared ? '✓ 10%' : '✕ 0%'}
+                      {selectedOrder.conditions?.dispatchPrepared ? '✓ 10%' : '✕ 0%'}
                     </span>
                   </div>
                 </div>

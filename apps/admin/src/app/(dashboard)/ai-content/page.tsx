@@ -70,9 +70,10 @@ export default function AiContentDashboardPage() {
       {/* KPI Cards (Section 2) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* Total Generated */}
-        <div
-          onClick={() => handleKpiClick('all')}
-          className="bg-card border rounded-xl p-5 shadow-sm hover:border-primary/50 transition-all cursor-pointer group"
+        <Link
+          href="/ai-content/drafts"
+          onClick={() => setActiveFilterStatus('all')}
+          className="bg-card border rounded-xl p-5 shadow-sm hover:border-primary/50 transition-all cursor-pointer group block"
         >
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Total Generated</span>
@@ -82,12 +83,13 @@ export default function AiContentDashboardPage() {
           </div>
           <div className="text-2xl font-bold text-foreground">{kpis.totalGenerated}</div>
           <span className="text-[11px] text-muted-foreground mt-1 block">All drafts & live copy</span>
-        </div>
+        </Link>
 
         {/* Drafts */}
-        <div
-          onClick={() => handleKpiClick('Draft')}
-          className="bg-card border rounded-xl p-5 shadow-sm hover:border-amber-500/50 transition-all cursor-pointer group"
+        <Link
+          href="/ai-content/drafts"
+          onClick={() => setActiveFilterStatus('Draft')}
+          className="bg-card border rounded-xl p-5 shadow-sm hover:border-amber-500/50 transition-all cursor-pointer group block"
         >
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Drafts</span>
@@ -97,12 +99,13 @@ export default function AiContentDashboardPage() {
           </div>
           <div className="text-2xl font-bold text-foreground">{kpis.drafts}</div>
           <span className="text-[11px] text-amber-600 font-medium mt-1 block">Needs review / edit</span>
-        </div>
+        </Link>
 
         {/* Pending Review */}
-        <div
-          onClick={() => handleKpiClick('Pending Review')}
-          className="bg-card border rounded-xl p-5 shadow-sm hover:border-blue-500/50 transition-all cursor-pointer group"
+        <Link
+          href="/ai-content/review-approval"
+          onClick={() => setActiveFilterStatus('Pending Review')}
+          className="bg-card border rounded-xl p-5 shadow-sm hover:border-blue-500/50 transition-all cursor-pointer group block"
         >
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Pending Review</span>
@@ -112,12 +115,13 @@ export default function AiContentDashboardPage() {
           </div>
           <div className="text-2xl font-bold text-foreground">{kpis.pendingReview}</div>
           <span className="text-[11px] text-blue-600 font-medium mt-1 block">Awaiting manager sign-off</span>
-        </div>
+        </Link>
 
         {/* Approved */}
-        <div
-          onClick={() => handleKpiClick('Approved')}
-          className="bg-card border rounded-xl p-5 shadow-sm hover:border-emerald-500/50 transition-all cursor-pointer group"
+        <Link
+          href="/ai-content/published"
+          onClick={() => setActiveFilterStatus('Approved')}
+          className="bg-card border rounded-xl p-5 shadow-sm hover:border-emerald-500/50 transition-all cursor-pointer group block"
         >
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Approved</span>
@@ -127,12 +131,13 @@ export default function AiContentDashboardPage() {
           </div>
           <div className="text-2xl font-bold text-foreground">{kpis.approved}</div>
           <span className="text-[11px] text-emerald-600 font-medium mt-1 block">Ready to Publish to CMS</span>
-        </div>
+        </Link>
 
         {/* Published */}
-        <div
-          onClick={() => handleKpiClick('Published')}
-          className="bg-card border rounded-xl p-5 shadow-sm hover:border-purple-500/50 transition-all cursor-pointer group"
+        <Link
+          href="/ai-content/published"
+          onClick={() => setActiveFilterStatus('Published')}
+          className="bg-card border rounded-xl p-5 shadow-sm hover:border-purple-500/50 transition-all cursor-pointer group block"
         >
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Published</span>
@@ -142,7 +147,7 @@ export default function AiContentDashboardPage() {
           </div>
           <div className="text-2xl font-bold text-foreground">{kpis.published}</div>
           <span className="text-[11px] text-purple-600 font-medium mt-1 block">Live in CMS / Storefront</span>
-        </div>
+        </Link>
       </div>
 
       {/* Quick Content Generator (Section 3) */}

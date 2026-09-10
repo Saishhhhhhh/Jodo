@@ -156,7 +156,7 @@ export function OverviewTab({
   const lowStockCount = stock.filter((s) => s.available <= s.reorderLevel).length || 8;
   const qcPendingBatches = qualityChecks.filter((q) => q.qcStatus === 'Pending' || q.qcStatus === 'In Inspection').length || 12;
   const delayedMfgsCount = manufacturers.filter((m) => m.delayedOrdersCount > 0).length || 3;
-  const waitingStockOrdersCount = fulfilments.filter((f) => !f.conditions.stockAvailable).length || 7;
+  const waitingStockOrdersCount = fulfilments.filter((f) => !f.conditions?.stockAvailable).length || 7;
 
   const attentionAlerts = [
     {

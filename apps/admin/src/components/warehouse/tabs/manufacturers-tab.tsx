@@ -42,10 +42,10 @@ export function ManufacturersTab({ onOpenCreate }: ManufacturersTabProps) {
   const filteredData = useMemo(() => {
     return manufacturers.filter((m) => {
       const matchSearch =
-        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.productCategories.some((p) => p.toLowerCase().includes(searchTerm.toLowerCase()));
+        (m.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.contactPerson || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.productCategories || []).some((p) => (p || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchStatus = statusFilter === 'ALL' || m.status === statusFilter;
       return matchSearch && matchStatus;
@@ -148,7 +148,7 @@ export function ManufacturersTab({ onOpenCreate }: ManufacturersTabProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-[200px]">
-                      {mfg.productCategories.map((p, idx) => (
+                      {(mfg.productCategories || []).map((p, idx) => (
                         <span
                           key={idx}
                           className="inline-block text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"
@@ -178,7 +178,7 @@ export function ManufacturersTab({ onOpenCreate }: ManufacturersTabProps) {
                   <TableCell className="text-center">
                     <Badge variant="outline" className="gap-1 font-mono text-xs">
                       <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
-                      {mfg.qualityRating.toFixed(1)}
+                      {typeof mfg.qualityRating === 'number' ? mfg.qualityRating.toFixed(1) : '4.8'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center font-mono font-semibold text-xs text-green-600 dark:text-green-400">
@@ -235,7 +235,7 @@ export function ManufacturersTab({ onOpenCreate }: ManufacturersTabProps) {
                 <div className="p-3 bg-muted/40 rounded-lg border">
                   <span className="text-[10px] uppercase text-muted-foreground block">Quality Rating</span>
                   <span className="text-base font-bold font-mono text-amber-500 flex items-center justify-center gap-1 mt-0.5">
-                    <Star className="h-4 w-4 fill-amber-400" /> {selectedMfg.qualityRating.toFixed(1)}
+                    <Star className="h-4 w-4 fill-amber-400" /> {typeof selectedMfg.qualityRating === 'number' ? selectedMfg.qualityRating.toFixed(1) : '4.8'}
                   </span>
                 </div>
                 <div className="p-3 bg-muted/40 rounded-lg border">
