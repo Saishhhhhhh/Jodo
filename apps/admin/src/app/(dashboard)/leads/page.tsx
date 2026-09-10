@@ -444,6 +444,7 @@ export default function LeadsPage() {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
+                                  style={provided.draggableProps.style as React.CSSProperties}
                                   onClick={() => handleRowClick(lead)}
                                   className={`bg-card p-4 rounded-lg border shadow-sm flex flex-col gap-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors ${snapshot.isDragging ? 'shadow-md rotate-2 scale-105' : ''}`}
                                 >
