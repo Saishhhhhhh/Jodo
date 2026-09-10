@@ -1,9 +1,14 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { Store } from '../models/Store';
 import { Review } from '../models/Review';
 import { Collection } from '../models/Collection';
+import { Customer } from '../models/Customer';
+import { Notification } from '../models/Notification';
+import { AuditLog } from '../models/AuditLog';
+import { FulfilmentReadiness } from '../models/FulfilmentReadiness';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -190,31 +195,144 @@ router.post('/checkout', async (req, res, next) => {
 
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    const mongoose = require('mongoose');
-    
     const order = new Order({
       tenantId: store.tenantId,
       storeId: store._id,
       orderNumber,
-      customerName,
-      customerEmail,
+      customerName: customerName || 'Valued Customer',
+      customerEmail: customerEmail || 'customer@example.com',
       shippingAddress,
-      items: items.map((item: any) => ({
+      items: (items || []).map((item: any) => ({
         ...item,
-        productId: mongoose.Types.ObjectId.isValid(item.productId) ? item.productId : undefined
+        productId: mongoose.Types.ObjectId.isValid(item.productId) ? item.productId : undefined,
       })),
-      subtotal,
-      taxTotal,
-      shippingTotal,
-      totalAmount,
+      subtotal: subtotal || 0,
+      taxTotal: taxTotal || 0,
+      shippingTotal: shippingTotal || 0,
+      totalAmount: totalAmount || 0,
       currency: store.defaultCurrency || 'INR',
-      paymentStatus: 'paid', // Simulating successful checkout
+      paymentStatus: 'paid', // Simulating successful payment
       fulfillmentStatus: 'unfulfilled',
-      itemsCount: items.reduce((acc: number, item: any) => acc + item.quantity, 0),
+      itemsCount: (items || []).reduce((acc: number, item: any) => acc + (item.quantity || 1), 0),
     });
 
     await order.save();
-    
+
+    // 1. Deduct Product Inventory in MongoDB
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (mongoose.Types.ObjectId.isValid(item.productId)) {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { inventoryQuantity: -Number(item.quantity || 1) },
+          }).catch((err) => console.error('Error decrementing inventory:', err));
+        }
+      }
+    }
+
+    // 2. Update or Create Customer in MongoDB
+    if (customerEmail) {
+      try {
+        const emailClean = customerEmail.trim().toLowerCase();
+        let customer = await Customer.findOne({ tenantId: store.tenantId, email: emailClean });
+        if (customer) {
+          customer.ordersCount = (customer.ordersCount || 0) + 1;
+          customer.totalSpent = (customer.totalSpent || 0) + (totalAmount || 0);
+          if (!customer.defaultShippingAddress && shippingAddress) {
+            customer.defaultShippingAddress = shippingAddress;
+          }
+          await customer.save();
+        } else {
+          const [fName, ...rest] = (customerName || '').trim().split(' ');
+          const lName = rest.join(' ') || 'Customer';
+          await Customer.create({
+            tenantId: store.tenantId,
+            storeId: store._id,
+            firstName: fName || 'Valued',
+            lastName: lName,
+            email: emailClean,
+            phone: shippingAddress?.phone || '',
+            ordersCount: 1,
+            totalSpent: totalAmount || 0,
+            defaultShippingAddress: shippingAddress,
+          });
+        }
+      } catch (custErr) {
+        console.error('Error updating customer on checkout:', custErr);
+      }
+    }
+
+    // 3. Create Admin Notification in MongoDB
+    try {
+      await Notification.create({
+        tenantId: store.tenantId,
+        storeId: store._id,
+        type: 'system_alert',
+        title: `New Order #${orderNumber}`,
+        message: `${customerName || 'Customer'} placed order #${orderNumber} for ₹${Number(totalAmount || 0).toLocaleString('en-IN')}`,
+        severity: 'info',
+        state: 'unread',
+        targetRoles: ['admin', 'operations', 'sales'],
+        metadata: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          totalAmount: order.totalAmount,
+        },
+      });
+    } catch (notifErr) {
+      console.error('Error creating order notification:', notifErr);
+    }
+
+    // 4. Record Immutable Audit Log in MongoDB
+    try {
+      await AuditLog.create({
+        tenantId: store.tenantId,
+        storeId: store._id,
+        actorType: 'system',
+        action: 'order.placed',
+        resourceType: 'Order',
+        resourceId: order._id.toString(),
+        after: {
+          orderNumber: order.orderNumber,
+          totalAmount: order.totalAmount,
+          customerEmail: order.customerEmail,
+          itemsCount: order.itemsCount,
+        },
+      });
+    } catch (auditErr) {
+      console.error('Error creating audit log:', auditErr);
+    }
+
+    // 5. Create Fulfilment Readiness record for Warehouse tracking
+    if (Array.isArray(items)) {
+      try {
+        for (const item of items) {
+          await FulfilmentReadiness.create({
+            tenantId: store.tenantId,
+            orderId: orderNumber,
+            customer: customerName || 'Valued Customer',
+            channel: 'Online Store',
+            product: item.title || 'Product Item',
+            sku: item.sku || `SKU-${item.productId ? String(item.productId).slice(-6) : 'GEN'}`,
+            quantity: item.quantity || 1,
+            requiredDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // +3 days
+            readinessScore: 35, // stockAvailable + stockReserved
+            conditions: {
+              stockAvailable: true,
+              stockReserved: true,
+              productionCompleted: true,
+              qcPassed: true,
+              packagingReady: false,
+              dispatchPrepared: false,
+            },
+            status: 'Partially Ready',
+            warehouse: 'Central Hub - BLR',
+          });
+        }
+      } catch (fulfErr) {
+        console.error('Error creating fulfilment readiness record:', fulfErr);
+      }
+    }
+
     sendSuccess(res, order, 'Order placed successfully');
   } catch (error) {
     next(error);
