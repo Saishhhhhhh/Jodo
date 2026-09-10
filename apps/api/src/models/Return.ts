@@ -17,13 +17,10 @@ export interface IReturn extends Document {
   customerName: string;
   customerEmail: string;
 
-  type: 'return' | 'exchange' | 'complaint' | 'warranty' | 'damaged';
   items: IReturnItem[];
-  status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected' | 'resolved';
+  status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected';
   refundAmount: number;
   notes?: string;
-  images: string[];
-  resolution?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -51,21 +48,14 @@ const returnSchema = new Schema<IReturn>(
     customerName: { type: String, required: true },
     customerEmail: { type: String, required: true },
 
-    type: {
-      type: String,
-      enum: ['return', 'exchange', 'complaint', 'warranty', 'damaged'],
-      default: 'return',
-    },
     items: [returnItemSchema],
     status: {
       type: String,
-      enum: ['requested', 'approved', 'received', 'refunded', 'rejected', 'resolved'],
+      enum: ['requested', 'approved', 'received', 'refunded', 'rejected'],
       default: 'requested',
     },
     refundAmount: { type: Number, required: true, default: 0 },
     notes: { type: String },
-    images: [{ type: String }],
-    resolution: { type: String },
   },
   { timestamps: true }
 );

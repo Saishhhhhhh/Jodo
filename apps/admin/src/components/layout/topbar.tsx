@@ -1,9 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { inventoryApi } from '@/lib/api-client';
 import {
   Search,
   Bell,
@@ -14,9 +12,17 @@ import {
   HelpCircle,
   Moon,
   Sun,
+  AlertTriangle,
+  Package,
+  CheckCircle,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { notificationsApi } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -28,6 +34,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/stores/auth';
+import { useWarehouseStore } from '@/stores/warehouse';
 import { getInitials } from '@/lib/utils';
 
 interface TopbarProps {
@@ -36,23 +43,70 @@ interface TopbarProps {
 
 export function Topbar({ onToggleSidebar }: TopbarProps) {
   const { user, logout } = useAuthStore();
+  const { alerts: warehouseAlerts, resolveAlert } = useWarehouseStore();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const queryClient = useQueryClient();
 
-  // Fetch low stock alerts for notifications
-  const { data: intelligenceData } = useQuery({
-    queryKey: ['inventory', 'intelligence'],
+  const { data: notifications } = useQuery({
+    queryKey: ['notifications'],
     queryFn: async () => {
-      const res = await inventoryApi.intelligence();
-      return res.data.data as any[];
+      const res = await notificationsApi.list({ state: 'unread' });
+      return res.data.data;
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 60000, // Poll every minute
   });
 
-  const lowStockItems = React.useMemo(() => {
-    if (!intelligenceData) return [];
-    return intelligenceData.filter((item: any) => item.available < (item.lowStockThreshold || 15));
-  }, [intelligenceData]);
+  const activeWarehouseAlerts = useMemo(() => {
+    return warehouseAlerts
+      .filter((alt) => !alt.resolved)
+      .map((alt) => ({
+        _id: alt.id,
+        title: `${alt.type}: ${alt.product}`,
+        message: `${alt.reason} • Action: ${alt.recommendedAction}`,
+        severity: alt.severity,
+        createdAt: new Date().toISOString(),
+        isWarehouse: true,
+        metadata: {
+          alertState: alt.severity === 'critical' ? 'CRITICAL' : 'WARNING',
+          type: alt.type,
+          entityId: alt.entityId,
+        },
+      }));
+  }, [warehouseAlerts]);
+
+  const allNotifications = useMemo(() => {
+    const apiNotifs = notifications || [];
+    return [...activeWarehouseAlerts, ...apiNotifs];
+  }, [notifications, activeWarehouseAlerts]);
+
+  const markAsRead = useMutation({
+    mutationFn: (id: string) => notificationsApi.markAsRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
+  });
+
+  const markAllAsRead = useMutation({
+    mutationFn: () => notificationsApi.markAllAsRead(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
+  });
+
+  const handleNotificationClick = (notif: any) => {
+    if (notif.isWarehouse) {
+      resolveAlert(notif._id);
+      router.push('/warehouse');
+      return;
+    }
+    markAsRead.mutate(notif._id);
+    if (notif.type === 'inventory_alert') {
+      if (notif.metadata?.alertState === 'Out of Stock') {
+        router.push('/inventory?status=out_of_stock');
+      } else if (notif.metadata?.alertState === 'Low Stock' || notif.metadata?.alertState === 'Critical Stock') {
+        router.push('/inventory?status=low_stock');
+      } else {
+        router.push('/inventory');
+      }
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -99,52 +153,69 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-4 w-4" />
-                {lowStockItems.length > 0 && (
-                  <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                    {lowStockItems.length > 9 ? '9+' : lowStockItems.length}
-                  </span>
+                {allNotifications.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80" align="end">
-              <DropdownMenuLabel className="flex justify-between items-center">
-                Notifications
-                <span className="text-xs text-muted-foreground font-normal">{lowStockItems.length} new</span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {lowStockItems.length > 0 ? (
-                <div className="max-h-[300px] overflow-y-auto">
-                  {lowStockItems.map((item: any) => (
-                    <DropdownMenuItem 
-                      key={item._id} 
-                      className="flex flex-col items-start gap-1 p-3 cursor-pointer"
-                      onClick={() => router.push('/inventory')}
-                    >
-                      <div className="flex w-full justify-between items-start gap-2">
-                        <span className="font-semibold text-sm">Low Stock Alert</span>
-                        <span className="text-[10px] text-destructive bg-destructive/10 px-1.5 py-0.5 rounded font-medium">
-                          {item.available} Left
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground line-clamp-2">
-                        {item.product?.title || 'Unknown Product'} (SKU: {item.sku}) has fallen below the minimum threshold of {item.lowStockThreshold || 15}.
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
+            <DropdownMenuContent align="end" className="w-80 p-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-sm">Notifications</h4>
+                  {allNotifications.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-mono">
+                      {allNotifications.length}
+                    </Badge>
+                  )}
                 </div>
-              ) : (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  No new notifications
-                </div>
-              )}
-              {lowStockItems.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="w-full text-center text-xs text-primary justify-center cursor-pointer" onClick={() => router.push('/inventory')}>
-                    View all in Inventory
-                  </DropdownMenuItem>
-                </>
-              )}
+                {allNotifications.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={() => markAllAsRead.mutate()} className="h-auto px-2 py-1 text-xs">
+                    Mark all as read
+                  </Button>
+                )}
+              </div>
+              <ScrollArea className="h-[300px]">
+                {allNotifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <Bell className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                    <p className="text-sm font-medium">All caught up!</p>
+                    <p className="text-xs text-muted-foreground">You have no new notifications.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col">
+                    {allNotifications.map((notif: any) => (
+                      <button
+                        key={notif._id}
+                        onClick={() => handleNotificationClick(notif)}
+                        className="flex flex-col gap-1 p-4 border-b hover:bg-muted/50 text-left transition-colors"
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-semibold text-sm line-clamp-1 flex items-center gap-2">
+                            {notif.severity === 'critical' && <AlertTriangle className="h-3 w-3 text-red-500" />}
+                            {notif.severity === 'warning' && <AlertTriangle className="h-3 w-3 text-amber-500" />}
+                            {notif.severity === 'info' && <CheckCircle className="h-3 w-3 text-green-500" />}
+                            {notif.title}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
+                            {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.message}</p>
+                        {notif.metadata?.alertState && (
+                          <Badge variant="outline" className="mt-2 self-start text-[10px] uppercase">
+                            {notif.metadata.alertState}
+                          </Badge>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+              <div className="p-2 border-t text-center bg-muted/20">
+                <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => router.push('/notifications')}>
+                  View all notifications
+                </Button>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
 

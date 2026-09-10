@@ -140,3 +140,4 @@ export interface Campaign extends BaseDocument {
     startDate: string;
     endDate?: string;
 }
+//# sourceMappingURL=types.d.ts.map

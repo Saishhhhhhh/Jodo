@@ -5,13 +5,13 @@ export declare const PaginationSchema: z.ZodObject<{
     sortBy: z.ZodOptional<z.ZodString>;
     sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
 }, "strip", z.ZodTypeAny, {
-    limit: number;
     page: number;
+    limit: number;
     sortOrder: "asc" | "desc";
     sortBy?: string | undefined;
 }, {
-    limit?: number | undefined;
     page?: number | undefined;
+    limit?: number | undefined;
     sortBy?: string | undefined;
     sortOrder?: "asc" | "desc" | undefined;
 }>;
@@ -33,3 +33,4 @@ export declare const SearchSchema: z.ZodObject<{
 }>;
 export type PaginationInput = z.infer<typeof PaginationSchema>;
 export type SearchInput = z.infer<typeof SearchSchema>;
+//# sourceMappingURL=common.d.ts.map

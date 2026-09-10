@@ -7,11 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Package, Globe, Plus, Pencil, Trash2, Truck } from 'lucide-react';
+import { Package, Globe, Plus, Pencil, Trash2 } from 'lucide-react';
 import { ShippingZoneSheet } from './shipping-zone-sheet';
 import { ShippingRateSheet } from './shipping-rate-sheet';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 export default function SettingsShippingPage() {
   const queryClient = useQueryClient();
@@ -20,20 +18,11 @@ export default function SettingsShippingPage() {
   const [editingZone, setEditingZone] = useState<any>(null);
   const [editingRate, setEditingRate] = useState<any>(null);
   const [activeZoneId, setActiveZoneId] = useState<string | null>(null);
-  
-  const [srEmail, setSrEmail] = useState('');
-  const [srPassword, setSrPassword] = useState('');
-  const [isSavingSr, setIsSavingSr] = useState(false);
 
   const { data: storeData, isLoading } = useQuery({
     queryKey: ['store-settings'],
     queryFn: async () => {
       const response = await storeApi.get();
-      const settings = response.data.data?.settings || {};
-      if (settings?.shipping?.shiprocket) {
-        setSrEmail(settings.shipping.shiprocket.email || '');
-        setSrPassword(settings.shipping.shiprocket.password || '');
-      }
       return response.data.data;
     },
   });
@@ -116,29 +105,6 @@ export default function SettingsShippingPage() {
     setActiveZoneId(zoneId);
     setEditingRate(rate);
     setRateSheetOpen(true);
-  };
-
-  const handleSaveShiprocket = async () => {
-    setIsSavingSr(true);
-    try {
-      const newSettings = {
-        ...settings,
-        shipping: {
-          ...shipping,
-          shiprocket: {
-            email: srEmail,
-            password: srPassword
-          }
-        },
-      };
-      await storeApi.update({ settings: newSettings });
-      toast.success('Shiprocket credentials saved successfully');
-      queryClient.invalidateQueries({ queryKey: ['store-settings'] });
-    } catch (err) {
-      toast.error('Failed to save Shiprocket settings');
-    } finally {
-      setIsSavingSr(false);
-    }
   };
 
   if (isLoading) {
@@ -255,49 +221,6 @@ export default function SettingsShippingPage() {
               </div>
             )}
           </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-4 border-b">
-            <div className="flex items-center gap-3">
-              <div className="bg-orange-100 text-orange-600 p-2 rounded-lg">
-                <Truck className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">Shiprocket Integration</CardTitle>
-                <CardDescription className="mt-1">
-                  Connect your Shiprocket account to automate fulfillment and generate AWBs instantly.
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4 max-w-xl">
-              <div className="space-y-2">
-                <Label>Shiprocket Email</Label>
-                <Input 
-                  type="email" 
-                  placeholder="admin@example.com" 
-                  value={srEmail} 
-                  onChange={(e) => setSrEmail(e.target.value)} 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Shiprocket Password</Label>
-                <Input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={srPassword} 
-                  onChange={(e) => setSrPassword(e.target.value)} 
-                />
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="bg-muted/20 border-t p-6">
-            <Button onClick={handleSaveShiprocket} disabled={isSavingSr}>
-              {isSavingSr ? 'Saving...' : 'Save Shiprocket Settings'}
-            </Button>
-          </CardFooter>
         </Card>
       </div>
 

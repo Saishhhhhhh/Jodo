@@ -24,12 +24,12 @@ export declare const InviteStaffSchema: z.ZodObject<{
     email: z.ZodString;
     roleIds: z.ZodArray<z.ZodString, "many">;
 }, "strip", z.ZodTypeAny, {
-    name: string;
     email: string;
+    name: string;
     roleIds: string[];
 }, {
-    name: string;
     email: string;
+    name: string;
     roleIds: string[];
 }>;
 export declare const CreateRoleSchema: z.ZodObject<{
@@ -71,3 +71,4 @@ export type RefreshTokenInput = z.infer<typeof RefreshTokenSchema>;
 export type InviteStaffInput = z.infer<typeof InviteStaffSchema>;
 export type CreateRoleInput = z.infer<typeof CreateRoleSchema>;
 export type UpdatePasswordInput = z.infer<typeof UpdatePasswordSchema>;
+//# sourceMappingURL=auth.d.ts.map

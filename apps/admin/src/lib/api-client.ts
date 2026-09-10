@@ -152,8 +152,23 @@ export const customersApi = {
 
 export const inventoryApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory', { params }),
-  intelligence: () => apiClient.get('/admin/inventory/intelligence'),
   update: (id: string, data: any) => apiClient.put(`/admin/inventory/${id}`, data),
+};
+
+export const inventoryIntelligenceApi = {
+  summary: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/summary', { params }),
+  stockStatus: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/stock-status', { params }),
+  categorySummary: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/category-summary', { params }),
+  demandSignals: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/demand-signals', { params }),
+  attentionRequired: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/attention-required', { params }),
+  stockMovements: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/stock-movements', { params }),
+};
+
+export const inventoryReservationsApi = {
+  list: () => apiClient.get('/admin/inventory/intelligence/reservations'),
+  create: (data: any) => apiClient.post('/admin/inventory/intelligence/reservations', data),
+  release: (id: string) => apiClient.patch(`/admin/inventory/intelligence/reservations/${id}/release`),
+  convert: (id: string) => apiClient.patch(`/admin/inventory/intelligence/reservations/${id}/convert`),
 };
 
 export const discountsApi = {
@@ -161,13 +176,6 @@ export const discountsApi = {
   create: (data: any) => apiClient.post('/admin/discounts', data),
   update: (id: string, data: any) => apiClient.put(`/admin/discounts/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/discounts/${id}`),
-};
-
-export const leadsApi = {
-  list: (params?: Record<string, unknown>) => apiClient.get('/admin/leads', { params }),
-  create: (data: any) => apiClient.post('/admin/leads', data),
-  update: (id: string, data: any) => apiClient.put(`/admin/leads/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/admin/leads/${id}`),
 };
 
 export const appsApi = {
@@ -181,6 +189,13 @@ export const storeApi = {
 
 export const auditLogsApi = {
   list: () => apiClient.get('/admin/audit-logs'),
+};
+
+export const notificationsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/notifications', { params }),
+  markAsRead: (id: string) => apiClient.patch(`/admin/notifications/${id}/read`),
+  dismiss: (id: string) => apiClient.patch(`/admin/notifications/${id}/dismiss`),
+  markAllAsRead: () => apiClient.patch('/admin/notifications/read-all'),
 };
 
 export const collectionsApi = {
@@ -204,7 +219,7 @@ export const reviewsApi = {
 };
 
 export const returnsApi = {
-  list: (params?: Record<string, unknown>) => apiClient.get('/admin/returns', { params }),
+  list: () => apiClient.get('/admin/returns'),
   get: (id: string) => apiClient.get(`/admin/returns/${id}`),
   create: (data: any) => apiClient.post('/admin/returns', data),
   update: (id: string, data: any) => apiClient.put(`/admin/returns/${id}`, data),
@@ -244,4 +259,33 @@ export const navigationApi = {
   create: (data: any) => apiClient.post('/admin/navigation', data),
   update: (id: string, data: any) => apiClient.put(`/admin/navigation/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/navigation/${id}`),
+};
+
+export const reportsApi = {
+  summary: (params?: Record<string, unknown>) => apiClient.get('/admin/reports/summary', { params }),
+  history: () => apiClient.get('/admin/reports/history'),
+  get: (id: string) => apiClient.get(`/admin/reports/${id}`),
+  generate: (data: any) => apiClient.post('/admin/reports/generate', data),
+  delete: (id: string) => apiClient.delete(`/admin/reports/${id}`),
+};
+
+export const tasksApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/tasks', { params }),
+  myTasks: (params?: Record<string, unknown>) => apiClient.get('/admin/tasks/my', { params }),
+  dashboard: () => apiClient.get('/admin/tasks/dashboard'),
+  get: (id: string) => apiClient.get(`/admin/tasks/${id}`),
+  create: (data: any) => apiClient.post('/admin/tasks', data),
+  update: (id: string, data: any) => apiClient.patch(`/admin/tasks/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/tasks/${id}`),
+  addComment: (id: string, data: { message: string }) => apiClient.post(`/admin/tasks/${id}/comments`, data),
+  addRemark: (id: string, data: { remark: string; status?: string }) => apiClient.post(`/admin/tasks/${id}/remarks`, data),
+  updateChecklist: (id: string, data: { id?: string; title?: string; isCompleted?: boolean }) => apiClient.post(`/admin/tasks/${id}/checklist`, data),
+};
+
+export const leadsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/leads', { params }),
+  get: (id: string) => apiClient.get(`/admin/leads/${id}`),
+  create: (data: any) => apiClient.post('/admin/leads', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/leads/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/leads/${id}`),
 };

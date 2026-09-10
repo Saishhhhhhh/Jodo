@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/stores/auth';
 import { LoginSchema, type LoginInput } from '@jodo/shared';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,12 +30,19 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     try {
       await login(data.email, data.password);
+      const user = useAuthStore.getState().user;
+      
       toast.success('Welcome back!', { description: 'Redirecting to dashboard...' });
-      window.location.href = '/';
+      
+      if (user?.roles?.includes('TEAM_MEMBER')) {
+        window.location.href = '/tasks/my-tasks';
+      } else {
+        window.location.href = '/';
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       toast.error('Login failed', {
-        description: error?.response?.data?.message || 'Invalid email or password.',
+        description: error?.response?.data?.message || 'Invalid credentials.',
       });
     }
   };
@@ -176,8 +184,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
-
-function cn(...args: (string | undefined | false)[]): string {
-  return args.filter(Boolean).join(' ');
 }

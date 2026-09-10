@@ -3,10 +3,15 @@
 import React from 'react';
 import { useTasksStore } from '@/stores/tasks';
 import { TaskBoard } from '@/components/tasks/task-board';
+import { CreateTaskModal } from '@/components/tasks/create-task-modal';
 import { FileCheck } from 'lucide-react';
 
 export default function CompletedTasksPage() {
-  const allTasks = useTasksStore(state => state.tasks);
+  const { tasks: allTasks, fetchTasks } = useTasksStore();
+  
+  React.useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
   
   const completedTasks = allTasks.filter(t => t.status === 'Completed' || t.status === 'Closed');
 
@@ -21,6 +26,9 @@ export default function CompletedTasksPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Completed Tasks</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Tasks that have been finished or closed.</p>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <CreateTaskModal />
         </div>
       </div>
 

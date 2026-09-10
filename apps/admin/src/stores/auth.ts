@@ -6,6 +6,8 @@ interface AuthUser {
   id: string;
   name: string;
   email: string;
+  memberId?: string;
+  roles?: string[];
   avatarUrl?: string;
   tenantId: string;
   storeId: string;

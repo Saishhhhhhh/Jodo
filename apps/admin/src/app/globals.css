@@ -7,6 +7,7 @@
 @layer base {
   :root {
     /* ── Light mode (not default, but available) ── */
+    --font-sans: 'Inter', sans-serif;
     --background: 0 0% 98%;
     --foreground: 240 10% 4%;
     --card: 0 0% 100%;
@@ -99,6 +100,16 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* Next.js root div must also be full-height for scroll chain to work */
+  #__next {
+    height: 100%;
   }
 
   /* Scrollbar styling */

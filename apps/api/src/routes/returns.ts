@@ -14,14 +14,10 @@ router.use(requireAuth);
  */
 router.get('/', async (req, res, next) => {
   try {
-    const filter: any = {
+    const returns = await Return.find({
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    };
-    if (req.query.orderId) {
-      filter.orderId = req.query.orderId;
-    }
-    const returns = await Return.find(filter)
+    })
       .populate('items.productId', 'imageUrl')
       .sort({ createdAt: -1 });
 
@@ -59,7 +55,7 @@ router.get('/:id', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
   try {
-    const { orderId, items, refundAmount, notes, type, images } = req.body;
+    const { orderId, items, refundAmount, notes } = req.body;
 
     if (!orderId || !items || !Array.isArray(items) || items.length === 0) {
       return sendError(res, 'Order ID and returned items are required', 400);
@@ -82,11 +78,9 @@ router.post('/', async (req, res, next) => {
       orderNumber: order.orderNumber,
       customerName: order.customerName,
       customerEmail: order.customerEmail,
-      type: type || 'return',
       items,
       refundAmount: refundAmount || 0,
       notes,
-      images: images || [],
       status: 'requested',
     });
 
@@ -108,7 +102,7 @@ router.post('/', async (req, res, next) => {
  */
 router.put('/:id', async (req, res, next) => {
   try {
-    const { status, notes, resolution } = req.body;
+    const { status, notes } = req.body;
 
     const returnObj = await Return.findOne({
       _id: req.params.id,
@@ -122,7 +116,6 @@ router.put('/:id', async (req, res, next) => {
 
     if (status) returnObj.status = status;
     if (notes !== undefined) returnObj.notes = notes;
-    if (resolution !== undefined) returnObj.resolution = resolution;
 
     await returnObj.save();
 

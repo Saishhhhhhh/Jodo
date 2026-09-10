@@ -48,3 +48,4 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export declare const PRODUCT_STATUSES: readonly ["draft", "active", "archived", "scheduled"];
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 export declare const STATUS_COLORS: Record<string, string>;
+//# sourceMappingURL=constants.d.ts.map

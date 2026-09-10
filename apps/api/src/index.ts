@@ -14,15 +14,15 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import staffRoutes from './routes/staff';
-import webhooksRoutes from './routes/webhooks';
 import productsRoutes from './routes/products';
 import ordersRoutes from './routes/orders';
 import customersRoutes from './routes/customers';
 import inventoryRoutes from './routes/inventory';
+import inventoryIntelligenceRoutes from './routes/inventory-intelligence';
 import discountsRoutes from './routes/discounts';
-import leadsRoutes from './routes/leads';
 import appsRoutes from './routes/apps';
 import auditLogsRoutes from './routes/audit-logs';
+import notificationsRoutes from './routes/notifications';
 import collectionsRoutes from './routes/collections';
 import giftCardsRoutes from './routes/gift-cards';
 import reviewsRoutes from './routes/reviews';
@@ -32,9 +32,13 @@ import campaignsRoutes from './routes/campaigns';
 import bannersRoutes from './routes/banners';
 import mediaRoutes from './routes/media';
 import navigationRoutes from './routes/navigation';
+import tasksRoutes from './routes/tasks';
 import storefrontRoutes from './routes/storefront';
 import storefrontAuthRoutes from './routes/storefront-auth';
 import reportsRoutes from './routes/reports';
+import teamMembersRoutes from './routes/teamMembers';
+import warehouseRoutes from './routes/warehouse';
+import aiContentRoutes from './routes/ai-content';
 
 const app = express();
 
@@ -118,13 +122,12 @@ app.use('/api/admin/products', productsRoutes);
 app.use('/api/admin/orders', ordersRoutes);
 app.use('/api/admin/customers', customersRoutes);
 app.use('/api/admin/inventory', inventoryRoutes);
+app.use('/api/admin/inventory/intelligence', inventoryIntelligenceRoutes);
 app.use('/api/admin/discounts', discountsRoutes);
-app.use('/api/admin/leads', leadsRoutes);
-// Public Webhooks API
-app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);
 app.use('/api/admin/reports', reportsRoutes);
+app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/admin/collections', collectionsRoutes);
 app.use('/api/admin/gift-cards', giftCardsRoutes);
 app.use('/api/admin/reviews', reviewsRoutes);
@@ -134,6 +137,13 @@ app.use('/api/admin/campaigns', campaignsRoutes);
 app.use('/api/admin/banners', bannersRoutes);
 app.use('/api/admin/media', mediaRoutes);
 app.use('/api/admin/navigation', navigationRoutes);
+app.use('/api/admin/reports', reportsRoutes);
+app.use('/api/admin/tasks', tasksRoutes);
+app.use('/api/admin/team-members', teamMembersRoutes);
+app.use('/api/warehouse', warehouseRoutes);
+app.use('/api/admin/warehouse', warehouseRoutes);
+app.use('/api/ai-content', aiContentRoutes);
+app.use('/api/admin/ai-content', aiContentRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
 // ============================================================
@@ -142,16 +152,27 @@ app.use('/api/storefront/auth', storefrontAuthRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+import { initCronJobs } from './services/cron';
+
 // ============================================================
 // Start Server
 // ============================================================
 async function bootstrap() {
-  await connectDB();
+  try {
+    await connectDB();
+    console.log(`💾 Database: Connected to MongoDB`);
+  } catch (dbErr) {
+    console.error('⚠️ Database connection failed, but starting API anyway for mock access:', dbErr);
+  }
+  
+  try {
+    initCronJobs();
+  } catch (cronErr) {
+    console.error('⚠️ Failed to init cron jobs:', cronErr);
+  }
 
   app.listen(env.PORT, () => {
     console.log(`\n🚀 Jodo API Server running at http://localhost:${env.PORT}`);
-    console.log(`📚 Environment: ${env.NODE_ENV}`);
-    console.log(`💾 Database: Connected to MongoDB`);
     console.log(`\n📋 Endpoints:`);
     console.log(`   GET  http://localhost:${env.PORT}/api/health`);
     console.log(`   POST http://localhost:${env.PORT}/api/admin/auth/login`);

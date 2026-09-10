@@ -3,10 +3,15 @@
 import React from 'react';
 import { useTasksStore } from '@/stores/tasks';
 import { TaskBoard } from '@/components/tasks/task-board';
+import { CreateTaskModal } from '@/components/tasks/create-task-modal';
 import { ShieldAlert } from 'lucide-react';
 
 export default function OverdueTasksPage() {
-  const allTasks = useTasksStore(state => state.tasks);
+  const { tasks: allTasks, fetchTasks } = useTasksStore();
+  
+  React.useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
   
   const overdueTasks = allTasks.filter(t => 
     new Date(t.dueDate) < new Date() && t.status !== 'Completed' && t.status !== 'Closed'
@@ -23,6 +28,9 @@ export default function OverdueTasksPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Overdue Tasks</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Tasks that require immediate attention.</p>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <CreateTaskModal />
         </div>
       </div>
 

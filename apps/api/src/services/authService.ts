@@ -20,6 +20,8 @@ export interface LoginResult {
     id: string;
     name: string;
     email: string;
+    memberId?: string;
+    roles?: string[];
     avatarUrl?: string;
     tenantId: string;
     storeId: string;
@@ -29,23 +31,26 @@ export interface LoginResult {
 export class AuthService {
   /**
    * Login with email and password.
-   * Returns access + refresh tokens.
    */
   async login(input: LoginInput, ip?: string, userAgent?: string): Promise<LoginResult> {
-    // Find user with passwordHash selected (it's excluded by default)
-    const user = await User.findOne({ email: input.email.toLowerCase(), status: 'active' })
-      .select('+passwordHash')
-      .lean<IUser & { passwordHash: string }>();
-
-    if (!user) {
-      throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
+    let user;
+    if (input.email.includes('@')) {
+      user = await User.findOne({ email: input.email.toLowerCase() }).select('+passwordHash').populate('roleIds', 'name');
+    } else {
+      user = await User.findOne({ memberId: input.email.toUpperCase() }).select('+passwordHash').populate('roleIds', 'name');
     }
 
-    // Verify password
-    const bcrypt = await import('bcryptjs');
-    const isValid = await (bcrypt.default || bcrypt).compare(input.password, user.passwordHash);
+    if (!user) {
+      throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
+    }
+
+    if (user.status !== 'active') {
+      throw Object.assign(new Error('Account is inactive'), { statusCode: 401 });
+    }
+
+    const isValid = await user.comparePassword(input.password);
     if (!isValid) {
-      throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 });
+      throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
     }
 
     // Generate token family for rotation tracking
@@ -56,7 +61,7 @@ export class AuthService {
       sub: String(user._id),
       tenantId: String(user.tenantId),
       storeId: String(user.storeId),
-      email: user.email,
+      email: user.email || user.memberId || '',
       name: user.name,
     });
 
@@ -66,30 +71,31 @@ export class AuthService {
       family,
     });
 
-    // Persist refresh token
     await RefreshToken.create({
       userId: user._id,
       tenantId: user.tenantId,
       token: refreshTokenValue,
       family,
       expiresAt: getRefreshTokenExpiry(),
+      ip,
+      userAgent,
     });
 
-    // Update last login
-    await User.findByIdAndUpdate(user._id, { lastLoginAt: new Date() });
-
-    // Audit log
+    // Log login activity
     await AuditLog.create({
       tenantId: user.tenantId,
       storeId: user.storeId,
       actorUserId: user._id,
       actorType: 'user',
-      action: 'auth.login',
-      resourceType: 'User',
-      resourceId: String(user._id),
+      action: 'LOGIN_SUCCESS',
+      resourceType: 'Auth',
       ip,
       userAgent,
     });
+
+    // Update last login
+    user.lastLoginAt = new Date();
+    await user.save();
 
     return {
       accessToken,
@@ -97,7 +103,9 @@ export class AuthService {
       user: {
         id: String(user._id),
         name: user.name,
-        email: user.email,
+        email: user.email || user.memberId || '',
+        memberId: user.memberId,
+        roles: (user.roleIds as any[]).map(r => r.name),
         avatarUrl: user.avatarUrl,
         tenantId: String(user.tenantId),
         storeId: String(user.storeId),
@@ -148,7 +156,7 @@ export class AuthService {
       sub: String(user._id),
       tenantId: String(user.tenantId),
       storeId: String(user.storeId),
-      email: user.email,
+      email: user.email || '',
       name: user.name,
     });
 

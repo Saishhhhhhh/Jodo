@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ordersApi, returnsApi } from '@/lib/api-client';
+import { ordersApi } from '@/lib/api-client';
 import Link from 'next/link';
 import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer, RotateCcw, ShieldAlert, Clock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,15 +29,6 @@ export default function OrderDetailsPage() {
       const res = await ordersApi.get(id);
       return res.data.data;
     },
-  });
-
-  const { data: returnsData } = useQuery({
-    queryKey: ['returns', 'order', id],
-    queryFn: async () => {
-      const res = await returnsApi.list({ orderId: id });
-      return res.data.data;
-    },
-    enabled: !!id,
   });
 
   const updateMutation = useMutation({
@@ -242,6 +233,7 @@ export default function OrderDetailsPage() {
             </div>
           </div>
 
+          {/* Timeline Section */}
           <div className="mt-8 space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
@@ -249,30 +241,6 @@ export default function OrderDetailsPage() {
             </h3>
             <div className="relative border-l-2 border-muted ml-3 space-y-8 pb-4">
               
-              {/* Returns/Complaints Events */}
-              {returnsData && returnsData.map((ret: any, idx: number) => (
-                <div key={`ret-${idx}`} className="relative pl-6">
-                  <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-background bg-orange-500" />
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-medium">
-                      Customer filed a <span className="capitalize font-bold">{ret.type}</span> request.
-                    </p>
-                    {ret.status === 'resolved' && (
-                      <p className="text-sm text-green-600 font-medium mt-0.5">Resolved: {ret.resolution}</p>
-                    )}
-                    {ret.status === 'refunded' && (
-                      <p className="text-sm text-green-600 font-medium mt-0.5">Refunded: {formatCurrency(ret.refundAmount)}</p>
-                    )}
-                    {ret.status === 'rejected' && (
-                      <p className="text-sm text-red-600 font-medium mt-0.5">Request was rejected</p>
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(ret.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                    </span>
-                  </div>
-                </div>
-              ))}
-
               {/* Payment Event */}
               {order.paymentStatus === 'paid' && (
                 <div className="relative pl-6">
@@ -297,6 +265,25 @@ export default function OrderDetailsPage() {
                 </div>
               </div>
 
+            </div>
+          </div>
+          
+          {/* Tasks Section */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5 text-muted-foreground" />
+                Tasks
+              </h3>
+              <Link href="/tasks/all-tasks">
+                <Button size="sm" variant="outline">View All</Button>
+              </Link>
+            </div>
+            <div className="border rounded-xl bg-card shadow-sm p-5 text-center">
+              <p className="text-sm text-muted-foreground mb-4">No tasks linked to this order yet.</p>
+              <Link href="/tasks/all-tasks">
+                <Button size="sm">Create Task</Button>
+              </Link>
             </div>
           </div>
         </div>
