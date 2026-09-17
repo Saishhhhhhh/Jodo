@@ -3,14 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DataTable } from '@/components/data-table';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +34,7 @@ import {
   AlertTriangle,
   XCircle,
   Download,
-  Calendar,
+  Package,
 } from 'lucide-react';
 import { useWarehouseStore, ProcurementItem } from '@/stores/warehouse';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -182,8 +176,147 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
     }
   };
 
+  const columns: ColumnDef<ProcurementItem>[] = [
+    {
+      accessorKey: 'id',
+      header: 'Procurement ID / PO#',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-mono font-semibold text-xs text-foreground">{row.original.id}</div>
+          <div className="text-[10px] font-mono text-muted-foreground">{row.original.purchaseOrderNumber}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'supplier',
+      header: 'Supplier',
+      cell: ({ row }) => <span className="font-medium text-xs">{row.original.supplier}</span>,
+    },
+    {
+      accessorKey: 'product',
+      header: 'Material / Product',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium text-xs text-foreground">{row.original.product}</div>
+          <div className="text-[11px] font-mono text-muted-foreground">{row.original.sku}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'category',
+      header: 'Category',
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-[10px]">
+          {row.original.category}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'quantityOrdered',
+      header: () => <div className="text-right">Ordered</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono font-semibold text-xs">
+          {formatNumber(row.original.quantityOrdered)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'quantityReceived',
+      header: () => <div className="text-right">Received</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono text-xs text-green-600 dark:text-green-400">
+          {formatNumber(row.original.quantityReceived)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'totalCost',
+      header: () => <div className="text-right">Total Cost</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono font-medium text-xs">
+          {formatCurrency(row.original.totalCost, 'INR')}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'expectedDeliveryDate',
+      header: 'Delivery Date',
+      cell: ({ row }) => <span className="text-xs text-muted-foreground whitespace-nowrap">{row.original.expectedDeliveryDate}</span>,
+    },
+    {
+      accessorKey: 'destinationWarehouse',
+      header: 'Destination',
+      cell: ({ row }) => <span className="text-xs whitespace-nowrap">{row.original.destinationWarehouse}</span>,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => getStatusBadge(row.original.status),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setViewItem(item)}>
+                  <Eye className="mr-2 h-4 w-4" /> View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleReceiveStock(item)}>
+                  <PackageCheck className="mr-2 h-4 w-4 text-green-600" /> Receive Stock
+                </DropdownMenuItem>
+                {item.status !== 'Delayed' && item.status !== 'Received' && (
+                  <DropdownMenuItem onClick={() => handleMarkDelayed(item)}>
+                    <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" /> Mark Delayed
+                  </DropdownMenuItem>
+                )}
+                {item.status !== 'Cancelled' && item.status !== 'Received' && (
+                  <DropdownMenuItem onClick={() => handleCancel(item)} className="text-destructive">
+                    <XCircle className="mr-2 h-4 w-4" /> Cancel Order
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="space-y-4">
+      {/* Tabs filters */}
+      <div className="flex border-b pb-px gap-6 text-sm font-medium overflow-x-auto whitespace-nowrap">
+        {[
+          { id: 'ALL', label: 'All Orders' },
+          { id: 'PO Raised', label: 'PO Raised' },
+          { id: 'Confirmed', label: 'Confirmed' },
+          { id: 'In Transit', label: 'In Transit' },
+          { id: 'Partially Received', label: 'Partially Received' },
+          { id: 'Received', label: 'Received' },
+          { id: 'Delayed', label: 'Delayed' },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setStatusFilter(t.id)}
+            className={`pb-3 border-b-2 transition-colors ${
+              statusFilter === t.id
+                ? 'border-primary text-foreground font-semibold'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Controls Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 flex-1">
@@ -198,24 +331,6 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
-
-          {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-36 h-9 text-xs">
-              <SelectValue placeholder="All Statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="PO Raised">PO Raised</SelectItem>
-              <SelectItem value="Confirmed">Confirmed</SelectItem>
-              <SelectItem value="In Transit">In Transit</SelectItem>
-              <SelectItem value="Partially Received">Partially Received</SelectItem>
-              <SelectItem value="Received">Received</SelectItem>
-              <SelectItem value="Delayed">Delayed</SelectItem>
-              <SelectItem value="Draft">Draft</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
 
           {/* Category Filter */}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -256,105 +371,25 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Procurement ID / PO#</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Material / Product</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Ordered</TableHead>
-              <TableHead className="text-right">Received</TableHead>
-              <TableHead className="text-right">Total Cost</TableHead>
-              <TableHead>Delivery Date</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <TableRow key={item.id} className="hover:bg-muted/40 transition-colors">
-                  <TableCell>
-                    <div className="font-mono font-semibold text-xs text-foreground">{item.id}</div>
-                    <div className="text-[10px] font-mono text-muted-foreground">{item.purchaseOrderNumber}</div>
-                  </TableCell>
-                  <TableCell className="font-medium text-xs">{item.supplier}</TableCell>
-                  <TableCell>
-                    <div className="font-medium text-xs text-foreground">{item.product}</div>
-                    <div className="text-[11px] font-mono text-muted-foreground">{item.sku}</div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[10px]">
-                      {item.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right font-mono font-semibold text-xs">
-                    {formatNumber(item.quantityOrdered)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-xs text-green-600 dark:text-green-400">
-                    {formatNumber(item.quantityReceived)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono font-medium text-xs">
-                    {formatCurrency(item.totalCost, 'INR')}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                    {item.expectedDeliveryDate}
-                  </TableCell>
-                  <TableCell className="text-xs whitespace-nowrap">{item.destinationWarehouse}</TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewItem(item)}>
-                          <Eye className="mr-2 h-4 w-4" /> View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleReceiveStock(item)}>
-                          <PackageCheck className="mr-2 h-4 w-4 text-green-600" /> Receive Stock
-                        </DropdownMenuItem>
-                        {item.status !== 'Delayed' && item.status !== 'Received' && (
-                          <DropdownMenuItem onClick={() => handleMarkDelayed(item)}>
-                            <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" /> Mark Delayed
-                          </DropdownMenuItem>
-                        )}
-                        {item.status !== 'Cancelled' && item.status !== 'Received' && (
-                          <DropdownMenuItem onClick={() => handleCancel(item)} className="text-destructive">
-                            <XCircle className="mr-2 h-4 w-4" /> Cancel Order
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={11} className="h-28 text-center text-xs text-muted-foreground">
-                  No procurement orders found matching current filters.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-        <span>Showing {filteredData.length} of {procurements.length} procurement orders</span>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" disabled className="h-7 text-xs">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm" disabled className="h-7 text-xs">
-            Next
-          </Button>
-        </div>
+      <div className="bg-card">
+        {filteredData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center border rounded-xl bg-card py-24 text-center">
+            <div className="rounded-full bg-primary/10 p-4 mb-4">
+              <Package className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">No procurement orders found</h2>
+            <p className="text-muted-foreground max-w-[400px]">
+              {statusFilter === 'ALL'
+                ? 'No procurement orders have been created yet.'
+                : `There are currently no procurement orders with the "${statusFilter}" status.`}
+            </p>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={filteredData}
+          />
+        )}
       </div>
 
       {/* Procurement Details Dialog */}

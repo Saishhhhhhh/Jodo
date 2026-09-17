@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/data-table';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -211,6 +213,116 @@ export function StockTab({
     toast.success('Inventory report exported');
   };
 
+  const stockColumns: ColumnDef<StockItem>[] = [
+    {
+      accessorKey: 'product',
+      header: 'Product / SKU',
+      cell: ({ row }) => {
+        const item = row.original;
+        const isLow = item.available <= item.reorderLevel;
+        const isOut = item.available <= 0;
+        return (
+          <div>
+            <div className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+              {item.product}
+              {isOut ? (
+                <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">OUT</Badge>
+              ) : isLow ? (
+                <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[9px] px-1 py-0 h-4 border-none">LOW</Badge>
+              ) : null}
+            </div>
+            <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{item.sku}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'warehouse',
+      header: 'Warehouse',
+      cell: ({ row }) => <span className="text-xs">{row.original.warehouse}</span>,
+    },
+    {
+      accessorKey: 'stockInHand',
+      header: () => <div className="text-right">Stock in Hand</div>,
+      cell: ({ row }) => <div className="text-right font-mono font-bold text-xs text-foreground">{formatNumber(row.original.stockInHand)}</div>,
+    },
+    {
+      accessorKey: 'reserved',
+      header: () => <div className="text-right">Reserved</div>,
+      cell: ({ row }) => <div className="text-right font-mono text-xs text-muted-foreground">{formatNumber(row.original.reserved)}</div>,
+    },
+    {
+      accessorKey: 'available',
+      header: () => <div className="text-right">Available Stock</div>,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="text-right font-mono font-bold text-xs">
+            <span
+              className={
+                item.available <= 0
+                  ? 'text-destructive font-extrabold'
+                  : item.available <= item.reorderLevel
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-green-600 dark:text-green-400'
+              }
+            >
+              {formatNumber(item.available)}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'incoming',
+      header: () => <div className="text-right">Incoming</div>,
+      cell: ({ row }) => <div className="text-right font-mono text-xs text-blue-600 dark:text-blue-400">+{formatNumber(row.original.incoming)}</div>,
+    },
+    {
+      accessorKey: 'reorderLevel',
+      header: () => <div className="text-right">Reorder Level</div>,
+      cell: ({ row }) => <div className="text-right font-mono text-xs text-muted-foreground">{formatNumber(row.original.reorderLevel)}</div>,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => getStatusBadge(row.original.status),
+    },
+    {
+      accessorKey: 'lastUpdated',
+      header: 'Last Updated',
+      cell: ({ row }) => <span className="text-xs text-muted-foreground whitespace-nowrap">{row.original.lastUpdated}</span>,
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1 px-2"
+              onClick={() => onOpenAdjust(item)}
+            >
+              <SlidersHorizontal className="h-3 w-3" /> Adjust
+            </Button>
+            {onViewHistory && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1 px-2 text-muted-foreground hover:text-foreground"
+                onClick={() => onViewHistory(item)}
+              >
+                <Clock className="h-3 w-3" /> History
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* 6 Stock Module KPI Cards */}
@@ -372,112 +484,22 @@ export function StockTab({
 
       {/* SUB-VIEW 1 & 2: Stock in Hand / Available Stock Table */}
       {(activeSubView === 'stock-in-hand' || activeSubView === 'available-stock') && (
-        <div className="rounded-md border bg-card overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Warehouse</TableHead>
-                <TableHead className="text-right">Stock in Hand</TableHead>
-                <TableHead className="text-right">Reserved</TableHead>
-                <TableHead className="text-right">Available Stock</TableHead>
-                <TableHead className="text-right">Incoming</TableHead>
-                <TableHead className="text-right">Reorder Level</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Updated</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredStock.length > 0 ? (
-                filteredStock.map((item) => {
-                  const isLow = item.available <= item.reorderLevel;
-                  const isOut = item.available <= 0;
-                  return (
-                    <TableRow
-                      key={item.id}
-                      className={`transition-colors ${
-                        isOut
-                          ? 'bg-destructive/10 hover:bg-destructive/15 border-l-2 border-l-destructive'
-                          : isLow
-                          ? 'bg-amber-500/10 hover:bg-amber-500/15 border-l-2 border-l-amber-500'
-                          : 'hover:bg-muted/40'
-                      }`}
-                    >
-                      <TableCell>
-                        <div className="font-semibold text-xs text-foreground flex items-center gap-1.5">
-                          {item.product}
-                          {isOut ? (
-                            <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">OUT</Badge>
-                          ) : isLow ? (
-                            <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[9px] px-1 py-0 h-4 border-none">LOW</Badge>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{item.sku}</TableCell>
-                      <TableCell className="text-xs">{item.warehouse}</TableCell>
-                      <TableCell className="text-right font-mono font-bold text-xs text-foreground">
-                        {formatNumber(item.stockInHand)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                        {formatNumber(item.reserved)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono font-bold text-xs">
-                        <span
-                          className={
-                            item.available <= 0
-                              ? 'text-destructive font-extrabold'
-                              : item.available <= item.reorderLevel
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-green-600 dark:text-green-400'
-                          }
-                        >
-                          {formatNumber(item.available)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-blue-600 dark:text-blue-400">
-                        +{formatNumber(item.incoming)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-xs text-muted-foreground">
-                        {formatNumber(item.reorderLevel)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{item.lastUpdated}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs gap-1 px-2"
-                            onClick={() => onOpenAdjust(item)}
-                          >
-                            <SlidersHorizontal className="h-3 w-3" /> Adjust
-                          </Button>
-                          {onViewHistory && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-xs gap-1 px-2 text-muted-foreground hover:text-foreground"
-                              onClick={() => onViewHistory(item)}
-                            >
-                              <Clock className="h-3 w-3" /> History
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={11} className="h-28 text-center text-xs text-muted-foreground">
-                    No inventory records match current filters.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+        <div className="bg-card">
+          {filteredStock.length === 0 ? (
+            <div className="flex flex-col items-center justify-center border rounded-xl bg-card py-24 text-center">
+              <div className="rounded-full bg-primary/10 p-4 mb-4">
+                <Boxes className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2">No inventory records found</h2>
+              <p className="text-muted-foreground max-w-[400px]">
+                {statusFilter === 'ALL'
+                  ? 'No inventory records match current filters.'
+                  : `There are currently no items with the "${statusFilter}" status.`}
+              </p>
+            </div>
+          ) : (
+            <DataTable columns={stockColumns} data={filteredStock} />
+          )}
         </div>
       )}
 
