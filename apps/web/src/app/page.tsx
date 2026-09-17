@@ -1,34 +1,10 @@
-import HeroSection from "@/components/HeroSection";
-import AboutSection from "@/components/AboutSection";
-import FeaturesBar from "@/components/FeaturesBar";
-import CollectionsSection from "@/components/CollectionsSection";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import PuzzleSection from "@/components/PuzzleSection";
-import VideoSection from "@/components/VideoSection";
+import ComingSoonPage from "@/components/coming-soon/ComingSoonPage";
 
-export default function HomePage() {
-  return (
-    <div className="flex flex-col gap-12 md:gap-[70px] pb-12 md:pb-[70px]">
-      {/* Hero */}
-      <HeroSection />
+export const metadata = {
+  title: "JODO — Furniture, Coming Together | Modern Furniture Studio",
+  description: "JODO is an architectural contemporary furniture brand rooted in honest materials, thoughtful joinery, and sculptural simplicity. Coming soon.",
+};
 
-      {/* About / Mission */}
-      <AboutSection />
-
-      {/* Features Bar — Free Shipping, Custom Design, Refund */}
-      <FeaturesBar />
-
-      {/* Featured Products */}
-      <FeaturedProducts />
-
-      {/* Scroll Puzzle Animation */}
-      <PuzzleSection />
-
-      {/* New Collection + Room Categories */}
-      <CollectionsSection />
-
-      {/* Full-width Video Section */}
-      <VideoSection />
-    </div>
-  );
+export default function Page() {
+  return <ComingSoonPage />;
 }

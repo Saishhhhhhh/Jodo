@@ -20,6 +20,10 @@ export async function connectDB(): Promise<void> {
   }
 }
 
+export function isDbConnected(): boolean {
+  return mongoose.connection.readyState === 1;
+}
+
 export async function disconnectDB(): Promise<void> {
   if (!isConnected) return;
   await mongoose.disconnect();

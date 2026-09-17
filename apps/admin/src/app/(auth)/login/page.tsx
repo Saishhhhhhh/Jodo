@@ -27,6 +27,24 @@ export default function LoginPage() {
     },
   });
 
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const emailParam = searchParams.get('email');
+      const passParam = searchParams.get('password');
+      if (emailParam) {
+        form.setValue('email', emailParam);
+      }
+      if (passParam) {
+        form.setValue('password', passParam);
+      }
+      if (emailParam || passParam) {
+        // Clean URL to not expose credentials in browser history
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [form]);
+
   const onSubmit = async (data: LoginInput) => {
     try {
       await login(data.email, data.password);
@@ -88,7 +106,16 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" id="login-form">
+          <form
+            method="POST"
+            action=""
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit(onSubmit)(e);
+            }}
+            className="space-y-4"
+            id="login-form"
+          >
             {/* Email */}
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>

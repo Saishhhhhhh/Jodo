@@ -22,15 +22,16 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { User, Phone, Mail, Tag } from 'lucide-react';
+import { User, Phone, Mail, Tag, KeyRound, Lock } from 'lucide-react';
 
 interface CustomerFormSheetProps {
   customer: any | null; // Null in add mode
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onResetPasswordClick?: (customer: any) => void;
 }
 
-export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerFormSheetProps) {
+export function CustomerFormSheet({ customer, open, onOpenChange, onResetPasswordClick }: CustomerFormSheetProps) {
   const queryClient = useQueryClient();
   const isEditMode = !!customer;
 
@@ -39,6 +40,7 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
   const [tagsString, setTagsString] = useState('');
 
@@ -50,6 +52,7 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
         setLastName(customer.lastName || '');
         setEmail(customer.email || '');
         setPhone(customer.phone || '');
+        setPassword('');
         setStatus(customer.status || 'active');
         setTagsString(customer.tags ? customer.tags.join(', ') : '');
       } else {
@@ -57,6 +60,7 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
         setLastName('');
         setEmail('');
         setPhone('');
+        setPassword('');
         setStatus('active');
         setTagsString('');
       }
@@ -89,6 +93,11 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
       return;
     }
 
+    if (password && password.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
     // Parse comma separated tags
     const tags = tagsString
       .split(',')
@@ -102,6 +111,7 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
       phone: phone || undefined,
       status,
       tags,
+      ...(password ? { password } : {}),
     });
   };
 
@@ -179,6 +189,52 @@ export function CustomerFormSheet({ customer, open, onOpenChange }: CustomerForm
                 />
               </div>
             </div>
+
+            {/* Password Management */}
+            {!isEditMode ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-xs font-semibold text-zinc-400">Initial Storefront Password (Optional)</Label>
+                <div className="relative flex">
+                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                  <Input 
+                    id="password" 
+                    type="password"
+                    placeholder="Set temporary password (min. 6 chars)" 
+                    className="pl-9 font-mono text-sm"
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={6}
+                  />
+                </div>
+                <p className="text-[10px] text-zinc-500 mt-1">If provided, the customer can immediately sign in to the storefront.</p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <KeyRound className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-semibold">Storefront Password</span>
+                  </div>
+                  {onResetPasswordClick && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        onOpenChange(false);
+                        onResetPasswordClick(customer);
+                      }}
+                      className="h-7 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
+                    >
+                      <KeyRound className="h-3.5 w-3.5 mr-1" /> Reset Password
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[11px] text-zinc-400">
+                  Reset customer's password to generate or enter a new login credential.
+                </p>
+              </div>
+            )}
 
             {/* Tags Field */}
             <div className="space-y-1.5">

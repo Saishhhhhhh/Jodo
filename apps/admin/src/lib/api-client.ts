@@ -143,6 +143,7 @@ export const customersApi = {
   create: (data: any) => apiClient.post('/admin/customers', data),
   update: (id: string, data: any) => apiClient.put(`/admin/customers/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/customers/${id}`),
+  resetPassword: (id: string, data: { password: string }) => apiClient.post(`/admin/customers/${id}/reset-password`, data),
 };
 
 export const inventoryApi = {

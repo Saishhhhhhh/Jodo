@@ -11,16 +11,19 @@ import {
   MoreHorizontal, 
   UserPlus, 
   Edit, 
-  Trash2 
+  Trash2,
+  KeyRound
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { CustomerFormSheet } from './customer-form-sheet';
+import { ResetPasswordDialog } from './reset-password-dialog';
 
 type Customer = {
   _id: string;
@@ -38,6 +41,8 @@ export default function CustomersPage() {
   const queryClient = useQueryClient();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [customerToResetPassword, setCustomerToResetPassword] = useState<Customer | null>(null);
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['customers'],
@@ -126,6 +131,16 @@ export default function CustomersPage() {
                   <Edit className="mr-2 h-4 w-4" /> Edit Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem 
+                  onClick={() => {
+                    setCustomerToResetPassword(customer);
+                    setIsResetPasswordOpen(true);
+                  }}
+                  className="text-amber-500 focus:text-amber-500 focus:bg-amber-500/10"
+                >
+                  <KeyRound className="mr-2 h-4 w-4" /> Reset Password
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
                   className="text-destructive focus:text-destructive"
                   onClick={() => handleDelete(customer._id)}
                   disabled={deleteMutation.isPending}
@@ -174,6 +189,19 @@ export default function CustomersPage() {
         onOpenChange={(open) => {
           setIsFormOpen(open);
           if (!open) setSelectedCustomer(null);
+        }}
+        onResetPasswordClick={(cust) => {
+          setCustomerToResetPassword(cust);
+          setIsResetPasswordOpen(true);
+        }}
+      />
+
+      <ResetPasswordDialog
+        customer={customerToResetPassword}
+        open={isResetPasswordOpen}
+        onOpenChange={(open) => {
+          setIsResetPasswordOpen(open);
+          if (!open) setCustomerToResetPassword(null);
         }}
       />
     </div>
