@@ -118,7 +118,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CheckSquare,
     children: [
       { label: 'Dashboard', href: '/tasks', icon: LayoutDashboard },
-      { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
+      { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
       { label: 'All Tasks', href: '/tasks/all-tasks', icon: FileText },
       { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users },
       { label: 'Overdue', href: '/tasks/overdue', icon: AlertTriangle },
@@ -293,7 +293,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
         label: 'Tasks',
         icon: CheckSquare,
         children: [
-          { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
+          { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
           { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
         ],
       }

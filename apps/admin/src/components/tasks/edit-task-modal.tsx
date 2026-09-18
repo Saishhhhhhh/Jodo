@@ -272,7 +272,7 @@ export function EditTaskModal({ task, open, onOpenChange, onTaskUpdated }: EditT
             </Select>
             {isTeamMember && (
               <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                <User className="w-3 h-3 text-primary" /> Tasks assigned to you appear in your My Tasks tab.
+                <User className="w-3 h-3 text-primary" /> Tasks assigned to you appear in your Tasks tab.
               </p>
             )}
           </div>

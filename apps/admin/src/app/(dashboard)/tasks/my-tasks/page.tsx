@@ -43,7 +43,7 @@ export default function MyTasksPage() {
     <div className="p-6 space-y-6 animate-fade-in flex flex-col h-[calc(100vh-theme(spacing.16))]">
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">My Tasks</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Tasks</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Tasks assigned to you.</p>
         </div>
         <div className="flex items-center gap-3">

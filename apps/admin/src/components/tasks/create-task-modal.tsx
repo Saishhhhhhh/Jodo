@@ -101,7 +101,7 @@ export function CreateTaskModal({ children, onTaskCreated }: { children?: React.
       <div onClick={() => setOpen(true)}>
         {children || (
           <Button className="gap-2">
-            <Plus className="w-4 h-4" /> {isTeamMember ? 'Create My Task' : 'Create Task'}
+            <Plus className="w-4 h-4" /> Create Task
           </Button>
         )}
       </div>
@@ -110,7 +110,7 @@ export function CreateTaskModal({ children, onTaskCreated }: { children?: React.
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader className="mb-6">
             <SheetTitle className="text-2xl font-bold">
-              {isTeamMember ? 'Create My Task' : 'Create New Task'}
+              Create New Task
             </SheetTitle>
             <SheetDescription>
               {isTeamMember
@@ -247,7 +247,7 @@ export function CreateTaskModal({ children, onTaskCreated }: { children?: React.
                 Cancel
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : isTeamMember ? 'Create My Task' : 'Create Task'}
+                {isSubmitting ? 'Creating...' : 'Create Task'}
               </Button>
             </div>
           </form>
