@@ -189,10 +189,6 @@ export function ProductionOrdersTab({ onOpenCreate, onOpenQC }: ProductionOrders
             </SelectContent>
           </Select>
         </div>
-
-        <Button onClick={onOpenCreate} className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" /> Schedule Production
-        </Button>
       </div>
 
       {/* Table */}

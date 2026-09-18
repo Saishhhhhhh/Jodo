@@ -33,6 +33,8 @@ import {
   Layers,
   Edit,
   SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useWarehouseStore, ProductionTrackingItem, ProductionTrackingStageName } from '@/stores/warehouse';
 import { formatNumber } from '@/lib/utils';
@@ -62,6 +64,17 @@ export function ProductionTrackingTab() {
   const [updateDateInput, setUpdateDateInput] = useState(
     new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
   );
+
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const filteredData = productionTracking.filter(
     (item) =>
@@ -188,53 +201,65 @@ export function ProductionTrackingTab() {
 
                 {/* 7-Stage Visual Pipeline Stepper */}
                 <div className="space-y-1.5 pt-1 border-t">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      7-Stage Progress:
-                    </span>
+                  <div 
+                    className="flex items-center justify-between cursor-pointer hover:bg-muted/30 p-1 rounded -mx-1"
+                    onClick={() => toggleExpand(item.id)}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        7-Stage Progress:
+                      </span>
+                      {expandedCards.has(item.id) ? (
+                        <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </div>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       Stage {currentStageIdx + 1} of 7
                     </span>
                   </div>
 
-                  <div className="space-y-1">
-                    {STAGES_ORDER.map((stageName, sIdx) => {
-                      const isCompleted = sIdx < currentStageIdx;
-                      const isCurrent = sIdx === currentStageIdx;
+                  {expandedCards.has(item.id) && (
+                    <div className="space-y-1">
+                      {STAGES_ORDER.map((stageName, sIdx) => {
+                        const isCompleted = sIdx < currentStageIdx;
+                        const isCurrent = sIdx === currentStageIdx;
 
-                      return (
-                        <div
-                          key={stageName}
-                          className={`flex items-center justify-between text-xs py-0.5 px-2 rounded transition-colors ${
-                            isCurrent
-                              ? 'bg-primary/10 border border-primary/20 font-semibold'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {isCompleted ? (
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            ) : isCurrent ? (
-                              <Clock className="h-3 w-3 text-primary shrink-0 animate-pulse" />
-                            ) : (
-                              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30 ml-0.5 mr-1" />
+                        return (
+                          <div
+                            key={stageName}
+                            className={`flex items-center justify-between text-xs py-0.5 px-2 rounded transition-colors ${
+                              isCurrent
+                                ? 'bg-primary/10 border border-primary/20 font-semibold'
+                                : 'text-muted-foreground'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {isCompleted ? (
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              ) : isCurrent ? (
+                                <Clock className="h-3 w-3 text-primary shrink-0 animate-pulse" />
+                              ) : (
+                                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30 ml-0.5 mr-1" />
+                              )}
+                              <span className={isCompleted ? 'line-through text-muted-foreground/70' : ''}>
+                                {stageName}
+                              </span>
+                            </div>
+                            {isCurrent && (
+                              <Badge variant="outline" className="text-[9px] text-primary border-primary/30">
+                                Active
+                              </Badge>
                             )}
-                            <span className={isCompleted ? 'line-through text-muted-foreground/70' : ''}>
-                              {stageName}
-                            </span>
+                            {isCompleted && (
+                              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">Done</span>
+                            )}
                           </div>
-                          {isCurrent && (
-                            <Badge variant="outline" className="text-[9px] text-primary border-primary/30">
-                              Active
-                            </Badge>
-                          )}
-                          {isCompleted && (
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">Done</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}

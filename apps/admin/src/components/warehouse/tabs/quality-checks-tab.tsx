@@ -203,10 +203,6 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
             </SelectContent>
           </Select>
         </div>
-
-        <Button onClick={() => onOpenRecordQC()} className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" /> Record Inspection
-        </Button>
       </div>
 
       {/* Table */}
