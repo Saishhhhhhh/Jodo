@@ -482,12 +482,13 @@ export default function LeadsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Modals & Sheets below (unchanged structurally) */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 py-4 border-b">
-            <DialogTitle>Add New Lead</DialogTitle>
-          </DialogHeader>
+      {/* Modals & Sheets below */}
+      <Sheet open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto flex flex-col p-0">
+          <SheetHeader className="px-6 py-6 border-b">
+            <SheetTitle className="text-xl">Add New Lead</SheetTitle>
+            <SheetDescription>Enter the details for the new lead below.</SheetDescription>
+          </SheetHeader>
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
@@ -573,12 +574,12 @@ export default function LeadsPage() {
               />
             </div>
           </div>
-          <DialogFooter className="px-6 py-4 border-t bg-muted/20">
+          <div className="px-6 py-4 border-t bg-muted/20 flex justify-end gap-2 mt-auto">
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
             <Button onClick={handleCreate} disabled={createMutation.isPending}>Create Lead</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
