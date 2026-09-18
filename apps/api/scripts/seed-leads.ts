@@ -4,7 +4,7 @@ import { Lead } from '../src/models/Lead';
 import { Store } from '../src/models/Store';
 
 async function seed() {
-  await mongoose.connect(env.MONGO_URI);
+  await mongoose.connect(env.MONGODB_URI);
   console.log('Connected to DB');
 
   const store = await Store.findOne();

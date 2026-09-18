@@ -143,11 +143,13 @@ export const customersApi = {
   create: (data: any) => apiClient.post('/admin/customers', data),
   update: (id: string, data: any) => apiClient.put(`/admin/customers/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/customers/${id}`),
+  resetPassword: (id: string, data: { password: string }) => apiClient.post(`/admin/customers/${id}/reset-password`, data),
 };
 
 export const inventoryApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory', { params }),
   update: (id: string, data: any) => apiClient.put(`/admin/inventory/${id}`, data),
+  intelligence: () => apiClient.get('/admin/inventory/intelligence'),
 };
 
 export const inventoryIntelligenceApi = {
@@ -257,6 +259,8 @@ export const navigationApi = {
 };
 
 export const reportsApi = {
+  getDigest: () => apiClient.get('/admin/reports/digest'),
+  sendDigest: (targetPhone: string) => apiClient.post('/admin/reports/send-digest', { targetPhone }),
   summary: (params?: Record<string, unknown>) => apiClient.get('/admin/reports/summary', { params }),
   history: () => apiClient.get('/admin/reports/history'),
   get: (id: string) => apiClient.get(`/admin/reports/${id}`),

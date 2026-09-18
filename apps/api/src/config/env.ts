@@ -24,7 +24,14 @@ if (process.env.NODE_ENV !== 'production') {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const path = require('path');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+    const dotenv = require('dotenv');
+    dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+    if (!process.env.MONGODB_URI) {
+      dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+    }
+    if (!process.env.MONGODB_URI) {
+      dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+    }
   } catch {
     // dotenv optional
   }

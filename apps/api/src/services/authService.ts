@@ -1,6 +1,14 @@
 import { User, IUser } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { AuditLog } from '../models/AuditLog';
+import { Role } from '../models/Role';
+import { Tenant } from '../models/Tenant';
+import { Store } from '../models/Store';
+
+// Ensure models are registered with Mongoose
+void Role;
+void Tenant;
+void Store;
 import {
   signAccessToken,
   signRefreshToken,

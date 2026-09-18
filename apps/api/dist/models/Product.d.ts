@@ -1,0 +1,40 @@
+import mongoose, { Document } from 'mongoose';
+export interface IProduct extends Document {
+    tenantId: mongoose.Types.ObjectId;
+    storeId: mongoose.Types.ObjectId;
+    title: string;
+    slug: string;
+    status: 'draft' | 'active' | 'archived';
+    price: number;
+    compareAtPrice?: number;
+    sku?: string;
+    barcode?: string;
+    inventoryQuantity: number;
+    category: string;
+    vendor: string;
+    imageUrl?: string;
+    galleryImages?: string[];
+    model3dUrl?: string;
+    videoUrl?: string;
+    brochureUrl?: string;
+    material?: string;
+    dimensions?: string;
+    weight?: number;
+    assemblyRequired?: boolean;
+    shortDescription?: string;
+    longDescription?: string;
+    emiAvailable?: boolean;
+    emiStartingFrom?: number;
+    additionalOffers?: string[];
+    assemblyFee?: number;
+    careAndMaintenance?: string;
+    warrantyTerms?: string;
+    productDetails?: Record<string, string>;
+    specifications?: {
+        key: string;
+        value: string;
+    }[];
+    createdAt: Date;
+    updatedAt: Date;
+}
+export declare const Product: mongoose.Model<any, {}, {}, {}, any, any>;

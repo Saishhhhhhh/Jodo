@@ -1,230 +1,162 @@
-import { Router } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { Order } from '../models/Order';
-import { Customer } from '../models/Customer';
-import { InventoryItem } from '../models/InventoryItem';
-import { Product } from '../models/Product';
+import { Router, Request, Response } from 'express';
+import { requireAuth, requireTenant } from '../middleware/auth';
+import { sendSuccess, sendError } from '../utils/response';
 import mongoose from 'mongoose';
+import { Order } from '../models/Order';
+import { Lead } from '../models/Lead';
+import { Product } from '../models/Product';
+import { InteraktService } from '../services/interakt';
+import { Tenant } from '../models/Tenant';
 
 const router = Router();
 
-// Define Report schema and model inline if not created separately, or we can just create it.
-const reportSchema = new mongoose.Schema({
-  tenantId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  storeId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  name: { type: String, required: true },
-  type: { type: String, enum: ['daily', 'weekly', 'custom'], required: true },
-  dateRange: {
-    from: { type: Date, required: true },
-    to: { type: Date, required: true }
-  },
-  status: { type: String, enum: ['generating', 'completed', 'failed'], default: 'completed' },
-  data: { type: mongoose.Schema.Types.Mixed },
-  downloadUrl: { type: String },
-  createdAt: { type: Date, default: Date.now }
-});
+// Apply auth to all reports routes
+router.use(requireAuth, requireTenant);
 
-const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
+/**
+ * Helper to calculate start and end of dates
+ */
+const getStartOfDay = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
 
-// GET /api/reports/summary
-router.get('/summary', requireAuth, async (req: any, res) => {
+const getStartOfWeek = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay() || 7; 
+  if (day !== 1) d.setHours(-24 * (day - 1)); 
+  return d;
+};
+
+/**
+ * GET /api/admin/reports/digest
+ * Generates Daily and Weekly summaries
+ */
+router.get('/digest', async (req: Request, res: Response, next) => {
   try {
-    const { from, to } = req.query;
-    // req.auth is set by requireAuth middleware
-    const tenantId = new mongoose.Types.ObjectId(req.auth?.tenantId);
-    const storeId = new mongoose.Types.ObjectId(req.auth?.storeId || req.auth?.tenantId);
+    const tenantId = req.auth!.tenantId;
+    const storeId = req.auth!.storeId;
+    
+    const startOfToday = getStartOfDay();
+    const startOfWeek = getStartOfWeek();
 
-    let dateFilter: any = {};
-    if (from && to) {
-      const toDate = new Date(to as string);
-      toDate.setHours(23, 59, 59, 999);
-      dateFilter.createdAt = {
-        $gte: new Date(from as string),
-        $lte: toDate
-      };
-    }
+    // 1. Sales & Orders
+    const orders = await Order.find({ tenantId, storeId });
+    
+    const dailyOrders = orders.filter(o => new Date(o.createdAt) >= startOfToday);
+    const weeklyOrders = orders.filter(o => new Date(o.createdAt) >= startOfWeek);
+    
+    const dailyRevenue = dailyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+    const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
-    const baseFilter = { tenantId, storeId, ...dateFilter };
+    // 2. Leads & Follow-ups
+    const leads = await Lead.find({ tenantId, storeId });
+    
+    const dailyLeads = leads.filter(l => new Date(l.createdAt) >= startOfToday);
+    const weeklyLeads = leads.filter(l => new Date(l.createdAt) >= startOfWeek);
+    
+    const pendingFollowUps = leads.filter(l => 
+      l.followUpPriority === 'High' && 
+      l.status !== 'Won' && 
+      l.status !== 'Lost'
+    ).length;
 
-    // Sales Summary
-    const salesAgg = await Order.aggregate([
-      { $match: { ...baseFilter, status: { $ne: 'draft' } } },
-      { $group: { _id: null, totalRevenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
-    ]);
-    const sales = salesAgg[0] || { totalRevenue: 0, count: 0 };
-
-    // Quotations (Draft orders)
-    const quotationsCount = await Order.countDocuments({ ...baseFilter, status: 'draft' });
-
-    // Orders Summary
-    const ordersAgg = await Order.aggregate([
-      { $match: { ...baseFilter, status: { $ne: 'draft' } } },
-      { $group: { _id: "$paymentStatus", count: { $sum: 1 } } }
-    ]);
-    const ordersByStatus = ordersAgg.reduce((acc: any, curr: any) => {
-      acc[curr._id] = curr.count;
-      return acc;
-    }, {});
-
-    // Leads (Customers created)
-    const leadsCount = await Customer.countDocuments(baseFilter);
-
-    // Inventory
-    const inventoryAgg = await InventoryItem.aggregate([
-      { $match: { tenantId, storeId } }, // typically inventory is not date-bound for summary
-      { $group: { _id: null, totalQuantity: { $sum: "$available" }, count: { $sum: 1 } } }
-    ]);
-    const inventory = inventoryAgg[0] || { totalQuantity: 0, count: 0 };
-
-    res.json({
-      sales: {
-        totalRevenue: sales.totalRevenue,
-        totalOrders: sales.count,
-      },
-      leads: {
-        total: leadsCount,
-      },
-      inventory: {
-        totalItems: inventory.count,
-        totalQuantity: inventory.totalQuantity,
-      },
-      quotations: {
-        total: quotationsCount,
-      },
-      orders: {
-        total: sales.count,
-        byStatus: ordersByStatus,
-      },
-      supportCases: { total: 0, open: 0, resolved: 0 },
-      followUps: { pending: 0, overdue: 0 }
+    // 3. Inventory
+    const lowStockCount = await Product.countDocuments({
+      tenantId,
+      storeId,
+      status: 'active',
+      inventoryQuantity: { $lte: 15 } // Using 15 as standard fallback threshold
     });
-  } catch (error) {
-    console.error('Error fetching report summary:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
-// GET /api/reports/history
-router.get('/history', requireAuth, async (req: any, res) => {
-  try {
-    const storeId = new mongoose.Types.ObjectId(req.auth?.storeId || req.auth?.tenantId);
-    const reports = await Report.find({ storeId }).sort({ createdAt: -1 }).limit(50);
-    res.json(reports);
-  } catch (error) {
-    console.error('Error fetching report history:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+    // 4. Quotations & Support Cases (Stubbed for now as they are not implemented in core schema yet)
+    const quotations = { daily: 0, weekly: 0, pending: 0 };
+    const supportCases = { daily: 0, weekly: 0, open: 0 };
 
-// GET /api/reports/:id
-router.get('/:id', requireAuth, async (req: any, res) => {
-  try {
-    const storeId = new mongoose.Types.ObjectId(req.auth?.storeId || req.auth?.tenantId);
-    const report = await Report.findOne({ _id: req.params.id, storeId });
-    if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-    res.json(report);
-  } catch (error) {
-    console.error('Error fetching report:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// POST /api/reports/generate
-router.post('/generate', requireAuth, async (req: any, res) => {
-  try {
-    const { from, to, type } = req.body;
-    const storeId = new mongoose.Types.ObjectId(req.auth?.storeId || req.auth?.tenantId);
-    const tenantId = new mongoose.Types.ObjectId(req.auth?.tenantId);
-
-    let dateFilter: any = {};
-    if (from && to) {
-      const toDate = new Date(to as string);
-      toDate.setHours(23, 59, 59, 999);
-      dateFilter.createdAt = {
-        $gte: new Date(from as string),
-        $lte: toDate
-      };
-    }
-    const baseFilter = { tenantId, storeId, ...dateFilter };
-
-    const salesAgg = await Order.aggregate([
-      { $match: { ...baseFilter, status: { $ne: 'draft' } } },
-      { $group: { _id: null, totalRevenue: { $sum: "$totalAmount" }, count: { $sum: 1 } } }
-    ]);
-    const sales = salesAgg[0] || { totalRevenue: 0, count: 0 };
-    const quotationsCount = await Order.countDocuments({ ...baseFilter, status: 'draft' });
-    const ordersAgg = await Order.aggregate([
-      { $match: { ...baseFilter, status: { $ne: 'draft' } } },
-      { $group: { _id: "$paymentStatus", count: { $sum: 1 } } }
-    ]);
-    const ordersByStatus = ordersAgg.reduce((acc: any, curr: any) => {
-      acc[curr._id] = curr.count;
-      return acc;
-    }, {});
-    const leadsCount = await Customer.countDocuments(baseFilter);
-    const inventoryAgg = await InventoryItem.aggregate([
-      { $match: { tenantId, storeId } },
-      { $group: { _id: null, totalQuantity: { $sum: "$available" }, count: { $sum: 1 } } }
-    ]);
-    const inventory = inventoryAgg[0] || { totalQuantity: 0, count: 0 };
-
-    const data = {
-      sales: { totalRevenue: sales.totalRevenue, totalOrders: sales.count },
-      leads: { total: leadsCount },
-      inventory: { totalItems: inventory.count, totalQuantity: inventory.totalQuantity },
-      quotations: { total: quotationsCount },
-      orders: { total: sales.count, byStatus: ordersByStatus },
-      supportCases: { total: 0, open: 0, resolved: 0 },
-      followUps: { pending: 0, overdue: 0 },
-      details: {
-        orders: await Order.find({ ...baseFilter, status: { $ne: 'draft' } })
-          .select('orderNumber customerName totalAmount paymentStatus createdAt')
-          .sort({ createdAt: -1 }).limit(100),
-        quotations: await Order.find({ ...baseFilter, status: 'draft' })
-          .select('orderNumber customerName totalAmount createdAt')
-          .sort({ createdAt: -1 }).limit(100),
-        leads: await Customer.find(baseFilter)
-          .select('firstName lastName email createdAt')
-          .sort({ createdAt: -1 }).limit(100),
-        inventory: await InventoryItem.find({ tenantId, storeId })
-          .select('sku available reserved')
-          .sort({ available: 1 }).limit(100)
+    const payload = {
+      daily: {
+        revenue: dailyRevenue,
+        orders: dailyOrders.length,
+        newLeads: dailyLeads.length,
+        quotationsSent: quotations.daily,
+        supportCasesOpened: supportCases.daily
+      },
+      weekly: {
+        revenue: weeklyRevenue,
+        orders: weeklyOrders.length,
+        newLeads: weeklyLeads.length,
+        quotationsSent: quotations.weekly,
+        supportCasesOpened: supportCases.weekly
+      },
+      current: {
+        pendingFollowUps,
+        lowStockItems: lowStockCount,
+        openSupportCases: supportCases.open,
+        pendingQuotations: quotations.pending
       }
     };
 
-    const report = new Report({
-      tenantId,
-      storeId,
-      name: `Generated Report - ${type}`,
-      type: type || 'custom',
-      dateRange: { from: new Date(from), to: new Date(to) },
-      status: 'completed',
-      data
-    });
-
-    await report.save();
-
-    res.json(report);
-  } catch (error) {
-    console.error('Error generating report:', error);
-    res.status(500).json({ message: 'Server error' });
+    sendSuccess(res, payload);
+  } catch (err) {
+    next(err);
   }
 });
 
-// DELETE /api/reports/:id
-router.delete('/:id', requireAuth, async (req: any, res) => {
+/**
+ * POST /api/admin/reports/send-digest
+ * Triggers a WhatsApp message with the daily summary
+ */
+router.post('/send-digest', async (req: Request, res: Response, next) => {
   try {
-    const storeId = new mongoose.Types.ObjectId(req.auth?.storeId || req.auth?.tenantId);
-    const result = await Report.deleteOne({ _id: req.params.id, storeId });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'Report not found' });
+    const tenantId = req.auth!.tenantId;
+    const storeId = req.auth!.storeId;
+    
+    const tenant = await Tenant.findById(tenantId);
+    if (!tenant?.settings?.interaktApiKey) {
+      return sendError(res, 'Interakt is not configured for this tenant.', 400);
     }
-    res.json({ message: 'Report deleted' });
-  } catch (error) {
-    console.error('Error deleting report:', error);
-    res.status(500).json({ message: 'Server error' });
+
+    const { targetPhone } = req.body;
+    if (!targetPhone) {
+      return sendError(res, 'Target phone number is required to send digest.', 400);
+    }
+
+    const startOfToday = getStartOfDay();
+    
+    // Quick calculate daily metrics
+    const dailyOrders = await Order.find({ tenantId, storeId, createdAt: { $gte: startOfToday } });
+    const dailyRevenue = dailyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
+    
+    const dailyLeads = await Lead.countDocuments({ tenantId, storeId, createdAt: { $gte: startOfToday } });
+    const pendingFollowUps = await Lead.countDocuments({ tenantId, storeId, followUpPriority: 'High', status: { $nin: ['Won', 'Lost'] } });
+    
+    const lowStockCount = await Product.countDocuments({ tenantId, storeId, status: 'active', inventoryQuantity: { $lte: 15 } });
+
+    // Send via Interakt
+    const interakt = new InteraktService(tenant.settings.interaktApiKey);
+    
+    // Using standard message event since we don't have a specific template name guaranteed for this.
+    // In production, we'd use a template: await interakt.sendTemplateMessage(...)
+    // For MVP demonstration, we will send an event that can trigger a template in Interakt.
+    
+    await interakt.trackEvent({
+      userId: tenantId.toString(),
+      phoneNumber: targetPhone,
+      event: 'Daily_Digest_Generated',
+      traits: {
+        daily_revenue: dailyRevenue,
+        daily_orders: dailyOrders.length,
+        daily_leads: dailyLeads,
+        pending_followups: pendingFollowUps,
+        low_stock_alerts: lowStockCount
+      }
+    });
+
+    sendSuccess(res, null, 'Digest sent successfully via WhatsApp event.');
+  } catch (err) {
+    next(err);
   }
 });
 

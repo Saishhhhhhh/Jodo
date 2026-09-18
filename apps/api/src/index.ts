@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 
 import { env } from './config/env';
-import { connectDB } from './config/db';
+import { connectDB, isDbConnected } from './config/db';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 // Route imports
@@ -29,6 +29,14 @@ import reviewsRoutes from './routes/reviews';
 import returnsRoutes from './routes/returns';
 import segmentsRoutes from './routes/segments';
 import campaignsRoutes from './routes/campaigns';
+import './models/Tenant';
+import './models/Store';
+import './models/Role';
+import './models/User';
+import './models/InventoryItem';
+import './models/AuditLog';
+import './models/Media';
+import './models/Report';
 import bannersRoutes from './routes/banners';
 import mediaRoutes from './routes/media';
 import navigationRoutes from './routes/navigation';
@@ -74,12 +82,12 @@ app.use(
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // Max requests per window
+  max: env.NODE_ENV === 'development' ? 50000 : 500, // Generous limit in development for polling & hot reloading
   message: { success: false, message: 'Too many requests, please try again later' },
 });
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20, // Strict limit for auth endpoints
+  max: env.NODE_ENV === 'development' ? 200 : 20,
   message: { success: false, message: 'Too many login attempts' },
 });
 
@@ -103,6 +111,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
     status: 'ok',
+    database: isDbConnected() ? 'connected' : 'disconnected',
     version: '0.1.0',
     env: env.NODE_ENV,
     timestamp: new Date().toISOString(),
@@ -126,6 +135,7 @@ app.use('/api/admin/inventory/intelligence', inventoryIntelligenceRoutes);
 app.use('/api/admin/discounts', discountsRoutes);
 app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);
+app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/admin/collections', collectionsRoutes);
 app.use('/api/admin/gift-cards', giftCardsRoutes);

@@ -54,6 +54,7 @@ import {
   Copy,
   AlertTriangle,
   CheckCircle,
+  BarChart2,
   Warehouse,
   Factory,
   ClipboardCheck,
@@ -117,7 +118,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CheckSquare,
     children: [
       { label: 'Dashboard', href: '/tasks', icon: LayoutDashboard },
-      { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
+      { label: 'My Tasks', href: '/tasks/my-tasks', icon: User },
       { label: 'All Tasks', href: '/tasks/all-tasks', icon: FileText },
       { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users },
       { label: 'Overdue', href: '/tasks/overdue', icon: AlertTriangle },
@@ -128,8 +129,13 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'CRM / Leads',
-    href: '/leads',
     icon: Target,
+    href: '/leads',
+  },
+  {
+    label: 'Reports & Digest',
+    icon: BarChart2,
+    href: '/reports',
   },
   {
     label: 'Warehouse',
