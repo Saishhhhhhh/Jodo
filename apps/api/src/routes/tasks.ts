@@ -64,6 +64,7 @@ router.get('/', async (req: Request, res: Response) => {
       .populate('createdBy', 'name email avatarUrl')
       .populate('remarkUpdatedBy', 'name email avatarUrl')
       .populate('remarks.user', 'name email avatarUrl')
+      .populate('activities.user', 'name email avatarUrl')
       .sort({ createdAt: -1 });
 
     sendSuccess(res, tasks);
@@ -93,6 +94,7 @@ router.get('/my', async (req: Request, res: Response) => {
       .populate('assignedTo', 'name email avatarUrl')
       .populate('remarkUpdatedBy', 'name email avatarUrl')
       .populate('remarks.user', 'name email avatarUrl')
+      .populate('activities.user', 'name email avatarUrl')
       .sort({ dueDate: 1, createdAt: -1 });
 
     sendSuccess(res, tasks);
@@ -264,7 +266,8 @@ router.post('/', async (req: Request, res: Response) => {
       .populate('assignedTo', 'name email avatarUrl')
       .populate('createdBy', 'name email avatarUrl')
       .populate('remarkUpdatedBy', 'name email avatarUrl')
-      .populate('remarks.user', 'name email avatarUrl');
+      .populate('remarks.user', 'name email avatarUrl')
+      .populate('activities.user', 'name avatarUrl');
 
     sendSuccess(res, populatedTask, 'Task created successfully');
   } catch (error: any) {
