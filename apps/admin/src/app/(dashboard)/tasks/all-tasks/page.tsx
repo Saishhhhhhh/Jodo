@@ -22,7 +22,8 @@ export default function AllTasksPage() {
   const filteredTasks = allTasks.filter(t => {
     if (department !== 'All' && t.department !== department) return false;
     if (status !== 'All' && t.status !== status) return false;
-    if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !t.id.toLowerCase().includes(search.toLowerCase())) return false;
+    const idStr = String(t.id || (t as any)._id || '');
+    if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !idStr.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 

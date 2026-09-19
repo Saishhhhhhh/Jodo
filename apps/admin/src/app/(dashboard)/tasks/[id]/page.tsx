@@ -340,22 +340,38 @@ export default function TaskDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {task.activities?.map((activity, i) => (
-                  <div key={activity.id || i} className="p-3 rounded-lg border border-border bg-card/50 flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                      {((activity as any).user?.name || (activity as any).user || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-0.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold">{(activity as any).user?.name || (activity as any).user || 'System'}</span>
-                        <time className="text-[10px] text-muted-foreground">
-                          {activity.timestamp ? format(new Date(activity.timestamp), 'MMM d, h:mm a') : ''}
-                        </time>
+                {task.activities?.map((activity, i) => {
+                  const resolvedUser = (() => {
+                    const u = (activity as any).user;
+                    if (u && typeof u === 'object' && u.name) return u.name;
+                    if (typeof u === 'string') {
+                      if (/^[0-9a-fA-F]{24}$/.test(u)) {
+                        if ((task as any).assignedTo?.name && String((task as any).assignedTo._id || (task as any).assignedTo.id) === u) return (task as any).assignedTo.name;
+                        if ((task as any).createdBy?.name && String((task as any).createdBy._id || (task as any).createdBy.id) === u) return (task as any).createdBy.name;
+                        return 'Team Member';
+                      }
+                      return u;
+                    }
+                    return 'System';
+                  })();
+
+                  return (
+                    <div key={activity.id || i} className="p-3 rounded-lg border border-border bg-card/50 flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                        {resolvedUser.charAt(0).toUpperCase()}
                       </div>
-                      <p className="text-xs text-muted-foreground">{activity.action}</p>
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold">{resolvedUser}</span>
+                          <time className="text-[10px] text-muted-foreground">
+                            {activity.timestamp ? format(new Date(activity.timestamp), 'MMM d, h:mm a') : ''}
+                          </time>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{activity.action}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-4 flex gap-2">

@@ -10,6 +10,8 @@ import { format } from 'date-fns';
 import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 import { StatusRemarkModal } from './status-remark-modal';
 import { EditTaskModal } from './edit-task-modal';
 
@@ -29,30 +31,31 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
   };
 
   return (
-    <div className="border border-zinc-800 rounded-xl overflow-hidden bg-card">
+    <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
       <Table>
-        <TableHeader className="bg-muted/30 border-b border-zinc-800">
+        <TableHeader className="bg-muted/30 border-b border-border">
           <TableRow className="hover:bg-transparent">
-            <TableHead className="text-xs text-zinc-400 py-3">Task ID</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3">Title</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3">Assigned To</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3">Priority</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3">Status</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3 min-w-[220px]">Remark / Delay Reason</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3">Due Date</TableHead>
-            <TableHead className="text-xs text-zinc-400 py-3 text-right">Actions</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3">Task ID</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3">Title</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3">Assigned To</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3">Priority</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3">Status</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3 min-w-[220px]">Remark / Delay Reason</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3">Due Date</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3 text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tasks.map((t: any) => {
             const taskId = t._id || t.id;
             const isDelayed = t.status === 'Blocked' || (new Date(t.dueDate) < new Date() && t.status !== 'Completed' && t.status !== 'Closed');
+            const rawAssignee = t.assignedTo?.name || (typeof t.assignedTo === 'string' && !/^[0-9a-fA-F]{24}$/.test(t.assignedTo) ? t.assignedTo : 'Unassigned');
 
             return (
               <TableRow
                 key={taskId}
                 onClick={() => router.push(`/tasks/${taskId}`)}
-                className="cursor-pointer hover:bg-muted/10 transition-colors"
+                className="cursor-pointer hover:bg-muted/20 transition-colors border-border/40"
               >
                 <TableCell className="text-xs text-muted-foreground font-mono">
                   {taskId.toString().slice(-6)}
@@ -66,7 +69,14 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                 </TableCell>
 
                 <TableCell className="text-sm">
-                  {t.assignedTo?.name || t.assignedTo || 'Unassigned'}
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-5 w-5">
+                      <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
+                        {getInitials(rawAssignee)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-medium text-foreground">{rawAssignee}</span>
+                  </div>
                 </TableCell>
 
                 <TableCell>
