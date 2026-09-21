@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ProductCard from '../ProductCard';
 import { Filter, X, ChevronDown, Check } from 'lucide-react';
 
@@ -12,12 +13,17 @@ interface ProductData {
   compareAtPrice?: number;
   imageUrl?: string;
   inventoryQuantity: number;
+  category?: string;
+  material?: string;
+  tags?: string[];
+  assemblyRequired?: boolean;
   productDetails?: Record<string, string>;
   [key: string]: unknown;
 }
 
 interface ShopClientProps {
   initialProducts: ProductData[];
+  initialCategory?: string;
 }
 
 const PRICE_RANGES = [
@@ -26,7 +32,11 @@ const PRICE_RANGES = [
   { label: 'Over ₹50,000', min: 50000, max: Infinity },
 ];
 
-export default function ShopClient({ initialProducts }: ShopClientProps) {
+export default function ShopClient({ initialProducts, initialCategory }: ShopClientProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
@@ -52,6 +62,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'RetroHome',
       price: 399,
       compareAtPrice: 599,
+      category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 15,
       productDetails: { 'Room Type': 'Living Room' }
@@ -62,6 +73,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'IronCraft',
       price: 349,
       compareAtPrice: 499,
+      category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 8,
       productDetails: { 'Room Type': 'Study & Office' }
@@ -72,6 +84,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'ErgoMates',
       price: 199.5,
       compareAtPrice: 299,
+      category: 'Office',
       imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 24,
       productDetails: { 'Room Type': 'Study & Office' }
@@ -82,9 +95,32 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'SleepWell',
       price: 599,
       compareAtPrice: 899,
+      category: 'Bedroom',
       imageUrl: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 5,
       productDetails: { 'Room Type': 'Bedroom' }
+    },
+    {
+      _id: 'matt-mem-01',
+      title: 'Orthopedic Memory Foam Mattress',
+      vendor: 'SleepWell',
+      price: 399,
+      compareAtPrice: 549,
+      category: 'Mattresses',
+      imageUrl: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 20,
+      productDetails: { 'Room Type': 'Bedroom', 'Category': 'Mattresses' }
+    },
+    {
+      _id: 'matt-spr-02',
+      title: 'Dual Comfort Pocket Spring Mattress',
+      vendor: 'SleepWell',
+      price: 499,
+      compareAtPrice: 699,
+      category: 'Mattresses',
+      imageUrl: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 14,
+      productDetails: { 'Room Type': 'Bedroom', 'Category': 'Mattresses' }
     },
     {
       _id: '6a438dfe74b049d5bc53d51d',
@@ -92,6 +128,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'Jodo Living',
       price: 145,
       compareAtPrice: 199,
+      category: 'Bedroom',
       imageUrl: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 12,
       productDetails: { 'Room Type': 'Bedroom' }
@@ -102,6 +139,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'Plush Designs',
       price: 1450,
       compareAtPrice: 1950,
+      category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 4,
       productDetails: { 'Room Type': 'Living Room' }
@@ -112,6 +150,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'Jodo Living',
       price: 899,
       compareAtPrice: 1299,
+      category: 'Dining Room',
       imageUrl: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 7,
       productDetails: { 'Room Type': 'Dining' }
@@ -122,6 +161,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'ClearView',
       price: 249,
       compareAtPrice: 349,
+      category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 10,
       productDetails: { 'Room Type': 'Living Room' }
@@ -132,6 +172,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'Jodo Premium',
       price: 2499,
       compareAtPrice: 3199,
+      category: 'Dining Room',
       imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800&auto=format&fit=crop&q=80',
       inventoryQuantity: 3,
       productDetails: { 'Room Type': 'Dining' }
@@ -142,6 +183,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       vendor: 'Jodo Outdoors',
       price: 499,
       compareAtPrice: 699,
+      category: 'Outdoor',
       imageUrl: 'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?w=800&auto=format&fit=crop&q=80',
       galleryImages: [
         'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?w=800&auto=format&fit=crop&q=80',
@@ -158,11 +200,12 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
   const dynamicCategories = useMemo(() => {
     const cats = new Set<string>();
     displayProducts.forEach(p => {
+      if (p.category && typeof p.category === 'string') {
+        cats.add(p.category.trim());
+      }
       const roomType = p.productDetails?.['Room Type'];
-      if (roomType) {
-        cats.add(roomType);
-      } else if (p.category) {
-        cats.add(p.category as string);
+      if (roomType && typeof roomType === 'string') {
+        cats.add(roomType.trim());
       }
     });
     if (cats.size === 0) return ['Furniture'];
@@ -186,10 +229,79 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
     return Array.from(materials).sort();
   }, [displayProducts]);
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+  // Sync with URL query parameter ?category=...
+  const queryCategory = searchParams.get('category') || initialCategory || '';
+
+  useEffect(() => {
+    if (!queryCategory || queryCategory.toLowerCase() === 'all' || queryCategory.toLowerCase() === 'furniture') {
+      setSelectedCategories([]);
+      return;
+    }
+
+    const q = queryCategory.toLowerCase().trim();
+
+    if (q === 'mattresses' || q === 'mattress') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('mattress')) || 'Mattresses';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'sofas' || q === 'sofa' || q === 'seating') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('sofa') || c.toLowerCase().includes('living')) || 'Living Room';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'kitchen' || q === 'dining') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('dining') || c.toLowerCase().includes('kitchen')) || 'Dining Room';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'bedroom') {
+      const match = dynamicCategories.find(c => c.toLowerCase() === 'bedroom') || 'Bedroom';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'living-room' || q === 'living') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('living')) || 'Living Room';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'office' || q === 'study') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('office')) || 'Office';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'outdoor') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('outdoor')) || 'Outdoor';
+      setSelectedCategories([match]);
+      return;
+    }
+
+    // Direct match against dynamicCategories
+    const directMatch = dynamicCategories.find(
+      c => c.toLowerCase() === q || c.toLowerCase().replace(/\s+/g, '-') === q
     );
+    if (directMatch) {
+      setSelectedCategories([directMatch]);
+    } else {
+      setSelectedCategories([queryCategory]);
+    }
+  }, [queryCategory, dynamicCategories]);
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories(prev => {
+      const updated = prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat];
+      
+      const params = new URLSearchParams(searchParams.toString());
+      if (updated.length === 1) {
+        params.set('category', updated[0].toLowerCase().replace(/\s+/g, '-'));
+      } else {
+        params.delete('category');
+      }
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+
+      return updated;
+    });
   };
 
   const toggleVendor = (v: string) => {
@@ -198,6 +310,16 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
 
   const toggleMaterial = (m: string) => {
     setSelectedMaterials(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m]);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedCategories([]);
+    setSelectedVendors([]);
+    setSelectedMaterials([]);
+    setSelectedPriceRange(null);
+    setInStockOnly(false);
+    setAssemblyRequired(null);
+    router.replace(pathname, { scroll: false });
   };
 
   const filteredProducts = useMemo(() => {
@@ -230,14 +352,46 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
         if (requires !== assemblyRequired) return false;
       }
 
-      // Category Filter (Using Room Type from product details, or title fallback)
+      // Category Filter
       if (selectedCategories.length > 0) {
-        const roomType = p.productDetails?.['Room Type'];
-        const matchesCategory = selectedCategories.some(cat => {
-          if (roomType && roomType.toLowerCase().includes(cat.toLowerCase())) return true;
-          if (p.title.toLowerCase().includes(cat.toLowerCase())) return true;
+        const matchesCategory = selectedCategories.some(selectedCat => {
+          const sCat = selectedCat.toLowerCase().trim();
+          const pCat = (p.category as string || '').toLowerCase().trim();
+          const roomType = (p.productDetails?.['Room Type'] || '').toLowerCase().trim();
+          const title = (p.title || '').toLowerCase().trim();
+          const tags = Array.isArray(p.tags) ? p.tags.map(t => String(t).toLowerCase()) : [];
+
+          // Exact or substring match on Category
+          if (pCat && (pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat))) return true;
+
+          // Match on Room Type
+          if (roomType && (roomType === sCat || roomType.includes(sCat) || sCat.includes(roomType))) return true;
+
+          // Mattress specific semantic matching
+          if (sCat.includes('mattress')) {
+            if (pCat.includes('mattress') || title.includes('mattress')) return true;
+            return false;
+          }
+
+          // Sofa / Seating specific semantic matching
+          if (sCat.includes('sofa') || sCat.includes('seating')) {
+            if (title.includes('sofa') || title.includes('couch') || title.includes('lounge') || pCat.includes('sofa') || pCat.includes('seating')) return true;
+            return false;
+          }
+
+          // Kitchen & Dining specific semantic matching
+          if (sCat.includes('dining') || sCat.includes('kitchen')) {
+            if (pCat.includes('dining') || roomType.includes('dining') || title.includes('dining') || title.includes('kitchen')) return true;
+            return false;
+          }
+
+          // Direct title or tag match
+          if (title.includes(sCat)) return true;
+          if (tags.some(t => t.includes(sCat) || sCat.includes(t))) return true;
+
           return false;
         });
+
         if (!matchesCategory) return false;
       }
 
@@ -253,7 +407,6 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
       case 'Price: High to Low':
         return result.sort((a, b) => b.price - a.price);
       case 'Newest Arrivals':
-        // Mock newest sort by reversing the array (or we could use createdAt if it existed)
         return result.reverse();
       case 'Recommended':
       default:
@@ -275,10 +428,14 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                 checked={selectedCategories.includes(cat)}
                 onChange={() => toggleCategory(cat)}
               />
-              <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-sm bg-white">
-                {selectedCategories.includes(cat) && <Check size={14} className="text-black" strokeWidth={3} />}
+              <div className={`relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border rounded-sm transition-colors ${
+                selectedCategories.includes(cat) ? 'border-black bg-black' : 'border-gray-300 bg-white group-hover:border-gray-400'
+              }`}>
+                {selectedCategories.includes(cat) && <Check size={14} className="text-white" strokeWidth={3} />}
               </div>
-              <span className="text-[15px] text-black flex-1">{cat}</span>
+              <span className={`text-[15px] flex-1 ${selectedCategories.includes(cat) ? 'font-semibold text-black' : 'text-gray-700'}`}>
+                {cat}
+              </span>
             </label>
           ))}
         </div>
@@ -327,8 +484,10 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                   checked={selectedVendors.includes(vendor)}
                   onChange={() => toggleVendor(vendor)}
                 />
-                <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-sm bg-white">
-                  {selectedVendors.includes(vendor) && <Check size={14} className="text-black" strokeWidth={3} />}
+                <div className={`relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border rounded-sm transition-colors ${
+                  selectedVendors.includes(vendor) ? 'border-black bg-black' : 'border-gray-300 bg-white group-hover:border-gray-400'
+                }`}>
+                  {selectedVendors.includes(vendor) && <Check size={14} className="text-white" strokeWidth={3} />}
                 </div>
                 <span className="text-[15px] text-black flex-1">{vendor}</span>
               </label>
@@ -350,8 +509,10 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
                   checked={selectedMaterials.includes(mat)}
                   onChange={() => toggleMaterial(mat)}
                 />
-                <div className="relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border border-gray-300 rounded-sm bg-white">
-                  {selectedMaterials.includes(mat) && <Check size={14} className="text-black" strokeWidth={3} />}
+                <div className={`relative w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center border rounded-sm transition-colors ${
+                  selectedMaterials.includes(mat) ? 'border-black bg-black' : 'border-gray-300 bg-white group-hover:border-gray-400'
+                }`}>
+                  {selectedMaterials.includes(mat) && <Check size={14} className="text-white" strokeWidth={3} />}
                 </div>
                 <span className="text-[15px] text-black flex-1">{mat}</span>
               </label>
@@ -398,14 +559,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
           {filterContent}
           <div className="py-6">
             <button
-              onClick={() => {
-                setSelectedCategories([]);
-                setSelectedVendors([]);
-                setSelectedMaterials([]);
-                setSelectedPriceRange(null);
-                setInStockOnly(false);
-                setAssemblyRequired(null);
-              }}
+              onClick={clearAllFilters}
               className="w-full py-3.5 bg-gray-50 text-gray-800 rounded-xl font-medium hover:bg-gray-100 transition-colors"
             >
               Clear Filters
@@ -419,8 +573,26 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
 
         {/* Desktop Info & Sort Bar */}
         <div className="hidden md:flex items-center justify-between bg-transparent pb-6 mb-6 border-b border-gray-100">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className="font-medium text-gray-500 text-sm">Showing {filteredProducts.length} Products</span>
+            {selectedCategories.length > 0 && (
+              <div className="flex items-center gap-2">
+                {selectedCategories.map(cat => (
+                  <span key={cat} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-full">
+                    Category: {cat}
+                    <button onClick={() => toggleCategory(cat)} className="hover:text-black transition-colors" aria-label={`Remove ${cat} filter`}>
+                      <X size={13} />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  onClick={clearAllFilters}
+                  className="text-xs text-terracotta hover:underline font-medium ml-1"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="relative">
@@ -458,6 +630,23 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
           </div>
         </div>
 
+        {/* Mobile Active Filter Bar */}
+        {selectedCategories.length > 0 && (
+          <div className="md:hidden flex items-center gap-2 flex-wrap mb-4 px-1">
+            {selectedCategories.map(cat => (
+              <span key={cat} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-800 text-xs font-semibold rounded-full">
+                {cat}
+                <button onClick={() => toggleCategory(cat)} className="hover:text-black">
+                  <X size={13} />
+                </button>
+              </span>
+            ))}
+            <button onClick={clearAllFilters} className="text-xs text-terracotta hover:underline font-medium">
+              Clear
+            </button>
+          </div>
+        )}
+
         {/* Mobile Sticky Filter/Sort Bar */}
         <div className="md:hidden fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] z-40 bg-white rounded-full flex items-center shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden">
           <button
@@ -472,7 +661,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
             className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-gray-900 active:bg-gray-50 transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="4" y1="21" y2="14" /><line x1="4" x2="4" y1="10" y2="3" /><line x1="12" x2="12" y1="21" y2="12" /><line x1="12" x2="12" y1="8" y2="3" /><line x1="20" x2="20" y1="21" y2="16" /><line x1="20" x2="20" y1="12" y2="3" /><line x1="2" x2="6" y1="14" y2="14" /><line x1="10" x2="14" y1="8" y2="8" /><line x1="18" x2="22" y1="16" y2="16" /></svg>
-            Filter
+            Filter {selectedCategories.length > 0 && `(${selectedCategories.length})`}
           </button>
         </div>
 
@@ -554,10 +743,16 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
             </div>
 
             {/* Apply button at bottom of mobile drawer */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-white pb-safe">
+            <div className="px-6 py-4 border-t border-gray-100 bg-white pb-safe flex gap-3">
+              <button
+                onClick={clearAllFilters}
+                className="flex-1 py-3.5 bg-gray-100 text-gray-800 rounded-xl font-medium hover:bg-gray-200 transition-colors text-sm"
+              >
+                Reset
+              </button>
               <button
                 onClick={() => setIsFiltersOpen(false)}
-                className="w-full py-4 bg-[#1a1a1a] text-white rounded-xl font-medium hover:bg-black transition-colors"
+                className="flex-1 py-3.5 bg-[#1a1a1a] text-white rounded-xl font-medium hover:bg-black transition-colors text-sm"
               >
                 Apply Filters
               </button>
@@ -575,11 +770,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
               <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
               <p className="text-gray-500 max-w-md mx-auto mb-6">We couldn&apos;t find any products matching your current filters. Try adjusting your selections to see more results.</p>
               <button
-                onClick={() => {
-                  setSelectedCategories([]);
-                  setSelectedPriceRange(null);
-                  setInStockOnly(false);
-                }}
+                onClick={clearAllFilters}
                 className="px-6 py-2.5 bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
               >
                 Clear all filters
@@ -590,7 +781,7 @@ export default function ShopClient({ initialProducts }: ShopClientProps) {
               {sortedProducts.map((product) => {
                 const mappedProduct = {
                   id: product._id,
-                  brand: product.productDetails?.['Brand'] || product.vendor || 'Premium',
+                  brand: (product.productDetails as Record<string, string>)?.['Brand'] || product.vendor || 'JODO',
                   title: product.title,
                   rating: parseFloat((product.productDetails as Record<string, string>)?.['Product Rating'] || '4.5'),
                   reviews: 120,

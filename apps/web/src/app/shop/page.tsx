@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ShopClient from '../../components/shop/ShopClient';
 
 async function getProducts() {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/products`, {
-      next: { revalidate: 60 } // Revalidate every minute
+      cache: 'no-store'
     });
     if (!res.ok) {
       return [];
@@ -17,8 +17,13 @@ async function getProducts() {
   }
 }
 
-export default async function ShopPage() {
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams?: { category?: string; [key: string]: string | string[] | undefined };
+}) {
   const products = await getProducts();
+  const initialCategory = typeof searchParams?.category === 'string' ? searchParams.category : undefined;
   
   return (
     <div className="min-h-screen bg-white pt-20 md:pt-32 pb-12">
@@ -27,7 +32,9 @@ export default async function ShopPage() {
           <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-3 md:mb-4 tracking-tight">Shop Our Collection</h1>
           <p className="text-gray-500 max-w-xl text-base md:text-lg px-2">Discover premium furniture designed to elevate your living spaces.</p>
         </div>
-        <ShopClient initialProducts={products} />
+        <Suspense fallback={<div className="py-20 text-center text-gray-400">Loading collection...</div>}>
+          <ShopClient initialProducts={products} initialCategory={initialCategory} />
+        </Suspense>
       </div>
     </div>
   );
