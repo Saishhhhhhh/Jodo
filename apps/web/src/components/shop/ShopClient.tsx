@@ -192,6 +192,50 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
       ],
       inventoryQuantity: 9,
       productDetails: { 'Room Type': 'Outdoor' }
+    },
+    {
+      _id: 'decor-rug-01',
+      title: 'Handwoven Geometric Wool Rug',
+      vendor: 'JODO Living',
+      price: 149,
+      compareAtPrice: 219,
+      category: 'Home Decor',
+      imageUrl: 'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 18,
+      productDetails: { 'Room Type': 'Living Room', 'Category': 'Home Decor' }
+    },
+    {
+      _id: 'decor-mir-02',
+      title: 'Minimalist Walnut Wall Mirror',
+      vendor: 'JODO Living',
+      price: 89,
+      compareAtPrice: 129,
+      category: 'Home Decor',
+      imageUrl: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 25,
+      productDetails: { 'Room Type': 'Entryway & Living', 'Category': 'Home Decor' }
+    },
+    {
+      _id: 'light-arc-01',
+      title: 'Arc Floor Lamp with Marble Base',
+      vendor: 'ClearView',
+      price: 179,
+      compareAtPrice: 249,
+      category: 'Lamps & Lighting',
+      imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 15,
+      productDetails: { 'Room Type': 'Living Room', 'Category': 'Lamps & Lighting' }
+    },
+    {
+      _id: 'light-tab-02',
+      title: 'Nordic Ceramic Table Lamp',
+      vendor: 'ClearView',
+      price: 75,
+      compareAtPrice: 109,
+      category: 'Lamps & Lighting',
+      imageUrl: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 22,
+      productDetails: { 'Room Type': 'Bedroom & Living', 'Category': 'Lamps & Lighting' }
     }
   ];
 
@@ -272,6 +316,16 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
     }
     if (q === 'outdoor') {
       const match = dynamicCategories.find(c => c.toLowerCase().includes('outdoor')) || 'Outdoor';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'decor' || q === 'home-decor' || q === 'home decor') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('decor')) || 'Home Decor';
+      setSelectedCategories([match]);
+      return;
+    }
+    if (q === 'lighting' || q === 'lamps' || q === 'lamps-lighting') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('light') || c.toLowerCase().includes('lamp')) || 'Lamps & Lighting';
       setSelectedCategories([match]);
       return;
     }
@@ -382,6 +436,18 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
           // Kitchen & Dining specific semantic matching
           if (sCat.includes('dining') || sCat.includes('kitchen')) {
             if (pCat.includes('dining') || roomType.includes('dining') || title.includes('dining') || title.includes('kitchen')) return true;
+            return false;
+          }
+
+          // Home Decor specific semantic matching
+          if (sCat.includes('decor')) {
+            if (pCat.includes('decor') || roomType.includes('decor') || title.includes('rug') || title.includes('mirror') || title.includes('decor') || title.includes('vase')) return true;
+            return false;
+          }
+
+          // Lamps & Lighting specific semantic matching
+          if (sCat.includes('light') || sCat.includes('lamp')) {
+            if (pCat.includes('light') || pCat.includes('lamp') || title.includes('lamp') || title.includes('light')) return true;
             return false;
           }
 
