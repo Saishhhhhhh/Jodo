@@ -1,10 +1,37 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Instagram, Facebook, Twitter, Youtube, Mail, MapPin, Phone, ArrowUpRight } from 'lucide-react';
 
-// We will fetch these dynamically in the component
 type FooterLinks = {
   [key: string]: { label: string; href: string }[];
+};
+
+const DEFAULT_FOOTER_LINKS: FooterLinks = {
+  shop: [
+    { label: 'Living Room', href: '/products?category=living-room' },
+    { label: 'Bedroom', href: '/products?category=bedroom' },
+    { label: 'Dining Room', href: '/products?category=dining-room' },
+    { label: 'Kitchen', href: '/products?category=kitchen' },
+    { label: 'Office', href: '/products?category=office' },
+    { label: 'Outdoor', href: '/products?category=outdoor' },
+  ],
+  company: [
+    { label: 'About Jodo', href: '/about' },
+    { label: 'Our Story', href: '/about' },
+    { label: 'Blog', href: '#' },
+    { label: 'Careers', href: '#' },
+    { label: 'Press', href: '#' },
+  ],
+  support: [
+    { label: 'Help Center', href: '#' },
+    { label: 'Track Order', href: '#' },
+    { label: 'Returns & Refunds', href: '#' },
+    { label: 'Shipping Policy', href: '#' },
+    { label: 'Privacy Policy', href: '#' },
+  ],
 };
 
 const socials = [
@@ -14,31 +41,37 @@ const socials = [
   { Icon: Youtube,   href: '#', label: 'YouTube' },
 ];
 
-export default async function Footer() {
-  let dynamicFooterLinks: FooterLinks = {};
+export default function Footer() {
+  const [dynamicFooterLinks, setDynamicFooterLinks] = useState<FooterLinks>(DEFAULT_FOOTER_LINKS);
 
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-    const [shopRes, companyRes, supportRes] = await Promise.all([
-      fetch(`${baseUrl}/api/storefront/navigation/footer-shop`, { next: { revalidate: 60 } }),
-      fetch(`${baseUrl}/api/storefront/navigation/footer-company`, { next: { revalidate: 60 } }),
-      fetch(`${baseUrl}/api/storefront/navigation/footer-support`, { next: { revalidate: 60 } })
-    ]);
+  useEffect(() => {
+    const fetchFooterMenus = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const [shopRes, companyRes, supportRes] = await Promise.all([
+          fetch(`${baseUrl}/api/storefront/navigation/footer-shop`).then(r => r.ok ? r.json() : null),
+          fetch(`${baseUrl}/api/storefront/navigation/footer-company`).then(r => r.ok ? r.json() : null),
+          fetch(`${baseUrl}/api/storefront/navigation/footer-support`).then(r => r.ok ? r.json() : null)
+        ]);
 
-    const parseItems = async (res: Response) => {
-      if (!res.ok) return [];
-      const json = await res.json();
-      return (json.data?.items || []).map((i: any) => ({ label: i.label, href: i.url }));
+        const parseItems = (json: any) => (json?.data?.items || []).map((i: any) => ({ label: i.label, href: i.url }));
+
+        const shopItems = shopRes ? parseItems(shopRes) : [];
+        const companyItems = companyRes ? parseItems(companyRes) : [];
+        const supportItems = supportRes ? parseItems(supportRes) : [];
+
+        setDynamicFooterLinks({
+          shop: shopItems.length > 0 ? shopItems : DEFAULT_FOOTER_LINKS.shop,
+          company: companyItems.length > 0 ? companyItems : DEFAULT_FOOTER_LINKS.company,
+          support: supportItems.length > 0 ? supportItems : DEFAULT_FOOTER_LINKS.support,
+        });
+      } catch (error) {
+        // Fallback links already in place
+      }
     };
 
-    dynamicFooterLinks = {
-      shop: await parseItems(shopRes),
-      company: await parseItems(companyRes),
-      support: await parseItems(supportRes),
-    };
-  } catch (error) {
-    console.error('Failed to fetch footer menus:', error);
-  }
+    fetchFooterMenus();
+  }, []);
 
   return (
     <div className="px-5 md:px-10 pb-5 md:pb-10 pt-[50px]">
@@ -50,7 +83,7 @@ export default async function Footer() {
               <p className="text-white/80 text-xs font-medium uppercase tracking-widest mb-1">Join the Jodo Family</p>
               <h3 className="text-white text-xl lg:text-2xl font-bold">Get 10% off your first order</h3>
             </div>
-            <form className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full md:w-auto mt-2 md:mt-0">
+            <form className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full md:w-auto mt-2 md:mt-0" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"
                 placeholder="Enter your email address"
