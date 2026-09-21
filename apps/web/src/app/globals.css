@@ -88,6 +88,38 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(0);
 }
 
+/* Gallery & Thumbnail Animations */
+@keyframes heroFadeIn {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-hero-fade {
+  animation: heroFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes thumbActivePop {
+  0% {
+    transform: scale(0.96) translateY(0);
+  }
+  60% {
+    transform: scale(1.06) translateY(-4px);
+  }
+  100% {
+    transform: scale(1.03) translateY(-3px);
+  }
+}
+
+.animate-thumb-active {
+  animation: thumbActivePop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #FAF6F1; }

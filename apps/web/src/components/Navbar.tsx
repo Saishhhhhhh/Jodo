@@ -49,13 +49,13 @@ export default function Navbar() {
           {/* LEFT: Search Bar (Desktop) / Logo (Mobile) */}
           <div className="flex-1 flex justify-start items-center">
             {/* Logo on Mobile */}
-            <Link href="/" className="md:hidden flex items-center justify-start h-[75px] w-[160px] pt-[5px] -ml-14">
+            <Link href="/" className="md:hidden flex items-center justify-start h-full py-1">
               <Image
                 src="/logo.png"
                 alt="Jodo"
-                width={350}
-                height={90}
-                className="w-full h-auto object-contain object-left origin-left scale-[1.3]"
+                width={140}
+                height={45}
+                className="h-[44px] sm:h-[48px] w-auto object-contain transition-opacity hover:opacity-90"
                 priority
               />
             </Link>
@@ -71,14 +71,14 @@ export default function Navbar() {
           </div>
 
           {/* CENTER: Logo (Desktop Only) */}
-          <div className="hidden md:flex flex-1 justify-center h-full items-center">
-            <Link href="/" className="flex items-center justify-center h-[75px] overflow-hidden w-[260px] lg:w-[320px] pt-[5px]">
+          <div className="hidden md:flex flex-1 justify-center items-center h-full">
+            <Link href="/" className="flex items-center justify-center h-full py-1.5 group">
               <Image
                 src="/logo.png"
                 alt="Jodo"
-                width={350}
-                height={90}
-                className="w-full h-auto object-contain scale-110 origin-center"
+                width={220}
+                height={65}
+                className="h-[58px] lg:h-[64px] w-auto object-contain transition-opacity group-hover:opacity-90"
                 priority
               />
             </Link>

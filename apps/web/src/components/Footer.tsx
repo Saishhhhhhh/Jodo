@@ -71,15 +71,16 @@ export default async function Footer() {
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-10">
 
             {/* Brand column */}
-          <div className="col-span-2 lg:col-span-2 space-y-3">
-            <Link href="/" className="inline-block relative w-[180px] h-[50px] md:w-[220px] md:h-[60px] -ml-4">
-              <Image 
-                src="/logo.png" 
-                alt="Jodo" 
-                fill 
-                className="object-cover object-center brightness-0 invert drop-shadow-sm scale-[1.5]" 
-              />
-            </Link>
+            <div className="col-span-2 lg:col-span-2 space-y-3.5">
+              <Link href="/" className="inline-block pb-1">
+                <Image 
+                  src="/logo.png" 
+                  alt="Jodo" 
+                  width={150}
+                  height={45}
+                  className="h-[38px] md:h-[42px] w-auto object-contain brightness-0 invert opacity-95 transition-opacity hover:opacity-100" 
+                />
+              </Link>
               <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">
                 Crafting comfort and shaping style. Premium furniture and home decor that transforms every space into a place you&apos;ll love.
               </p>

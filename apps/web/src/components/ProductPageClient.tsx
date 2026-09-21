@@ -323,10 +323,11 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                 onClick={() => openLightbox(currentSlide)}
               >
                 <Image 
+                  key={currentSlide}
                   src={images[currentSlide] || ''} 
                   alt={`${product.title} - ${currentSlide + 1}`} 
                   fill 
-                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" 
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02] animate-hero-fade" 
                   unoptimized 
                   priority 
                 />
@@ -336,26 +337,26 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                   <>
                     <button 
                       onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-9 md:h-9 bg-white/85 hover:bg-white rounded-full flex items-center justify-center text-gray-800 shadow-sm transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 backdrop-blur-xs"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-9 md:h-9 bg-white/85 hover:bg-white rounded-full flex items-center justify-center text-gray-800 shadow-sm transition-all duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 backdrop-blur-xs hover:scale-105 active:scale-95"
                       aria-label="Previous image"
                     >
                       <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-9 md:h-9 bg-white/85 hover:bg-white rounded-full flex items-center justify-center text-gray-800 shadow-sm transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 backdrop-blur-xs"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-9 md:h-9 bg-white/85 hover:bg-white rounded-full flex items-center justify-center text-gray-800 shadow-sm transition-all duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 backdrop-blur-xs hover:scale-105 active:scale-95"
                       aria-label="Next image"
                     >
                       <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                     
                     {/* Dots for mobile */}
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 md:hidden">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 md:hidden bg-black/25 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
                       {images.map((_, idx) => (
                         <button 
                           key={idx}
                           onClick={(e) => { e.stopPropagation(); setCurrentSlide(idx); }}
-                          className={`h-1.5 rounded-full transition-all ${currentSlide === idx ? 'bg-black w-4' : 'bg-black/30 w-1.5'}`}
+                          className={`h-1.5 rounded-full transition-all duration-300 ease-out ${currentSlide === idx ? 'bg-white w-5 shadow-xs' : 'bg-white/50 w-1.5 hover:bg-white/80'}`}
                           aria-label={`Slide ${idx + 1}`}
                         />
                       ))}
@@ -366,16 +367,40 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
               {/* Thumbnail Navigation (Desktop) */}
               {images.length > 1 && (
-                <div className="hidden md:flex gap-2.5 overflow-x-auto hide-scrollbar pt-1">
-                  {images.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentSlide(idx)}
-                      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${currentSlide === idx ? 'border-terracotta opacity-100 shadow-xs ring-1 ring-terracotta/30' : 'border-gray-200/80 opacity-60 hover:opacity-100'}`}
-                    >
-                      <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />
-                    </button>
-                  ))}
+                <div className="hidden md:flex items-center gap-3 overflow-x-auto hide-scrollbar pt-2 pb-1.5 px-0.5">
+                  {images.map((img, idx) => {
+                    const isActive = currentSlide === idx;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentSlide(idx)}
+                        className={`group relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-300 ease-out focus:outline-none ${
+                          isActive
+                            ? 'border-terracotta -translate-y-1 shadow-md ring-2 ring-terracotta/30 scale-[1.03] animate-thumb-active'
+                            : 'border-gray-200/80 opacity-60 hover:opacity-100 hover:border-gray-400 hover:-translate-y-0.5 hover:shadow-xs active:scale-95'
+                        }`}
+                        aria-label={`View image ${idx + 1}`}
+                      >
+                        <Image 
+                          src={img} 
+                          alt={`Thumb ${idx + 1}`} 
+                          fill 
+                          className={`object-cover transition-transform duration-500 ease-out ${
+                            isActive ? 'scale-105' : 'group-hover:scale-115'
+                          }`} 
+                          unoptimized 
+                        />
+                        
+                        {/* Shimmer glaze on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+                        {/* Active indicator dot */}
+                        {isActive && (
+                          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3.5 h-1 bg-terracotta rounded-full shadow-xs transition-all duration-300" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -670,9 +695,9 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                 </div>
               )}
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold tracking-[0.18em] text-terracotta uppercase">{product.vendor || 'JODO'}</span>
-                <h3 className="text-lg md:text-xl font-bold tracking-tight text-gray-900 line-clamp-1">{product.title}</h3>
-                <span className="text-[11px] text-gray-400 mt-0.5">{product.sku ? `SKU: ${product.sku}` : (product.category || 'Product Specifications')}</span>
+                <span className="text-[11px] font-bold tracking-[0.18em] text-terracotta uppercase font-sans">{product.vendor || 'JODO'}</span>
+                <h3 className="text-xl md:text-2xl font-semibold tracking-tight text-gray-900 line-clamp-1 font-sans">{product.title}</h3>
+                <span className="text-xs text-gray-400 mt-0.5">{product.sku ? `SKU: ${product.sku}` : (product.category || 'Product Specifications')}</span>
               </div>
             </div>
             <button 
@@ -684,25 +709,25 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             </button>
           </div>
 
-          <div className="flex flex-col gap-5 pb-8">
+          <div className="flex flex-col gap-5 pb-8 font-sans">
             {/* ── Product Description ── */}
             {(product.longDescription || product.shortDescription) && (
               <div className="bg-[#faf8f5] rounded-2xl p-4 sm:p-5 border border-amber-900/5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-                  <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Sparkles className="w-4 h-4 text-terracotta" />
+                  <h4 className="text-xs font-bold tracking-[0.15em] uppercase text-gray-900 font-sans">
                     About The Design
                   </h4>
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {/* Lead descriptive paragraphs */}
                   {(product.longDescription || product.shortDescription)
                     ?.split('\n')
                     .map((l: string) => l.trim())
                     .filter((l: string) => Boolean(l) && !l.startsWith('•') && !l.startsWith('- ') && !l.startsWith('* '))
                     .map((para: string, idx: number) => (
-                      <p key={idx} className="text-[13px] md:text-sm text-gray-700 leading-relaxed font-light">
+                      <p key={idx} className="text-sm text-gray-700 leading-relaxed">
                         {para}
                       </p>
                     ))}
@@ -717,23 +742,23 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                     if (!bullets || bullets.length === 0) return null;
 
                     return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                         {bullets.map((bullet: string, bIdx: number) => {
                           const clean = bullet.replace(/^[•\-\*]\s*/, '');
                           const [featureTitle, ...featureDesc] = clean.split('—');
                           return (
-                            <div key={bIdx} className="flex items-start gap-2 p-2.5 bg-white rounded-lg border border-amber-900/5 shadow-xs">
-                              <div className="w-3.5 h-3.5 rounded-full bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0 mt-0.5">
-                                <Check className="w-2 h-2" />
+                            <div key={bIdx} className="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-amber-900/5 shadow-xs">
+                              <div className="w-4 h-4 rounded-full bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0 mt-0.5">
+                                <Check className="w-2.5 h-2.5" />
                               </div>
                               <div className="flex flex-col">
                                 {featureDesc.length > 0 ? (
                                   <>
-                                    <span className="text-[11px] font-semibold text-gray-900 leading-tight">{featureTitle.trim()}</span>
-                                    <span className="text-[10px] text-gray-500 leading-snug mt-0.5">{featureDesc.join('—').trim()}</span>
+                                    <span className="text-xs md:text-[13px] font-semibold text-gray-900 leading-snug">{featureTitle.trim()}</span>
+                                    <span className="text-[11px] md:text-xs text-gray-500 leading-relaxed mt-0.5">{featureDesc.join('—').trim()}</span>
                                   </>
                                 ) : (
-                                  <span className="text-[11px] text-gray-800 leading-tight">{clean}</span>
+                                  <span className="text-xs md:text-[13px] font-medium text-gray-800 leading-snug">{clean}</span>
                                 )}
                               </div>
                             </div>
@@ -749,14 +774,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             {/* ── Overview Specifications ── */}
             {product.productDetails && Object.keys(product.productDetails).length > 0 && (
               <div>
-                <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900 border-b border-gray-100 pb-2 mb-2.5">
+                <h4 className="text-xs font-bold tracking-[0.15em] uppercase text-gray-900 font-sans border-b border-gray-100 pb-2 mb-3">
                   Overview
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {Object.entries(product.productDetails).map(([key, value]) => (
-                    <div key={key} className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-0.5">
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{key}</span>
-                      <span className="text-xs md:text-[13px] font-semibold text-gray-900 truncate" title={String(value)}>{String(value)}</span>
+                    <div key={key} className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{key}</span>
+                      <span className="text-xs md:text-sm font-semibold text-gray-900 leading-snug break-words">{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -766,14 +791,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             {/* ── Materials & Build ── */}
             {product.specifications && product.specifications.length > 0 && (
               <div>
-                <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900 border-b border-gray-100 pb-2 mb-2.5">
+                <h4 className="text-xs font-bold tracking-[0.15em] uppercase text-gray-900 font-sans border-b border-gray-100 pb-2 mb-3">
                   Materials & Build
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {product.specifications.map((spec: any, i: number) => (
-                    <div key={i} className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-0.5">
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{spec.key}</span>
-                      <span className="text-xs md:text-[13px] font-medium text-gray-900 leading-snug">{spec.value}</span>
+                    <div key={i} className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{spec.key}</span>
+                      <span className="text-xs md:text-sm font-semibold text-gray-900 leading-snug break-words">{spec.value}</span>
                     </div>
                   ))}
                 </div>
@@ -783,26 +808,26 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             {/* ── Care & Warranty ── */}
             {(product.careAndMaintenance || product.warrantyTerms) && (
               <div>
-                <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900 border-b border-gray-100 pb-2 mb-2.5">
+                <h4 className="text-xs font-bold tracking-[0.15em] uppercase text-gray-900 font-sans border-b border-gray-100 pb-2 mb-3">
                   Care & Warranty
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {product.careAndMaintenance && (
-                    <div className="p-3 rounded-xl bg-amber-50/30 border border-amber-900/5 flex flex-col gap-1">
+                    <div className="p-3.5 rounded-xl bg-amber-50/30 border border-amber-900/5 flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3 h-3 text-terracotta" />
-                        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Care</span>
+                        <Sparkles className="w-3.5 h-3.5 text-terracotta" />
+                        <span className="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Care Instructions</span>
                       </div>
-                      <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
+                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
                     </div>
                   )}
                   {product.warrantyTerms && (
-                    <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-1">
+                    <div className="p-3.5 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-1.5">
                       <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Warranty</span>
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Warranty Policy</span>
                       </div>
-                      <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
+                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
                     </div>
                   )}
                 </div>

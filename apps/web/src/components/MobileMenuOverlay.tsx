@@ -26,13 +26,14 @@ export default function MobileMenuOverlay({ isOpen, onClose, menuItems }: Mobile
           >
             
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-2 border-b border-gray-100 shrink-0">
-              <Link href="/" onClick={onClose} className="block w-[160px] h-[36px] flex items-center relative -ml-8">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 shrink-0">
+              <Link href="/" onClick={onClose} className="flex items-center h-[38px]">
                 <Image
                   src="/logo.png"
                   alt="Jodo"
-                  fill
-                  className="object-contain object-left scale-[2.8] origin-left"
+                  width={120}
+                  height={38}
+                  className="h-[36px] w-auto object-contain"
                   priority
                 />
               </Link>
