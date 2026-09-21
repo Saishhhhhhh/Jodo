@@ -510,45 +510,6 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             </div>
           )}
 
-          {/* Quick Care, Warranty & Where To Use Highlight Cards */}
-          <div className="grid grid-cols-3 gap-2 w-full max-w-lg mb-4">
-            <button 
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 p-2.5 rounded-xl bg-sky-50/50 hover:bg-sky-50 border border-sky-100 transition-all text-left group cursor-pointer hover:shadow-xs"
-            >
-              <div className="w-7 h-7 rounded-lg bg-sky-100/80 text-sky-600 flex items-center justify-center shrink-0">
-                <Droplets className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-sky-600">Care</span>
-                <span className="text-xs font-semibold text-gray-900 truncate">Easy Clean</span>
-              </div>
-            </button>
-            <button 
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100 transition-all text-left group cursor-pointer hover:shadow-xs"
-            >
-              <div className="w-7 h-7 rounded-lg bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Warranty</span>
-                <span className="text-xs font-semibold text-gray-900 truncate">5-Yr Covered</span>
-              </div>
-            </button>
-            <button 
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-100 transition-all text-left group cursor-pointer hover:shadow-xs"
-            >
-              <div className="w-7 h-7 rounded-lg bg-amber-100/80 text-terracotta flex items-center justify-center shrink-0">
-                <Home className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700">Where To Use</span>
-                <span className="text-xs font-semibold text-gray-900 truncate">{product.productDetails?.['Room Type'] || product.category || 'Bedroom'}</span>
-              </div>
-            </button>
-          </div>
 
           {/* View Details Trigger */}
           <button 
