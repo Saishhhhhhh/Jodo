@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Box, Smartphone, X, ChevronRight, ChevronLeft, Info, Plus, Star } from 'lucide-react';
+import { ArrowLeft, Box, Smartphone, X, ChevronRight, ChevronLeft, Info, Plus, Star, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
 
 interface ProductPageClientProps {
@@ -16,6 +16,10 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
   const searchParams = useSearchParams();
   const [showModal, setShowModal] = useState(false);
   const [show3D, setShow3D] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const modelViewerRef = useRef<any>(null);
@@ -39,14 +43,10 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
   // Reviews State
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsMeta, setReviewsMeta] = useState({ totalReviews: 0, averageRating: 0 });
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 0, authorName: '', authorEmail: '', title: '', body: '' });
   const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSliderHovered, setIsSliderHovered] = useState(false);
-
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -208,8 +208,6 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxOpen, images.length]);
-
-  const [showQRModal, setShowQRModal] = useState(false);
 
   const handleARClick = () => {
     if (typeof window !== 'undefined' && window.innerWidth > 768) {
@@ -651,102 +649,157 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           scrollbar-width: none !important;
         }
       `}</style>
-      <div className={`fixed inset-0 z-[100] flex justify-end bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
+      <div className={`fixed inset-0 z-[100] flex justify-end bg-black/30 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
         <div 
-          className={`w-full max-w-[700px] md:max-w-[820px] lg:max-w-[900px] h-full bg-white shadow-2xl p-6 md:p-12 lg:p-16 flex flex-col overflow-y-auto hide-scrollbar drawer-clean-scroll transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} 
+          className={`w-full max-w-[700px] md:max-w-[820px] lg:max-w-[880px] h-full bg-white shadow-2xl p-6 md:p-8 lg:p-10 flex flex-col overflow-y-auto hide-scrollbar drawer-clean-scroll transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} 
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onClick={e => e.stopPropagation()}
         >
-          <div className="flex justify-between items-center mb-8 md:mb-12 border-b border-gray-100 pb-6">
-            <div>
-              <span className="text-[11px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-1 block">{product.vendor}</span>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4 mb-8 pb-6 border-b border-gray-100">
+            <div className="flex items-center gap-4">
+              {product.imageUrl && (
+                <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-[#efeeea] shrink-0 border border-gray-100 shadow-sm">
+                  <Image src={product.imageUrl} alt={product.title} fill className="object-cover" unoptimized />
+                </div>
+              )}
+              <div className="flex flex-col">
+                <span className="text-[11px] font-bold tracking-[0.2em] text-terracotta uppercase">{product.vendor || 'JODO'}</span>
+                <h3 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900 line-clamp-1">{product.title}</h3>
+                <span className="text-xs text-gray-400 mt-0.5">{product.sku ? `SKU: ${product.sku}` : (product.category || 'Product Specifications')}</span>
+              </div>
             </div>
-            <button onClick={() => setShowModal(false)} className="p-2 -mr-2 text-gray-400 hover:text-black transition-colors flex-shrink-0">
-              <X className="w-6 h-6 md:w-8 md:h-8 font-light" strokeWidth={1} />
+            <button 
+              onClick={() => setShowModal(false)} 
+              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors flex items-center justify-center shrink-0"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="flex flex-col gap-10 md:gap-14 pb-16">
+          <div className="flex flex-col gap-8 md:gap-10 pb-16">
+            {/* ── Product Description ── */}
             {(product.longDescription || product.shortDescription) && (
-              <div>
-                <h4 className="text-[11px] font-bold tracking-[0.18em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5 flex items-center gap-2">
-                  <span>Product Description</span>
-                </h4>
-                <div className="text-[15px] md:text-base text-gray-600 leading-relaxed space-y-3.5">
+              <div className="bg-gradient-to-br from-[#faf8f5] to-[#f4f0e8] rounded-3xl p-6 md:p-7 border border-amber-900/10 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center gap-2 mb-3.5">
+                  <Sparkles className="w-4 h-4 text-terracotta" />
+                  <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900">
+                    About The Design
+                  </h4>
+                </div>
+
+                <div className="space-y-3.5">
+                  {/* Lead descriptive paragraphs */}
                   {(product.longDescription || product.shortDescription)
                     ?.split('\n')
-                    .map((line) => line.trim())
-                    .filter(Boolean)
-                    .map((paragraph, idx) => {
-                      if (paragraph.startsWith('•') || paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
-                        const cleanText = paragraph.replace(/^[•\-\*]\s*/, '');
-                        return (
-                          <div key={idx} className="flex items-start gap-2.5 pl-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0 mt-2.5" />
-                            <span className="text-gray-700 leading-relaxed">{cleanText}</span>
-                          </div>
-                        );
-                      }
-                      return (
-                        <p key={idx} className="leading-relaxed text-gray-600">
-                          {paragraph}
-                        </p>
-                      );
-                    })}
+                    .map((l: string) => l.trim())
+                    .filter((l: string) => Boolean(l) && !l.startsWith('•') && !l.startsWith('- ') && !l.startsWith('* '))
+                    .map((para: string, idx: number) => (
+                      <p key={idx} className="text-[14px] md:text-[15px] text-gray-700 leading-relaxed font-light">
+                        {para}
+                      </p>
+                    ))}
+
+                  {/* Bullet points rendered as a structured 2-column feature card grid */}
+                  {(() => {
+                    const bullets = (product.longDescription || product.shortDescription)
+                      ?.split('\n')
+                      .map((l: string) => l.trim())
+                      .filter((l: string) => l.startsWith('•') || l.startsWith('- ') || l.startsWith('* '));
+
+                    if (!bullets || bullets.length === 0) return null;
+
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                        {bullets.map((bullet: string, bIdx: number) => {
+                          const clean = bullet.replace(/^[•\-\*]\s*/, '');
+                          const [featureTitle, ...featureDesc] = clean.split('—');
+                          return (
+                            <div key={bIdx} className="flex items-start gap-2.5 p-3 bg-white/90 backdrop-blur-sm rounded-xl border border-amber-900/5 shadow-xs">
+                              <div className="w-4 h-4 rounded-full bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0 mt-0.5">
+                                <Check className="w-2.5 h-2.5" />
+                              </div>
+                              <div className="flex flex-col">
+                                {featureDesc.length > 0 ? (
+                                  <>
+                                    <span className="text-xs font-semibold text-gray-900 leading-snug">{featureTitle.trim()}</span>
+                                    <span className="text-[11px] text-gray-500 leading-relaxed mt-0.5">{featureDesc.join('—').trim()}</span>
+                                  </>
+                                ) : (
+                                  <span className="text-xs text-gray-800 leading-snug">{clean}</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
 
+            {/* ── Overview Specifications ── */}
             {product.productDetails && Object.keys(product.productDetails).length > 0 && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">
+                <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 border-b border-gray-100 pb-3 mb-4">
                   Overview
                 </h4>
-                <div className="flex flex-col">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(product.productDetails).map(([key, value]) => (
-                    <div key={key} className="flex justify-between items-center py-3 md:py-4 border-b border-gray-100">
-                      <span className="text-[14px] md:text-[15px] text-gray-500">{key}</span>
-                      <span className="text-[14px] md:text-[15px] font-medium text-[#1a1a1a] text-right">{String(value)}</span>
+                    <div key={key} className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{key}</span>
+                      <span className="text-sm font-medium text-gray-900">{String(value)}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* ── Materials & Build ── */}
             {product.specifications && product.specifications.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">
+                <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 border-b border-gray-100 pb-3 mb-4">
                   Materials & Build
                 </h4>
-                <div className="flex flex-col">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {product.specifications.map((spec: any, i: number) => (
-                    <div key={i} className="flex flex-col py-3 md:py-4 border-b border-gray-100 gap-1 md:gap-1.5">
-                      <span className="text-[12px] md:text-[13px] font-medium text-gray-500">{spec.key}</span>
-                      <span className="text-[14px] md:text-[15px] text-[#1a1a1a] leading-relaxed">{spec.value}</span>
+                    <div key={i} className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{spec.key}</span>
+                      <span className="text-sm font-medium text-gray-900 leading-relaxed">{spec.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* ── Care & Warranty ── */}
             {(product.careAndMaintenance || product.warrantyTerms) && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">
+                <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 border-b border-gray-100 pb-3 mb-4">
                   Care & Warranty
                 </h4>
-                {product.careAndMaintenance && (
-                  <div className="mb-6 md:mb-8 pt-2">
-                    <span className="text-[14px] md:text-[15px] font-bold text-[#1a1a1a] block mb-2 md:mb-3">Care Instructions</span>
-                    <p className="text-[14px] md:text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
-                  </div>
-                )}
-                {product.warrantyTerms && (
-                  <div className="pt-2">
-                    <span className="text-[14px] md:text-[15px] font-bold text-[#1a1a1a] block mb-2 md:mb-3">Warranty terms</span>
-                    <p className="text-[14px] md:text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
-                  </div>
-                )}
+                <div className="grid grid-cols-1 gap-3.5">
+                  {product.careAndMaintenance && (
+                    <div className="p-4 rounded-2xl bg-amber-50/40 border border-amber-900/5 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-terracotta" />
+                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Care Instructions</span>
+                      </div>
+                      <p className="text-[13px] md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
+                    </div>
+                  )}
+                  {product.warrantyTerms && (
+                    <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Warranty Terms</span>
+                      </div>
+                      <p className="text-[13px] md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
