@@ -279,19 +279,19 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       </div>
 
       {/* ── Minimal Top Nav ── */}
-      <div className="absolute top-0 left-0 w-full z-30 p-6 flex justify-between items-center mix-blend-difference text-white">
-        <Link href="/" className="inline-flex items-center text-sm font-medium hover:opacity-70 transition-opacity">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Shop
+      <div className="max-w-[1240px] mx-auto px-5 pt-4 pb-2">
+        <Link href="/" className="inline-flex items-center text-xs md:text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Shop
         </Link>
       </div>
 
       {/* ── 1. Product Layout (Gallery + Details) ── */}
-      <div className="max-w-[1400px] mx-auto px-5 pt-4 md:pt-[50px] pb-12 lg:grid lg:grid-cols-2 lg:gap-12 lg:items-start">
+      <div className="max-w-[1240px] mx-auto px-5 pt-2 pb-10 lg:grid lg:grid-cols-[460px_1fr] xl:grid-cols-[500px_1fr] lg:gap-10 xl:gap-14 lg:items-start">
         
         {/* Left Column: Image Carousel / 3D Viewer */}
-        <div className="w-full mb-8 lg:mb-0 lg:sticky lg:top-[120px]">
+        <div className="w-full max-w-[460px] xl:max-w-[500px] mx-auto lg:mx-0 mb-6 lg:mb-0 lg:sticky lg:top-[100px]">
           {show3D ? (
-            <div className="w-full aspect-[4/5] md:aspect-square relative bg-gray-100 flex items-center justify-center rounded-2xl overflow-hidden">
+            <div className="w-full aspect-[4/3] max-h-[380px] md:max-h-[400px] relative bg-[#f6f5f2] flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100">
               <model-viewer
                 ref={modelViewerRef}
                 src={product.model3dUrl || '/wooden_sofa/scene.gltf'}
@@ -306,24 +306,27 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               >
                 <button 
                   slot="ar-button" 
-                  style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)' }}
-                  className="bg-gray-900 text-white px-6 py-3 rounded-full font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
+                  style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)' }}
+                  className="bg-gray-900 text-white px-5 py-2.5 rounded-full text-xs font-medium shadow-xl flex items-center gap-2 hover:bg-black transition-colors z-50 whitespace-nowrap"
                 >
-                  <Smartphone className="w-5 h-5" /> View in your room
+                  <Smartphone className="w-4 h-4" /> View in your room
                 </button>
               </model-viewer>
-              <button onClick={() => setShow3D(false)} className="absolute top-6 right-6 z-50 bg-black/50 text-white backdrop-blur-md p-3 rounded-full hover:bg-black transition-colors">
-                <X className="w-6 h-6" />
+              <button onClick={() => setShow3D(false)} className="absolute top-4 right-4 z-50 bg-black/50 text-white backdrop-blur-md p-2 rounded-full hover:bg-black transition-colors">
+                <X className="w-5 h-5" />
               </button>
             </div>
           ) : (
-            <div className="w-full flex flex-col gap-4">
-              <div className="relative w-full aspect-[4/5] md:aspect-square bg-[#efeeea] rounded-2xl overflow-hidden group cursor-pointer" onClick={() => openLightbox(currentSlide)}>
+            <div className="w-full flex flex-col gap-3">
+              <div 
+                className="relative w-full aspect-[4/3] max-h-[380px] md:max-h-[400px] bg-[#f6f5f2] rounded-2xl overflow-hidden group cursor-pointer border border-gray-100 shadow-xs" 
+                onClick={() => openLightbox(currentSlide)}
+              >
                 <Image 
                   src={images[currentSlide] || ''} 
                   alt={`${product.title} - ${currentSlide + 1}`} 
                   fill 
-                  className="object-cover" 
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" 
                   unoptimized 
                   priority 
                 />
@@ -333,24 +336,27 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                   <>
                     <button 
                       onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-black shadow-sm transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-9 md:h-9 bg-white/85 hover:bg-white rounded-full flex items-center justify-center text-gray-800 shadow-sm transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 backdrop-blur-xs"
+                      aria-label="Previous image"
                     >
-                      <ChevronLeft className="w-6 h-6" />
+                      <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center text-black shadow-sm transition-colors opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 md:w-9 md:h-9 bg-white/85 hover:bg-white rounded-full flex items-center justify-center text-gray-800 shadow-sm transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100 backdrop-blur-xs"
+                      aria-label="Next image"
                     >
-                      <ChevronRight className="w-6 h-6" />
+                      <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                     
                     {/* Dots for mobile */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 md:hidden">
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 md:hidden">
                       {images.map((_, idx) => (
                         <button 
                           key={idx}
                           onClick={(e) => { e.stopPropagation(); setCurrentSlide(idx); }}
-                          className={`w-2 h-2 rounded-full transition-all ${currentSlide === idx ? 'bg-black w-4' : 'bg-black/30'}`}
+                          className={`h-1.5 rounded-full transition-all ${currentSlide === idx ? 'bg-black w-4' : 'bg-black/30 w-1.5'}`}
+                          aria-label={`Slide ${idx + 1}`}
                         />
                       ))}
                     </div>
@@ -360,12 +366,12 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
 
               {/* Thumbnail Navigation (Desktop) */}
               {images.length > 1 && (
-                <div className="hidden md:flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                <div className="hidden md:flex gap-2.5 overflow-x-auto hide-scrollbar pt-1">
                   {images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
-                      className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${currentSlide === idx ? 'border-terracotta opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${currentSlide === idx ? 'border-terracotta opacity-100 shadow-xs ring-1 ring-terracotta/30' : 'border-gray-200/80 opacity-60 hover:opacity-100'}`}
                     >
                       <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" unoptimized />
                     </button>
@@ -377,41 +383,41 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
         </div>
 
         {/* Right Column: Product Details */}
-        <div className="w-full flex flex-col items-start text-left lg:pt-4">
-          <span className="text-[11px] md:text-xs font-bold tracking-[0.2em] text-gray-400 uppercase mb-3 md:mb-4">{product.vendor}</span>
+        <div className="w-full flex flex-col items-start text-left lg:pt-1">
+          <span className="text-[11px] font-bold tracking-[0.2em] text-terracotta uppercase mb-2">{product.vendor}</span>
           
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 leading-tight tracking-tight mb-4 md:mb-6">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-medium text-gray-900 leading-tight tracking-tight mb-3">
             {product.title}
           </h1>
 
-          <p className="text-gray-500 leading-relaxed font-light text-[15px] md:text-lg mb-6 md:mb-8 max-w-xl">
+          <p className="text-gray-500 leading-relaxed font-light text-[14px] md:text-[15px] mb-4 max-w-lg">
             {product.shortDescription || 'Experience a new level of sophistication and comfort, crafted specifically for your space.'}
           </p>
           
-          <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
-            <span className="text-3xl md:text-4xl font-medium text-gray-900 tracking-tight">₹{totalPrice.toLocaleString('en-IN')}</span>
+          <div className="flex items-baseline gap-3 mb-5">
+            <span className="text-2xl md:text-3xl font-semibold text-gray-900 tracking-tight">₹{totalPrice.toLocaleString('en-IN')}</span>
             {totalComparePrice && (
-              <span className="text-lg md:text-xl text-gray-400 line-through">₹{totalComparePrice.toLocaleString('en-IN')}</span>
+              <span className="text-base md:text-lg text-gray-400 line-through">₹{totalComparePrice.toLocaleString('en-IN')}</span>
             )}
           </div>
 
           {/* Addons Selection */}
           {product.addons && product.addons.length > 0 && (
-            <div className="w-full max-w-md mb-8">
-              <h3 className="text-[13px] md:text-sm font-bold tracking-[0.1em] text-gray-900 uppercase mb-4">Complete your setup</h3>
-              <div className="flex flex-col gap-3">
+            <div className="w-full max-w-md mb-5">
+              <h3 className="text-xs font-bold tracking-[0.1em] text-gray-900 uppercase mb-3">Complete your setup</h3>
+              <div className="flex flex-col gap-2.5">
                 {product.addons.map((addon: any) => (
-                  <label key={addon._id} className={`flex items-center justify-between p-3 md:p-4 border rounded-xl cursor-pointer transition-all ${selectedAddons.includes(addon._id) ? 'border-terracotta bg-terracotta/5' : 'border-gray-200 hover:border-gray-300'}`}>
-                    <div className="flex items-center gap-3 md:gap-4">
-                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                  <label key={addon._id} className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${selectedAddons.includes(addon._id) ? 'border-terracotta bg-terracotta/5' : 'border-gray-200 hover:border-gray-300'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                         <Image src={addon.imageUrl} alt={addon.title} fill className="object-cover" unoptimized />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[13px] md:text-sm font-medium text-gray-900 line-clamp-1">{addon.title}</span>
-                        <span className="text-[12px] md:text-sm text-gray-500">+ ₹{addon.price?.toLocaleString('en-IN') || addon.price}</span>
+                        <span className="text-xs md:text-sm font-medium text-gray-900 line-clamp-1">{addon.title}</span>
+                        <span className="text-[11px] md:text-xs text-gray-500">+ ₹{addon.price?.toLocaleString('en-IN') || addon.price}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-center w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-gray-300 shrink-0 ml-4 relative">
+                    <div className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-300 shrink-0 ml-4 relative">
                        <input 
                          type="checkbox" 
                          className="opacity-0 absolute inset-0 cursor-pointer"
@@ -421,7 +427,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                            else setSelectedAddons(selectedAddons.filter(id => id !== addon._id));
                          }}
                        />
-                       {selectedAddons.includes(addon._id) && <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-terracotta" />}
+                       {selectedAddons.includes(addon._id) && <div className="w-2.5 h-2.5 rounded-full bg-terracotta" />}
                     </div>
                   </label>
                 ))}
@@ -429,8 +435,8 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-start gap-4 w-full max-w-md mb-8">
-            <div className="w-full h-12 md:h-14 [&>div]:h-full [&>div]:mb-0 [&_button]:h-full [&_button]:rounded-full [&_button]:text-[13px] md:[&_button]:text-lg">
+          <div className="flex flex-col sm:flex-row items-start gap-3 w-full max-w-md mb-4">
+            <div className="w-full h-11 md:h-12 [&>div]:h-full [&>div]:mb-0 [&_button]:h-full [&_button]:rounded-full [&_button]:text-xs md:[&_button]:text-sm">
               <ProductActions 
                 product={{ id: product._id, title: product.title, price: product.price, imageUrl: product.imageUrl, brand: product.vendor }} 
                 addons={selectedAddonsData.map((a: any) => ({ id: a._id, title: a.title, price: a.price, imageUrl: a.imageUrl, brand: a.vendor }))}
@@ -438,28 +444,28 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3 md:gap-4 justify-start mb-8">
+          <div className="flex flex-wrap gap-2.5 justify-start mb-5">
             <button 
               onClick={() => {
                 setShow3D(true);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }} 
-              className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-jodo-dark rounded-full font-medium transition-colors shadow-xs text-xs md:text-sm"
             >
-              <Box className="w-4 h-4 md:w-5 md:h-5" /> <span>View in 3D</span>
+              <Box className="w-4 h-4" /> <span>View in 3D</span>
             </button>
             <button 
               onClick={handleARClick} 
-              className="flex items-center gap-2 px-5 py-3 md:px-6 md:py-3 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-sm text-[13px] md:text-base"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-terracotta hover:bg-[#b54a2e] text-white rounded-full font-medium transition-colors shadow-xs text-xs md:text-sm"
             >
-              <Smartphone className="w-4 h-4 md:w-5 md:h-5" /> <span>AR Try-on</span>
+              <Smartphone className="w-4 h-4" /> <span>AR Try-on</span>
             </button>
           </div>
 
           {(videoId || product.brochureUrl) && (
-            <div className="w-full flex flex-col gap-6 mb-8 max-w-xl">
+            <div className="w-full flex flex-col gap-4 mb-5 max-w-lg">
               {videoId && (
-                <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gray-100">
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-100">
                   <iframe 
                     src={`https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`} 
                     title="Product Video" 
@@ -471,7 +477,7 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               )}
               {product.brochureUrl && (
                 <div className="flex gap-4">
-                  <a href={product.brochureUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-4 px-6 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+                  <a href={product.brochureUrl} target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-3 px-5 border border-gray-300 rounded-xl text-xs font-medium hover:bg-gray-50 transition-colors">
                     DOWNLOAD BROCHURE
                   </a>
                 </div>
@@ -482,10 +488,10 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
           {/* View Details Trigger */}
           <button 
             onClick={() => setShowModal(true)}
-            className="flex items-center justify-between w-full max-w-xl border-b border-gray-200 pb-4 group hover:border-gray-900 transition-colors text-left"
+            className="flex items-center justify-between w-full max-w-lg py-3.5 border-t border-b border-gray-200 group hover:border-gray-900 transition-colors text-left"
           >
-            <span className="text-lg font-medium text-gray-900">View detailed specifications</span>
-            <Plus className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
+            <span className="text-sm md:text-base font-medium text-gray-900">View detailed specifications</span>
+            <Plus className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
           </button>
         </div>
       </div>
