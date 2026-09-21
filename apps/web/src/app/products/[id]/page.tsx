@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { networkInterfaces } from 'os';
 import ProductPageClient from '@/components/ProductPageClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface ProductData {
   _id: string;
   title: string;
@@ -52,6 +55,7 @@ const fallbackProduct: ProductData = {
     'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=2400&auto=format&fit=crop&q=80'
   ],
   shortDescription: 'Experience a new level of sophistication and comfort, crafted specifically for your space.',
+  longDescription: 'Crafted with premium materials and timeless aesthetics, this piece seamlessly integrates sophisticated craftsmanship with everyday comfort. Built to last with durable materials, high-density cushioning, and engineered stability for modern living.',
   emiAvailable: true,
   emiStartingFrom: 2305,
   additionalOffers: [
@@ -87,6 +91,8 @@ async function getProductById(id: string): Promise<ProductData | null> {
         return {
           ...fallbackProduct,
           ...data,
+          shortDescription: (data.shortDescription && data.shortDescription.trim()) || fallbackProduct.shortDescription,
+          longDescription: (data.longDescription && data.longDescription.trim()) || fallbackProduct.longDescription || '',
           galleryImages: data.galleryImages?.length ? data.galleryImages : fallbackProduct.galleryImages,
           productDetails: data.productDetails && Object.keys(data.productDetails).length > 0 ? data.productDetails : fallbackProduct.productDetails,
           specifications: data.specifications?.length ? data.specifications : fallbackProduct.specifications,

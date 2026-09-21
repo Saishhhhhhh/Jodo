@@ -25,6 +25,17 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
     setMounted(true);
   }, []);
 
+  // Lock body scroll when any modal or drawer is open so the window scrollbar vanishes
+  useEffect(() => {
+    if (showModal || showReviewModal || showQRModal || lightboxOpen) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [showModal, showReviewModal, showQRModal, lightboxOpen]);
+
   // Reviews State
   const [reviews, setReviews] = useState<any[]>([]);
   const [reviewsMeta, setReviewsMeta] = useState({ totalReviews: 0, averageRating: 0 });
@@ -614,16 +625,79 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       </div>
 
       {/* ── Hidden Details Modal (Drawer style) ── */}
+      <style>{`
+        .drawer-clean-scroll::-webkit-scrollbar,
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none !important;
+          width: 0px !important;
+          height: 0px !important;
+          background: transparent !important;
+        }
+        .drawer-clean-scroll::-webkit-scrollbar-thumb,
+        .hide-scrollbar::-webkit-scrollbar-thumb {
+          display: none !important;
+          background: transparent !important;
+          border: none !important;
+        }
+        .drawer-clean-scroll::-webkit-scrollbar-track,
+        .hide-scrollbar::-webkit-scrollbar-track {
+          display: none !important;
+          background: transparent !important;
+          border: none !important;
+        }
+        .drawer-clean-scroll,
+        .hide-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}</style>
       <div className={`fixed inset-0 z-[100] flex justify-end bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
-        <div className={`w-full max-w-[500px] h-full bg-white shadow-2xl p-6 md:p-12 flex flex-col overflow-y-auto transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} onClick={e => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-10 md:mb-16">
-            <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
+        <div 
+          className={`w-full max-w-[700px] md:max-w-[820px] lg:max-w-[900px] h-full bg-white shadow-2xl p-6 md:p-12 lg:p-16 flex flex-col overflow-y-auto hide-scrollbar drawer-clean-scroll transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} 
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-8 md:mb-12 border-b border-gray-100 pb-6">
+            <div>
+              <span className="text-[11px] font-bold tracking-[0.2em] text-gray-400 uppercase mb-1 block">{product.vendor}</span>
+              <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-[#1a1a1a]">Specifications</h3>
+            </div>
             <button onClick={() => setShowModal(false)} className="p-2 -mr-2 text-gray-400 hover:text-black transition-colors flex-shrink-0">
               <X className="w-6 h-6 md:w-8 md:h-8 font-light" strokeWidth={1} />
             </button>
           </div>
 
-          <div className="flex flex-col gap-10 md:gap-14 pb-12">
+          <div className="flex flex-col gap-10 md:gap-14 pb-16">
+            {(product.longDescription || product.shortDescription) && (
+              <div>
+                <h4 className="text-[11px] font-bold tracking-[0.18em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5 flex items-center gap-2">
+                  <span>Product Description</span>
+                </h4>
+                <div className="text-[15px] md:text-base text-gray-600 leading-relaxed space-y-3.5">
+                  {(product.longDescription || product.shortDescription)
+                    ?.split('\n')
+                    .map((line) => line.trim())
+                    .filter(Boolean)
+                    .map((paragraph, idx) => {
+                      if (paragraph.startsWith('•') || paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+                        const cleanText = paragraph.replace(/^[•\-\*]\s*/, '');
+                        return (
+                          <div key={idx} className="flex items-start gap-2.5 pl-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-terracotta shrink-0 mt-2.5" />
+                            <span className="text-gray-700 leading-relaxed">{cleanText}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <p key={idx} className="leading-relaxed text-gray-600">
+                          {paragraph}
+                        </p>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
             {product.productDetails && Object.keys(product.productDetails).length > 0 && (
               <div>
                 <h4 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[#1a1a1a] border-b border-gray-200 pb-3 mb-4 md:mb-5">

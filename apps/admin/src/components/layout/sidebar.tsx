@@ -325,13 +325,13 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
               <Store className="w-4 h-4 text-primary-foreground" />
             </div>
           ) : (
-            <div className="relative w-[160px] h-[50px] flex items-center justify-start -ml-2">
+            <Link href="/" className="flex items-center">
               <img
                 src={(user as any)?.adminLogoUrl ? getImageUrl((user as any).adminLogoUrl) : "/logo.png"}
                 alt="Jodo"
-                className="w-full h-full object-contain object-left origin-left scale-[1.25]"
+                className="h-10 w-auto max-w-[190px] object-contain"
               />
-            </div>
+            </Link>
           )}
         </div>
 

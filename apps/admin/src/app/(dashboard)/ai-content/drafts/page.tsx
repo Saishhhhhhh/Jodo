@@ -154,15 +154,15 @@ export default function DraftsPage() {
           <table className="w-full text-xs text-left">
             <thead className="bg-muted/40 border-b text-muted-foreground uppercase tracking-wider text-[11px] font-semibold">
               <tr>
-                <th className="py-3 px-4">Content ID</th>
-                <th className="py-3 px-4">Content Type</th>
-                <th className="py-3 px-4">Product / Campaign</th>
-                <th className="py-3 px-4">Title</th>
-                <th className="py-3 px-4">Created By</th>
-                <th className="py-3 px-4">Created Date</th>
-                <th className="py-3 px-4">Quality</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-4 whitespace-nowrap">Content ID</th>
+                <th className="py-3 px-4 whitespace-nowrap">Content Type</th>
+                <th className="py-3 px-4 whitespace-nowrap">Product / Campaign</th>
+                <th className="py-3 px-4 whitespace-nowrap">Title</th>
+                <th className="py-3 px-4 whitespace-nowrap">Created By</th>
+                <th className="py-3 px-4 whitespace-nowrap">Created Date</th>
+                <th className="py-3 px-4 whitespace-nowrap">Quality</th>
+                <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -185,9 +185,9 @@ export default function DraftsPage() {
                       </Badge>
                     </td>
 
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-foreground">{item.productName}</div>
-                      {item.sku && <span className="text-[10px] text-muted-foreground">{item.sku}</span>}
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="font-semibold text-foreground whitespace-nowrap">{item.productName}</div>
+                      {item.sku && <span className="text-[10px] text-muted-foreground whitespace-nowrap">{item.sku}</span>}
                     </td>
 
                     <td className="py-3 px-4 max-w-xs">

@@ -52,21 +52,21 @@ export interface IAiContent extends Document {
 const aiContentSchema = new Schema<IAiContent>(
   {
     contentId: { type: String, required: true, unique: true, index: true },
-    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant' },
-    storeId: { type: Schema.Types.ObjectId, ref: 'Store' },
+    tenantId: { type: Schema.Types.Mixed, ref: 'Tenant' },
+    storeId: { type: Schema.Types.Mixed, ref: 'Store' },
     contentType: {
       type: String,
       enum: ['product_description', 'catalogue_content', 'listing_copy', 'campaign_content'],
       required: true,
       index: true,
     },
-    productId: { type: Schema.Types.ObjectId, ref: 'Product', index: true },
+    productId: { type: Schema.Types.Mixed, ref: 'Product', index: true },
     productName: { type: String },
     sku: { type: String },
     category: { type: String },
     price: { type: Number },
     imageUrl: { type: String },
-    campaignId: { type: Schema.Types.ObjectId, ref: 'Campaign' },
+    campaignId: { type: Schema.Types.Mixed, ref: 'Campaign' },
     campaignName: { type: String },
     title: { type: String, required: true },
     generatedContent: { type: Schema.Types.Mixed, required: true },
@@ -105,5 +105,12 @@ const aiContentSchema = new Schema<IAiContent>(
   },
   { timestamps: true }
 );
+
+aiContentSchema.pre('validate', function (next) {
+  if (!this.contentId) {
+    this.contentId = `AIC-2026-${Date.now().toString().slice(-4)}`;
+  }
+  next();
+});
 
 export const AiContent = mongoose.models.AiContent || mongoose.model<IAiContent>('AiContent', aiContentSchema);

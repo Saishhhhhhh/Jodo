@@ -288,3 +288,19 @@ export const leadsApi = {
   update: (id: string, data: any) => apiClient.put(`/admin/leads/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/leads/${id}`),
 };
+
+export const aiContentApi = {
+  dashboard: () => apiClient.get('/admin/ai-content/dashboard'),
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/ai-content', { params }),
+  get: (id: string) => apiClient.get(`/admin/ai-content/${id}`),
+  generate: (data: any) => apiClient.post('/admin/ai-content/generate', data),
+  regenerate: (id: string, data: any) => apiClient.post(`/admin/ai-content/${id}/regenerate`, data),
+  update: (id: string, data: any) => apiClient.put(`/admin/ai-content/${id}`, data),
+  submitForReview: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/submit-review`, data),
+  approve: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/approve`, data),
+  reject: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/reject`, data),
+  requestChanges: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/request-changes`, data),
+  publish: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/publish`, data),
+  delete: (id: string) => apiClient.delete(`/admin/ai-content/${id}`),
+};
+

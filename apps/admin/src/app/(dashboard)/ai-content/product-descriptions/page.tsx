@@ -1,13 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Sparkles,
   Package,
@@ -17,11 +27,35 @@ import {
   Tag,
   ArrowRight,
   ShieldCheck,
+  RefreshCw,
+  Plus,
+  Search,
+  Database,
+  ExternalLink,
+  ChevronDown,
 } from 'lucide-react';
 import { useAiContentStore, AiContentItem } from '@/stores/ai-content';
 import { ContentEditorPanel } from '@/components/ai-content/content-editor-panel';
+import { productsApi, aiContentApi } from '@/lib/api-client';
 
-const CMS_PRODUCTS_LIST = [
+export interface NormalizedProduct {
+  id: string;
+  title: string;
+  sku: string;
+  category: string;
+  price: number;
+  material: string;
+  colour: string;
+  design: string;
+  collection: string;
+  imageUrl: string;
+  keyFeatures: string;
+  targetAudience: string;
+  existingDescription: string;
+  isDb?: boolean;
+}
+
+const FALLBACK_PRESETS: NormalizedProduct[] = [
   {
     id: 'prod_101',
     title: 'Aurelia Minimalist Teak Armchair',
@@ -36,6 +70,7 @@ const CMS_PRODUCTS_LIST = [
     keyFeatures: 'Solid teakwood joinery, textured boucle, high-density ergonomic core, 5-year warranty',
     targetAudience: 'Discerning homeowners and boutique luxury hotels',
     existingDescription: 'Scandinavian style teakwood lounge chair with textured upholstery and ergonomic form.',
+    isDb: false,
   },
   {
     id: 'prod_102',
@@ -51,6 +86,7 @@ const CMS_PRODUCTS_LIST = [
     keyFeatures: 'Concealed cantilever base, 450kg load rating, acoustic dampening birch slats',
     targetAudience: 'Urban homeowners upgrading to Japanese minimalist master bedrooms',
     existingDescription: 'Floating platform bedframe in solid oak with concealed cantilevered pedestal base.',
+    isDb: false,
   },
   {
     id: 'prod_103',
@@ -66,6 +102,7 @@ const CMS_PRODUCTS_LIST = [
     keyFeatures: '30mm Carrara marble slab, brass fluted columns, seats 8-10 guests, stain resistant seal',
     targetAudience: 'Architects, interior designers, and luxury estate homeowners',
     existingDescription: 'Eight-seater dining table with continuous Carrara marble slab and cast brass fluted columns.',
+    isDb: false,
   },
   {
     id: 'prod_104',
@@ -81,6 +118,7 @@ const CMS_PRODUCTS_LIST = [
     keyFeatures: 'Breathable woven cane webbing, soft-close German hinges, concealed cable management',
     targetAudience: 'Minimalist living rooms and contemporary media rooms',
     existingDescription: 'Hexagonal woven cane sideboard with soft close hinges and concealed cable ports.',
+    isDb: false,
   },
 ];
 
@@ -88,14 +126,126 @@ const TONE_OPTIONS = ['Premium', 'Luxury', 'Elegant', 'Professional', 'Friendly'
 const LENGTH_OPTIONS: ('Short' | 'Medium' | 'Detailed')[] = ['Short', 'Medium', 'Detailed'];
 
 export default function ProductDescriptionsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const queryProductId = searchParams.get('productId');
 
   const { items, selectedItemId, generateContent } = useAiContentStore();
 
-  // Find initial product based on query param or default
-  const [selectedProduct, setSelectedProduct] = useState(
-    CMS_PRODUCTS_LIST.find((p) => p.id === queryProductId) || CMS_PRODUCTS_LIST[0]
+  // Search filter for dropdown list
+  const [productSearch, setProductSearch] = useState('');
+
+  // 1. Fetch live products from database
+  const {
+    data: dbProductsRaw = [],
+    isLoading: isLoadingProducts,
+    isRefetching: isRefetchingProducts,
+    refetch: refetchProducts,
+  } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const res = await productsApi.list();
+      return res.data.data;
+    },
+  });
+
+  // Normalize DB products
+  const dbProducts = useMemo<NormalizedProduct[]>(() => {
+    if (!Array.isArray(dbProductsRaw)) return [];
+    return dbProductsRaw.map((p: any) => {
+      // Build keyFeatures from specs or shortDescription or dimensions
+      let features = '';
+      if (p.specifications && Array.isArray(p.specifications) && p.specifications.length > 0) {
+        features = p.specifications
+          .map((s: any) => `${s.key}: ${s.value}`)
+          .join(', ');
+      } else if (p.shortDescription) {
+        features = p.shortDescription;
+      } else {
+        const parts = [
+          p.material,
+          p.dimensions ? `Dimensions: ${p.dimensions}` : null,
+          p.assemblyRequired ? 'Assembly required' : 'Fully assembled',
+          p.tags && p.tags.length ? p.tags.join(', ') : null,
+        ].filter(Boolean);
+        features = parts.join(', ') || 'Solid craftsmanship, premium materials, high durability';
+      }
+
+      // Extract colour/finish
+      const colour =
+        p.colour ||
+        p.productDetails?.colour ||
+        p.productDetails?.color ||
+        p.productDetails?.finish ||
+        (p.specifications?.find(
+          (s: any) =>
+            s.key?.toLowerCase().includes('color') ||
+            s.key?.toLowerCase().includes('colour') ||
+            s.key?.toLowerCase().includes('finish')
+        )?.value) ||
+        'Natural / Standard';
+
+      const material =
+        p.material ||
+        p.productDetails?.material ||
+        (p.specifications?.find((s: any) =>
+          s.key?.toLowerCase().includes('material')
+        )?.value) ||
+        'Premium Quality Wood & Metal';
+
+      const collection =
+        p.collection ||
+        (p.vendor ? `${p.vendor} Line` : `${p.category || 'Jodo'} Collection`);
+
+      const targetAudience =
+        p.targetAudience ||
+        (p.category === 'Office'
+          ? 'Corporate professionals, remote teams, and home office designers'
+          : p.category === 'Bedroom'
+          ? 'Homeowners looking for modern bedroom comfort and minimalist aesthetics'
+          : p.category === 'Dining Room' || p.category === 'Dining'
+          ? 'Families, hosts, and interior decorators seeking timeless dining pieces'
+          : 'Modern homeowners and interior designers seeking elegant living aesthetics');
+
+      return {
+        id: p._id || p.id,
+        title: p.title || 'Untitled Product',
+        sku: p.sku || 'JD-SKU-000',
+        category: p.category || 'Furniture',
+        price: Number(p.price) || 0,
+        material,
+        colour,
+        design: p.design || `${p.category || 'Modern'} Architectural`,
+        collection,
+        imageUrl: p.imageUrl || (p.galleryImages && p.galleryImages[0]) || '',
+        keyFeatures: features,
+        targetAudience,
+        existingDescription: p.longDescription || p.shortDescription || '',
+        isDb: true,
+      };
+    });
+  }, [dbProductsRaw]);
+
+  // Combined product catalog
+  const allProducts = useMemo<NormalizedProduct[]>(() => {
+    return [...dbProducts, ...FALLBACK_PRESETS];
+  }, [dbProducts]);
+
+  // Filtered products for dropdown search
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return allProducts;
+    const q = productSearch.toLowerCase();
+    return allProducts.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+    );
+  }, [allProducts, productSearch]);
+
+  // Find initial product based on query param or first available
+  const [selectedProduct, setSelectedProduct] = useState<NormalizedProduct>(
+    FALLBACK_PRESETS[0]
   );
 
   // Editable fields (auto-populated from CMS)
@@ -120,7 +270,7 @@ export default function ProductDescriptionsPage() {
   const resultRef = useRef<HTMLDivElement>(null);
 
   // When product selection changes, update inputs
-  const handleProductSelect = (p: typeof CMS_PRODUCTS_LIST[0]) => {
+  const handleProductSelect = (p: NormalizedProduct) => {
     setSelectedProduct(p);
     setProductName(p.title);
     setCategory(p.category);
@@ -131,37 +281,111 @@ export default function ProductDescriptionsPage() {
     setPrice(String(p.price));
     setKeyFeatures(p.keyFeatures);
     setTargetAudience(p.targetAudience);
+
+    // Auto-update SEO keywords based on selected product
+    const keywords = [
+      p.title,
+      p.category,
+      p.material ? p.material.split(/[,&]/)[0]?.trim() : '',
+      'luxury furniture',
+    ]
+      .filter(Boolean)
+      .map((k) => k.toLowerCase())
+      .join(', ');
+    setKeywordsStr(keywords);
   };
 
-  const handleGenerate = () => {
+  // Sync initial selection when DB products finish loading
+  useEffect(() => {
+    if (queryProductId) {
+      const match = allProducts.find((p) => p.id === queryProductId);
+      if (match) {
+        handleProductSelect(match);
+        return;
+      }
+    }
+    // Auto-select first DB product once loaded if currently showing default preset
+    if (dbProducts.length > 0 && selectedProduct.id.startsWith('prod_')) {
+      handleProductSelect(dbProducts[0]);
+    }
+  }, [dbProducts, queryProductId]);
+
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      const keywords = keywordsStr.split(',').map((k) => k.trim()).filter(Boolean);
-      const item = generateContent({
-        contentType: 'product_description',
-        product: {
-          id: selectedProduct.id,
-          title: productName,
+    const keywords = keywordsStr.split(',').map((k) => k.trim()).filter(Boolean);
+    const payload = {
+      contentType: 'product_description' as const,
+      product: {
+        id: selectedProduct.id,
+        title: productName,
+        sku: selectedProduct.sku,
+        category,
+        price: Number(price),
+        material,
+        colour,
+        design,
+        collection,
+        imageUrl: selectedProduct.imageUrl,
+        existingDescription: selectedProduct.existingDescription,
+      },
+      tone,
+      length,
+      seoOptimized,
+      keywords,
+      targetAudience,
+    };
+
+    try {
+      // Try generating through the API backend (MongoDB + AI Atelier engine)
+      const res = await aiContentApi.generate(payload);
+      if (res.data?.data?.item) {
+        const apiItem = res.data.data.item;
+        const normalizedItem: AiContentItem = {
+          id: apiItem.contentId || apiItem._id || `AIC-${Date.now()}`,
+          contentType: 'product_description',
+          productId: selectedProduct.id,
+          productName: productName,
           sku: selectedProduct.sku,
           category,
           price: Number(price),
-          material,
-          colour,
-          design,
-          collection,
           imageUrl: selectedProduct.imageUrl,
-          existingDescription: selectedProduct.existingDescription,
-        },
-        tone,
-        length,
-        seoOptimized,
-        keywords,
-        targetAudience,
-      });
-
+          title: apiItem.title || `${productName} | JODO Collection`,
+          generatedContent: apiItem.generatedContent || {},
+          editedContent: apiItem.editedContent || apiItem.generatedContent || {},
+          tone,
+          length,
+          channel: 'Website',
+          targetAudience,
+          seoKeywords: keywords,
+          seoOptimized,
+          qualityScore: apiItem.qualityScore || 95,
+          qualityChecks: apiItem.qualityChecks || {
+            grammar: true,
+            brandTone: true,
+            seo: true,
+            productAccuracy: true,
+            duplicateRisk: 'Low',
+            unsupportedClaimsCount: 0,
+          },
+          status: apiItem.status || 'Draft',
+          version: apiItem.version || 1,
+          createdBy: apiItem.createdBy || 'Admin',
+          createdAt: apiItem.createdAt || new Date().toISOString(),
+          updatedAt: apiItem.updatedAt || new Date().toISOString(),
+          versions: [],
+        };
+        setGeneratedItem(normalizedItem);
+        toast.success(`AI Description generated for "${productName}"!`);
+      } else {
+        throw new Error('No item returned');
+      }
+    } catch {
+      // Smooth fallback to local generator
+      const item = generateContent(payload);
       setGeneratedItem(item);
-      setIsGenerating(false);
       toast.success(`Description generated for "${productName}"!`);
+    } finally {
+      setIsGenerating(false);
       setTimeout(() => {
         if (resultRef.current) {
           resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -171,7 +395,7 @@ export default function ProductDescriptionsPage() {
           mainEl.scrollTo({ top: mainEl.scrollHeight, behavior: 'smooth' });
         }
       }, 150);
-    }, 700);
+    }
   };
 
   // Pre-load existing draft or newly generated item if available
@@ -213,44 +437,168 @@ export default function ProductDescriptionsPage() {
         </div>
       </div>
 
-      {/* Generator Configuration Form (Section 4) */}
+      {/* Generator Configuration Form (Section 1: Select CMS Product) */}
       <div className="bg-card rounded-xl border p-6 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            1. Select CMS Product (Auto-Populated)
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Data synchronized from JODO Database
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              1. Select CMS Product (Auto-Populated)
+            </span>
+            {dbProducts.length > 0 && (
+              <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1 py-0 px-2 h-5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live DB Connected ({dbProducts.length} items)
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => {
+                refetchProducts();
+                toast.success('Refreshing products from database...');
+              }}
+              disabled={isLoadingProducts || isRefetchingProducts}
+              className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className={`w-3 h-3 ${isLoadingProducts || isRefetchingProducts ? 'animate-spin' : ''}`} />
+              <span>{isLoadingProducts || isRefetchingProducts ? 'Syncing...' : 'Sync DB'}</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={() => router.push('/products/new')}
+              className="h-7 text-xs gap-1 text-primary hover:bg-primary/10 border-primary/30"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Add Product</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Product selector buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {CMS_PRODUCTS_LIST.map((prod) => {
-            const isSelected = selectedProduct.id === prod.id;
-            return (
-              <button
-                key={prod.id}
-                type="button"
-                onClick={() => handleProductSelect(prod)}
-                className={`p-3 rounded-lg border text-left transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                    : 'border-border hover:bg-muted/30'
-                }`}
-              >
-                <div className="font-semibold text-xs text-foreground line-clamp-1">{prod.title}</div>
-                <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center justify-between">
-                  <span>{prod.sku}</span>
-                  <span className="font-semibold text-emerald-600">₹{prod.price.toLocaleString('en-IN')}</span>
-                </div>
-              </button>
-            );
-          })}
+        {/* Dynamic Product Dropdown Selector (Compact Width) */}
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+              <label className="font-semibold text-xs text-muted-foreground whitespace-nowrap">
+                Select Product:
+              </label>
+              <div className="w-full sm:w-80 md:w-96">
+                <Select
+                  value={selectedProduct.id}
+                  onValueChange={(val) => {
+                    const target = allProducts.find((p) => p.id === val);
+                    if (target) handleProductSelect(target);
+                  }}
+                >
+                  <SelectTrigger className="h-9 w-full text-xs bg-background border-input hover:border-primary/50 transition-colors">
+                    <SelectValue placeholder={isLoadingProducts ? "Loading products..." : "Select a product..."}>
+                      <div className="flex items-center gap-2 truncate text-left">
+                        {selectedProduct.imageUrl ? (
+                          <img
+                            src={selectedProduct.imageUrl}
+                            alt={selectedProduct.title}
+                            className="w-5 h-5 rounded object-cover border flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-5 h-5 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                            <Package className="w-3 h-3 text-muted-foreground" />
+                          </div>
+                        )}
+                        <span className="font-medium text-foreground truncate max-w-[130px] sm:max-w-[170px]">
+                          {selectedProduct.title}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                          ({selectedProduct.sku})
+                        </span>
+                        <span className="text-[11px] font-semibold text-emerald-600 ml-auto pl-2 flex-shrink-0">
+                          ₹{selectedProduct.price.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72 w-[var(--radix-select-trigger-width)]">
+                    {/* Database Products Group */}
+                    {dbProducts.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="text-[11px] font-semibold text-primary flex items-center gap-1.5 px-2 py-1.5">
+                          <Database className="w-3 h-3" />
+                          Database Products ({dbProducts.length})
+                        </SelectLabel>
+                        {dbProducts.map((prod) => (
+                          <SelectItem key={prod.id} value={prod.id} className="text-xs py-2">
+                            <div className="flex items-center gap-2 w-full">
+                              {prod.imageUrl ? (
+                                <img
+                                  src={prod.imageUrl}
+                                  alt={prod.title}
+                                  className="w-5 h-5 rounded object-cover border flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-5 h-5 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                                  <Package className="w-3 h-3 text-muted-foreground" />
+                                </div>
+                              )}
+                              <span className="font-medium text-foreground truncate max-w-[160px]">{prod.title}</span>
+                              <span className="text-[10px] text-muted-foreground">({prod.sku})</span>
+                              <span className="text-[11px] font-semibold text-foreground ml-auto pl-1">
+                                ₹{prod.price.toLocaleString('en-IN')}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+
+                    {/* Fallback Presets Group */}
+                    <SelectGroup>
+                      <SelectLabel className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 px-2 py-1.5">
+                        <Tag className="w-3 h-3" />
+                        Demo & Preset Catalog
+                      </SelectLabel>
+                      {FALLBACK_PRESETS.map((prod) => (
+                        <SelectItem key={prod.id} value={prod.id} className="text-xs py-2">
+                          <div className="flex items-center gap-2 w-full">
+                            <img
+                              src={prod.imageUrl}
+                              alt={prod.title}
+                              className="w-5 h-5 rounded object-cover border flex-shrink-0"
+                            />
+                            <span className="font-medium text-foreground truncate max-w-[160px]">{prod.title}</span>
+                            <span className="text-[10px] text-muted-foreground">({prod.sku})</span>
+                            <span className="text-[11px] font-semibold text-foreground ml-auto pl-1">
+                              ₹{prod.price.toLocaleString('en-IN')}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Quick status on the right */}
+            <div className="text-[11px] text-muted-foreground flex items-center gap-2">
+              {selectedProduct.isDb ? (
+                <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1 h-6">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                  MongoDB Live: {selectedProduct.sku}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-[10px] h-6">
+                  Preset: {selectedProduct.sku}
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Auto-populated Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs pt-2">
           <div>
             <label className="font-semibold text-muted-foreground block mb-1">Product Name</label>
             <Input value={productName} onChange={(e) => setProductName(e.target.value)} className="text-xs" />
