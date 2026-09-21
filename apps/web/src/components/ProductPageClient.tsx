@@ -651,52 +651,52 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
       `}</style>
       <div className={`fixed inset-0 z-[100] flex justify-end bg-black/30 backdrop-blur-sm transition-opacity duration-500 ${showModal ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={() => setShowModal(false)}>
         <div 
-          className={`w-full max-w-[700px] md:max-w-[820px] lg:max-w-[880px] h-full bg-white shadow-2xl p-6 md:p-8 lg:p-10 flex flex-col overflow-y-auto hide-scrollbar drawer-clean-scroll transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} 
+          className={`w-full max-w-[620px] md:max-w-[700px] h-full bg-white shadow-2xl p-5 sm:p-6 md:p-7 flex flex-col overflow-y-auto hide-scrollbar drawer-clean-scroll transform transition-transform duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] ${showModal ? 'translate-x-0' : 'translate-x-full'}`} 
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-start justify-between gap-4 mb-8 pb-6 border-b border-gray-100">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-4 mb-5 pb-3.5 border-b border-gray-100">
+            <div className="flex items-center gap-3">
               {product.imageUrl && (
-                <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-[#efeeea] shrink-0 border border-gray-100 shadow-sm">
+                <div className="relative w-11 h-11 md:w-12 md:h-12 rounded-xl overflow-hidden bg-[#efeeea] shrink-0 border border-gray-100">
                   <Image src={product.imageUrl} alt={product.title} fill className="object-cover" unoptimized />
                 </div>
               )}
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold tracking-[0.2em] text-terracotta uppercase">{product.vendor || 'JODO'}</span>
-                <h3 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900 line-clamp-1">{product.title}</h3>
-                <span className="text-xs text-gray-400 mt-0.5">{product.sku ? `SKU: ${product.sku}` : (product.category || 'Product Specifications')}</span>
+                <span className="text-[10px] font-bold tracking-[0.18em] text-terracotta uppercase">{product.vendor || 'JODO'}</span>
+                <h3 className="text-lg md:text-xl font-bold tracking-tight text-gray-900 line-clamp-1">{product.title}</h3>
+                <span className="text-[11px] text-gray-400 mt-0.5">{product.sku ? `SKU: ${product.sku}` : (product.category || 'Product Specifications')}</span>
               </div>
             </div>
             <button 
               onClick={() => setShowModal(false)} 
-              className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors flex items-center justify-center shrink-0"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors flex items-center justify-center shrink-0"
               aria-label="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex flex-col gap-8 md:gap-10 pb-16">
+          <div className="flex flex-col gap-5 pb-8">
             {/* ── Product Description ── */}
             {(product.longDescription || product.shortDescription) && (
-              <div className="bg-gradient-to-br from-[#faf8f5] to-[#f4f0e8] rounded-3xl p-6 md:p-7 border border-amber-900/10 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-                <div className="flex items-center gap-2 mb-3.5">
-                  <Sparkles className="w-4 h-4 text-terracotta" />
-                  <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900">
+              <div className="bg-[#faf8f5] rounded-2xl p-4 sm:p-5 border border-amber-900/5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-terracotta" />
+                  <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900">
                     About The Design
                   </h4>
                 </div>
 
-                <div className="space-y-3.5">
+                <div className="space-y-2.5">
                   {/* Lead descriptive paragraphs */}
                   {(product.longDescription || product.shortDescription)
                     ?.split('\n')
                     .map((l: string) => l.trim())
                     .filter((l: string) => Boolean(l) && !l.startsWith('•') && !l.startsWith('- ') && !l.startsWith('* '))
                     .map((para: string, idx: number) => (
-                      <p key={idx} className="text-[14px] md:text-[15px] text-gray-700 leading-relaxed font-light">
+                      <p key={idx} className="text-[13px] md:text-sm text-gray-700 leading-relaxed font-light">
                         {para}
                       </p>
                     ))}
@@ -711,23 +711,23 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                     if (!bullets || bullets.length === 0) return null;
 
                     return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                         {bullets.map((bullet: string, bIdx: number) => {
                           const clean = bullet.replace(/^[•\-\*]\s*/, '');
                           const [featureTitle, ...featureDesc] = clean.split('—');
                           return (
-                            <div key={bIdx} className="flex items-start gap-2.5 p-3 bg-white/90 backdrop-blur-sm rounded-xl border border-amber-900/5 shadow-xs">
-                              <div className="w-4 h-4 rounded-full bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0 mt-0.5">
-                                <Check className="w-2.5 h-2.5" />
+                            <div key={bIdx} className="flex items-start gap-2 p-2.5 bg-white rounded-lg border border-amber-900/5 shadow-xs">
+                              <div className="w-3.5 h-3.5 rounded-full bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0 mt-0.5">
+                                <Check className="w-2 h-2" />
                               </div>
                               <div className="flex flex-col">
                                 {featureDesc.length > 0 ? (
                                   <>
-                                    <span className="text-xs font-semibold text-gray-900 leading-snug">{featureTitle.trim()}</span>
-                                    <span className="text-[11px] text-gray-500 leading-relaxed mt-0.5">{featureDesc.join('—').trim()}</span>
+                                    <span className="text-[11px] font-semibold text-gray-900 leading-tight">{featureTitle.trim()}</span>
+                                    <span className="text-[10px] text-gray-500 leading-snug mt-0.5">{featureDesc.join('—').trim()}</span>
                                   </>
                                 ) : (
-                                  <span className="text-xs text-gray-800 leading-snug">{clean}</span>
+                                  <span className="text-[11px] text-gray-800 leading-tight">{clean}</span>
                                 )}
                               </div>
                             </div>
@@ -743,14 +743,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             {/* ── Overview Specifications ── */}
             {product.productDetails && Object.keys(product.productDetails).length > 0 && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 border-b border-gray-100 pb-3 mb-4">
+                <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900 border-b border-gray-100 pb-2 mb-2.5">
                   Overview
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {Object.entries(product.productDetails).map(([key, value]) => (
-                    <div key={key} className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex flex-col gap-1">
-                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{key}</span>
-                      <span className="text-sm font-medium text-gray-900">{String(value)}</span>
+                    <div key={key} className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-0.5">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{key}</span>
+                      <span className="text-xs md:text-[13px] font-semibold text-gray-900 truncate" title={String(value)}>{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -760,14 +760,14 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             {/* ── Materials & Build ── */}
             {product.specifications && product.specifications.length > 0 && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 border-b border-gray-100 pb-3 mb-4">
+                <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900 border-b border-gray-100 pb-2 mb-2.5">
                   Materials & Build
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {product.specifications.map((spec: any, i: number) => (
-                    <div key={i} className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex flex-col gap-1">
-                      <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{spec.key}</span>
-                      <span className="text-sm font-medium text-gray-900 leading-relaxed">{spec.value}</span>
+                    <div key={i} className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-0.5">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{spec.key}</span>
+                      <span className="text-xs md:text-[13px] font-medium text-gray-900 leading-snug">{spec.value}</span>
                     </div>
                   ))}
                 </div>
@@ -777,26 +777,26 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             {/* ── Care & Warranty ── */}
             {(product.careAndMaintenance || product.warrantyTerms) && (
               <div>
-                <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gray-900 border-b border-gray-100 pb-3 mb-4">
+                <h4 className="text-[10px] font-bold tracking-[0.18em] uppercase text-gray-900 border-b border-gray-100 pb-2 mb-2.5">
                   Care & Warranty
                 </h4>
-                <div className="grid grid-cols-1 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {product.careAndMaintenance && (
-                    <div className="p-4 rounded-2xl bg-amber-50/40 border border-amber-900/5 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Care Instructions</span>
+                    <div className="p-3 rounded-xl bg-amber-50/30 border border-amber-900/5 flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3 text-terracotta" />
+                        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Care</span>
                       </div>
-                      <p className="text-[13px] md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
+                      <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
                     </div>
                   )}
                   {product.warrantyTerms && (
-                    <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Warranty Terms</span>
+                    <div className="p-3 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">Warranty</span>
                       </div>
-                      <p className="text-[13px] md:text-sm text-gray-600 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
+                      <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
                     </div>
                   )}
                 </div>
