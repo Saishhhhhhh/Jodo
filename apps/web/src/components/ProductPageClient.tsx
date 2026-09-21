@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Box, Smartphone, X, ChevronRight, ChevronLeft, Info, Plus, Star, Check, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, Box, Smartphone, X, ChevronRight, ChevronLeft, Info, Plus, Star, Check, ShieldCheck, Sparkles, Droplets, Home, Award } from 'lucide-react';
 import ProductActions from '@/components/ProductActions';
 
 interface ProductPageClientProps {
@@ -510,6 +510,46 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
             </div>
           )}
 
+          {/* Quick Care, Warranty & Where To Use Highlight Cards */}
+          <div className="grid grid-cols-3 gap-2 w-full max-w-lg mb-4">
+            <button 
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-sky-50/50 hover:bg-sky-50 border border-sky-100 transition-all text-left group cursor-pointer hover:shadow-xs"
+            >
+              <div className="w-7 h-7 rounded-lg bg-sky-100/80 text-sky-600 flex items-center justify-center shrink-0">
+                <Droplets className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-sky-600">Care</span>
+                <span className="text-xs font-semibold text-gray-900 truncate">Easy Clean</span>
+              </div>
+            </button>
+            <button 
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100 transition-all text-left group cursor-pointer hover:shadow-xs"
+            >
+              <div className="w-7 h-7 rounded-lg bg-emerald-100/80 text-emerald-600 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Warranty</span>
+                <span className="text-xs font-semibold text-gray-900 truncate">5-Yr Covered</span>
+              </div>
+            </button>
+            <button 
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-100 transition-all text-left group cursor-pointer hover:shadow-xs"
+            >
+              <div className="w-7 h-7 rounded-lg bg-amber-100/80 text-terracotta flex items-center justify-center shrink-0">
+                <Home className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700">Where To Use</span>
+                <span className="text-xs font-semibold text-gray-900 truncate">{product.productDetails?.['Room Type'] || product.category || 'Bedroom'}</span>
+              </div>
+            </button>
+          </div>
+
           {/* View Details Trigger */}
           <button 
             onClick={() => setShowModal(true)}
@@ -805,34 +845,108 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
               </div>
             )}
 
-            {/* ── Care & Warranty ── */}
-            {(product.careAndMaintenance || product.warrantyTerms) && (
-              <div>
-                <h4 className="text-xs font-bold tracking-[0.15em] uppercase text-gray-900 font-sans border-b border-gray-100 pb-2 mb-3">
-                  Care & Warranty
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {product.careAndMaintenance && (
-                    <div className="p-3.5 rounded-xl bg-amber-50/30 border border-amber-900/5 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-terracotta" />
-                        <span className="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Care Instructions</span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{product.careAndMaintenance}</p>
+            {/* ── Where To Use, Care & Warranty ── */}
+            <div className="space-y-3.5">
+              <h4 className="text-xs font-bold tracking-[0.15em] uppercase text-gray-900 font-sans border-b border-gray-100 pb-2 mb-3">
+                Placement, Care & Warranty
+              </h4>
+
+              {/* 1. Where To Use Card */}
+              <div className="p-4 rounded-2xl bg-amber-50/40 border border-amber-900/10 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100/90 text-terracotta flex items-center justify-center shrink-0 shadow-xs">
+                      <Home className="w-4 h-4" />
                     </div>
-                  )}
-                  {product.warrantyTerms && (
-                    <div className="p-3.5 rounded-xl bg-gray-50/80 border border-gray-100 flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Warranty Policy</span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{product.warrantyTerms}</p>
+                    <div>
+                      <span className="text-xs md:text-[13px] font-bold text-gray-900 font-sans">Where To Use</span>
+                      <p className="text-[11px] text-gray-500">Recommended Placement & Setting</p>
                     </div>
-                  )}
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-terracotta bg-terracotta/10 px-2 py-0.5 rounded-full">
+                    {product.productDetails?.['Room Type'] || product.category || 'Indoor Spaces'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-700 leading-relaxed font-normal">
+                  Ideal for {product.productDetails?.['Room Type'] || 'Primary Bedrooms'}, guest suites, apartments, and modern minimalist interiors. Compatible with hardwood, carpets, and tiled floors.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-amber-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-terracotta" /> Master & Guest Rooms
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-amber-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-terracotta" /> Floor-Friendly Glides
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-amber-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-terracotta" /> Minimalist Interiors
+                  </span>
                 </div>
               </div>
-            )}
+
+              {/* 2. Care Instructions Card */}
+              <div className="p-4 rounded-2xl bg-sky-50/40 border border-sky-900/10 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-sky-100/90 text-sky-600 flex items-center justify-center shrink-0 shadow-xs">
+                      <Droplets className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-[13px] font-bold text-gray-900 font-sans">Care Instructions</span>
+                      <p className="text-[11px] text-gray-500">Fabric & Material Maintenance</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-sky-700 bg-sky-100/80 px-2 py-0.5 rounded-full">
+                    Easy Maintenance
+                  </span>
+                </div>
+                <p className="text-xs text-gray-700 leading-relaxed font-normal">
+                  {product.careAndMaintenance || 'Spot clean linen upholstery with a soft, damp cloth and mild cleanser. Avoid harsh chemical cleaners and prolonged direct sunlight to preserve fabric texture.'}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-sky-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-sky-600" /> Damp Cloth Spot Clean
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-sky-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-sky-600" /> Mild Cleanser Safe
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-sky-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-sky-600" /> Avoid Direct Harsh Sun
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Warranty Policy Card */}
+              <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-900/10 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100/90 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs md:text-[13px] font-bold text-gray-900 font-sans">Warranty Policy</span>
+                      <p className="text-[11px] text-gray-500">Certified Manufacturer Guarantee</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                    5-Year Coverage
+                  </span>
+                </div>
+                <p className="text-xs text-gray-700 leading-relaxed font-normal">
+                  {product.warrantyTerms || '5-year manufacturer warranty covering structural frame integrity and material craftsmanship under standard residential use.'}
+                </p>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-emerald-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-emerald-600" /> Frame Structure Covered
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-emerald-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-emerald-600" /> Defect Replacement
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white text-[11px] font-medium text-gray-700 border border-emerald-900/5 shadow-xs">
+                    <Check className="w-3 h-3 text-emerald-600" /> Direct Support Assistance
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
