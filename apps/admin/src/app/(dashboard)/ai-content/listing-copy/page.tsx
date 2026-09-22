@@ -35,15 +35,26 @@ export default function ListingCopyPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  // Active preview item
-  const [activeItem, setActiveItem] = useState<AiContentItem | null>(
-    items.find((i) => i.contentType === 'listing_copy') || items[0] || null
-  );
+  const [activeItem, setActiveItem] = useState<AiContentItem | null>(() => {
+    return items.find((i) => i.contentType === 'listing_copy' && (i.productId === CMS_PRODUCTS[0].id || i.productName.toLowerCase() === CMS_PRODUCTS[0].title.toLowerCase())) || null;
+  });
+
+  const handleSelectProduct = (prod: any) => {
+    setSelectedProduct(prod);
+    const kw = `${prod.title.toLowerCase()}, modern ${prod.category.toLowerCase()}, ${prod.material.toLowerCase()}`;
+    setKeywordsStr(kw);
+    const existing = items.find((i) => i.contentType === 'listing_copy' && (i.productId === prod.id || i.productName.toLowerCase() === prod.title.toLowerCase()));
+    setActiveItem(existing || null);
+  };
 
   React.useEffect(() => {
     if (selectedItemId) {
       const selected = items.find((i) => i.id === selectedItemId && i.contentType === 'listing_copy');
-      if (selected) setActiveItem(selected);
+      if (selected) {
+        setActiveItem(selected);
+        const match = CMS_PRODUCTS.find((p) => p.id === selected.productId || p.title.toLowerCase() === selected.productName.toLowerCase());
+        if (match) setSelectedProduct(match);
+      }
     }
   }, [items, selectedItemId]);
 
@@ -122,7 +133,7 @@ export default function ListingCopyPage() {
                   <button
                     key={prod.id}
                     type="button"
-                    onClick={() => setSelectedProduct(prod)}
+                    onClick={() => handleSelectProduct(prod)}
                     className={`w-full p-3 rounded-lg border text-left transition-all flex items-center justify-between ${
                       isSelected
                         ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
@@ -198,18 +209,42 @@ export default function ListingCopyPage() {
       </div>
 
       {/* Editor & Preview Panel */}
-      {activeItem && (
-        <div ref={resultRef} className="space-y-4 pt-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">Marketplace Listing Output</h2>
-            <span className="text-xs text-muted-foreground">
-              Reviewing: {activeItem.productName} ({activeItem.channel || 'Marketplace'})
-            </span>
-          </div>
+      <div ref={resultRef} className="space-y-4 pt-2">
+        {activeItem ? (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-foreground">Marketplace Listing Output</h2>
+              <span className="text-xs text-muted-foreground">
+                Reviewing: {activeItem.productName} ({activeItem.channel || 'Marketplace'})
+              </span>
+            </div>
 
-          <ContentEditorPanel key={activeItem.id} item={activeItem} />
-        </div>
-      )}
+            <ContentEditorPanel key={activeItem.id} item={activeItem} />
+          </>
+        ) : (
+          <div className="bg-card/50 rounded-xl border border-dashed p-8 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+              <ShoppingBag className="w-5 h-5 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-sm text-foreground">Ready to Generate {selectedChannel} Copy for "{selectedProduct.title}"</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Product selected ({selectedProduct.sku}). Click <strong>Generate {selectedChannel} Copy</strong> above to create channel-tailored bullet points and search terms.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={handleGenerateListing}
+              disabled={isGenerating}
+              size="sm"
+              className="text-xs gap-1.5"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+              {isGenerating ? 'Generating...' : `Generate for ${selectedProduct.title}`}
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

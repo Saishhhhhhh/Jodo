@@ -103,6 +103,7 @@ interface AiContentState {
   publishToCms: (id: string, publishedBy?: string) => Promise<{ success: boolean; message: string }>;
   regenerateContent: (id: string, instruction: string) => void;
   deleteItem: (id: string) => void;
+  addGeneratedItem: (item: AiContentItem) => void;
 
   // KPI Getters
   getKpis: () => {
@@ -659,64 +660,125 @@ export const useAiContentStore = create<AiContentState>()(
         const tone = input.tone || 'Luxury';
         const length = input.length || 'Medium';
 
-        // High quality generation subroutine
+        // Category and attribute-tailored generation engine
         let generated: Record<string, any> = {};
         if (input.contentType === 'product_description') {
-          const short = `${title} is meticulously crafted${p.material ? ` from authentic ${p.material}` : ''}, delivering unmatched comfort, durability, and timeless silhouette.`;
+          const cat = (p.category || '').toLowerCase();
+          const mat = p.material || 'Solid Hardwood';
+          const finish = p.colour || p.design || 'Natural Organic Finish';
+          const collection = p.collection ? `part of the JODO ${p.collection} collection` : 'crafted for contemporary Indian living';
+
+          let roleText = '';
+          let functionalHighlight = '';
+          if (cat.includes('dining') || title.toLowerCase().includes('dining') || title.toLowerCase().includes('table')) {
+            roleText = `serving as a warm, inviting centerpiece for memorable family meals and heartfelt gatherings`;
+            functionalHighlight = `Engineered with generous perimeter leg clearance and heavy-duty structural bracing, the ${title} accommodates family feasts and festive hospitality with effortless poise.`;
+          } else if (cat.includes('living') || cat.includes('chair') || cat.includes('sofa') || cat.includes('seating') || cat.includes('armchair')) {
+            roleText = `bringing sculptured poise, organic warmth, and deep comfort into contemporary living spaces`;
+            functionalHighlight = `Designed with calibrated ergonomic angles, supportive lumbar posture, and breathable upholstery that cradles you through hours of relaxed conversation.`;
+          } else if (cat.includes('bed') || cat.includes('bedroom') || cat.includes('nightstand')) {
+            roleText = `anchoring modern master sanctuaries with calm symmetry, architectural balance, and peaceful poise`;
+            functionalHighlight = `Engineered with zero-squeak precision joinery, acoustic isolation dampers, and cantilevered stability for an undisturbed, restful night's sleep.`;
+          } else if (cat.includes('study') || cat.includes('office') || cat.includes('desk') || cat.includes('bookshelf')) {
+            roleText = `curating a productive, tactile workspace where focus and fine craftsmanship meet`;
+            functionalHighlight = `Featuring thoughtful ergonomics, integrated cable management routing, and reinforced load-bearing surfaces that effortlessly support modern work tools and literature.`;
+          } else if (cat.includes('storage') || cat.includes('credenza') || cat.includes('sideboard') || cat.includes('cabinet')) {
+            roleText = `delivering seamless organization, silent soft-close action, and tactile visual harmony to uncluttered interiors`;
+            functionalHighlight = `Fitted with premium German hardware, spacious compartments, and hand-joined timber facades that conceal everyday essentials behind museum-grade artistry.`;
+          } else {
+            roleText = `bringing timeless balance, functional utility, and architectural grace into modern homes`;
+            functionalHighlight = `Engineered for effortless everyday utility with balanced proportions, tactile joinery, and durable protective finishes.`;
+          }
+
+          const short = `The ${title} is masterfully crafted from authentic ${mat} with a refined ${finish}, ${roleText}. Hand-finished for heirloom longevity and designed with easy post-delivery assembly in mind.`;
+
+          let full = '';
+          if (length === 'Short') {
+            full = `${short}\n\n${functionalHighlight}`;
+          } else if (length === 'Detailed') {
+            full = `### Architectural Narrative\nThe ${title} represents JODO's design philosophy of "The Joy of Together" — creating pieces that transform mere houses into warm, characterful sanctuaries. Conceived as ${collection}, its silhouette harmonizes clean geometric planes with warm tactile surfaces.\n\n### Materiality & Craftsmanship\nCrafted from certified ${mat}, each component reveals continuous natural grain patterns and organic depth. The surface is sealed with hand-rubbed ${finish} to resist daily thermal variations, moisture, and micro-abrasions while remaining smooth to the touch.\n\n### Ergonomics & Daily Utility\n${functionalHighlight}\n\n### Assembly & Ownership Experience\nEngineered with interlocking joinery and precision-machined hardware for an intuitive, frustration-free DIY assembly process. Complete with comprehensive care guides, protective floor buffers, and backed by JODO's 5-Year Structural Integrity Warranty.`;
+          } else {
+            full = `The ${title} brings together thoughtful furniture manufacturing, architectural simplicity, and functional warmth. Meticulously handcrafted from genuine ${mat} and finished in ${finish}, it enriches modern residential spaces while answering the practical rhythms of daily life.\n\n${functionalHighlight}\n\nThoughtfully engineered for seamless post-delivery assembly, every joint connects with satisfying precision — turning setup into a warm moment of creating your home.`;
+          }
+
+          // Dynamic features
+          const customFeatures: string[] = [];
+          if (p.keyFeatures) {
+            if (Array.isArray(p.keyFeatures)) {
+              customFeatures.push(...p.keyFeatures);
+            } else if (typeof p.keyFeatures === 'string') {
+              customFeatures.push(...p.keyFeatures.split(/[,;\n]/).map((s: string) => s.trim()).filter(Boolean));
+            }
+          }
+          const defaultFeatures = [
+            `Primary Material: Certified authentic ${mat}`,
+            `Finish: Hand-rubbed ${finish} with protective anti-stain coat`,
+            p.dimensions ? `Dimensions: ${p.dimensions}` : `Optimized architectural proportions for modern room flow`,
+            'Assembly: Precision-machined DIY self-assembly hardware included',
+            'Warranty: Covered by JODO 5-Year Structural Frame Guarantee',
+          ];
+          const combinedFeatures = customFeatures.length >= 3 ? customFeatures : [...customFeatures, ...defaultFeatures.slice(customFeatures.length)];
+
+          const primaryKeyword = input.keywords?.[0] || `${title.toLowerCase()}`;
+          const secondaryKeywords = input.keywords?.slice(1) || [`modern ${p.category || 'furniture'}`, `buy ${title.toLowerCase()} online`, `${mat} furniture`];
+
           generated = {
             productTitle: `${title} | Exclusive JODO Collection`,
             shortDescription: short,
-            fullDescription: `${title} offers an exquisite blend of sophistication and utilitarian comfort. Handcrafted${p.material ? ` using ${p.material}` : ''}, it enriches any contemporary room aesthetic while delivering effortless daily functionality.\n\nEvery contour is engineered with precision to provide optimum ergonomic balance while elevating the visual ambiance of your home.`,
-            keyFeatures: [
-              p.material ? `Masterfully crafted using high-grade ${p.material}` : 'Durable structural joinery',
-              p.dimensions ? `Space-optimized dimensions: ${p.dimensions}` : 'Engineered for modern space flow',
-              'Tested for decades of residential and hospitality durability',
-              'Finished in child-safe, eco-friendly organic sealants',
-            ],
-            seoMetaTitle: `${title} - Buy Online at JODO`,
-            seoMetaDescription: `Discover the ${title}. ${short.slice(0, 140)}... Shop online with fast shipping.`,
-            seoKeywords: input.keywords?.join(', ') || `${title.toLowerCase()}, modern furniture, luxury living, jodo design`,
+            fullDescription: full,
+            keyFeatures: combinedFeatures.slice(0, 5),
+            seoMetaTitle: `${title} - Handcrafted ${mat} | JODO`,
+            seoMetaDescription: `Discover the ${title}. Handcrafted from ${mat} with ${finish}. Engineered for modern homes with easy assembly. Shop online with complimentary shipping.`,
+            seoKeywords: [primaryKeyword, ...secondaryKeywords].join(', '),
           };
         } else if (input.contentType === 'catalogue_content') {
+          const mat = p.material || 'Solid Architectural Timber';
+          const finish = p.colour || p.design || 'Satin Natural';
+          const cat = p.category || 'Living Collection';
           generated = {
             catalogueTitle: `JODO ARCHIVE: ${title.toUpperCase()}`,
-            shortDescription: `${title} embodies architectural grace and pure artisanal mastery.`,
-            detailedDescription: `Part of our permanent catalogue curation, the ${title} balances generous proportions with geometric purity. Built for discerning collectors who appreciate fine details.\n\nHand-finished with low-VOC natural oils and inspected against JODO's 14-point benchmark.`,
-            collectionIntroduction: 'The Master Collection marries ergonomic mastery with architectural simplicity.',
+            shortDescription: `${title} embodies architectural grace, authentic ${mat} craftsmanship, and pure artisanal balance.`,
+            detailedDescription: `Part of our permanent catalogue curation, the ${title} balances generous proportions with geometric purity. Built for discerning collectors and interior architects who appreciate fine joinery and tactile honesty.\n\nHand-finished in ${finish} and inspected against JODO's 14-point structural benchmark.`,
+            collectionIntroduction: p.collection ? `The ${p.collection} curation reflects JODO's dedication to architectural poise and sustainable materiality.` : 'The Master Collection marries ergonomic mastery with architectural simplicity.',
             productHighlights: [
-              'Continuous grain alignment across key structural members',
-              p.material ? `Certified sustainable ${p.material}` : 'Premium grade materials',
-              'Seamless precision joinery',
-              'Heirloom quality assurance',
+              `Continuous grain alignment across solid ${mat} structural members`,
+              `Hand-rubbed ${finish} sealant offering moisture and scratch resistance`,
+              'Modular interlocking joinery engineered for seamless post-delivery assembly',
+              'Heirloom quality assurance tested against 20,000 cyclic load tests',
             ],
-            materialDetails: p.material ? `Primary Material: ${p.material}` : 'Premium architectural materials',
-            careInstructions: 'Wipe with soft microfibre cloth. Avoid direct harsh sunlight and abrasive cleaners.',
+            materialDetails: `Primary Material: Certified ${mat}. Finish: ${finish}. Selected for grain character, dimensional stability, and sustainable harvest verification.`,
+            careInstructions: p.careAndMaintenance || 'Wipe with soft microfibre cloth. Avoid direct harsh sunlight and abrasive chemical solvents.',
             productSpecifications: [
-              { key: 'Category', value: p.category || 'Furniture' },
+              { key: 'Category', value: cat },
+              { key: 'Material', value: mat },
+              { key: 'Finish', value: finish },
               { key: 'SKU', value: p.sku || 'JD-CAT-09' },
-              { key: 'Warranty', value: '5-Year Structural Guarantee' },
+              { key: 'Warranty', value: '5-Year Structural Frame Guarantee' },
             ],
           };
         } else if (input.contentType === 'listing_copy') {
           const channel = input.channel || 'Amazon';
+          const mat = p.material || 'Solid Wood';
+          const dims = p.dimensions ? `(${p.dimensions})` : '';
           generated = {
             channel,
-            productListingTitle: `${title} (${p.category || 'Home'}, ${p.material || 'Premium Finish'}) - ${channel} Optimized`,
-            shortDescription: `${title} offers sleek modern comfort and long-lasting durability.`,
-            detailedDescription: `Elevate your space with the ${title}. Designed with modern sensibilities and engineered for daily comfort, this piece combines structural stability with refined aesthetics.\n\nCrafted with premium materials and rigorous standards, it brings lasting value to your home.`,
+            productListingTitle: `${title} (${p.category || 'Home'}, ${mat}) - ${channel} Optimized`,
+            shortDescription: `The ${title} delivers sleek modern aesthetics, authentic ${mat} construction, and long-lasting durability for modern homes.`,
+            detailedDescription: `Elevate your space with the ${title}. Designed with modern sensibilities and engineered for daily comfort, this piece combines structural stability with refined aesthetics.\n\nCrafted with premium ${mat} and rigorous standards, it brings lasting value to your home.`,
             bulletPoints: [
-              `PREMIUM BUILD & FINISH: Expertly crafted from genuine ${p.material || 'materials'} for resilient daily usage.`,
-              'MODERN ERGONOMIC PROFILE: Thoughtfully sized to enhance room flow while maximizing comfort.',
+              `AUTHENTIC MATERIAL & BUILD: Expertly crafted from genuine ${mat} for resilient daily usage and lasting stability.`,
+              `MODERN ERGONOMIC PROFILE: Thoughtfully sized ${dims} to enhance room flow while maximizing comfort.`,
               'VERSATILE AESTHETIC: Complements modern, Scandinavian, and minimalist decors effortlessly.',
               'SAFE & RELIABLE: Undergoes rigorous load-bearing and scratch-resistance testing before dispatch.',
               'DIRECT FROM BRAND: Backed by full JODO manufacturer warranty and prompt customer care.',
             ],
             keyFeatures: [
-              p.material ? `Material: ${p.material}` : 'Durable build',
+              `Material: ${mat}`,
+              p.dimensions ? `Dimensions: ${p.dimensions}` : 'Space-conscious profile',
               'Scratch & stain resistant finish',
               'Direct from brand quality guarantee',
             ],
-            searchKeywords: input.keywords?.join(', ') || `${title}, modern home, designer decor, luxury online`,
+            searchKeywords: input.keywords?.join(', ') || `${title}, modern home, designer decor, luxury furniture online`,
             metaTitle: `Buy ${title} Online | Best Price on ${channel}`,
             metaDescription: `Shop the ${title} on ${channel}. High-quality materials, stylish design, and top ratings.`,
           };
@@ -827,6 +889,13 @@ export const useAiContentStore = create<AiContentState>()(
         } catch {}
 
         return newItem;
+      },
+
+      addGeneratedItem: (item) => {
+        set((state) => ({
+          items: [item, ...state.items.filter((i) => i.id !== item.id)],
+          selectedItemId: item.id,
+        }));
       },
 
       saveDraft: (id, editedContent) => {

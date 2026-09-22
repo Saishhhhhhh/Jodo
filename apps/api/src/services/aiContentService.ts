@@ -184,7 +184,13 @@ function buildProductDescriptionPrompt(input: GenerateContentInput, tone: string
     assembly_information: 'Designed for straightforward post-delivery assembly.',
     recommended_room: p.category || '',
     recommended_use: '',
-    key_features: input.keyFeatures || (p.tags && p.tags.length > 0 ? p.tags : []),
+    collection: p.collection || '',
+    target_audience: input.targetAudience || (p as any).targetAudience || '',
+    key_features: (input.keyFeatures && input.keyFeatures.length > 0)
+      ? input.keyFeatures
+      : ((p as any).keyFeatures
+        ? (Array.isArray((p as any).keyFeatures) ? (p as any).keyFeatures : String((p as any).keyFeatures).split(/[,;\n]/).map((s: string) => s.trim()).filter(Boolean))
+        : (p.tags && p.tags.length > 0 ? p.tags : [])),
     care_instructions: p.careAndMaintenance ? [p.careAndMaintenance] : [],
     whats_in_the_box: [],
     warranty: p.warrantyTerms || '',
@@ -596,36 +602,74 @@ export class AiContentService {
 
   private static templateProductDescription(input: GenerateContentInput, tone: string, length: 'Short' | 'Medium' | 'Detailed') {
     const p = input.product || { title: 'Solid Wood Furniture', price: 14999 };
-    const materialSnippet = p.material ? `crafted from genuine ${p.material}` : 'crafted with honest materials';
-    const collectionSnippet = p.collection ? `part of the JODO ${p.collection} collection` : 'designed for everyday modern Indian homes';
+    const title = p.title || 'JODO Furniture';
+    const cat = (p.category || '').toLowerCase();
+    const mat = p.material || 'Solid Hardwood';
+    const finish = p.colour || p.design || 'Natural Organic Finish';
+    const collection = p.collection ? `part of the JODO ${p.collection} collection` : 'designed for everyday modern Indian homes';
 
-    const shortDesc = `The ${p.title} brings thoughtful manufacturing and clean functional design together, ${materialSnippet}. Designed with easy post-delivery assembly in mind to help you create your home.`;
+    let roleText = '';
+    let functionalHighlight = '';
+    if (cat.includes('dining') || title.toLowerCase().includes('dining') || title.toLowerCase().includes('table')) {
+      roleText = `serving as a warm, inviting centerpiece for memorable family meals and heartfelt gatherings`;
+      functionalHighlight = `Engineered with generous perimeter leg clearance and heavy-duty structural bracing, the ${title} accommodates family feasts and festive hospitality with effortless poise.`;
+    } else if (cat.includes('living') || cat.includes('chair') || cat.includes('sofa') || cat.includes('seating') || cat.includes('armchair')) {
+      roleText = `bringing sculptured poise, organic warmth, and deep comfort into contemporary living spaces`;
+      functionalHighlight = `Designed with calibrated ergonomic angles, supportive lumbar posture, and breathable upholstery that cradles you through hours of relaxed conversation.`;
+    } else if (cat.includes('bed') || cat.includes('bedroom') || cat.includes('nightstand')) {
+      roleText = `anchoring modern master sanctuaries with calm symmetry, architectural balance, and peaceful poise`;
+      functionalHighlight = `Engineered with zero-squeak precision joinery, acoustic isolation dampers, and cantilevered stability for an undisturbed, restful night's sleep.`;
+    } else if (cat.includes('study') || cat.includes('office') || cat.includes('desk') || cat.includes('bookshelf')) {
+      roleText = `curating a productive, tactile workspace where focus and fine craftsmanship meet`;
+      functionalHighlight = `Featuring thoughtful ergonomics, integrated cable management routing, and reinforced load-bearing surfaces that effortlessly support modern work tools and literature.`;
+    } else if (cat.includes('storage') || cat.includes('credenza') || cat.includes('sideboard') || cat.includes('cabinet')) {
+      roleText = `delivering seamless organization, silent soft-close action, and tactile visual harmony to uncluttered interiors`;
+      functionalHighlight = `Fitted with premium German hardware, spacious compartments, and hand-joined timber facades that conceal everyday essentials behind museum-grade artistry.`;
+    } else {
+      roleText = `bringing timeless balance, functional utility, and architectural grace into modern homes`;
+      functionalHighlight = `Engineered for effortless everyday utility with balanced proportions, tactile joinery, and durable protective finishes.`;
+    }
+
+    const shortDesc = `The ${title} is masterfully crafted from authentic ${mat} with a refined ${finish}, ${roleText}. Hand-finished for heirloom longevity and designed with easy post-delivery assembly in mind.`;
 
     let fullDesc = '';
     if (length === 'Short') {
-      fullDesc = `${shortDesc}\n\nBuilt for everyday usability with balanced proportions and warm detailing.`;
+      fullDesc = `${shortDesc}\n\n${functionalHighlight}`;
     } else if (length === 'Detailed') {
-      fullDesc = `### Introduction\nThe ${p.title} embodies JODO's philosophy of "The Joy of Together" — thoughtful furniture designed not only to be delivered, but to become an integral part of your home.\n\n### Design & Function\nEngineered with functional design and everyday usability at its core, this piece offers comfortable proportions and practical utility. ${collectionSnippet}.\n\n### Material & Finish\n${p.material ? `Meticulously crafted from ${p.material}` : 'Constructed from quality materials'}${p.design ? ` with a clean ${p.design} finish` : ''}, preserving natural textures while ensuring reliable daily support.\n\n### Assembly\nDesigned with easy post-delivery assembly in mind. Every component fits cleanly into place with straightforward instructions, making setup a satisfying part of making the piece your own.\n\n### Why It Works\nWarm, practical, and grounded in modern Indian home living, the ${p.title} delivers lasting value and functional comfort.`;
+      fullDesc = `### Architectural Narrative\nThe ${title} represents JODO's design philosophy of "The Joy of Together" — creating pieces that transform mere houses into warm, characterful sanctuaries. Conceived as ${collection}, its silhouette harmonizes clean geometric planes with warm tactile surfaces.\n\n### Materiality & Craftsmanship\nCrafted from certified ${mat}, each component reveals continuous natural grain patterns and organic depth. The surface is sealed with hand-rubbed ${finish} to resist daily thermal variations, moisture, and micro-abrasions while remaining smooth to the touch.\n\n### Ergonomics & Daily Utility\n${functionalHighlight}\n\n### Assembly & Ownership Experience\nEngineered with interlocking joinery and precision-machined hardware for an intuitive, frustration-free DIY assembly process. Complete with comprehensive care guides, protective floor buffers, and backed by JODO's 5-Year Structural Integrity Warranty.`;
     } else {
-      fullDesc = `### Introduction\nThe ${p.title} is designed for modern living, bringing functional aesthetics and warmth into your home.\n\n### Design & Material\n${materialSnippet.charAt(0).toUpperCase() + materialSnippet.slice(1)}, it features clean joinery and purposeful proportions built for daily use.\n\n### Assembly & Ownership\nThoughtfully engineered for straightforward post-delivery assembly, turning setup into a warm moment of bringing your living space together.`;
+      fullDesc = `The ${title} brings together thoughtful furniture manufacturing, architectural simplicity, and functional warmth. Meticulously handcrafted from genuine ${mat} and finished in ${finish}, it enriches modern residential spaces while answering the practical rhythms of daily life.\n\n${functionalHighlight}\n\nThoughtfully engineered for seamless post-delivery assembly, every joint connects with satisfying precision — turning setup into a warm moment of creating your home.`;
     }
 
-    const primaryKeyword = (input.keywords && input.keywords[0]) || `JODO ${p.title.toLowerCase()}`;
+    const primaryKeyword = (input.keywords && input.keywords[0]) || `JODO ${title.toLowerCase()}`;
     const secondaryKeywords = (input.keywords && input.keywords.slice(1)) || [
       `modern ${p.category?.toLowerCase() || 'furniture'} for home`,
       `wooden ${p.category?.toLowerCase() || 'furniture'} easy assembly`,
     ];
 
-    const keyFeatures = [
-      p.material ? `Constructed from ${p.material}` : 'Sturdy, honest material construction',
+    const customFeatures: string[] = [];
+    if (input.keyFeatures && input.keyFeatures.length > 0) {
+      customFeatures.push(...input.keyFeatures);
+    } else if ((p as any).keyFeatures) {
+      if (Array.isArray((p as any).keyFeatures)) {
+        customFeatures.push(...(p as any).keyFeatures);
+      } else if (typeof (p as any).keyFeatures === 'string') {
+        customFeatures.push(...(p as any).keyFeatures.split(/[,;\n]/).map((s: string) => s.trim()).filter(Boolean));
+      }
+    }
+
+    const defaultFeatures = [
+      p.material ? `Constructed from authentic ${p.material}` : 'Sturdy, honest material construction',
       p.dimensions ? `Dimensions: ${p.dimensions}` : 'Proportioned for modern living spaces',
       'Engineered for straightforward post-delivery assembly',
       p.warrantyTerms ? `Covered by ${p.warrantyTerms}` : 'Rigorous JODO multi-point quality inspection',
       p.careAndMaintenance ? `Care: ${p.careAndMaintenance}` : 'Easy wipe-clean maintenance',
     ];
 
-    const seoTitle = `${p.title} | JODO Furniture`;
-    const metaDescription = `Explore the ${p.title} by JODO. Thoughtfully manufactured with ${p.material || 'quality materials'} and easy assembly for everyday home comfort.`;
+    const keyFeatures = (customFeatures.length >= 3 ? customFeatures : [...customFeatures, ...defaultFeatures.slice(customFeatures.length)]).slice(0, 5);
+
+    const seoTitle = `${title} | JODO Furniture`;
+    const metaDescription = `Explore the ${title} by JODO. Thoughtfully manufactured with ${p.material || 'quality materials'} and easy assembly for everyday home comfort.`;
 
     return {
       seo_title: seoTitle,

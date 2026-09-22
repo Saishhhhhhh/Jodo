@@ -226,7 +226,7 @@ export default function ProductDescriptionsPage() {
   const searchParams = useSearchParams();
   const queryProductId = searchParams.get('productId');
 
-  const { items, selectedItemId, generateContent } = useAiContentStore();
+  const { items, selectedItemId, generateContent, addGeneratedItem } = useAiContentStore();
 
   // Search filter for dropdown list
   const [productSearch, setProductSearch] = useState('');
@@ -336,9 +336,11 @@ export default function ProductDescriptionsPage() {
     });
   }, [dbProductsRaw]);
 
-  // Prioritize DB products directly from the database
+  // All selectable products: live DB products combined with demo presets (no missing items)
   const allProducts = useMemo<NormalizedProduct[]>(() => {
-    return dbProducts.length > 0 ? dbProducts : FALLBACK_PRESETS;
+    const existingIds = new Set(dbProducts.map((p) => p.id));
+    const presetsToAdd = FALLBACK_PRESETS.filter((p) => !existingIds.has(p.id));
+    return [...dbProducts, ...presetsToAdd];
   }, [dbProducts]);
 
   // Filtered products for dropdown search
@@ -378,8 +380,9 @@ export default function ProductDescriptionsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedItem, setGeneratedItem] = useState<AiContentItem | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const initialSelectedRef = useRef(false);
 
-  // When product selection changes, update inputs
+  // When product selection changes, update inputs and preview
   const handleProductSelect = (p: NormalizedProduct) => {
     setSelectedProduct(p);
     setProductName(p.title);
@@ -403,26 +406,47 @@ export default function ProductDescriptionsPage() {
       .map((k) => k.toLowerCase())
       .join(', ');
     setKeywordsStr(keywords);
+
+    // Synchronize generatedItem: check if there is an existing draft for this specific product
+    const existingDraft = items.find(
+      (i) =>
+        i.contentType === 'product_description' &&
+        ((i.productId && i.productId === p.id) ||
+          (i.sku && i.sku === p.sku) ||
+          i.productName.toLowerCase() === p.title.toLowerCase())
+    );
+    if (existingDraft) {
+      setGeneratedItem(existingDraft);
+    } else {
+      // Clear out older, unrelated product's description from previous selection
+      setGeneratedItem(null);
+    }
   };
 
-  // Sync initial selection when DB products finish loading
+  // Sync initial selection when products finish loading (only auto-select once on mount)
   useEffect(() => {
     if (queryProductId) {
       const match = allProducts.find((p) => p.id === queryProductId);
       if (match) {
         handleProductSelect(match);
+        initialSelectedRef.current = true;
         return;
       }
     }
-    // Auto-select first DB product once loaded from database
-    if (dbProducts.length > 0 && (!selectedProduct.isDb || selectedProduct.id.startsWith('prod_'))) {
-      handleProductSelect(dbProducts[0]);
+    // Only auto-select the first available product once on initial mount
+    if (!initialSelectedRef.current && allProducts.length > 0) {
+      initialSelectedRef.current = true;
+      handleProductSelect(allProducts[0]);
     }
-  }, [dbProducts, queryProductId]);
+  }, [allProducts, queryProductId]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     const keywords = keywordsStr.split(',').map((k) => k.trim()).filter(Boolean);
+    const parsedFeatures = keyFeatures
+      ? keyFeatures.split(/[,;\n]/).map((k) => k.trim()).filter(Boolean)
+      : [];
+
     const payload = {
       contentType: 'product_description' as const,
       product: {
@@ -437,12 +461,15 @@ export default function ProductDescriptionsPage() {
         collection,
         imageUrl: selectedProduct.imageUrl,
         existingDescription: selectedProduct.existingDescription,
+        keyFeatures: parsedFeatures,
+        targetAudience,
       },
       tone,
       length,
       seoOptimized,
       keywords,
       targetAudience,
+      keyFeatures: parsedFeatures,
     };
 
     try {
@@ -484,13 +511,14 @@ export default function ProductDescriptionsPage() {
           updatedAt: apiItem.updatedAt || new Date().toISOString(),
           versions: [],
         };
+        addGeneratedItem(normalizedItem);
         setGeneratedItem(normalizedItem);
         toast.success(`AI Description generated for "${productName}"!`);
       } else {
         throw new Error('No item returned');
       }
     } catch {
-      // Smooth fallback to local generator
+      // Smooth fallback to local dynamic generator
       const item = generateContent(payload);
       setGeneratedItem(item);
       toast.success(`Description generated for "${productName}"!`);
@@ -508,20 +536,33 @@ export default function ProductDescriptionsPage() {
     }
   };
 
-  // Pre-load existing draft or newly generated item if available
+  // If selectedItemId changes externally (e.g. from Version History or Quick Generator), sync it
   useEffect(() => {
     if (selectedItemId) {
       const selected = items.find((i) => i.id === selectedItemId && i.contentType === 'product_description');
       if (selected) {
         setGeneratedItem(selected);
-        return;
+        const match = allProducts.find(
+          (p) =>
+            p.id === selected.productId ||
+            p.sku === selected.sku ||
+            p.title.toLowerCase() === selected.productName.toLowerCase()
+        );
+        if (match && match.id !== selectedProduct.id) {
+          setSelectedProduct(match);
+          setProductName(match.title);
+          setCategory(match.category);
+          setMaterial(match.material);
+          setColour(match.colour);
+          setDesign(match.design);
+          setCollection(match.collection);
+          setPrice(String(match.price));
+          setKeyFeatures(match.keyFeatures);
+          setTargetAudience(match.targetAudience);
+        }
       }
     }
-    const existing = items.find((i) => i.contentType === 'product_description');
-    if (existing && !generatedItem) {
-      setGeneratedItem(existing);
-    }
-  }, [items, selectedItemId, generatedItem]);
+  }, [selectedItemId]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
@@ -825,18 +866,41 @@ export default function ProductDescriptionsPage() {
       </div>
 
       {/* AI Generated Result & Side-by-Side Editor (Section 5) */}
-      {generatedItem && (
-        <div ref={resultRef} className="space-y-4 pt-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">AI Generated Result</h2>
-            <span className="text-xs text-muted-foreground">
-              Every result must be saved as Draft or sent for Review prior to publishing.
-            </span>
+      <div ref={resultRef} className="space-y-4 pt-4">
+        {generatedItem ? (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-foreground">AI Generated Result</h2>
+              <span className="text-xs text-muted-foreground">
+                Every result must be saved as Draft or sent for Review prior to publishing.
+              </span>
+            </div>
+            <ContentEditorPanel key={generatedItem.id} item={generatedItem} />
+          </>
+        ) : (
+          <div className="bg-card/50 rounded-xl border border-dashed p-8 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-sm text-foreground">Ready to Generate Description for "{productName}"</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Product attributes are loaded. Click <strong>Generate Description</strong> above to craft brand-aligned copy grounded in authentic {material || 'CMS'} specifications.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              size="sm"
+              className="text-xs gap-1.5"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+              {isGenerating ? 'Generating...' : `Generate for ${productName}`}
+            </Button>
           </div>
-
-          <ContentEditorPanel key={generatedItem.id} item={generatedItem} />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

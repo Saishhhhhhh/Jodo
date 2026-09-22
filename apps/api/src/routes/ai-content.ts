@@ -143,25 +143,37 @@ router.post('/generate', async (req: Request, res: Response, next: NextFunction)
       try {
         productDoc = await Product.findById(input.product.id).lean();
         if (productDoc) {
+          const pd = productDoc.productDetails || {};
+          const docColour = typeof pd.get === 'function' ? pd.get('Colour') : (pd['Colour'] || pd['colour'] || pd['Color'] || '');
+          const docDesign = typeof pd.get === 'function' ? pd.get('Design') : (pd['Design'] || pd['design'] || '');
+          const docCollection = typeof pd.get === 'function' ? pd.get('Collections') : (pd['Collections'] || pd['collection'] || '');
+
           productDetails = {
             id: productDoc._id.toString(),
-            title: productDoc.title,
-            sku: productDoc.sku,
-            category: productDoc.category,
-            price: productDoc.price,
-            material: productDoc.material,
-            dimensions: productDoc.dimensions,
-            weight: productDoc.weight,
-            existingDescription: productDoc.longDescription || productDoc.shortDescription,
+            title: input.product?.title || productDoc.title,
+            sku: input.product?.sku || productDoc.sku,
+            category: input.product?.category || productDoc.category,
+            price: input.product?.price || productDoc.price,
+            material: input.product?.material || productDoc.material,
+            dimensions: input.product?.dimensions || productDoc.dimensions,
+            weight: input.product?.weight || productDoc.weight,
+            existingDescription: input.product?.existingDescription || productDoc.longDescription || productDoc.shortDescription,
             specifications: productDoc.specifications,
-            careAndMaintenance: productDoc.careAndMaintenance,
-            warrantyTerms: productDoc.warrantyTerms,
+            careAndMaintenance: input.product?.careAndMaintenance || productDoc.careAndMaintenance,
+            warrantyTerms: input.product?.warrantyTerms || productDoc.warrantyTerms,
             tags: productDoc.tags,
-            colour: (productDoc.productDetails as any)?.get?.('Colour') || '',
-            design: (productDoc.productDetails as any)?.get?.('Design') || '',
-            collection: (productDoc.productDetails as any)?.get?.('Collections') || '',
+            colour: input.product?.colour || docColour,
+            design: input.product?.design || docDesign,
+            collection: input.product?.collection || docCollection,
+            keyFeatures: input.product?.keyFeatures || input.keyFeatures,
+            targetAudience: input.product?.targetAudience || input.targetAudience,
           };
           input.product = productDetails;
+          if (!input.keyFeatures && productDetails.keyFeatures) {
+            input.keyFeatures = Array.isArray(productDetails.keyFeatures)
+              ? productDetails.keyFeatures
+              : String(productDetails.keyFeatures).split(/[,;\n]/).map((k: string) => k.trim()).filter(Boolean);
+          }
         }
       } catch {
         // Continue with provided payload

@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { productsApi } from '@/lib/api-client';
 import {
   Sparkles,
   Package,
@@ -106,12 +108,55 @@ export function QuickContentGenerator() {
   const router = useRouter();
   const { generateContent } = useAiContentStore();
 
+  // Load live DB products if available
+  const { data: dbProductsRaw = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      try {
+        const res = await productsApi.list();
+        return res.data?.data?.products || res.data?.data || [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const allProducts = useMemo<CmsProductOption[]>(() => {
+    if (!Array.isArray(dbProductsRaw) || dbProductsRaw.length === 0) return SAMPLE_CMS_PRODUCTS;
+    const dbOptions: CmsProductOption[] = dbProductsRaw.map((p: any) => ({
+      id: p._id || p.id,
+      title: p.title || 'Untitled Product',
+      sku: p.sku || 'JD-SKU',
+      category: p.category || 'Living Room',
+      price: Number(p.price) || 19999,
+      material: p.material || 'Solid Wood',
+      collection: p.collection || `${p.category || 'JODO'} Collection`,
+      imageUrl: p.imageUrl || (p.galleryImages && p.galleryImages[0]) || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
+      existingDescription: p.longDescription || p.shortDescription || '',
+      attributes: {
+        Dimensions: p.dimensions || 'Standard',
+        Finish: p.colour || 'Natural Satin',
+        Material: p.material || 'Solid Wood',
+      },
+    }));
+    const existingIds = new Set(dbOptions.map((p) => p.id));
+    const presetsToAdd = SAMPLE_CMS_PRODUCTS.filter((p) => !existingIds.has(p.id));
+    return [...dbOptions, ...presetsToAdd];
+  }, [dbProductsRaw]);
+
   const [contentType, setContentType] = useState<AiContentType>('product_description');
-  const [selectedProduct, setSelectedProduct] = useState<CmsProductOption>(SAMPLE_CMS_PRODUCTS[0]);
+  const [selectedProduct, setSelectedProduct] = useState<CmsProductOption>(allProducts[0] || SAMPLE_CMS_PRODUCTS[0]);
   const [searchFilter, setSearchFilter] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const filteredProducts = SAMPLE_CMS_PRODUCTS.filter((p) =>
+  // Sync selected product once live products load if still default
+  useEffect(() => {
+    if (allProducts.length > 0 && selectedProduct.id === SAMPLE_CMS_PRODUCTS[0].id && allProducts[0].id !== SAMPLE_CMS_PRODUCTS[0].id) {
+      setSelectedProduct(allProducts[0]);
+    }
+  }, [allProducts]);
+
+  const filteredProducts = allProducts.filter((p) =>
     p.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
     p.sku.toLowerCase().includes(searchFilter.toLowerCase())
   );
@@ -140,13 +185,13 @@ export function QuickContentGenerator() {
       setIsGenerating(false);
       toast.success(`Draft generated for "${selectedProduct.title}"! Redirecting...`);
 
-      // Navigate to the appropriate module tab
+      // Navigate to the appropriate module tab with productId parameter to keep selection in sync
       if (contentType === 'product_description') {
-        router.push('/ai-content/product-descriptions');
+        router.push(`/ai-content/product-descriptions?productId=${selectedProduct.id}`);
       } else if (contentType === 'catalogue_content') {
-        router.push('/ai-content/catalogue-content');
+        router.push(`/ai-content/catalogue-content?productId=${selectedProduct.id}`);
       } else if (contentType === 'listing_copy') {
-        router.push('/ai-content/listing-copy');
+        router.push(`/ai-content/listing-copy?productId=${selectedProduct.id}`);
       } else {
         router.push('/ai-content/campaign-content');
       }
