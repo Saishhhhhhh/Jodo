@@ -58,66 +58,162 @@ export interface NormalizedProduct {
 const FALLBACK_PRESETS: NormalizedProduct[] = [
   {
     id: 'prod_101',
-    title: 'Aurelia Minimalist Teak Armchair',
-    sku: 'JD-CHR-001',
-    category: 'Living Room',
-    price: 24999,
-    material: 'Kiln-Dried Burma Teakwood & Boucle Fabric',
-    colour: 'Oatmeal / Natural Teak',
-    design: 'Scandinavian Minimalist Open-Frame',
-    collection: 'Scandinavian Serenity',
-    imageUrl: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&auto=format&fit=crop&q=80',
-    keyFeatures: 'Solid teakwood joinery, textured boucle, high-density ergonomic core, 5-year warranty',
-    targetAudience: 'Discerning homeowners and boutique luxury hotels',
-    existingDescription: 'Scandinavian style teakwood lounge chair with textured upholstery and ergonomic form.',
+    title: 'Ananta Solid Sheesham 6-Seater Dining Table',
+    sku: 'JD-DT-ANA-006',
+    category: 'Dining Room',
+    price: 28999,
+    material: 'Solid Sheesham Wood',
+    colour: 'Warm Walnut Honey',
+    design: 'Warm Minimalist Joinery',
+    collection: 'Dining & Togetherness',
+    imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Solid Sheesham wood tabletop and legs, seats 6 comfortably, warm honey walnut finish, 15-min DIY leg assembly',
+    targetAudience: 'Families who value warm gatherings and handcrafted solid Indian wood furniture',
+    existingDescription: 'Handcrafted 6-seater dining table made from solid Sheesham with easy bolt-on assembly.',
     isDb: false,
   },
   {
     id: 'prod_102',
-    title: 'Nordic Oak Floating Bedframe',
-    sku: 'JD-BED-004',
-    category: 'Bedroom',
-    price: 48999,
-    material: 'American White Oak',
-    colour: 'Natural Blond Oak',
-    design: 'Japanese-Nordic Cantilevered Platform',
-    collection: 'Kyoto-Nordic Archive',
-    imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&auto=format&fit=crop&q=80',
-    keyFeatures: 'Concealed cantilever base, 450kg load rating, acoustic dampening birch slats',
-    targetAudience: 'Urban homeowners upgrading to Japanese minimalist master bedrooms',
-    existingDescription: 'Floating platform bedframe in solid oak with concealed cantilevered pedestal base.',
+    title: 'Aurelia Minimalist Teak Armchair',
+    sku: 'JD-CHR-AUR-001',
+    category: 'Living Room',
+    price: 24999,
+    material: 'Kiln-Dried Burma Teakwood & Bouclé Fabric',
+    colour: 'Oatmeal / Natural Teak',
+    design: 'Sculptural Open-Frame',
+    collection: 'Living Room Serenity',
+    imageUrl: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Solid teakwood joinery, textured bouclé, ergonomic contour, interlocking easy assembly',
+    targetAudience: 'Modern homeowners and boutique interiors seeking warm architectural seating',
+    existingDescription: 'Open-frame minimalist armchair in kiln-dried teak with textured oatmeal bouclé upholstery.',
     isDb: false,
   },
   {
     id: 'prod_103',
-    title: 'Solstice Marble & Brass Dining Table',
-    sku: 'JD-DNG-012',
-    category: 'Dining',
-    price: 89999,
-    material: 'Italian Carrara Marble & Cast Brass',
-    colour: 'Milky White with Grey Veining & Brushed Brass',
-    design: 'Monumental Roman Fluted Column',
-    collection: 'Monumental Mineralia',
-    imageUrl: 'https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?w=800&auto=format&fit=crop&q=80',
-    keyFeatures: '30mm Carrara marble slab, brass fluted columns, seats 8-10 guests, stain resistant seal',
-    targetAudience: 'Architects, interior designers, and luxury estate homeowners',
-    existingDescription: 'Eight-seater dining table with continuous Carrara marble slab and cast brass fluted columns.',
+    title: 'Nordic Oak Floating Platform Bedframe (King Size)',
+    sku: 'JD-BED-NOR-004',
+    category: 'Bedroom',
+    price: 48999,
+    material: 'American White Oak & Birch Slats',
+    colour: 'Natural Blond Oak',
+    design: 'Japanese-Nordic Cantilevered Platform',
+    collection: 'Restful Bedroom',
+    imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Concealed cantilever base, 450kg load rating, acoustic dampening birch slats, modular slot-and-lock assembly',
+    targetAudience: 'Urban homeowners upgrading to peaceful, minimalist master bedrooms',
+    existingDescription: 'Floating platform bedframe in solid oak with recessed pedestal base and motion-isolated birch slats.',
     isDb: false,
   },
   {
     id: 'prod_104',
-    title: 'Komorebi Hand-Woven Cane Credenza',
-    sku: 'JD-STG-008',
-    category: 'Storage',
-    price: 38500,
-    material: 'Ashwood & Natural Hexagonal Cane Webbing',
-    colour: 'Caramel Ash / Honey Cane',
-    design: 'Organic Modern Credenza',
-    collection: 'Botanical Modern',
-    imageUrl: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&auto=format&fit=crop&q=80',
-    keyFeatures: 'Breathable woven cane webbing, soft-close German hinges, concealed cable management',
-    targetAudience: 'Minimalist living rooms and contemporary media rooms',
-    existingDescription: 'Hexagonal woven cane sideboard with soft close hinges and concealed cable ports.',
+    title: 'Aarambh Solid Teak Study Desk with Cable Management',
+    sku: 'JD-DSK-AAR-002',
+    category: 'Study & Office',
+    price: 18499,
+    material: 'Solid Burma Teak & Powder-Coated Matte Steel',
+    colour: 'Natural Honey & Matte Black',
+    design: 'Functional Architectural Desk',
+    collection: 'Study & Workspace',
+    imageUrl: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Solid teak top, integrated under-desk cable management channel, ergonomic eased edge, 10-min bolt-on legs',
+    targetAudience: 'Remote professionals, designers, and home office setups',
+    existingDescription: 'Functional study desk featuring solid teak tabletop, concealed wire trough, and sturdy steel legs.',
+    isDb: false,
+  },
+  {
+    id: 'prod_105',
+    title: 'Ananta Sheesham Upholstered Dining Chairs (Set of 2)',
+    sku: 'JD-CHR-ANA-002',
+    category: 'Dining Room',
+    price: 13999,
+    material: 'Solid Sheesham Wood & Linen Blend Fabric',
+    colour: 'Walnut & Sand Linen',
+    design: 'Ergonomic Dining Silhouette',
+    collection: 'Dining & Togetherness',
+    imageUrl: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Set of 2 chairs, solid Sheesham frame, breathable sand linen cushion, high-resilience foam',
+    targetAudience: 'Families pairing with Ananta dining tables for long comfortable meals',
+    existingDescription: 'Pair of solid Sheesham dining chairs with high-density foam and sand linen upholstery.',
+    isDb: false,
+  },
+  {
+    id: 'prod_106',
+    title: 'Vistara 3-Seater Modular Sofa with Natural Cane Weave',
+    sku: 'JD-SOF-VIS-003',
+    category: 'Living Room',
+    price: 44999,
+    material: 'Solid Mango Wood Frame & Handwoven Rattan Cane',
+    colour: 'Pecan & Warm Ivory',
+    design: 'Heritage Cane Modern Lounge',
+    collection: 'Living Room Serenity',
+    imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Handwoven natural cane panels, dual-density foam core, washable linen covers, modular tool-free connectors',
+    targetAudience: 'Living rooms blending contemporary ease with Indian craft heritage',
+    existingDescription: 'Expansive 3-seater sofa celebrating traditional Indian cane weave with deep lounge cushions.',
+    isDb: false,
+  },
+  {
+    id: 'prod_107',
+    title: 'Sahyadri Fluted Oak 3-Drawer Nightstand',
+    sku: 'JD-NST-SAH-003',
+    category: 'Bedroom',
+    price: 11999,
+    material: 'Engineered Oak & Solid Oak Fluted Facing',
+    colour: 'Muted Sand Oak',
+    design: 'Architectural Fluted Bedside',
+    collection: 'Restful Bedroom',
+    imageUrl: 'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: '3 soft-close drawers, fluted solid oak drawer fronts, pre-assembled carcass with screw-in legs',
+    targetAudience: 'Bedrooms requiring uncluttered storage and textured warmth',
+    existingDescription: 'Textured fluted bedside table with three smooth-gliding drawers and soft-close runners.',
+    isDb: false,
+  },
+  {
+    id: 'prod_108',
+    title: 'Malhar Low-Profile Teak Coffee Table with Storage Shelf',
+    sku: 'JD-CTB-MAL-001',
+    category: 'Living Room',
+    price: 15999,
+    material: 'Kiln-Dried Burma Teakwood',
+    colour: 'Satin Natural Teak',
+    design: 'Organic Low-Profile Center Table',
+    collection: 'Living Room Serenity',
+    imageUrl: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Rounded organic corners, full-length lower magazine shelf, solid teak build, 4-bolt assembly',
+    targetAudience: 'Informal living rooms and tea gathering spaces',
+    existingDescription: 'Solid teak coffee table with low-profile profile and full-length open storage shelf.',
+    isDb: false,
+  },
+  {
+    id: 'prod_109',
+    title: 'Nilgiri Modular Bookshelf & Room Divider (5-Tier)',
+    sku: 'JD-BKS-NIL-005',
+    category: 'Study & Office',
+    price: 26999,
+    material: 'Solid Sheesham & Natural Cane Weave Panels',
+    colour: 'Rich Walnut',
+    design: 'Architectural Open Partition',
+    collection: 'Study & Workspace',
+    imageUrl: 'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: '5 display tiers, solid Sheesham construction, alternating cane panels, wall safety strap included',
+    targetAudience: 'Open-plan apartments and home study libraries',
+    existingDescription: '5-tier architectural bookshelf and room partition with alternating open shelving and natural cane backing.',
+    isDb: false,
+  },
+  {
+    id: 'prod_110',
+    title: 'Samvaad Round 4-Seater Breakfast Table',
+    sku: 'JD-DT-SAM-004',
+    category: 'Dining Room',
+    price: 22499,
+    material: 'Solid White Ash Wood with Pedestal Base',
+    colour: 'Soft Nordic Ash',
+    design: 'Circular Pedestal Dining Table',
+    collection: 'Dining & Togetherness',
+    imageUrl: 'https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&w=1200&q=80',
+    keyFeatures: 'Seats 4 persons, sculptural center pedestal eliminating corner leg clutter, two-piece machine-bolt assembly',
+    targetAudience: 'Breakfast nooks, compact dining spaces, and morning chai areas',
+    existingDescription: 'Intimate round breakfast and dining table in solid White Ash wood with sculptural pedestal base.',
     isDb: false,
   },
 ];
@@ -144,8 +240,22 @@ export default function ProductDescriptionsPage() {
   } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const res = await productsApi.list();
-      return res.data.data;
+      try {
+        const res = await productsApi.list();
+        const items = res.data?.data?.products || res.data?.data;
+        if (Array.isArray(items) && items.length > 0) {
+          return items;
+        }
+      } catch {
+        // Fallback to storefront public endpoint to ensure DB products are loaded
+      }
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/storefront/products`);
+        const json = await res.json();
+        return json.data || [];
+      } catch {
+        return [];
+      }
     },
   });
 
@@ -226,9 +336,9 @@ export default function ProductDescriptionsPage() {
     });
   }, [dbProductsRaw]);
 
-  // Combined product catalog
+  // Prioritize DB products directly from the database
   const allProducts = useMemo<NormalizedProduct[]>(() => {
-    return [...dbProducts, ...FALLBACK_PRESETS];
+    return dbProducts.length > 0 ? dbProducts : FALLBACK_PRESETS;
   }, [dbProducts]);
 
   // Filtered products for dropdown search
@@ -304,8 +414,8 @@ export default function ProductDescriptionsPage() {
         return;
       }
     }
-    // Auto-select first DB product once loaded if currently showing default preset
-    if (dbProducts.length > 0 && selectedProduct.id.startsWith('prod_')) {
+    // Auto-select first DB product once loaded from database
+    if (dbProducts.length > 0 && (!selectedProduct.isDb || selectedProduct.id.startsWith('prod_'))) {
       handleProductSelect(dbProducts[0]);
     }
   }, [dbProducts, queryProductId]);

@@ -114,64 +114,126 @@ function getOrderedClients(): OpenAI[] {
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are JODO AI Atelier — an expert luxury furniture & home décor copywriter for JODO, a premium Indian D2C brand.
+const SYSTEM_PROMPT = `You are the senior e-commerce copywriter, product-content strategist and SEO specialist for JODO, an Indian furniture manufacturing brand.
 
-BRAND VOICE:
-- Sophisticated, aspirational, yet warm
-- Focus on craftsmanship, materials, and lifestyle elevation
-- Never use generic filler words like "amazing", "incredible", "game-changer"
-- Write in British English
-- Keep sentences precise and evocative
+BRAND:
+Brand name: JODO
+Brand category: Furniture
+Brand tagline: "The Joy of Together."
+JODO manufactures its own furniture.
+JODO furniture is designed with easy post-delivery assembly in mind.
+JODO's brand philosophy is that furniture should not only be delivered to a customer, but should become part of the customer's experience of creating their home.
 
-ANTI-HALLUCINATION RULES (MANDATORY):
-1. Only describe features, materials, or specs that are EXPLICITLY provided in the product data.
-2. If material is not given, do NOT mention a specific material — use "premium materials".
-3. If dimensions are not given, do NOT invent dimensions.
-4. Never make health, safety, or sustainability claims unless explicitly provided.
-5. Never invent warranty terms, certifications, or awards.
-6. If a field is missing, omit that aspect gracefully.
+The writing must communicate:
+* thoughtful manufacturing
+* functional design
+* easy assembly
+* everyday usability
+* good design
+* warmth
+* togetherness
+* ownership
+* a modern Indian furniture brand personality
 
-RESPONSE FORMAT: Always respond with valid JSON only. No markdown, no commentary — pure JSON.`;
+STRICT NEGATIVE CONSTRAINTS:
+- Do NOT describe JODO as a marketplace.
+- Do NOT compare JODO to IKEA, Pepperfry, Urban Ladder, Wakefit, WoodenStreet, Durian, Nilkamal or any competitor.
+- Do NOT claim that JODO is "better than", "cheaper than", "more durable than", "easier than" or "more premium than" any competitor unless the input explicitly provides verified evidence.
+- Do not produce generic AI-style ecommerce copy.
+- Do not use exaggerated marketing language.
+- Do not keyword-stuff.
+- Do not repeat the same adjective throughout the content.
+- Prioritize usefulness and clarity over SEO manipulation.
+
+ABSOLUTE FACTUAL RULE (ANTI-HALLUCINATION):
+- NEVER invent product information.
+- Only use facts provided in the input. If information is missing, do not guess it.
+- Never invent: dimensions, weight, material, wood species, thickness, warranty, load capacity, number of shelves, number of drawers, assembly time, finish, color, manufacturing process, certifications, safety claims, sustainability claims, waterproofing, termite resistance, scratch resistance, lifetime, delivery timeline, return policy, discounts, pricing, availability, country of origin, accessories, included parts.
+- If a fact is not supplied, simply avoid mentioning it.
+- Do not use phrases such as "built to last a lifetime", "premium quality", "100% durable", "best in India", "number one", "luxury", "eco-friendly", "waterproof", "termite-proof", "scratch-proof", "anti-rust" unless explicitly supported by the product input.
+- Use empty strings for unavailable scalar values.
+- Use empty arrays when no verified values are available.
+- Preserve factual accuracy above all else.
+
+RESPONSE FORMAT:
+Always return ONLY valid JSON.
+No markdown code fences, no comments, and no extra text outside the JSON.`;
 
 // ─── Prompt builders ──────────────────────────────────────────────────────────
 
 function buildProductDescriptionPrompt(input: GenerateContentInput, tone: string, length: string): string {
   const p = input.product!;
-  const productFacts = {
-    title: p.title,
-    sku: p.sku || 'N/A',
-    category: p.category || 'Home Furnishing',
-    price: p.price ? `₹${p.price.toLocaleString('en-IN')}` : undefined,
-    material: p.material,
-    dimensions: p.dimensions,
-    colour: p.colour,
-    design: p.design,
-    collection: p.collection,
-    careInstructions: p.careAndMaintenance,
-    warrantyTerms: p.warrantyTerms,
-    specifications: p.specifications,
-    tags: p.tags,
-    existingDescription: p.existingDescription,
+  const productData = {
+    product_name: p.title,
+    category: p.category || '',
+    subcategory: p.subcategory || '',
+    product_type: p.category || '',
+    material: p.material || '',
+    material_details: '',
+    finish: p.design || '',
+    color: p.colour || '',
+    dimensions: p.dimensions ? { length: '', width: '', height: '', unit: '', raw: p.dimensions } : {},
+    weight: p.weight ? String(p.weight) : '',
+    seating_capacity: '',
+    storage: '',
+    number_of_drawers: '',
+    number_of_shelves: '',
+    assembly_required: true,
+    assembly_type: 'Self-assembly',
+    assembly_difficulty: 'Easy',
+    assembly_information: 'Designed for straightforward post-delivery assembly.',
+    recommended_room: p.category || '',
+    recommended_use: '',
+    key_features: input.keyFeatures || (p.tags && p.tags.length > 0 ? p.tags : []),
+    care_instructions: p.careAndMaintenance ? [p.careAndMaintenance] : [],
+    whats_in_the_box: [],
+    warranty: p.warrantyTerms || '',
+    sku: p.sku || '',
+    product_url: '',
+    price: p.price ? String(p.price) : '',
+    availability: 'In Stock',
+    primary_keyword: (input.keywords && input.keywords[0]) || '',
+    secondary_keywords: (input.keywords && input.keywords.slice(1)) || [],
   };
 
-  return `Generate a ${tone}-tone product description for this JODO product. Length: ${length}.
+  return `Using only the product information supplied below, create complete, accurate, natural and SEO-friendly product content for the JODO ecommerce website.
+Tone: ${tone}. Detail Level: ${length}.
 
-PRODUCT DATA (use ONLY these facts):
-${JSON.stringify(productFacts, null, 2)}
+PRODUCT DATA:
+${JSON.stringify(productData, null, 2)}
 
-TARGET AUDIENCE: ${input.targetAudience || 'Affluent urban homeowners aged 28–50'}
-SEO KEYWORDS TO INTEGRATE: ${(input.keywords || []).join(', ') || 'None specified'}
-CHANNEL: ${input.channel || 'Website'}
-
-Return this exact JSON structure:
+Return ONLY valid JSON using exactly this structure:
 {
-  "productTitle": "...",
-  "shortDescription": "2-3 sentences, evocative, SEO-friendly",
-  "fullDescription": "${length === 'Short' ? '1 paragraph' : length === 'Medium' ? '2 paragraphs' : '3 paragraphs'}",
-  "keyFeatures": ["feature 1", "feature 2", "feature 3", "feature 4", "feature 5"],
-  "seoMetaTitle": "60 chars max",
-  "seoMetaDescription": "155 chars max",
-  "seoKeywords": "comma-separated keywords"
+  "seo_title": "",
+  "meta_description": "",
+  "url_slug": "",
+  "primary_keyword": "",
+  "secondary_keywords": [],
+  "short_description": "",
+  "full_description": "",
+  "key_features": [],
+  "assembly_information": "",
+  "care_and_maintenance": "",
+  "whats_included": [],
+  "who_is_this_for": "",
+  "image_alt_text": [],
+  "faqs": [
+    {
+      "question": "",
+      "answer": ""
+    }
+  ],
+  "specification_summary": {
+    "material": "",
+    "finish": "",
+    "color": "",
+    "dimensions": "",
+    "weight": "",
+    "assembly": "",
+    "storage": "",
+    "warranty": "",
+    "sku": ""
+  }
 }`;
 }
 
@@ -488,12 +550,27 @@ export class AiContentService {
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.72,
-      max_tokens: 1800,
+      max_tokens: 2500,
       response_format: { type: 'json_object' },
     });
 
     const raw = completion.choices[0]?.message?.content || '{}';
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+
+    // Normalize product_description keys for full UI & API compatibility
+    if (input.contentType === 'product_description') {
+      if (parsed.seo_title && !parsed.productTitle) parsed.productTitle = parsed.seo_title;
+      if (parsed.short_description && !parsed.shortDescription) parsed.shortDescription = parsed.short_description;
+      if (parsed.full_description && !parsed.fullDescription) parsed.fullDescription = parsed.full_description;
+      if (parsed.key_features && !parsed.keyFeatures) parsed.keyFeatures = parsed.key_features;
+      if (parsed.seo_title && !parsed.seoMetaTitle) parsed.seoMetaTitle = parsed.seo_title;
+      if (parsed.meta_description && !parsed.seoMetaDescription) parsed.seoMetaDescription = parsed.meta_description;
+      if (parsed.primary_keyword && !parsed.seoKeywords) {
+        parsed.seoKeywords = [parsed.primary_keyword, ...(parsed.secondary_keywords || [])].join(', ');
+      }
+    }
+
+    return parsed;
   }
 
   // ─── Template fallback ────────────────────────────────────────────────────────
@@ -518,40 +595,85 @@ export class AiContentService {
   }
 
   private static templateProductDescription(input: GenerateContentInput, tone: string, length: 'Short' | 'Medium' | 'Detailed') {
-    const p = input.product || { title: 'Premium Home Furnishing', price: 14999 };
-    const materialSnippet = p.material ? `Meticulously crafted from authentic ${p.material}` : 'Crafted with premium grade structural materials';
-    const collectionSnippet = p.collection ? `part of our signature ${p.collection} curation` : 'designed for discerning contemporary spaces';
-    const audienceSnippet = input.targetAudience ? `Tailored for ${input.targetAudience.toLowerCase()}.` : 'Ideal for modern lifestyle interiors.';
+    const p = input.product || { title: 'Solid Wood Furniture', price: 14999 };
+    const materialSnippet = p.material ? `crafted from genuine ${p.material}` : 'crafted with honest materials';
+    const collectionSnippet = p.collection ? `part of the JODO ${p.collection} collection` : 'designed for everyday modern Indian homes';
 
-    const shortDesc = `${p.title} embodies refined living, ${collectionSnippet}. ${materialSnippet}, delivering unmatched comfort, durability, and timeless silhouette.`;
+    const shortDesc = `The ${p.title} brings thoughtful manufacturing and clean functional design together, ${materialSnippet}. Designed with easy post-delivery assembly in mind to help you create your home.`;
 
     let fullDesc = '';
     if (length === 'Short') {
-      fullDesc = `${shortDesc} ${audienceSnippet} Every contour is engineered with precision to provide optimum ergonomic balance.`;
+      fullDesc = `${shortDesc}\n\nBuilt for everyday usability with balanced proportions and warm detailing.`;
     } else if (length === 'Detailed') {
-      fullDesc = `Introducing the ${p.title} — where thoughtful design meets exceptional craftsmanship. ${collectionSnippet}, this standout piece is ${materialSnippet.toLowerCase()}, ensuring both enduring resilience and aesthetic poise.\n\nDesigned to fit effortlessly into your everyday rituals, it offers ergonomic support paired with hand-finished detailing. ${audienceSnippet}\n\nWhether anchored as a statement centerpiece or harmoniously styled among existing interior tones, the ${p.title} brings subtle elegance, structural integrity, and lasting everyday value.`;
+      fullDesc = `### Introduction\nThe ${p.title} embodies JODO's philosophy of "The Joy of Together" — thoughtful furniture designed not only to be delivered, but to become an integral part of your home.\n\n### Design & Function\nEngineered with functional design and everyday usability at its core, this piece offers comfortable proportions and practical utility. ${collectionSnippet}.\n\n### Material & Finish\n${p.material ? `Meticulously crafted from ${p.material}` : 'Constructed from quality materials'}${p.design ? ` with a clean ${p.design} finish` : ''}, preserving natural textures while ensuring reliable daily support.\n\n### Assembly\nDesigned with easy post-delivery assembly in mind. Every component fits cleanly into place with straightforward instructions, making setup a satisfying part of making the piece your own.\n\n### Why It Works\nWarm, practical, and grounded in modern Indian home living, the ${p.title} delivers lasting value and functional comfort.`;
     } else {
-      fullDesc = `The ${p.title} offers an exquisite blend of sophistication and utilitarian comfort. ${materialSnippet}, ${collectionSnippet}.\n\nEngineered with mindful proportions and tactile finishes, it enriches any contemporary room aesthetic while delivering effortless daily functionality. ${audienceSnippet}`;
+      fullDesc = `### Introduction\nThe ${p.title} is designed for modern living, bringing functional aesthetics and warmth into your home.\n\n### Design & Material\n${materialSnippet.charAt(0).toUpperCase() + materialSnippet.slice(1)}, it features clean joinery and purposeful proportions built for daily use.\n\n### Assembly & Ownership\nThoughtfully engineered for straightforward post-delivery assembly, turning setup into a warm moment of bringing your living space together.`;
     }
 
-    const keywords = (input.keywords && input.keywords.length > 0)
-      ? input.keywords.join(', ')
-      : `${p.title.toLowerCase()}, modern ${p.category?.toLowerCase() || 'furniture'}, luxury home decor, premium design`;
+    const primaryKeyword = (input.keywords && input.keywords[0]) || `JODO ${p.title.toLowerCase()}`;
+    const secondaryKeywords = (input.keywords && input.keywords.slice(1)) || [
+      `modern ${p.category?.toLowerCase() || 'furniture'} for home`,
+      `wooden ${p.category?.toLowerCase() || 'furniture'} easy assembly`,
+    ];
+
+    const keyFeatures = [
+      p.material ? `Constructed from ${p.material}` : 'Sturdy, honest material construction',
+      p.dimensions ? `Dimensions: ${p.dimensions}` : 'Proportioned for modern living spaces',
+      'Engineered for straightforward post-delivery assembly',
+      p.warrantyTerms ? `Covered by ${p.warrantyTerms}` : 'Rigorous JODO multi-point quality inspection',
+      p.careAndMaintenance ? `Care: ${p.careAndMaintenance}` : 'Easy wipe-clean maintenance',
+    ];
+
+    const seoTitle = `${p.title} | JODO Furniture`;
+    const metaDescription = `Explore the ${p.title} by JODO. Thoughtfully manufactured with ${p.material || 'quality materials'} and easy assembly for everyday home comfort.`;
 
     return {
-      productTitle: `${p.title} | Exclusive JODO Collection`,
+      seo_title: seoTitle,
+      meta_description: metaDescription,
+      url_slug: p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+      primary_keyword: primaryKeyword,
+      secondary_keywords: secondaryKeywords,
+      short_description: shortDesc,
+      full_description: fullDesc,
+      key_features: keyFeatures,
+      assembly_information: 'Designed for straightforward post-delivery assembly. Hardware and instructions included.',
+      care_and_maintenance: p.careAndMaintenance || 'Wipe clean with a soft, dry or slightly damp cloth. Avoid harsh abrasive cleaners.',
+      whats_included: ['1 ' + p.title, 'Assembly Hardware Kit', 'Assembly Guide'],
+      who_is_this_for: `Designed for homeowners looking for functional, warm, and thoughtfully designed ${p.category?.toLowerCase() || 'furniture'} with easy setup.`,
+      image_alt_text: [
+        `JODO ${p.title}`,
+        `${p.title} in ${p.colour || 'natural finish'}`,
+        `JODO ${p.category || 'furniture'} for living space`,
+      ],
+      faqs: [
+        {
+          question: `Is assembly required for the ${p.title}?`,
+          answer: 'Yes, it is designed for simple and straightforward post-delivery assembly with clear instructions included.',
+        },
+        {
+          question: `What materials are used in the ${p.title}?`,
+          answer: p.material ? `It is made from ${p.material}.` : 'It is manufactured using verified high-grade furniture materials.',
+        },
+      ],
+      specification_summary: {
+        material: p.material || '',
+        finish: p.design || '',
+        color: p.colour || '',
+        dimensions: p.dimensions || '',
+        weight: p.weight ? String(p.weight) : '',
+        assembly: 'Self-assembly / Easy',
+        storage: '',
+        warranty: p.warrantyTerms || '',
+        sku: p.sku || '',
+      },
+      // Admin UI compatibility aliases
+      productTitle: seoTitle,
       shortDescription: shortDesc,
       fullDescription: fullDesc,
-      keyFeatures: [
-        p.material ? `Masterfully crafted using high-grade ${p.material}` : 'Durable precision construction',
-        p.dimensions ? `Space-optimized dimensions: ${p.dimensions}` : 'Engineered for optimal space utilization',
-        p.category ? `Curated especially for contemporary ${p.category.toLowerCase()}` : 'Timeless contemporary styling',
-        p.warrantyTerms ? `Protected by ${p.warrantyTerms}` : 'Rigorous multi-stage JODO quality inspection',
-        p.careAndMaintenance ? `Easy care: ${p.careAndMaintenance}` : 'Low maintenance, easy-to-clean architectural surface',
-      ],
-      seoMetaTitle: `${p.title} - Buy Online at JODO Store`,
-      seoMetaDescription: `Discover the ${p.title}. ${shortDesc.slice(0, 140)}... Shop online with fast shipping.`,
-      seoKeywords: keywords,
+      keyFeatures: keyFeatures,
+      seoMetaTitle: seoTitle,
+      seoMetaDescription: metaDescription,
+      seoKeywords: [primaryKeyword, ...secondaryKeywords].join(', '),
     };
   }
 

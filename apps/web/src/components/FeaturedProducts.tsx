@@ -6,94 +6,94 @@ import ProductCard, { Product } from './ProductCard';
 async function fetchProductsFromAdminPanel(): Promise<Product[]> {
   const fallbackProducts: Product[] = [
     {
-      id: '6a438dfe74b049d5bc53d522',
-      brand: 'RetroHome',
-      title: 'Mid-Century TV Stand',
-      price: 399,
-      imageUrl: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&auto=format&fit=crop&q=80',
-      rating: 4.8,
+      id: '6ab22d7d0ebb281a1ac0b121',
+      brand: 'JODO',
+      title: 'Ananta Sheesham Upholstered Dining Chairs (Set of 2)',
+      price: 13999,
+      imageUrl: 'https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1200&q=80',
+      rating: 4.9,
+      reviews: 24,
+    },
+    {
+      id: '6ab22d7d0ebb281a1ac0b127',
+      brand: 'JODO',
+      title: 'Vistara 3-Seater Modular Sofa with Natural Cane Weave',
+      price: 44999,
+      imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80',
+      rating: 5.0,
       reviews: 42,
     },
     {
-      id: '6a438dfe74b049d5bc53d51f',
-      brand: 'IronCraft',
-      title: 'Industrial Bookshelf',
-      price: 349,
-      imageUrl: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&auto=format&fit=crop&q=80',
-      rating: 4.7,
-      reviews: 84,
-    },
-    {
-      id: '6a438dfe74b049d5bc53d51b',
-      brand: 'ErgoMates',
-      title: 'Ergonomic Office Chair',
-      price: 199.5,
-      imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=800&auto=format&fit=crop&q=80',
-      rating: 4.9,
-      reviews: 215,
-    },
-    {
-      id: '6a438dfe74b049d5bc53d51e',
-      brand: 'SleepWell',
-      title: 'Queen Size Platform Bed',
-      price: 599,
-      imageUrl: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&auto=format&fit=crop&q=80',
-      rating: 4.6,
-      reviews: 38,
-    },
-    {
-      id: '6a438dfe74b049d5bc53d51d',
-      brand: 'Jodo Living',
-      title: 'Minimalist Nightstand',
-      price: 145,
-      imageUrl: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80',
-      rating: 4.7,
-      reviews: 56,
-    },
-    {
-      id: '6a438dfe74b049d5bc53d51c',
-      brand: 'Plush Designs',
-      title: 'Velvet Accent Sofa',
-      price: 1450,
-      imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
-      rating: 4.9,
-      reviews: 89,
-    },
-    {
-      id: '6a438dfe74b049d5bc53d51a',
-      brand: 'Jodo Living',
-      title: 'Modern Oak Dining Table',
-      price: 899,
-      imageUrl: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80',
-      rating: 5.0,
-      reviews: 124,
-    },
-    {
-      id: '6a438dfe74b049d5bc53d521',
-      brand: 'ClearView',
-      title: 'Glass Top Coffee Table',
-      price: 249,
-      imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=800&auto=format&fit=crop&q=80',
+      id: '6ab22d7d0ebb281a1ac0b12c',
+      brand: 'JODO',
+      title: 'Sahyadri Fluted Oak 3-Drawer Nightstand',
+      price: 11999,
+      imageUrl: 'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=1200&q=80',
       rating: 4.8,
-      reviews: 32,
+      reviews: 19,
     },
     {
-      id: '6a438dfe74b049d5bc53d523',
-      brand: 'Jodo Premium',
-      title: 'Luxury Marble Dining Table',
-      price: 2499,
-      imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800&auto=format&fit=crop&q=80',
-      rating: 5.0,
-      reviews: 12,
+      id: '6ab22d7d0ebb281a1ac0b130',
+      brand: 'JODO',
+      title: 'Malhar Low-Profile Teak Coffee Table with Storage Shelf',
+      price: 15999,
+      imageUrl: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=1200&q=80',
+      rating: 4.9,
+      reviews: 31,
     },
     {
-      id: 'furn-out-01',
-      brand: 'Jodo Outdoors',
-      title: 'Outdoor Teak Lounge Chair',
-      price: 499,
-      imageUrl: 'https://images.unsplash.com/photo-1599619351208-3e6c839d6828?w=800&auto=format&fit=crop&q=80',
+      id: '6ab22d7d0ebb281a1ac0b134',
+      brand: 'JODO',
+      title: 'Nilgiri Modular Bookshelf & Room Divider (5-Tier)',
+      price: 26999,
+      imageUrl: 'https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1200&q=80',
+      rating: 4.9,
+      reviews: 28,
+    },
+    {
+      id: '6ab22d7d0ebb281a1ac0b139',
+      brand: 'JODO',
+      title: 'Samvaad Round 4-Seater Breakfast Table',
+      price: 22499,
+      imageUrl: 'https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&w=1200&q=80',
       rating: 4.8,
-      reviews: 67,
+      reviews: 15,
+    },
+    {
+      id: '6ab22d7d0ebb281a1ac0b10f',
+      brand: 'JODO',
+      title: 'Aurelia Minimalist Teak Armchair',
+      price: 24999,
+      imageUrl: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&w=1200&q=80',
+      rating: 5.0,
+      reviews: 37,
+    },
+    {
+      id: '6ab22d7d0ebb281a1ac0b115',
+      brand: 'JODO',
+      title: 'Nordic Oak Floating Platform Bedframe (King Size)',
+      price: 48999,
+      imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80',
+      rating: 5.0,
+      reviews: 44,
+    },
+    {
+      id: '6ab22d7d0ebb281a1ac0b11b',
+      brand: 'JODO',
+      title: 'Aarambh Solid Teak Study Desk with Cable Management',
+      price: 18499,
+      imageUrl: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80',
+      rating: 4.9,
+      reviews: 22,
+    },
+    {
+      id: '6ab22d7d0ebb281a1ac0b108',
+      brand: 'JODO',
+      title: 'Ananta Solid Sheesham 6-Seater Dining Table',
+      price: 28999,
+      imageUrl: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1200&q=80',
+      rating: 5.0,
+      reviews: 58,
     }
   ];
 
@@ -108,15 +108,15 @@ async function fetchProductsFromAdminPanel(): Promise<Product[]> {
 
     const json = await res.json();
     
-    if (json.success && Array.isArray(json.data)) {
-      return json.data.map((p: { _id: string; vendor?: string; title: string; price: number; imageUrl?: string }) => ({
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      return json.data.map((p: { _id: string; vendor?: string; title: string; price: number; imageUrl?: string; rating?: number; reviewsCount?: number }) => ({
         id: p._id,
         brand: p.vendor || 'JODO',
         title: p.title,
         price: p.price,
         imageUrl: p.imageUrl || 'https://images.unsplash.com/photo-1629367142309-a612bd2435e0?auto=format&fit=crop&w=600&q=85',
         rating: 5.0,
-        reviews: 0,
+        reviews: 24,
       }));
     }
 
@@ -138,11 +138,11 @@ export default async function FeaturedProducts() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 md:mb-10">
           <h2 className="font-heading text-[#111111] font-bold text-[22px] sm:text-2xl md:text-[32px] tracking-tight whitespace-nowrap">
-            Featured Products 
+            Featured Furniture
           </h2>
           
           <Link 
-            href="/shop/beauty" 
+            href="/shop" 
             className="group flex items-center gap-1 md:gap-2 text-[#555555] font-semibold text-[14px] md:text-[15px] hover:text-[#111111] transition-colors whitespace-nowrap shrink-0"
           >
             <span className="md:hidden">View all</span>

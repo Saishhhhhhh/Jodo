@@ -127,7 +127,14 @@ router.get('/navigation/:handle', async (req, res, next) => {
 
 router.get('/products/:id', async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate('addons');
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id);
+    let product = null;
+    if (isObjectId) {
+      product = await Product.findById(req.params.id).populate('addons');
+    }
+    if (!product) {
+      product = await Product.findOne({ slug: req.params.id }).populate('addons');
+    }
     if (!product) return res.status(404).json({ success: false, message: 'Not found' });
     sendSuccess(res, product);
   } catch (error) {
@@ -137,7 +144,12 @@ router.get('/products/:id', async (req, res, next) => {
 
 router.get('/products/:id/reviews', async (req, res, next) => {
   try {
-    const reviews = await Review.find({ productId: req.params.id, status: 'approved' }).sort({ createdAt: -1 });
+    let productId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      const prod = await Product.findOne({ slug: productId }).select('_id');
+      if (prod) productId = prod._id.toString();
+    }
+    const reviews = await Review.find({ productId, status: 'approved' }).sort({ createdAt: -1 });
     const totalReviews = reviews.length;
     const averageRating = totalReviews > 0 ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / totalReviews).toFixed(1) : 0;
     
