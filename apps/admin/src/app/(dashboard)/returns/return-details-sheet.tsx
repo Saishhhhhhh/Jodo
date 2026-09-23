@@ -202,11 +202,15 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
                     <div className="flex gap-2">
                       <Button 
                         variant="outline"
-                        className="flex-1 border-rose-900/30 text-rose-400 hover:bg-rose-950/20 hover:text-rose-300"
+                        className="flex-1 border-rose-500/30 text-rose-400 hover:bg-rose-950/20 hover:text-rose-300 font-medium"
                         disabled={updateMutation.isPending}
-                        onClick={() => handleUpdateStatus('rejected')}
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to reject this return request?')) {
+                            handleUpdateStatus('rejected');
+                          }
+                        }}
                       >
-                        Reject Request
+                        ✕ Reject Request
                       </Button>
                       <Button 
                         className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all"
@@ -219,23 +223,53 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
                   )}
 
                   {returnObj.status === 'approved' && (
-                    <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm transition-all py-5"
-                      disabled={updateMutation.isPending}
-                      onClick={() => handleUpdateStatus('received')}
-                    >
-                      Mark as Received
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm transition-all py-5"
+                        disabled={updateMutation.isPending}
+                        onClick={() => handleUpdateStatus('received')}
+                      >
+                        Mark as Received
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                        disabled={updateMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to reject this approved return?')) {
+                            handleUpdateStatus('rejected');
+                          }
+                        }}
+                      >
+                        ✕ Reject Return Instead
+                      </Button>
+                    </div>
                   )}
 
                   {returnObj.status === 'received' && (
-                    <Button 
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all py-5"
-                      disabled={updateMutation.isPending}
-                      onClick={() => handleUpdateStatus('refunded')}
-                    >
-                      Issue Refund
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all py-5"
+                        disabled={updateMutation.isPending}
+                        onClick={() => handleUpdateStatus('refunded')}
+                      >
+                        Issue Refund
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                        disabled={updateMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to reject this return instead of refunding?')) {
+                            handleUpdateStatus('rejected');
+                          }
+                        }}
+                      >
+                        ✕ Reject Return Instead
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
