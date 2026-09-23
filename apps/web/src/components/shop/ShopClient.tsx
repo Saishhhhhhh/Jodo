@@ -57,6 +57,39 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
 
   const fallbackProducts: ProductData[] = [
     {
+      _id: 'furn-dt-01',
+      title: 'Modern Oak Dining Table',
+      vendor: 'Jodo Living',
+      price: 899,
+      compareAtPrice: 1299,
+      category: 'Dining Room',
+      imageUrl: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 24,
+      productDetails: { 'Room Type': 'Dining Room' }
+    },
+    {
+      _id: 'furn-dt-02',
+      title: 'Luxury Marble Dining Table',
+      vendor: 'Jodo Premium',
+      price: 2499,
+      compareAtPrice: 3199,
+      category: 'Dining Room',
+      imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 10,
+      productDetails: { 'Room Type': 'Dining Room' }
+    },
+    {
+      _id: 'furn-sofa-01',
+      title: 'Velvet Accent Sofa',
+      vendor: 'Plush Designs',
+      price: 1450,
+      compareAtPrice: 1950,
+      category: 'Living Room',
+      imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 14,
+      productDetails: { 'Room Type': 'Living Room' }
+    },
+    {
       _id: 'furn-tv-01',
       title: 'Mid-Century TV Stand',
       vendor: 'RetroHome',
@@ -64,7 +97,7 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
       compareAtPrice: 599,
       category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 15,
+      inventoryQuantity: 40,
       productDetails: { 'Room Type': 'Living Room' }
     },
     {
@@ -75,85 +108,8 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
       compareAtPrice: 499,
       category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 8,
+      inventoryQuantity: 30,
       productDetails: { 'Room Type': 'Living Room' }
-    },
-    {
-      _id: 'furn-oc-01',
-      title: 'Ergonomic Office Chair',
-      vendor: 'ErgoMates',
-      price: 199.5,
-      compareAtPrice: 299,
-      category: 'Office',
-      imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 24,
-      productDetails: { 'Room Type': 'Office' }
-    },
-    {
-      _id: 'furn-bed-01',
-      title: 'Queen Size Platform Bed',
-      vendor: 'SleepWell',
-      price: 599,
-      compareAtPrice: 899,
-      category: 'Bedroom',
-      imageUrl: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 5,
-      productDetails: { 'Room Type': 'Bedroom' }
-    },
-    {
-      _id: 'matt-mem-01',
-      title: 'Orthopedic Memory Foam Mattress',
-      vendor: 'SleepWell',
-      price: 399,
-      compareAtPrice: 549,
-      category: 'Mattresses',
-      imageUrl: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 20,
-      productDetails: { 'Room Type': 'Bedroom', 'Category': 'Mattresses' }
-    },
-    {
-      _id: 'matt-spr-02',
-      title: 'Dual Comfort Pocket Spring Mattress',
-      vendor: 'SleepWell',
-      price: 499,
-      compareAtPrice: 699,
-      category: 'Mattresses',
-      imageUrl: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 14,
-      productDetails: { 'Room Type': 'Bedroom', 'Category': 'Mattresses' }
-    },
-    {
-      _id: 'furn-ns-01',
-      title: 'Minimalist Nightstand',
-      vendor: 'Jodo Living',
-      price: 145,
-      compareAtPrice: 199,
-      category: 'Bedroom',
-      imageUrl: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 12,
-      productDetails: { 'Room Type': 'Bedroom' }
-    },
-    {
-      _id: 'furn-sofa-01',
-      title: 'Velvet Accent Sofa',
-      vendor: 'Plush Designs',
-      price: 1450,
-      compareAtPrice: 1950,
-      category: 'Living Room',
-      imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 4,
-      productDetails: { 'Room Type': 'Living Room' }
-    },
-    {
-      _id: 'furn-dt-01',
-      title: 'Modern Oak Dining Table',
-      vendor: 'Jodo Living',
-      price: 899,
-      compareAtPrice: 1299,
-      category: 'Dining Room',
-      imageUrl: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 7,
-      productDetails: { 'Room Type': 'Dining Room' }
     },
     {
       _id: 'furn-ct-01',
@@ -163,19 +119,41 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
       compareAtPrice: 349,
       category: 'Living Room',
       imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 10,
+      inventoryQuantity: 55,
       productDetails: { 'Room Type': 'Living Room' }
     },
     {
-      _id: 'furn-dt-02',
-      title: 'Luxury Marble Dining Table',
-      vendor: 'Jodo Premium',
-      price: 2499,
-      compareAtPrice: 3199,
-      category: 'Dining Room',
-      imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 3,
-      productDetails: { 'Room Type': 'Dining Room' }
+      _id: 'furn-bed-01',
+      title: 'Queen Size Platform Bed',
+      vendor: 'SleepWell',
+      price: 599,
+      compareAtPrice: 899,
+      category: 'Bedroom',
+      imageUrl: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 18,
+      productDetails: { 'Room Type': 'Bedroom' }
+    },
+    {
+      _id: 'furn-ns-01',
+      title: 'Minimalist Nightstand',
+      vendor: 'Jodo Living',
+      price: 145,
+      compareAtPrice: 199,
+      category: 'Bedroom',
+      imageUrl: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 45,
+      productDetails: { 'Room Type': 'Bedroom' }
+    },
+    {
+      _id: 'furn-oc-01',
+      title: 'Ergonomic Office Chair',
+      vendor: 'ErgoMates',
+      price: 199.5,
+      compareAtPrice: 299,
+      category: 'Office',
+      imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=800&auto=format&fit=crop&q=80',
+      inventoryQuantity: 85,
+      productDetails: { 'Room Type': 'Office' }
     },
     {
       _id: 'furn-out-01',
@@ -190,52 +168,8 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
         'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&auto=format&fit=crop&q=80',
       ],
-      inventoryQuantity: 9,
+      inventoryQuantity: 20,
       productDetails: { 'Room Type': 'Outdoor' }
-    },
-    {
-      _id: 'decor-rug-01',
-      title: 'Handwoven Geometric Wool Rug',
-      vendor: 'JODO Living',
-      price: 149,
-      compareAtPrice: 219,
-      category: 'Home Decor',
-      imageUrl: 'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 18,
-      productDetails: { 'Room Type': 'Living Room', 'Category': 'Home Decor' }
-    },
-    {
-      _id: 'decor-mir-02',
-      title: 'Minimalist Walnut Wall Mirror',
-      vendor: 'JODO Living',
-      price: 89,
-      compareAtPrice: 129,
-      category: 'Home Decor',
-      imageUrl: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 25,
-      productDetails: { 'Room Type': 'Entryway & Living', 'Category': 'Home Decor' }
-    },
-    {
-      _id: 'light-arc-01',
-      title: 'Arc Floor Lamp with Marble Base',
-      vendor: 'ClearView',
-      price: 179,
-      compareAtPrice: 249,
-      category: 'Lamps & Lighting',
-      imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 15,
-      productDetails: { 'Room Type': 'Living Room', 'Category': 'Lamps & Lighting' }
-    },
-    {
-      _id: 'light-tab-02',
-      title: 'Nordic Ceramic Table Lamp',
-      vendor: 'ClearView',
-      price: 75,
-      compareAtPrice: 109,
-      category: 'Lamps & Lighting',
-      imageUrl: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&auto=format&fit=crop&q=80',
-      inventoryQuantity: 22,
-      productDetails: { 'Room Type': 'Bedroom & Living', 'Category': 'Lamps & Lighting' }
     }
   ];
 

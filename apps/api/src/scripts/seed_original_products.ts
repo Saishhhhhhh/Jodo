@@ -6,8 +6,8 @@ import { Store } from '../models/Store';
 import { Collection } from '../models/Collection';
 import { InventoryItem } from '../models/InventoryItem';
 
-async function seedOriginalProducts() {
-  console.log('🌱 Starting restoration of original products and images...');
+async function seed10Products() {
+  console.log('🌱 Seeding exactly 10 products in admin and frontend...');
   await connectDB();
 
   const tenant = await Tenant.findOne();
@@ -25,8 +25,8 @@ async function seedOriginalProducts() {
   await InventoryItem.deleteMany({});
   await Collection.deleteMany({});
 
-  // 2. Define the 16 original furniture & home products
-  const originalProductsData = [
+  // 2. Exactly 10 furniture products
+  const exactly10Products = [
     {
       tenantId: tenant._id,
       storeId: store._id,
@@ -220,46 +220,6 @@ async function seedOriginalProducts() {
     {
       tenantId: tenant._id,
       storeId: store._id,
-      title: 'Orthopedic Memory Foam Mattress',
-      slug: 'orthopedic-memory-foam-mattress',
-      status: 'active',
-      price: 399.00,
-      compareAtPrice: 549.00,
-      sku: 'MATT-MEM-01',
-      inventoryQuantity: 25,
-      category: 'Mattresses',
-      vendor: 'SleepWell',
-      imageUrl: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop&q=80',
-      material: 'High-Density Memory Foam, Breathable Bamboo Cover',
-      dimensions: '78 x 60 x 8 inches',
-      weight: 35.0,
-      assemblyRequired: false,
-      productDetails: { 'Room Type': 'Bedroom', 'Category': 'Mattresses' },
-      tags: ['mattress', 'memory-foam', 'orthopedic', 'bedroom']
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Dual Comfort Pocket Spring Mattress',
-      slug: 'dual-comfort-pocket-spring-mattress',
-      status: 'active',
-      price: 499.00,
-      compareAtPrice: 699.00,
-      sku: 'MATT-SPR-02',
-      inventoryQuantity: 20,
-      category: 'Mattresses',
-      vendor: 'SleepWell',
-      imageUrl: 'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&auto=format&fit=crop&q=80',
-      material: 'Zero-Motion Pocket Springs & Natural Latex Layer',
-      dimensions: '78 x 72 x 10 inches',
-      weight: 48.0,
-      assemblyRequired: false,
-      productDetails: { 'Room Type': 'Bedroom', 'Category': 'Mattresses' },
-      tags: ['mattress', 'pocket-spring', 'dual-comfort', 'bedroom']
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
       title: 'Ergonomic Office Chair',
       slug: 'ergonomic-office-chair',
       status: 'active',
@@ -305,93 +265,13 @@ async function seedOriginalProducts() {
       ],
       productDetails: { 'Room Type': 'Outdoor' },
       tags: ['outdoor', 'lounge-chair', 'teak', 'patio']
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Handwoven Geometric Wool Rug',
-      slug: 'handwoven-geometric-wool-rug',
-      status: 'active',
-      price: 149.00,
-      compareAtPrice: 219.00,
-      sku: 'DECOR-RUG-01',
-      inventoryQuantity: 30,
-      category: 'Home Decor',
-      vendor: 'JODO Living',
-      imageUrl: 'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=800&auto=format&fit=crop&q=80',
-      material: '100% Pure Wool',
-      dimensions: '5 x 7 feet',
-      weight: 12.0,
-      assemblyRequired: false,
-      productDetails: { 'Room Type': 'Home Decor', 'Category': 'Home Decor' },
-      tags: ['decor', 'rug', 'wool', 'home-decor']
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Minimalist Walnut Wall Mirror',
-      slug: 'minimalist-walnut-wall-mirror',
-      status: 'active',
-      price: 89.00,
-      compareAtPrice: 129.00,
-      sku: 'DECOR-MIR-02',
-      inventoryQuantity: 40,
-      category: 'Home Decor',
-      vendor: 'JODO Living',
-      imageUrl: 'https://images.unsplash.com/photo-1618220179428-22790b461013?w=800&auto=format&fit=crop&q=80',
-      material: 'Solid Walnut Frame, HD Glass',
-      dimensions: '24 x 36 inches',
-      weight: 15.0,
-      assemblyRequired: false,
-      productDetails: { 'Room Type': 'Home Decor', 'Category': 'Home Decor' },
-      tags: ['mirror', 'wall-decor', 'walnut', 'home-decor']
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Arc Floor Lamp with Marble Base',
-      slug: 'arc-floor-lamp-with-marble-base',
-      status: 'active',
-      price: 179.00,
-      compareAtPrice: 249.00,
-      sku: 'LIGHT-ARC-01',
-      inventoryQuantity: 25,
-      category: 'Lamps & Lighting',
-      vendor: 'ClearView',
-      imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop&q=80',
-      material: 'Brushed Brass, White Carrera Marble',
-      dimensions: '18 x 45 x 82 inches',
-      weight: 38.0,
-      assemblyRequired: true,
-      productDetails: { 'Room Type': 'Lamps & Lighting', 'Category': 'Lamps & Lighting' },
-      tags: ['lamp', 'lighting', 'floor-lamp', 'brass']
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Nordic Ceramic Table Lamp',
-      slug: 'nordic-ceramic-table-lamp',
-      status: 'active',
-      price: 75.00,
-      compareAtPrice: 109.00,
-      sku: 'LIGHT-TAB-02',
-      inventoryQuantity: 35,
-      category: 'Lamps & Lighting',
-      vendor: 'ClearView',
-      imageUrl: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&auto=format&fit=crop&q=80',
-      material: 'Glazed Ceramic, Linen Shade',
-      dimensions: '12 x 12 x 20 inches',
-      weight: 8.0,
-      assemblyRequired: false,
-      productDetails: { 'Room Type': 'Lamps & Lighting', 'Category': 'Lamps & Lighting' },
-      tags: ['lamp', 'lighting', 'table-lamp', 'ceramic']
     }
   ];
 
-  const products = await Product.insertMany(originalProductsData);
-  console.log(`✅ ${products.length} Original products restored successfully into MongoDB.`);
+  const products = await Product.insertMany(exactly10Products);
+  console.log(`✅ Exactly ${products.length} products seeded into MongoDB.`);
 
-  // 3. Create inventory items so Admin Panel Inventory is in sync
+  // 3. Create inventory items for all 10 products
   const inventoryData = products.map((p) => ({
     tenantId: tenant._id,
     storeId: store._id,
@@ -405,15 +285,12 @@ async function seedOriginalProducts() {
   await InventoryItem.insertMany(inventoryData);
   console.log(`✅ ${inventoryData.length} Inventory items synced in Admin Panel.`);
 
-  // 4. Seed Collections with both friendly room slugs and descriptive titles
+  // 4. Create collections matching these 10 products
   const diningProducts = products.filter(p => p.category === 'Dining Room').map(p => p._id);
   const livingProducts = products.filter(p => p.category === 'Living Room').map(p => p._id);
   const bedroomProducts = products.filter(p => p.category === 'Bedroom').map(p => p._id);
   const officeProducts = products.filter(p => p.category === 'Office').map(p => p._id);
   const outdoorProducts = products.filter(p => p.category === 'Outdoor').map(p => p._id);
-  const decorProducts = products.filter(p => p.category === 'Home Decor').map(p => p._id);
-  const lightingProducts = products.filter(p => p.category === 'Lamps & Lighting').map(p => p._id);
-  const mattressProducts = products.filter(p => p.category === 'Mattresses').map(p => p._id);
 
   const collectionsData = [
     {
@@ -470,50 +347,17 @@ async function seedOriginalProducts() {
       type: 'manual',
       products: outdoorProducts,
       status: 'active'
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Home Decor',
-      slug: 'home-decor',
-      description: 'Handwoven wool rugs and minimalist walnut wall mirrors.',
-      imageUrl: 'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=1200&auto=format&fit=crop&q=80',
-      type: 'manual',
-      products: decorProducts,
-      status: 'active'
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Lamps & Lighting',
-      slug: 'lamps-lighting',
-      description: 'Sculptural arc floor lamps and ceramic table lamps.',
-      imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=1200&auto=format&fit=crop&q=80',
-      type: 'manual',
-      products: lightingProducts,
-      status: 'active'
-    },
-    {
-      tenantId: tenant._id,
-      storeId: store._id,
-      title: 'Mattresses',
-      slug: 'mattresses',
-      description: 'Orthopedic memory foam and pocket spring mattresses.',
-      imageUrl: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&auto=format&fit=crop&q=80',
-      type: 'manual',
-      products: mattressProducts,
-      status: 'active'
     }
   ];
 
   await Collection.insertMany(collectionsData);
-  console.log(`✅ ${collectionsData.length} Collections seeded successfully (with exact room slugs).`);
+  console.log(`✅ ${collectionsData.length} Collections created for the 10 products.`);
 
   await disconnectDB();
-  console.log('🎉 Database restoration complete!');
+  console.log('🎉 Done! Exactly 10 products are active in the database and admin panel.');
 }
 
-seedOriginalProducts().catch((err) => {
-  console.error('❌ Failed to restore original products:', err);
+seed10Products().catch((err) => {
+  console.error('❌ Failed to seed 10 products:', err);
   process.exit(1);
 });
