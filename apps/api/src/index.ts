@@ -135,6 +135,7 @@ app.use('/api/admin/orders', ordersRoutes);
 app.use('/api/admin/customers', customersRoutes);
 app.use('/api/admin/inventory', inventoryRoutes);
 app.use('/api/admin/inventory/intelligence', inventoryIntelligenceRoutes);
+app.use('/api/inventory', inventoryIntelligenceRoutes);
 app.use('/api/admin/discounts', discountsRoutes);
 app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);

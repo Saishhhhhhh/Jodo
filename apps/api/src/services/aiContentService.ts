@@ -63,6 +63,7 @@ export interface QualityCheckResult {
 /** Collect all configured API keys in order, skipping empty/placeholder ones */
 function getConfiguredKeys(): string[] {
   const candidates = [
+    process.env.OPENAI_API_KEY,
     env.OPENAI_API_KEY_1,
     env.OPENAI_API_KEY_2,
     env.OPENAI_API_KEY_3,

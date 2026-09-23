@@ -12,10 +12,19 @@ const router = Router();
 
 router.use(requireAuth);
 
+router.get('/data', async (req, res, next) => {
+  try {
+    const data = await InventoryIntelligenceAiService.getFullInventory(req.auth!.storeId.toString());
+    sendSuccess(res, data);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/ai-analysis', async (req, res, next) => {
   try {
-    const analysis = await InventoryIntelligenceAiService.getIntelligence(req.auth!.storeId.toString());
-    sendSuccess(res, analysis);
+    const data = await InventoryIntelligenceAiService.getFullInventory(req.auth!.storeId.toString());
+    sendSuccess(res, data.latestAiInsights);
   } catch (error) {
     next(error);
   }
@@ -23,10 +32,13 @@ router.get('/ai-analysis', async (req, res, next) => {
 
 router.post('/ai-analysis', async (req, res, next) => {
   try {
-    const analysis = await InventoryIntelligenceAiService.generateIntelligence(req.auth!.storeId.toString());
-    sendSuccess(res, analysis, 'AI inventory intelligence generated successfully');
-  } catch (error) {
-    next(error);
+    const analysis = await InventoryIntelligenceAiService.generateAiAnalysis(req.auth!.storeId.toString());
+    sendSuccess(res, analysis, 'AI inventory analysis generated successfully');
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error?.message || 'Unable to generate inventory insights. Please try again.',
+    });
   }
 });
 
