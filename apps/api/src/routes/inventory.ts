@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth';
 import { InventoryItem } from '../models/InventoryItem';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
+import { Reservation } from '../models/Reservation';
 import { sendSuccess, sendError } from '../utils/response';
 import { InteraktService } from '../services/interakt';
 import { User } from '../models/User';
@@ -55,6 +56,17 @@ router.get('/intelligence', async (req, res, next) => {
       }
     }
 
+    // Include active reservations
+    const activeReservations = await Reservation.find({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+      status: 'active'
+    }).lean();
+
+    for (const resv of activeReservations) {
+      skuCommittedBreakdown[resv.sku] = (skuCommittedBreakdown[resv.sku] || 0) + resv.reservedQuantity;
+    }
+
     // 3. Merge data to create intelligence insights
     const intelligence = inventory.map(item => {
       const product = productMap.get(item.sku);
@@ -85,15 +97,35 @@ router.get('/intelligence', async (req, res, next) => {
         suggestedReorder = Math.ceil(suggestedReorder * 1.2);
       }
 
+      const totalCommitted = Math.max(
+        item.committed || 0,
+        item.reservedStock || 0,
+        skuCommittedBreakdown[item.sku] || 0
+      );
+      const onHand = item.onHand || (item.available || 0) + (item.committed || 0);
+      const computedAvailable = typeof item.available === 'number' && item.available > 0
+        ? item.available
+        : Math.max(0, onHand - totalCommitted);
+
+      const threshold = item.lowStockThreshold || item.reorderLevel || 10;
+      let computedStatus = item.status;
+      if (computedAvailable <= 0) {
+        computedStatus = 'out_of_stock';
+      } else if (computedAvailable <= threshold) {
+        computedStatus = 'low_stock';
+      } else {
+        computedStatus = 'in_stock';
+      }
+
       return {
         _id: item._id,
         sku: item.sku,
         product: product ? { title: product.title, imageUrl: product.imageUrl } : null,
-        available: item.available,
-        committed: item.committed,
-        actualCommitted, // Used for tooltip explaining reserved stock
-        lowStockThreshold: item.lowStockThreshold,
-        status: item.status,
+        available: computedAvailable,
+        committed: totalCommitted,
+        actualCommitted: totalCommitted, // Used for tooltip explaining reserved stock
+        lowStockThreshold: threshold,
+        status: computedStatus,
         soldLast30Days,
         dailyVelocity: dailyVelocity.toFixed(2),
         demandSignal,
@@ -182,13 +214,14 @@ router.put('/:id', async (req, res, next) => {
 
     // Trigger alert if it just crossed the threshold downwards
     if (previousAvailable >= previousThreshold && item.available < item.lowStockThreshold) {
-      const admin = await User.findById(req.auth!.userId);
+      const admin = await User.findById(req.auth!.sub);
       const tenant = await Tenant.findById(req.auth!.tenantId);
       
-      if (admin?.phone && tenant?.settings?.interaktApiKey) {
+      const interaktKey = (tenant as any)?.settings?.interaktApiKey;
+      if (admin?.phone && interaktKey) {
         // Run in background to avoid blocking response
         InteraktService.sendTemplateMessage(
-          tenant.settings.interaktApiKey,
+          interaktKey,
           admin.phone,
           'low_stock_alert', 
           'en',
