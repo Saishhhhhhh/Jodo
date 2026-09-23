@@ -5,11 +5,30 @@ import { Product } from '../models/Product';
 import { Reservation } from '../models/Reservation';
 import { StockMovement } from '../models/StockMovement';
 import { InventoryIntelligenceService } from '../services/InventoryIntelligenceService';
+import { InventoryIntelligenceAiService } from '../services/InventoryIntelligenceAiService';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
 
 router.use(requireAuth);
+
+router.get('/ai-analysis', async (req, res, next) => {
+  try {
+    const analysis = await InventoryIntelligenceAiService.getIntelligence(req.auth!.storeId.toString());
+    sendSuccess(res, analysis);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/ai-analysis', async (req, res, next) => {
+  try {
+    const analysis = await InventoryIntelligenceAiService.generateIntelligence(req.auth!.storeId.toString());
+    sendSuccess(res, analysis, 'AI inventory intelligence generated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/summary', async (req, res, next) => {
   try {

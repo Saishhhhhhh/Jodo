@@ -159,6 +159,8 @@ export const inventoryIntelligenceApi = {
   demandSignals: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/demand-signals', { params }),
   attentionRequired: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/attention-required', { params }),
   stockMovements: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/stock-movements', { params }),
+  aiAnalysis: () => apiClient.get('/admin/inventory/intelligence/ai-analysis'),
+  generateAiAnalysis: () => apiClient.post('/admin/inventory/intelligence/ai-analysis'),
 };
 
 export const inventoryReservationsApi = {
