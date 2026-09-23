@@ -33,16 +33,94 @@ router.get('/collections', async (req, res, next) => {
 
 router.get('/collections/:slug', async (req, res, next) => {
   try {
-    const collection = await Collection.findOne({ slug: req.params.slug, status: 'active' })
+    const rawSlug = (req.params.slug || '').toLowerCase().trim();
+
+    // 1. Direct match on slug
+    let collection = await Collection.findOne({ slug: rawSlug, status: 'active' })
       .populate({
         path: 'products',
         match: { status: 'active' }
       });
-      
+
+    // 2. Check room & category slug aliases
+    if (!collection) {
+      const SLUG_ALIASES: Record<string, string> = {
+        'dining-room': 'dining-and-togetherness',
+        'dining': 'dining-and-togetherness',
+        'kitchen-dining': 'dining-and-togetherness',
+        'kitchen-and-dining': 'dining-and-togetherness',
+        'living-room': 'living-room-serenity',
+        'living': 'living-room-serenity',
+        'bedroom': 'restful-bedroom',
+        'bed-room': 'restful-bedroom',
+        'study': 'study-and-workspace',
+        'workspace': 'study-and-workspace',
+        'study-room': 'study-and-workspace',
+        'study-office': 'study-and-workspace',
+        'study-and-office': 'study-and-workspace',
+        'office': 'study-and-workspace',
+      };
+
+      const aliasedSlug = SLUG_ALIASES[rawSlug];
+      if (aliasedSlug) {
+        collection = await Collection.findOne({ slug: aliasedSlug, status: 'active' })
+          .populate({
+            path: 'products',
+            match: { status: 'active' }
+          });
+      }
+    }
+
+    // 3. Keyword / partial match against existing collection titles or slugs
+    if (!collection) {
+      const keywords = rawSlug.split('-').filter(w => w && !['and', 'room', 'the', 'for', 'set'].includes(w));
+      if (keywords.length > 0) {
+        const regex = new RegExp(keywords.join('|'), 'i');
+        collection = await Collection.findOne({
+          status: 'active',
+          $or: [{ slug: regex }, { title: regex }]
+        }).populate({
+          path: 'products',
+          match: { status: 'active' }
+        });
+      }
+    }
+
+    // 4. Dynamic category/tag fallback from Products if no manual collection matches
+    if (!collection) {
+      const regex = new RegExp(rawSlug.replace(/-/g, '[ -]?'), 'i');
+      const matchingProducts = await Product.find({
+        status: 'active',
+        $or: [
+          { category: regex },
+          { tags: { $in: [rawSlug, ...rawSlug.split('-')] } },
+          { title: regex }
+        ]
+      }).sort({ createdAt: -1 });
+
+      if (matchingProducts.length > 0) {
+        const formattedTitle = rawSlug
+          .split('-')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+
+        return sendSuccess(res, {
+          _id: 'cat_' + rawSlug,
+          title: formattedTitle,
+          slug: rawSlug,
+          description: `Explore our premium ${formattedTitle} collection crafted with sustainable materials and contemporary designs.`,
+          imageUrl: matchingProducts[0]?.imageUrl || 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=1200&q=80',
+          type: 'automated',
+          products: matchingProducts,
+          status: 'active'
+        });
+      }
+    }
+
     if (!collection) {
       return res.status(404).json({ success: false, message: 'Collection not found' });
     }
-    
+
     sendSuccess(res, collection);
   } catch (error) {
     next(error);

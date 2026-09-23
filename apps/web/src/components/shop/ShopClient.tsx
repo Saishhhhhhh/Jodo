@@ -233,7 +233,7 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
       setSelectedCategories([match]);
       return;
     }
-    if (q === 'kitchen' || q === 'dining') {
+    if (q === 'kitchen' || q === 'dining' || q === 'dining-room' || q === 'kitchen-dining' || q === 'kitchen-and-dining') {
       const match = dynamicCategories.find(c => c.toLowerCase().includes('dining') || c.toLowerCase().includes('kitchen')) || 'Dining Room';
       setSelectedCategories([match]);
       return;
@@ -248,8 +248,8 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
       setSelectedCategories([match]);
       return;
     }
-    if (q === 'office' || q === 'study') {
-      const match = dynamicCategories.find(c => c.toLowerCase().includes('office')) || 'Office';
+    if (q === 'office' || q === 'study' || q === 'study-office' || q === 'study-and-office' || q === 'study-workspace') {
+      const match = dynamicCategories.find(c => c.toLowerCase().includes('office') || c.toLowerCase().includes('study')) || 'Office';
       setSelectedCategories([match]);
       return;
     }
