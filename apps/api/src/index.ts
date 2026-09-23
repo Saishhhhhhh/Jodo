@@ -50,6 +50,7 @@ import reportsRoutes from './routes/reports';
 import teamMembersRoutes from './routes/teamMembers';
 import warehouseRoutes from './routes/warehouse';
 import aiContentRoutes from './routes/ai-content';
+import leadsRoutes from './routes/leads';
 
 const app = express();
 
@@ -153,6 +154,8 @@ app.use('/api/admin/navigation', navigationRoutes);
 app.use('/api/admin/reports', reportsRoutes);
 app.use('/api/admin/tasks', tasksRoutes);
 app.use('/api/admin/team-members', teamMembersRoutes);
+app.use('/api/admin/leads', leadsRoutes);
+app.use('/api/leads', leadsRoutes);
 app.use('/api/warehouse', warehouseRoutes);
 app.use('/api/admin/warehouse', warehouseRoutes);
 app.use('/api/ai-content', aiContentRoutes);

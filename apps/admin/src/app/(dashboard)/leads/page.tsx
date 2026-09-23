@@ -332,7 +332,7 @@ export default function LeadsPage() {
   );
 
   return (
-    <div className="p-6 animate-fade-in space-y-8 w-full">
+    <div className="p-6 animate-fade-in space-y-6 w-full max-w-[1600px] mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -340,7 +340,7 @@ export default function LeadsPage() {
             <Target className="w-8 h-8 text-primary" />
             Lead Management
           </h1>
-          <p className="text-muted-foreground mt-1">Capture, qualify, and convert your incoming leads.</p>
+          <p className="text-muted-foreground mt-1 text-sm">Capture, qualify, and convert your incoming leads.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleExportCSV}>
@@ -359,7 +359,11 @@ export default function LeadsPage() {
             <CardTitle className="text-sm font-medium text-blue-500 dark:text-blue-400">New Leads</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono">{kpis.new}</div>
+            {isLoading ? (
+              <div className="h-8 w-12 bg-muted/60 animate-pulse rounded" />
+            ) : (
+              <div className="text-2xl font-bold font-mono">{kpis.new}</div>
+            )}
           </CardContent>
         </Card>
         
@@ -368,7 +372,11 @@ export default function LeadsPage() {
             <CardTitle className="text-sm font-medium text-destructive">High Priority</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono text-destructive">{kpis.highPriority}</div>
+            {isLoading ? (
+              <div className="h-8 w-12 bg-muted/60 animate-pulse rounded" />
+            ) : (
+              <div className="text-2xl font-bold font-mono text-destructive">{kpis.highPriority}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -377,7 +385,11 @@ export default function LeadsPage() {
             <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400">Won</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono text-green-600 dark:text-green-400">{kpis.won}</div>
+            {isLoading ? (
+              <div className="h-8 w-12 bg-muted/60 animate-pulse rounded" />
+            ) : (
+              <div className="text-2xl font-bold font-mono text-green-600 dark:text-green-400">{kpis.won}</div>
+            )}
           </CardContent>
         </Card>
 
@@ -386,7 +398,11 @@ export default function LeadsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Pipeline</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono">{kpis.total}</div>
+            {isLoading ? (
+              <div className="h-8 w-12 bg-muted/60 animate-pulse rounded" />
+            ) : (
+              <div className="text-2xl font-bold font-mono">{kpis.total}</div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -417,7 +433,7 @@ export default function LeadsPage() {
 
         <TabsContent value="kanban" className="m-0">
           {isMounted && (
-            <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-350px)] min-h-[500px]">
+            <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-320px)] min-h-[460px]">
               <DragDropContext onDragEnd={onDragEnd}>
                 {COLUMNS.map((columnId) => (
                   <div key={columnId} className="flex flex-col w-[300px] shrink-0 bg-muted/40 rounded-xl border p-3">
@@ -435,41 +451,52 @@ export default function LeadsPage() {
                         <div 
                           ref={provided.innerRef} 
                           {...provided.droppableProps}
-                          className={`flex-1 overflow-y-auto space-y-3 rounded-md transition-colors ${snapshot.isDraggingOver ? 'bg-primary/5' : ''}`}
+                          className={`flex-1 overflow-y-auto space-y-3 rounded-md transition-colors min-h-[120px] ${snapshot.isDraggingOver ? 'bg-primary/5' : ''}`}
                         >
-                          {kanbanBoard[columnId]?.map((lead, index) => (
-                            <Draggable key={lead._id} draggableId={lead._id} index={index}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  style={provided.draggableProps.style as React.CSSProperties}
-                                  onClick={() => handleRowClick(lead)}
-                                  className={`bg-card p-4 rounded-lg border shadow-sm flex flex-col gap-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors ${snapshot.isDragging ? 'shadow-md rotate-2 scale-105' : ''}`}
-                                >
-                                  <div className="flex justify-between items-start gap-2">
-                                    <h4 className="font-semibold text-sm leading-tight">{lead.name}</h4>
-                                    {lead.followUpPriority === 'High' && (
-                                      <div className="w-2 h-2 rounded-full bg-destructive shrink-0 mt-1" />
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                                    {lead.phone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3"/> {lead.phone}</span>}
-                                    {lead.email && <span className="flex items-center gap-1.5 truncate"><Mail className="w-3 h-3 shrink-0"/> {lead.email}</span>}
-                                  </div>
+                          {isLoading ? (
+                            <div className="space-y-3 p-1">
+                              <div className="h-20 bg-muted/60 animate-pulse rounded-lg" />
+                              <div className="h-20 bg-muted/60 animate-pulse rounded-lg" />
+                            </div>
+                          ) : kanbanBoard[columnId]?.length === 0 ? (
+                            <div className="h-24 flex items-center justify-center border-2 border-dashed border-muted/50 rounded-lg text-xs text-muted-foreground/50 select-none">
+                              No leads in {columnId}
+                            </div>
+                          ) : (
+                            kanbanBoard[columnId]?.map((lead, index) => (
+                              <Draggable key={lead._id} draggableId={lead._id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={provided.draggableProps.style as React.CSSProperties}
+                                    onClick={() => handleRowClick(lead)}
+                                    className={`bg-card p-4 rounded-lg border shadow-sm flex flex-col gap-3 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors ${snapshot.isDragging ? 'shadow-md rotate-2 scale-105' : ''}`}
+                                  >
+                                    <div className="flex justify-between items-start gap-2">
+                                      <h4 className="font-semibold text-sm leading-tight">{lead.name}</h4>
+                                      {lead.followUpPriority === 'High' && (
+                                        <div className="w-2 h-2 rounded-full bg-destructive shrink-0 mt-1" />
+                                      )}
+                                    </div>
+                                    
+                                    <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                                      {lead.phone && <span className="flex items-center gap-1.5"><Phone className="w-3 h-3"/> {lead.phone}</span>}
+                                      {lead.email && <span className="flex items-center gap-1.5 truncate"><Mail className="w-3 h-3 shrink-0"/> {lead.email}</span>}
+                                    </div>
 
-                                  <div className="flex items-center justify-between mt-1">
-                                    <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                                      {lead.source}
-                                    </span>
-                                    {lead.interestLevel === 'High' && <Badge variant="secondary" className="text-[10px] py-0 h-4 bg-orange-500/10 text-orange-500">HOT</Badge>}
+                                    <div className="flex items-center justify-between mt-1">
+                                      <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                                        {lead.source}
+                                      </span>
+                                      {lead.interestLevel === 'High' && <Badge variant="secondary" className="text-[10px] py-0 h-4 bg-orange-500/10 text-orange-500">HOT</Badge>}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                            </Draggable>
-                          ))}
+                                )}
+                              </Draggable>
+                            ))
+                          )}
                           {provided.placeholder}
                         </div>
                       )}
