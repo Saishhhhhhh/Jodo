@@ -14,7 +14,8 @@ import {
   CreditCard, 
   AlertCircle, 
   Edit,
-  Plus
+  Plus,
+  MapPin
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,6 +35,10 @@ type Order = {
   items: any[];
   createdAt: string;
   status?: string;
+  shippingAddress?: {
+    city?: string;
+    state?: string;
+  };
 };
 
 export default function DraftOrdersPage() {
@@ -77,6 +82,22 @@ export default function DraftOrdersPage() {
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
     },
     { accessorKey: 'customerName', header: 'Customer' },
+    {
+      id: 'city',
+      header: 'City',
+      cell: ({ row }) => {
+        const city = row.original.shippingAddress?.city;
+        const state = row.original.shippingAddress?.state;
+        if (!city) return <span className="text-muted-foreground">—</span>;
+        return (
+          <div className="flex items-center gap-1.5 font-medium text-sm text-foreground">
+            <MapPin className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+            <span>{city}</span>
+            {state && <span className="text-xs text-muted-foreground font-normal">({state})</span>}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'paymentStatus',
       header: 'Status',

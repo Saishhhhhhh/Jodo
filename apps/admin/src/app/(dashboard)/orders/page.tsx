@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersApi } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
@@ -16,7 +16,9 @@ import {
   AlertCircle, 
   Edit, 
   Package,
-  Printer
+  Printer,
+  MapPin,
+  Search
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,6 +32,7 @@ type Order = {
   _id: string;
   orderNumber: string;
   customerName: string;
+  customerEmail?: string;
   totalAmount: number;
   paymentStatus: string;
   fulfillmentStatus: string;
@@ -37,6 +40,17 @@ type Order = {
   items: any[];
   createdAt: string;
   status?: string;
+  shippingAddress?: {
+    firstName?: string;
+    lastName?: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    phone?: string;
+  };
 };
 
 export default function OrdersPage() {
@@ -44,12 +58,13 @@ export default function OrdersPage() {
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isFulfillDialogOpen, setIsFulfillDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
       const res = await ordersApi.list();
-      return res.data.data;
+      return res.data.data as Order[];
     },
   });
 
@@ -78,7 +93,38 @@ export default function OrdersPage() {
       header: 'Date',
       cell: ({ row }) => new Date(row.getValue('createdAt')).toLocaleDateString(),
     },
-    { accessorKey: 'customerName', header: 'Customer' },
+    { 
+      accessorKey: 'customerName', 
+      header: 'Customer',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{row.getValue('customerName')}</span>
+          {row.original.shippingAddress?.city && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+              <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+              {row.original.shippingAddress.city}
+            </span>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'city',
+      header: 'City',
+      cell: ({ row }) => {
+        const shipping = row.original.shippingAddress;
+        const city = shipping?.city;
+        const state = shipping?.state;
+        if (!city) return <span className="text-muted-foreground">—</span>;
+        return (
+          <div className="flex items-center gap-1.5 font-medium text-sm text-foreground">
+            <MapPin className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+            <span>{city}</span>
+            {state && <span className="text-xs text-muted-foreground font-normal">({state})</span>}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: 'paymentStatus',
       header: 'Payment',
@@ -208,8 +254,6 @@ export default function OrdersPage() {
                     className="text-destructive hover:text-destructive focus:text-destructive"
                     onClick={() => {
                       if (window.confirm('Are you sure you want to cancel this order?')) {
-                        // Assuming we have an updateStatusMutation but wait, updateStatusMutation only passes paymentStatus right now!
-                        // Let's use ordersApi directly here or update the mutation.
                         ordersApi.update(order._id, { status: 'cancelled' })
                           .then(() => {
                             queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -230,18 +274,40 @@ export default function OrdersPage() {
     }
   ];
 
+  const filteredOrders = useMemo(() => {
+    if (!data) return [];
+    if (!searchTerm.trim()) return data;
+    const q = searchTerm.toLowerCase();
+    return data.filter((o: Order) => 
+      o.orderNumber?.toLowerCase().includes(q) ||
+      o.customerName?.toLowerCase().includes(q) ||
+      o.shippingAddress?.city?.toLowerCase().includes(q) ||
+      o.shippingAddress?.state?.toLowerCase().includes(q)
+    );
+  }, [data, searchTerm]);
+
   return (
     <div className="p-6 animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage customer orders</p>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-72 bg-card rounded-md border px-3 py-2 shadow-sm">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search order, customer, or city..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
         </div>
       </div>
 
       <DataTable 
         columns={columns} 
-        data={data || []} 
+        data={filteredOrders} 
         isLoading={isLoading} 
         onRowClick={(row) => router.push(`/orders/${row._id}`)}
       />
@@ -255,7 +321,6 @@ export default function OrdersPage() {
             setIsFulfillDialogOpen(open);
             if (!open) {
               setSelectedOrder(null);
-              // Invalidate query to refresh the list since an order might have been fulfilled
               queryClient.invalidateQueries({ queryKey: ['orders'] });
             }
           }}
