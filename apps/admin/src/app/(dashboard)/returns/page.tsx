@@ -7,7 +7,7 @@ import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Package, HelpCircle, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { RotateCcw, Package, HelpCircle, Eye, CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import { ReturnDetailsSheet } from './return-details-sheet';
 import { toast } from 'sonner';
 
@@ -105,10 +105,10 @@ export default function ReturnsPage() {
     {
       id: 'actions',
       cell: ({ row }) => {
-        const isPending = row.original.status === 'requested';
+        const status = row.original.status;
         return (
-          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-            {isPending && (
+          <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {status === 'requested' && (
               <>
                 <Button 
                   size="sm" 
@@ -147,6 +147,87 @@ export default function ReturnsPage() {
                 </Button>
               </>
             )}
+
+            {status === 'approved' && (
+              <>
+                <Button 
+                  size="sm" 
+                  className="h-8 px-2.5 text-xs bg-purple-600 hover:bg-purple-700 text-white font-medium flex items-center gap-1 shadow-sm"
+                  onClick={async () => {
+                    try {
+                      await returnsApi.update(row.original._id, { status: 'received' });
+                      queryClient.invalidateQueries({ queryKey: ['returns-list'] });
+                      toast.success(`Package marked as received for ${row.original.orderNumber}`);
+                    } catch {
+                      toast.error('Failed to update status');
+                    }
+                  }}
+                >
+                  <Package className="h-3.5 w-3.5" />
+                  Received
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="h-8 px-2.5 text-xs border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-medium flex items-center gap-1"
+                  onClick={async () => {
+                    if (window.confirm(`Are you sure you want to reject this return for ${row.original.orderNumber}?`)) {
+                      try {
+                        await returnsApi.update(row.original._id, { status: 'rejected' });
+                        queryClient.invalidateQueries({ queryKey: ['returns-list'] });
+                        toast.success(`Return for ${row.original.orderNumber} rejected`);
+                      } catch {
+                        toast.error('Failed to reject return');
+                      }
+                    }
+                  }}
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  Reject
+                </Button>
+              </>
+            )}
+
+            {status === 'received' && (
+              <>
+                <Button 
+                  size="sm" 
+                  className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1 shadow-sm"
+                  onClick={async () => {
+                    try {
+                      await returnsApi.update(row.original._id, { status: 'refunded' });
+                      queryClient.invalidateQueries({ queryKey: ['returns-list'] });
+                      toast.success(`Refund issued for ${row.original.orderNumber}`);
+                    } catch {
+                      toast.error('Failed to issue refund');
+                    }
+                  }}
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                  Refund
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="h-8 px-2.5 text-xs border-rose-500/30 text-rose-500 hover:bg-rose-500/10 font-medium flex items-center gap-1"
+                  onClick={async () => {
+                    if (window.confirm(`Are you sure you want to REJECT the refund for ${row.original.orderNumber}? (No refund will be paid to customer)`)) {
+                      try {
+                        await returnsApi.update(row.original._id, { status: 'rejected' });
+                        queryClient.invalidateQueries({ queryKey: ['returns-list'] });
+                        toast.success(`Refund rejected for ${row.original.orderNumber}. No refund was issued.`);
+                      } catch {
+                        toast.error('Failed to reject refund');
+                      }
+                    }
+                  }}
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  Reject Refund
+                </Button>
+              </>
+            )}
+
             <Button 
               variant="ghost" 
               size="icon" 

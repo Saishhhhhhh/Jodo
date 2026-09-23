@@ -205,19 +205,34 @@ export default function OrderDetailsPage() {
                 )}
 
                 {order.returnRequest.status === 'received' && (
-                  <div className="flex items-center gap-3 pt-1">
-                    <Button
-                      size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1.5 shadow-sm"
-                      disabled={returnActionMutation.isPending}
-                      onClick={() => returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'refunded' })}
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      Issue Refund ({formatCurrency(order.returnRequest.refundAmount)})
-                    </Button>
-                    <span className="text-xs text-muted-foreground">
-                      Package received and verified. Click to process refund to customer.
-                    </span>
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1.5 shadow-sm"
+                        disabled={returnActionMutation.isPending}
+                        onClick={() => returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'refunded' })}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        Issue Refund ({formatCurrency(order.returnRequest.refundAmount)})
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-rose-500/30 text-rose-400 hover:bg-rose-950/20 font-medium"
+                        disabled={returnActionMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to REJECT this refund? No money will be refunded to customer.')) {
+                            returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'rejected' });
+                          }
+                        }}
+                      >
+                        ✕ Reject Refund
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Package received at warehouse. Click <strong>Issue Refund</strong> to pay back customer, or <strong>Reject Refund</strong> if items were damaged or invalid.
+                    </p>
                   </div>
                 )}
 

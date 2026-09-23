@@ -248,27 +248,29 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
                   )}
 
                   {returnObj.status === 'received' && (
-                    <div className="space-y-2">
+                    <div className="space-y-2.5">
                       <Button 
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all py-5"
                         disabled={updateMutation.isPending}
                         onClick={() => handleUpdateStatus('refunded')}
                       >
-                        Issue Refund
+                        ✓ Issue Refund ({formatCurrency(returnObj.refundAmount)})
                       </Button>
                       <Button 
-                        variant="ghost"
-                        size="sm"
-                        className="w-full text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                        variant="outline"
+                        className="w-full border-rose-500/30 text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 font-medium py-4 text-xs"
                         disabled={updateMutation.isPending}
                         onClick={() => {
-                          if (window.confirm('Are you sure you want to reject this return instead of refunding?')) {
+                          if (window.confirm('Are you sure you want to REJECT this refund? No money will be refunded to customer.')) {
                             handleUpdateStatus('rejected');
                           }
                         }}
                       >
-                        ✕ Reject Return Instead
+                        ✕ Reject Refund (Deny Refund & Keep Payment)
                       </Button>
+                      <p className="text-[11px] text-zinc-500 text-center">
+                        If goods are damaged or unverified, clicking <strong>Reject Refund</strong> cancels the refund and keeps customer payment.
+                      </p>
                     </div>
                   )}
                 </div>
