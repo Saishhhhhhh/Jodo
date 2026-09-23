@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ordersApi } from '@/lib/api-client';
+import { ordersApi, returnsApi } from '@/lib/api-client';
 import Link from 'next/link';
 import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileText, Printer, RotateCcw, ShieldAlert, Clock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,18 @@ export default function OrderDetailsPage() {
       setEditingNotes(false);
     },
     onError: () => toast.error('Failed to update order'),
+  });
+
+  const returnActionMutation = useMutation({
+    mutationFn: ({ returnId, status }: { returnId: string; status: string }) =>
+      returnsApi.update(returnId, { status }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['orders', id] });
+      queryClient.invalidateQueries({ queryKey: ['returns-list'] });
+      const label = variables.status === 'approved' ? 'accepted' : variables.status;
+      toast.success(`Return request ${label} successfully`);
+    },
+    onError: () => toast.error('Failed to update return status'),
   });
 
   if (isLoading) {
@@ -113,7 +125,112 @@ export default function OrderDetailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Main Content (Left) */}
         <div className="md:col-span-2 space-y-6">
-          
+
+          {/* Return Request Banner & Actions if Return Exists */}
+          {order.returnRequest && (
+            <div className="border border-amber-500/30 rounded-xl bg-card shadow-sm overflow-hidden">
+              <div className="p-4 border-b flex items-center justify-between bg-amber-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                    <RotateCcw className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-base">Return Request</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Requested on {new Date(order.returnRequest.createdAt).toLocaleDateString()} • Refund: {formatCurrency(order.returnRequest.refundAmount)}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className={`font-semibold capitalize ${
+                  order.returnRequest.status === 'requested' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' :
+                  order.returnRequest.status === 'approved' ? 'bg-blue-500/15 text-blue-400 border-blue-500/30' :
+                  order.returnRequest.status === 'received' ? 'bg-purple-500/15 text-purple-400 border-purple-500/30' :
+                  order.returnRequest.status === 'refunded' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                  'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                }`}>
+                  {order.returnRequest.status === 'requested' ? 'Pending Review' : order.returnRequest.status}
+                </Badge>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {order.returnRequest.notes && (
+                  <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+                    <span className="font-semibold text-foreground">Return Reason / Notes: </span>
+                    "{order.returnRequest.notes}"
+                  </div>
+                )}
+
+                {/* Workflow Actions right inside the Order */}
+                {order.returnRequest.status === 'requested' && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1.5 shadow-sm"
+                      disabled={returnActionMutation.isPending}
+                      onClick={() => returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'approved' })}
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Accept Return
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-rose-500/30 text-rose-400 hover:bg-rose-950/20"
+                      disabled={returnActionMutation.isPending}
+                      onClick={() => returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'rejected' })}
+                    >
+                      Reject Request
+                    </Button>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      Click <strong>Accept Return</strong> to approve pickup without rejecting.
+                    </span>
+                  </div>
+                )}
+
+                {order.returnRequest.status === 'approved' && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <Button
+                      size="sm"
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-medium flex items-center gap-1.5 shadow-sm"
+                      disabled={returnActionMutation.isPending}
+                      onClick={() => returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'received' })}
+                    >
+                      <Package className="w-4 h-4" />
+                      Mark Package as Received
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Return is accepted. Click once the item arrives at your warehouse.
+                    </span>
+                  </div>
+                )}
+
+                {order.returnRequest.status === 'received' && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1.5 shadow-sm"
+                      disabled={returnActionMutation.isPending}
+                      onClick={() => returnActionMutation.mutate({ returnId: order.returnRequest._id, status: 'refunded' })}
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Issue Refund ({formatCurrency(order.returnRequest.refundAmount)})
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Package received and verified. Click to process refund to customer.
+                    </span>
+                  </div>
+                )}
+
+                {order.returnRequest.status === 'refunded' && (
+                  <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    Refund of {formatCurrency(order.returnRequest.refundAmount)} was processed. Return lifecycle complete.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Fulfillment Card */}
           <div className="border rounded-xl bg-card shadow-sm overflow-hidden">
             <div className="p-5 border-b flex items-center justify-between bg-muted/20">

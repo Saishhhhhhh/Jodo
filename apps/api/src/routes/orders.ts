@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { Order } from '../models/Order';
+import { Return } from '../models/Return';
 import { sendSuccess, sendError } from '../utils/response';
 
 const router = Router();
@@ -94,7 +95,16 @@ router.get('/:id', async (req, res, next) => {
       return sendError(res, 'Order not found', 404);
     }
 
-    sendSuccess(res, order);
+    const returnRequest = await Return.findOne({
+      orderId: order._id,
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    }).sort({ createdAt: -1 });
+
+    const orderData = order.toObject();
+    (orderData as any).returnRequest = returnRequest;
+
+    sendSuccess(res, orderData);
   } catch (error) {
     next(error);
   }

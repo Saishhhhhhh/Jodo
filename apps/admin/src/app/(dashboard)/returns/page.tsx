@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { returnsApi } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Package, HelpCircle, Eye } from 'lucide-react';
+import { RotateCcw, Package, HelpCircle, Eye, CheckCircle } from 'lucide-react';
 import { ReturnDetailsSheet } from './return-details-sheet';
+import { toast } from 'sonner';
 
 type Return = {
   _id: string;
@@ -22,6 +23,7 @@ type Return = {
 };
 
 export default function ReturnsPage() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedReturn, setSelectedReturn] = useState<Return | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -102,21 +104,42 @@ export default function ReturnsPage() {
     },
     {
       id: 'actions',
-      cell: ({ row }) => (
-        <div className="text-right" onClick={(e) => e.stopPropagation()}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8"
-            onClick={() => {
-              setSelectedReturn(row.original);
-              setIsDetailsOpen(true);
-            }}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        </div>
-      )
+      cell: ({ row }) => {
+        const isPending = row.original.status === 'requested';
+        return (
+          <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+            {isPending && (
+              <Button 
+                size="sm" 
+                className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1 shadow-sm"
+                onClick={async () => {
+                  try {
+                    await returnsApi.update(row.original._id, { status: 'approved' });
+                    queryClient.invalidateQueries({ queryKey: ['returns-list'] });
+                    toast.success(`Return for ${row.original.orderNumber} accepted`);
+                  } catch {
+                    toast.error('Failed to accept return');
+                  }
+                }}
+              >
+                <CheckCircle className="h-3.5 w-3.5" />
+                Accept
+              </Button>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setSelectedReturn(row.original);
+                setIsDetailsOpen(true);
+              }}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      }
     }
   ];
 

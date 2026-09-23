@@ -209,11 +209,11 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
                         Reject Request
                       </Button>
                       <Button 
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm transition-all"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm transition-all"
                         disabled={updateMutation.isPending}
                         onClick={() => handleUpdateStatus('approved')}
                       >
-                        Approve Return
+                        ✓ Accept Return
                       </Button>
                     </div>
                   )}
