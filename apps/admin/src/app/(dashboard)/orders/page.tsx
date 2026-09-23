@@ -97,15 +97,7 @@ export default function OrdersPage() {
       accessorKey: 'customerName', 
       header: 'Customer',
       cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.getValue('customerName')}</span>
-          {row.original.shippingAddress?.city && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-              <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-              {row.original.shippingAddress.city}
-            </span>
-          )}
-        </div>
+        <span className="font-medium">{row.getValue('customerName')}</span>
       )
     },
     {
