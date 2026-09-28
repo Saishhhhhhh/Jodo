@@ -34,6 +34,7 @@ export default function ReviewApprovalPage() {
 
   // Review & Approval Queue shows items in Pending Review, Changes Requested, or Approved
   const reviewQueue = items.filter((item) => {
+    const isRelevantStatus = ['Pending Review', 'Changes Requested', 'Approved'].includes(item.status);
     const matchesSearch =
       item.contentId?.toLowerCase().includes(search.toLowerCase()) ||
       item.id?.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,7 +42,7 @@ export default function ReviewApprovalPage() {
       item.productName?.toLowerCase().includes(search.toLowerCase()) ||
       item.submittedBy?.toLowerCase().includes(search.toLowerCase());
 
-    return matchesSearch;
+    return isRelevantStatus && matchesSearch;
   });
 
   const pendingCount = items.filter((i) => i.status === 'Pending Review').length;

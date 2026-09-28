@@ -48,6 +48,7 @@ export default function DraftsPage() {
 
   // Filter items
   const filteredItems = items.filter((item) => {
+    const isRelevantStatus = ['Draft', 'Rejected', 'Changes Requested'].includes(item.status);
     const matchesSearch =
       item.contentId?.toLowerCase().includes(search.toLowerCase()) ||
       item.id?.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,7 +60,7 @@ export default function DraftsPage() {
     const matchesType = selectedType === 'all' || item.contentType === selectedType;
     const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus;
 
-    return matchesSearch && matchesType && matchesStatus;
+    return isRelevantStatus && matchesSearch && matchesType && matchesStatus;
   });
 
   const handleEdit = (item: AiContentItem) => {
@@ -145,12 +146,9 @@ export default function DraftsPage() {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full h-10 rounded-md border border-input bg-background px-3 py-1 text-xs shadow-sm"
             >
-              <option value="all">All Statuses</option>
+              <option value="all">All Draft Statuses</option>
               <option value="Draft">Draft</option>
-              <option value="Pending Review">Pending Review</option>
               <option value="Changes Requested">Changes Requested</option>
-              <option value="Approved">Approved</option>
-              <option value="Published">Published</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>

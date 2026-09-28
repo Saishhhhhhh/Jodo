@@ -645,11 +645,11 @@ export const useAiContentStore = create<AiContentState>()(
       getKpis: () => {
         const items = get().items;
         return {
-          totalGenerated: 248 + (items.length - INITIAL_ITEMS.length),
-          drafts: 32 + (items.filter((i) => i.status === 'Draft').length - 1),
-          pendingReview: 18 + (items.filter((i) => i.status === 'Pending Review').length - 1),
-          approved: 41 + (items.filter((i) => i.status === 'Approved').length - 1),
-          published: 157 + (items.filter((i) => i.status === 'Published').length - 1),
+          totalGenerated: items.length,
+          drafts: items.filter((i) => i.status === 'Draft' || i.status === 'Rejected' || i.status === 'Changes Requested').length,
+          pendingReview: items.filter((i) => i.status === 'Pending Review').length,
+          approved: items.filter((i) => i.status === 'Approved').length,
+          published: items.filter((i) => i.status === 'Published').length,
         };
       },
 
