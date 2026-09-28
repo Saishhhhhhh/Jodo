@@ -62,7 +62,7 @@ export default function AiContentDashboardPage() {
         <Link href="/ai-content/product-descriptions">
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 shadow-sm">
             <Plus className="w-4 h-4" />
-            + Generate Content
+            Generate Content
           </Button>
         </Link>
       </div>
