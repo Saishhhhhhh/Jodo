@@ -17,17 +17,17 @@ export default function AboutSection() {
           
           <div className="mb-6">
             <p className="text-terracotta font-bold text-sm tracking-widest uppercase">
-              A New Furniture Experience
+              The Joy of Together
             </p>
           </div>
 
           {/* Main Headline */}
           <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-8 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
-            Not just furniture. The <span className="text-terracotta italic font-serif font-light">joy</span> of putting it together.
+            Furniture that feels different from the moment you <span className="text-terracotta italic font-serif font-light">open the box.</span>
           </h2>
           
           <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-5 md:mb-10 max-w-[500px]">
-            JODO introduces a new idea to India — furniture you can assemble yourself, effortlessly, without tools or a carpenter. Flat-packed, pattern-detailed, and made in-house with premium materials. It's not just a purchase. It's a moment you create.
+            In India, furniture has always come with a carpenter. JODO changes that. Our pieces click together without tools — like a puzzle you solve with someone you love. No waiting. No stress. Just the quiet satisfaction of making something yours, together.
           </p>
 
           <div className="flex flex-row items-center gap-2 md:gap-6 w-full sm:w-auto">
