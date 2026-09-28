@@ -32,7 +32,7 @@ export default function ProductDetailsPage() {
       toast.success('Product created successfully');
       router.push(`/products/${res.data.data._id}`);
     },
-    onError: () => toast.error('Failed to create product'),
+    onError: (error: any) => toast.error(error?.response?.data?.message || 'Failed to create product'),
   });
 
   const updateMutation = useMutation({
@@ -42,7 +42,7 @@ export default function ProductDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['product', id] });
       toast.success('Product updated successfully');
     },
-    onError: () => toast.error('Failed to update product'),
+    onError: (error: any) => toast.error(error?.response?.data?.message || 'Failed to update product'),
   });
 
   const handleSubmit = (formData: any) => {

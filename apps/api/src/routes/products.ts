@@ -51,6 +51,17 @@ router.post('/bulk-import', async (req, res, next) => {
     const tenantId = req.auth!.tenantId;
     const storeId = req.auth!.storeId;
 
+    // Validate that all products have a valid price > 0
+    for (const [index, p] of products.entries()) {
+      const parsedPrice = parseFloat(p.price);
+      if (p.price === undefined || p.price === null || p.price === '' || isNaN(parsedPrice) || parsedPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Product at row ${index + 1} (${p.title || 'Untitled'}) must have a valid price greater than 0.`,
+        });
+      }
+    }
+
     const formattedProducts = products.map((p) => {
       // Ensure slug uniqueness by appending a timestamp or random string if needed
       const baseSlug = p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -109,6 +120,22 @@ router.post('/', async (req, res, next) => {
   try {
     const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications, tags, addons } = req.body;
 
+    const numericPrice = parseFloat(price);
+    if (price === undefined || price === null || price === '' || isNaN(numericPrice) || numericPrice <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price is required and must be greater than 0',
+      });
+    }
+
+    const numericCompareAt = compareAtPrice ? parseFloat(compareAtPrice) : undefined;
+    if (numericCompareAt !== undefined && (isNaN(numericCompareAt) || numericCompareAt <= 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Compare at price must be greater than 0',
+      });
+    }
+
     let parsedTags: string[] = [];
     if (Array.isArray(tags)) {
       parsedTags = tags;
@@ -125,8 +152,8 @@ router.post('/', async (req, res, next) => {
       slug,
       sku,
       barcode,
-      price: parseFloat(price),
-      compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+      price: numericPrice,
+      compareAtPrice: numericCompareAt,
       inventoryQuantity: parseInt(inventoryQuantity, 10),
       category,
       vendor,
@@ -166,6 +193,26 @@ router.put('/:id', async (req, res, next) => {
     const { id } = req.params;
     const { title, sku, price, compareAtPrice, inventoryQuantity, category, vendor, imageUrl, galleryImages, model3dUrl, videoUrl, brochureUrl, barcode, status, material, dimensions, weight, assemblyRequired, shortDescription, longDescription, emiAvailable, emiStartingFrom, additionalOffers, assemblyFee, careAndMaintenance, warrantyTerms, productDetails, specifications, tags, addons } = req.body;
 
+    if (price !== undefined) {
+      const numericPrice = parseFloat(price);
+      if (price === null || price === '' || isNaN(numericPrice) || numericPrice <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Price must be a valid number greater than 0',
+        });
+      }
+    }
+
+    if (compareAtPrice !== undefined && compareAtPrice !== '' && compareAtPrice !== null) {
+      const numericCompareAt = parseFloat(compareAtPrice);
+      if (isNaN(numericCompareAt) || numericCompareAt <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Compare at price must be greater than 0',
+        });
+      }
+    }
+
     let parsedTags: string[] = [];
     if (Array.isArray(tags)) {
       parsedTags = tags;
@@ -179,8 +226,8 @@ router.put('/:id', async (req, res, next) => {
         title,
         sku,
         barcode,
-        price: parseFloat(price),
-        compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+        price: price !== undefined ? parseFloat(price) : undefined,
+        compareAtPrice: (compareAtPrice && compareAtPrice !== '') ? parseFloat(compareAtPrice) : undefined,
         inventoryQuantity: parseInt(inventoryQuantity, 10),
         category,
         vendor,

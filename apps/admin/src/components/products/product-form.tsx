@@ -20,13 +20,25 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
 import { UploadCloud, X, Link as LinkIcon, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
   sku: z.string().min(2, { message: 'SKU must be at least 2 characters.' }),
   barcode: z.string().optional().default(''),
-  price: z.coerce.number().min(0, { message: 'Price must be positive.' }),
-  compareAtPrice: z.coerce.number().min(0, { message: 'Compare at price must be positive.' }).optional(),
+  price: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number({
+      required_error: 'Price is required and must be greater than 0.',
+      invalid_type_error: 'Price is required and must be a valid number.',
+    }).positive({ message: 'Price must be greater than 0.' })
+  ),
+  compareAtPrice: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
+    z.number({ invalid_type_error: 'Compare at price must be a valid number.' })
+      .positive({ message: 'Compare at price must be greater than 0.' })
+      .optional()
+  ),
   inventoryQuantity: z.coerce.number().min(0, { message: 'Inventory must be positive.' }),
   category: z.string().min(2, { message: 'Category is required.' }),
   vendor: z.string().optional().default(''),
@@ -96,8 +108,8 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       title: initialData?.title || '',
       sku: initialData?.sku || '',
       barcode: initialData?.barcode || '',
-      price: initialData?.price ?? 0,
-      compareAtPrice: initialData?.compareAtPrice ?? undefined,
+      price: (initialData?.price !== undefined && initialData?.price !== null) ? initialData.price : ('' as any),
+      compareAtPrice: (initialData?.compareAtPrice !== undefined && initialData?.compareAtPrice !== null) ? initialData.compareAtPrice : ('' as any),
       inventoryQuantity: initialData?.inventoryQuantity ?? 0,
       category: initialData?.category || '',
       vendor: initialData?.vendor || '',
@@ -241,12 +253,29 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
       ...(values.specMechanism ? [{ key: 'Seating Mechanism', value: values.specMechanism }] : []),
     ];
 
+    if (parsedValues.compareAtPrice === undefined || parsedValues.compareAtPrice === '' || isNaN(parsedValues.compareAtPrice)) {
+      delete parsedValues.compareAtPrice;
+    } else {
+      parsedValues.compareAtPrice = Number(parsedValues.compareAtPrice);
+    }
+
+    parsedValues.price = Number(parsedValues.price);
+
     onSubmit(parsedValues);
+  };
+
+  const handleFormError = (errors: any) => {
+    if (errors.price) {
+      toast.error(errors.price.message || 'Price is required and must be greater than 0.');
+    } else {
+      const firstError = Object.values(errors)[0] as any;
+      toast.error(firstError?.message || 'Please check the required fields in the form.');
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="w-full">
+      <form onSubmit={form.handleSubmit(handleFormSubmit, handleFormError)} className="w-full">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Main Column */}
           <div className="flex-1 space-y-6 w-full">
@@ -258,7 +287,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>
+                      Title <span className="text-destructive font-semibold">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Premium T-Shirt" {...field} />
                     </FormControl>
@@ -577,10 +608,21 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Price (INR)</FormLabel>
+                      <FormLabel>
+                        Price (INR) <span className="text-destructive font-semibold">*</span>
+                      </FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" {...field} />
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="e.g. 1999.00" 
+                          {...field} 
+                          value={field.value ?? ''} 
+                        />
                       </FormControl>
+                      <FormDescription className="text-xs">
+                        Product selling price. Products cannot be added without a price.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -592,8 +634,17 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                     <FormItem>
                       <FormLabel>Compare At Price (INR)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" placeholder="e.g. Original Price" {...field} />
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="e.g. Original Price" 
+                          {...field} 
+                          value={field.value ?? ''} 
+                        />
                       </FormControl>
+                      <FormDescription className="text-xs">
+                        Optional original price to show discount/markdown.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -895,7 +946,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>
+                      Category <span className="text-destructive font-semibold">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. Furniture, Apparel" {...field} />
                     </FormControl>
@@ -955,7 +1008,9 @@ export function ProductForm({ initialData, onSubmit, isLoading }: ProductFormPro
                 name="sku"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SKU (Stock Keeping Unit)</FormLabel>
+                    <FormLabel>
+                      SKU (Stock Keeping Unit) <span className="text-destructive font-semibold">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. TSH-001" {...field} />
                     </FormControl>

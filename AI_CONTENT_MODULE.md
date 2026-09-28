@@ -163,6 +163,7 @@ Designed for high-converting e-commerce product detail pages (PDP).
   - `materialsCare`: Wash/care instructions based on the authentic fabric/material.
   - `seoMetaTitle` & `seoMetaDescription`: Pre-formatted search snippets.
 
+
 ### 4.2 Marketplace Listing Copy (`/ai-content/listing-copy`)
 Adapts a single product into platform-compliant formats:
 - **Amazon:**
