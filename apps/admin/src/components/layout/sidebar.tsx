@@ -65,7 +65,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/stores/auth';
-import { getImageUrl } from '@/lib/api-client';
+import { getImageUrl, apiClient } from '@/lib/api-client';
+import { useEffect } from 'react';
 
 export interface NavItem {
   label: string;
@@ -233,6 +234,25 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuthStore();
   const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders', 'Warehouse', 'AI Content']);
+  const [counts, setCounts] = useState<any>({});
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchCounts = async () => {
+      try {
+        const { data } = await apiClient.get('/admin/counts');
+        if (data.success) {
+          setCounts(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching admin counts', err);
+      }
+    };
+    fetchCounts();
+    // Optional: poll every 30 seconds
+    const interval = setInterval(fetchCounts, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   function toggleGroup(label: string) {
     setOpenGroups((prev) =>
@@ -302,6 +322,22 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
 
   function isGroupActive(item: NavItem) {
     return item.children?.some((child) => child.href && isActive(child.href));
+  }
+
+  function getBadgeForLabel(label: string) {
+    switch (label) {
+      case 'Products': return counts?.products?.requiresAction || 0;
+      case 'Inventory': return (counts?.inventory?.lowStock || 0) + (counts?.inventory?.outOfStock || 0);
+      case 'Product Reviews': return counts?.reviews?.pending || 0;
+      case 'All Orders': return counts?.orders?.pending || 0;
+      case 'Draft Orders': return counts?.orders?.draft || 0;
+      case 'Shipping Labels': return counts?.orders?.shippingPending || 0;
+      case 'Returns & Complaints': return counts?.returns?.open || 0;
+      case 'Fraud Review': return counts?.orders?.fraudReview || 0;
+      case 'Tasks': return counts?.tasks?.totalOpen || 0;
+      case 'Messages': return counts?.messages?.unread || 0;
+      default: return 0;
+    }
   }
 
   return (
@@ -452,6 +488,14 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                           )}
                         />
                         <span className="flex-1 text-left">{item.label}</span>
+                        {getBadgeForLabel(item.label) > 0 && (
+                          <span className={cn(
+                            "px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-5 text-center flex items-center justify-center",
+                            item.label === 'Fraud Review' || item.label === 'Tasks' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"
+                          )}>
+                            {getBadgeForLabel(item.label)}
+                          </span>
+                        )}
                       </Link>
                     ) : (
                       <button
@@ -465,6 +509,14 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                           )}
                         />
                         <span className="flex-1 text-left">{item.label}</span>
+                        {getBadgeForLabel(item.label) > 0 && (
+                          <span className={cn(
+                            "px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-5 text-center flex items-center justify-center mr-1",
+                            item.label === 'Fraud Review' || item.label === 'Tasks' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"
+                          )}>
+                            {getBadgeForLabel(item.label)}
+                          </span>
+                        )}
                       </button>
                     )}
                     <button
@@ -499,7 +551,15 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             )}
                           >
                             <child.icon className={cn('h-3.5 w-3.5 shrink-0', childActive && 'text-primary')} />
-                            {child.label}
+                            <span className="flex-1">{child.label}</span>
+                            {getBadgeForLabel(child.label) > 0 && (
+                              <span className={cn(
+                                "px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-5 text-center flex items-center justify-center",
+                                child.label === 'Fraud Review' || child.label === 'Overdue' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"
+                              )}>
+                                {getBadgeForLabel(child.label)}
+                              </span>
+                            )}
                           </Link>
                         );
                       })}

@@ -331,11 +331,11 @@ export default function TaskDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Activity & Comments */}
+          {/* Activity & Messages */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" /> Activity & Audit Log
+                <MessageSquare className="w-4 h-4" /> Activity & Messages
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -376,7 +376,7 @@ export default function TaskDetailPage() {
 
               <div className="mt-4 flex gap-2">
                 <Input 
-                  placeholder="Add a comment or internal note..." 
+                  placeholder="Send a message or internal note..." 
                   value={comment}
                   onChange={e => setComment(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddComment()}

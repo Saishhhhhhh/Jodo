@@ -154,7 +154,9 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-4 w-4" />
                 {allNotifications.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-[10px] font-bold text-white flex items-center justify-center">
+                    {allNotifications.length > 99 ? '99+' : allNotifications.length}
+                  </span>
                 )}
               </Button>
             </DropdownMenuTrigger>

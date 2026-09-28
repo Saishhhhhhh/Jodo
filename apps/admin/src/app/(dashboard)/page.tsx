@@ -4,6 +4,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   DollarSign,
   ShoppingCart,
@@ -13,6 +14,10 @@ import {
   RotateCcw,
   Truck,
   AlertTriangle,
+  MessageSquare,
+  FileText,
+  ShieldAlert,
+  CheckSquare
 } from 'lucide-react';
 import {
   AreaChart,
@@ -35,7 +40,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { dashboardApi } from '@/lib/api-client';
+import { dashboardApi, apiClient } from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { DashboardSummary } from '@jodo/shared';
 import { Button } from '@/components/ui/button';
@@ -182,6 +187,24 @@ export default function DashboardPage() {
     refetchInterval: 60_000, // Refresh every minute
   });
 
+  const [counts, setCounts] = useState<any>({});
+  
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const res = await apiClient.get('/admin/counts');
+        if (res?.data?.success) {
+          setCounts(res.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard counts', err);
+      }
+    };
+    fetchCounts();
+    const int = setInterval(fetchCounts, 60000);
+    return () => clearInterval(int);
+  }, []);
+
   const activeData = data || DEFAULT_SUMMARY;
 
   const metrics = [
@@ -244,6 +267,126 @@ export default function DashboardPage() {
               <MetricCard key={i} metric={metric} icon={icon} />
             ))}
       </div>
+
+      {/* Needs Attention Section */}
+      {counts && Object.keys(counts).length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">Needs Attention</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link href="/orders?filter=pending">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
+                      <ShoppingCart className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium">Pending Orders</div>
+                  </div>
+                  <div className="text-xl font-bold">{counts?.orders?.pending || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/tasks/my-tasks">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg">
+                      <CheckSquare className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium">Pending Tasks</div>
+                  </div>
+                  <div className="text-xl font-bold">{counts?.tasks?.totalOpen || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/tasks/overdue">
+              <Card className="hover:border-red-500/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium text-red-500">Overdue Tasks</div>
+                  </div>
+                  <div className="text-xl font-bold text-red-500">{counts?.tasks?.overdue || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/messages?filter=unread">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium">Unread Messages</div>
+                  </div>
+                  <div className="text-xl font-bold">{counts?.messages?.unread || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/inventory?filter=low_stock">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg">
+                      <Package className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium">Low Stock</div>
+                  </div>
+                  <div className="text-xl font-bold">{(counts?.inventory?.lowStock || 0) + (counts?.inventory?.outOfStock || 0)}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/returns?filter=open">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-pink-500/10 text-pink-500 rounded-lg">
+                      <RotateCcw className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium">Returns & Complaints</div>
+                  </div>
+                  <div className="text-xl font-bold">{counts?.returns?.open || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/fraud">
+              <Card className="hover:border-red-500/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-500/10 text-red-500 rounded-lg">
+                      <ShieldAlert className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium text-red-500">Fraud Review</div>
+                  </div>
+                  <div className="text-xl font-bold text-red-500">{counts?.orders?.fraudReview || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/shipping-labels?filter=pending">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer border-dashed">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-teal-500/10 text-teal-500 rounded-lg">
+                      <Truck className="w-5 h-5" />
+                    </div>
+                    <div className="font-medium">Awaiting Shipment</div>
+                  </div>
+                  <div className="text-xl font-bold">{counts?.orders?.shippingPending || 0}</div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus, Pencil } from 'lucide-react';
+import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus, Pencil, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -42,6 +42,8 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
             <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[130px]">Status</TableHead>
             <TableHead className="text-xs text-muted-foreground py-3 px-3 min-w-[160px] max-w-[220px]">Remark / Delay Reason</TableHead>
             <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[110px]">Due Date</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[100px]">Comments</TableHead>
+            <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[100px]">Attachments</TableHead>
             <TableHead className="text-xs text-muted-foreground py-3 px-3 text-right w-[115px] sticky right-0 bg-muted/95 backdrop-blur-sm z-20 border-l border-border/40 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.15)]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -55,7 +57,9 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
               <TableRow
                 key={taskId}
                 onClick={() => router.push(`/tasks/${taskId}`)}
-                className="cursor-pointer hover:bg-muted/20 transition-colors border-border/40 group"
+                className={`cursor-pointer transition-colors group ${
+                  isDelayed ? 'bg-red-500/[0.03] hover:bg-red-500/[0.06] border-red-500/20' : 'hover:bg-muted/20 border-border/40'
+                }`}
               >
                 <TableCell className="text-xs text-muted-foreground font-mono py-2.5 px-3">
                   {taskId.toString().slice(-6)}
@@ -181,6 +185,20 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                   }`}
                 >
                   {format(new Date(t.dueDate), 'MMM d, yyyy')}
+                </TableCell>
+
+                <TableCell className="py-2.5 px-3">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>{t.comments?.length || 0}</span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="py-2.5 px-3">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Paperclip className="w-3.5 h-3.5" />
+                    <span>{t.attachments?.length || 0}</span>
+                  </div>
                 </TableCell>
 
                 <TableCell className="text-right py-2.5 px-3 sticky right-0 bg-card group-hover:bg-muted/30 transition-colors z-20 border-l border-border/40 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.15)]">
