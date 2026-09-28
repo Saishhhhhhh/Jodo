@@ -80,8 +80,8 @@ export default function Footer() {
         <div className="bg-black/10">
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <p className="text-white/80 text-xs font-medium uppercase tracking-widest mb-1">Join the Jodo Family</p>
-              <h3 className="text-white text-xl lg:text-2xl font-bold">Get 10% off your first order</h3>
+              <p className="text-white/80 text-xs font-medium uppercase tracking-widest mb-1">Be Part of the JODO Story</p>
+              <h3 className="text-white text-xl lg:text-2xl font-bold">New drops, assembly tips & early access — delivered to you.</h3>
             </div>
             <form className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full md:w-auto mt-2 md:mt-0" onSubmit={(e) => e.preventDefault()}>
               <input
@@ -93,7 +93,7 @@ export default function Footer() {
                 type="submit"
                 className="bg-white text-terracotta w-full sm:w-auto font-bold px-6 py-3 sm:py-2.5 rounded-xl hover:bg-gray-100 transition-colors text-sm whitespace-nowrap shadow-md"
               >
-                Subscribe
+                Join JODO
               </button>
             </form>
           </div>
@@ -115,7 +115,7 @@ export default function Footer() {
                 />
               </Link>
               <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">
-                Crafting comfort and shaping style. Premium furniture and home decor that transforms every space into a place you&apos;ll love.
+                A new furniture experience. Tool-free assembly, flat-packed delivery, made in-house — bringing people and spaces together, one piece at a time.
               </p>
               <div className="space-y-2.5 text-sm text-white/80 font-medium">
                 <div className="flex items-center gap-2.5">

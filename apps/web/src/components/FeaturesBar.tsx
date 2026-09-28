@@ -1,25 +1,25 @@
-import { Globe, Settings, CornerUpLeft, ShieldCheck } from 'lucide-react';
+import { Puzzle, PackageCheck, ShieldCheck, Wrench } from 'lucide-react';
 
 const features = [
   { 
-    Icon: Globe,        
-    title: 'Worldwide Shipping',
-    description: 'Fast, insured delivery directly to your doorstep.'
+    Icon: Puzzle,
+    title: 'Tool-Free Assembly',
+    description: 'Clicks together like a jigsaw. No screws, no carpenter — just you and your space.'
   },
   { 
-    Icon: Settings,     
-    title: 'Custom Design',
-    description: 'Tailor dimensions and finishes to your space.'
+    Icon: PackageCheck,
+    title: 'Flat-Pack Delivered',
+    description: 'Compact packaging, doorstep delivery. Your furniture arrives when you need it.'
   },
   { 
     Icon: ShieldCheck, 
-    title: 'Premium Quality',
-    description: 'Sustainably sourced materials built to last.'
+    title: 'Made In-House',
+    description: 'Every piece crafted with premium plywood — quality we control, not outsource.'
   },
   { 
-    Icon: CornerUpLeft, 
-    title: 'Easy Returns',
-    description: 'Simple 30-day, no-questions return policy.'
+    Icon: Wrench, 
+    title: 'Help When You Need It',
+    description: 'Prefer a hand? Our team can send a carpenter to assist — fast and hassle-free.'
   },
 ];
 

@@ -60,10 +60,10 @@ export default function PuzzleSection() {
           className="absolute z-0 flex flex-col items-center text-center px-4"
         >
           <h2 className="text-3xl md:text-6xl font-bold text-[#1C1A17] mb-4 md:mb-6 tracking-tight max-w-[800px]">
-            Bringing the missing pieces of your home <span className="text-terracotta italic font-serif font-light">together</span>.
+            Furniture that comes <span className="text-terracotta italic font-serif font-light">together</span> — just like the people around it.
           </h2>
           <p className="text-gray-600 text-base md:text-xl max-w-[500px]">
-            Keep scrolling to reveal the big picture.
+            Keep scrolling to see how JODO clicks into place.
           </p>
         </motion.div>
 
@@ -115,11 +115,14 @@ export default function PuzzleSection() {
             style={{ opacity: finalOpacity, y: finalY }}
             className="absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/40 rounded-[40px] backdrop-blur-sm transition-colors duration-1000 px-4"
           >
-            <h3 className="text-white text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-center">
-              The Perfect Fit
+            <h3 className="text-white text-3xl md:text-5xl font-bold mb-2 md:mb-3 text-center">
+              The Joy of Together.
             </h3>
+            <p className="text-white/80 text-sm md:text-base mb-6 text-center max-w-sm">
+              Every piece. Every room. Every moment shared.
+            </p>
             <button className="bg-white text-[#1C1A17] font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:bg-terracotta hover:text-white transition-colors duration-300">
-              Shop The Room
+              Explore JODO Furniture
             </button>
           </motion.div>
 

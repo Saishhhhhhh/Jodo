@@ -17,39 +17,39 @@ export default function AboutSection() {
           
           <div className="mb-6">
             <p className="text-terracotta font-bold text-sm tracking-widest uppercase">
-              Craftsmanship & Style
+              A New Furniture Experience
             </p>
           </div>
 
           {/* Main Headline */}
           <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-8 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
-            We help turn your design <span className="text-terracotta italic font-serif font-light">dreams</span> into reality.
+            Not just furniture. The <span className="text-terracotta italic font-serif font-light">joy</span> of putting it together.
           </h2>
           
           <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-5 md:mb-10 max-w-[500px]">
-            Curated, stylish pieces for every space. With a focus on comfort and craftsmanship, our pieces are designed to inspire and elevate your everyday life.
+            JODO introduces a new idea to India — furniture you can assemble yourself, effortlessly, without tools or a carpenter. Flat-packed, pattern-detailed, and made in-house with premium materials. It's not just a purchase. It's a moment you create.
           </p>
 
           <div className="flex flex-row items-center gap-2 md:gap-6 w-full sm:w-auto">
-            {/* Discover More Link */}
+            {/* Our Story Link */}
             <Link
-              href="/about"
+              href="/our-story"
               className="group relative inline-flex items-center gap-2 md:gap-4 bg-[#1C1A17] border-2 border-transparent text-white overflow-hidden rounded-full px-3 py-2.5 md:px-8 md:py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 justify-center flex-1 sm:flex-none whitespace-nowrap"
             >
               <div className="absolute inset-0 bg-terracotta translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-              <span className="relative z-10 font-semibold text-[12px] md:text-[15px]">Discover More</span>
+              <span className="relative z-10 font-semibold text-[12px] md:text-[15px]">Our Story</span>
               <span className="relative z-10 hidden sm:flex items-center justify-center bg-white rounded-full w-8 h-8 group-hover:bg-[#1C1A17] transition-colors duration-500">
                 <ArrowUpRight className="w-4 h-4 text-[#1C1A17] group-hover:text-white transition-colors duration-500" />
               </span>
             </Link>
             
-            {/* Explore Collection Link */}
+            {/* Shop Collection Link */}
             <Link
               href="/shop"
               className="group relative inline-flex items-center gap-2 md:gap-4 bg-transparent border-2 border-[#1C1A17] text-[#1C1A17] overflow-hidden rounded-full px-3 py-2.5 md:px-8 md:py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 justify-center flex-1 sm:flex-none whitespace-nowrap"
             >
               <div className="absolute inset-0 bg-[#1C1A17] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-              <span className="relative z-10 font-semibold text-[12px] md:text-[15px] group-hover:text-white transition-colors duration-500">Explore Collection</span>
+              <span className="relative z-10 font-semibold text-[12px] md:text-[15px] group-hover:text-white transition-colors duration-500">Shop JODO</span>
             </Link>
           </div>
         </div>

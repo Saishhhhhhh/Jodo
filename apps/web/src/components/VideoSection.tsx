@@ -40,7 +40,7 @@ export default function VideoSection() {
               className="text-white font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight drop-shadow-lg max-w-[850px]"
               style={{ fontFamily: 'Syne, sans-serif' }}
             >
-              Where Design Meets Life.
+              The Joy of Together.
             </h2>
           </div>
         </div>
