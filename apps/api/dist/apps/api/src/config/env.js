@@ -13,6 +13,11 @@ const EnvSchema = zod_1.z.object({
     ADMIN_SEED_EMAIL: zod_1.z.string().email().default('admin@jodo.dev'),
     ADMIN_SEED_PASSWORD: zod_1.z.string().default('Admin@123456'),
     CORS_ORIGIN: zod_1.z.string().default('http://localhost:3000'),
+    OPENAI_API_KEY_1: zod_1.z.string().optional(),
+    OPENAI_API_KEY_2: zod_1.z.string().optional(),
+    OPENAI_API_KEY_3: zod_1.z.string().optional(),
+    OPENAI_API_KEY_4: zod_1.z.string().optional(),
+    OPENAI_MODEL: zod_1.z.string().default('gpt-4o-mini'),
 });
 // Load dotenv in dev mode
 if (process.env.NODE_ENV !== 'production') {
@@ -20,7 +25,14 @@ if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const path = require('path');
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+        const dotenv = require('dotenv');
+        dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+        if (!process.env.MONGODB_URI) {
+            dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+        }
+        if (!process.env.MONGODB_URI) {
+            dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+        }
     }
     catch {
         // dotenv optional

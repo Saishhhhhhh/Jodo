@@ -1,2 +1,13 @@
+import './models/Tenant';
+import './models/Store';
+import './models/Role';
+import './models/User';
+import './models/InventoryItem';
+import './models/AuditLog';
+import './models/Media';
+import './models/Report';
+import './models/AiContent';
+import './models/AiContentVersion';
+import './models/AiContentActivity';
 declare const app: import("express-serve-static-core").Express;
 export default app;

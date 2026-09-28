@@ -43,6 +43,7 @@ const inventoryItemSchema = new mongoose_1.Schema({
     onHand: { type: Number, default: 0 },
     available: { type: Number, default: 0 },
     committed: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number, default: 15 },
     status: {
         type: String,
         enum: ['in_stock', 'low_stock', 'out_of_stock'],

@@ -7,6 +7,7 @@ export interface IInventoryItem extends Document {
     onHand: number;
     available: number;
     committed: number;
+    lowStockThreshold: number;
     status: 'in_stock' | 'low_stock' | 'out_of_stock';
     reservedStock: number;
     reorderLevel: number;

@@ -4,6 +4,13 @@ exports.authService = exports.AuthService = void 0;
 const User_1 = require("../models/User");
 const RefreshToken_1 = require("../models/RefreshToken");
 const AuditLog_1 = require("../models/AuditLog");
+const Role_1 = require("../models/Role");
+const Tenant_1 = require("../models/Tenant");
+const Store_1 = require("../models/Store");
+// Ensure models are registered with Mongoose
+void Role_1.Role;
+void Tenant_1.Tenant;
+void Store_1.Store;
 const jwt_1 = require("../utils/jwt");
 class AuthService {
     /**

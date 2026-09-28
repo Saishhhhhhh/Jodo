@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Globe,
   Edit2,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAiContentStore, AiContentItem } from '@/stores/ai-content';
 import { QualityScoreBadge } from '@/components/ai-content/quality-score-badge';
@@ -51,6 +52,14 @@ export default function ReviewApprovalPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/ai-content?tab=review')}
+            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2 -ml-2 mb-1 gap-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to AI Studio Hub
+          </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Review & Approval

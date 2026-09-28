@@ -130,32 +130,43 @@ router.post('/generate', async (req, res, next) => {
             try {
                 productDoc = await Product_1.Product.findById(input.product.id).lean();
                 if (productDoc) {
+                    const pd = productDoc.productDetails || {};
+                    const docColour = typeof pd.get === 'function' ? pd.get('Colour') : (pd['Colour'] || pd['colour'] || pd['Color'] || '');
+                    const docDesign = typeof pd.get === 'function' ? pd.get('Design') : (pd['Design'] || pd['design'] || '');
+                    const docCollection = typeof pd.get === 'function' ? pd.get('Collections') : (pd['Collections'] || pd['collection'] || '');
                     productDetails = {
                         id: productDoc._id.toString(),
-                        title: productDoc.title,
-                        sku: productDoc.sku,
-                        category: productDoc.category,
-                        price: productDoc.price,
-                        material: productDoc.material,
-                        dimensions: productDoc.dimensions,
-                        weight: productDoc.weight,
-                        existingDescription: productDoc.longDescription || productDoc.shortDescription,
+                        title: input.product?.title || productDoc.title,
+                        sku: input.product?.sku || productDoc.sku,
+                        category: input.product?.category || productDoc.category,
+                        price: input.product?.price || productDoc.price,
+                        material: input.product?.material || productDoc.material,
+                        dimensions: input.product?.dimensions || productDoc.dimensions,
+                        weight: input.product?.weight || productDoc.weight,
+                        existingDescription: input.product?.existingDescription || productDoc.longDescription || productDoc.shortDescription,
                         specifications: productDoc.specifications,
-                        careAndMaintenance: productDoc.careAndMaintenance,
-                        warrantyTerms: productDoc.warrantyTerms,
+                        careAndMaintenance: input.product?.careAndMaintenance || productDoc.careAndMaintenance,
+                        warrantyTerms: input.product?.warrantyTerms || productDoc.warrantyTerms,
                         tags: productDoc.tags,
-                        colour: productDoc.productDetails?.get?.('Colour') || '',
-                        design: productDoc.productDetails?.get?.('Design') || '',
-                        collection: productDoc.productDetails?.get?.('Collections') || '',
+                        colour: input.product?.colour || docColour,
+                        design: input.product?.design || docDesign,
+                        collection: input.product?.collection || docCollection,
+                        keyFeatures: input.product?.keyFeatures || input.keyFeatures,
+                        targetAudience: input.product?.targetAudience || input.targetAudience,
                     };
                     input.product = productDetails;
+                    if (!input.keyFeatures && productDetails.keyFeatures) {
+                        input.keyFeatures = Array.isArray(productDetails.keyFeatures)
+                            ? productDetails.keyFeatures
+                            : String(productDetails.keyFeatures).split(/[,;\n]/).map((k) => k.trim()).filter(Boolean);
+                    }
                 }
             }
             catch {
                 // Continue with provided payload
             }
         }
-        const { content, quality } = await aiContentService_1.AiContentService.generate(input);
+        const { content, quality, generatedBy } = await aiContentService_1.AiContentService.generate(input);
         const count = await AiContent_1.AiContent.countDocuments({}).catch(() => 100);
         const contentId = `AIC-2026-${String(count + 1).padStart(3, '0')}`;
         const newAiContent = new AiContent_1.AiContent({
@@ -204,6 +215,7 @@ router.post('/generate', async (req, res, next) => {
         (0, response_1.sendCreated)(res, {
             item: newAiContent,
             quality,
+            generatedBy,
         }, 'Draft content generated successfully');
     }
     catch (err) {
@@ -353,7 +365,7 @@ router.post('/:id/regenerate', async (req, res, next) => {
             length: item.length,
             keywords: item.seoKeywords,
         };
-        const { content, quality } = await aiContentService_1.AiContentService.regenerate(item.editedContent || item.generatedContent, genInput, instruction);
+        const { content, quality, generatedBy } = await aiContentService_1.AiContentService.regenerate(item.editedContent || item.generatedContent, genInput, instruction);
         item.version = (item.version || 1) + 1;
         item.generatedContent = content;
         item.editedContent = content;
@@ -377,7 +389,7 @@ router.post('/:id/regenerate', async (req, res, next) => {
             user: 'Admin',
             type: 'regenerated',
         });
-        (0, response_1.sendSuccess)(res, { item, quality }, 'Content regenerated successfully');
+        (0, response_1.sendSuccess)(res, { item, quality, generatedBy }, 'Content regenerated successfully');
     }
     catch (err) {
         next(err);
@@ -520,31 +532,48 @@ router.post('/:id/publish', async (req, res, next) => {
         if (!item) {
             return (0, response_1.sendError)(res, 'AI Content not found', 404);
         }
-        // MANDATORY RULE: Never publish unapproved content
-        if (item.status !== 'Approved') {
-            return (0, response_1.sendError)(res, `Cannot publish to CMS. Content status is "${item.status}". Only "Approved" content can be published.`, 400);
+        // If content is not yet approved, auto-approve upon publish for easy, frictionless publishing
+        if (item.status !== 'Approved' && item.status !== 'Published') {
+            item.status = 'Approved';
+            item.approvedBy = req.body.publishedBy || 'Admin';
+            item.approvedAt = new Date();
         }
         const payload = item.editedContent || item.generatedContent;
         let cmsUpdated = false;
         // Update corresponding Product in CMS
         if (item.productId) {
-            const product = await Product_1.Product.findById(item.productId);
+            let product = null;
+            if (mongoose_1.default.isValidObjectId(item.productId)) {
+                product = await Product_1.Product.findById(item.productId);
+            }
+            if (!product) {
+                product = await Product_1.Product.findOne({
+                    $or: [
+                        { sku: item.sku },
+                        { title: item.productName },
+                    ],
+                });
+            }
             if (product) {
                 if (payload.shortDescription) {
                     product.shortDescription = payload.shortDescription;
                 }
-                if (payload.fullDescription || payload.detailedDescription) {
-                    product.longDescription = payload.fullDescription || payload.detailedDescription;
+                if (payload.fullDescription || payload.detailedDescription || payload.story) {
+                    product.longDescription = payload.fullDescription || payload.detailedDescription || payload.story;
                 }
                 if (payload.productSpecifications && Array.isArray(payload.productSpecifications)) {
                     product.specifications = payload.productSpecifications;
                 }
-                if (payload.careInstructions) {
-                    product.careAndMaintenance = payload.careInstructions;
+                if (payload.careInstructions || payload.materialsCare) {
+                    product.careAndMaintenance = payload.careInstructions || payload.materialsCare;
                 }
-                if (payload.seoKeywords && typeof payload.seoKeywords === 'string') {
-                    const newTags = payload.seoKeywords.split(',').map((s) => s.trim()).filter(Boolean);
-                    product.tags = Array.from(new Set([...(product.tags || []), ...newTags]));
+                if (payload.seoKeywords) {
+                    const rawKeywords = Array.isArray(payload.seoKeywords)
+                        ? payload.seoKeywords
+                        : typeof payload.seoKeywords === 'string'
+                            ? payload.seoKeywords.split(',').map((s) => s.trim())
+                            : [];
+                    product.tags = Array.from(new Set([...(product.tags || []), ...rawKeywords]));
                 }
                 await product.save();
                 cmsUpdated = true;

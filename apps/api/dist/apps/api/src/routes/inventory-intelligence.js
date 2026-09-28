@@ -7,9 +7,40 @@ const Product_1 = require("../models/Product");
 const Reservation_1 = require("../models/Reservation");
 const StockMovement_1 = require("../models/StockMovement");
 const InventoryIntelligenceService_1 = require("../services/InventoryIntelligenceService");
+const InventoryIntelligenceAiService_1 = require("../services/InventoryIntelligenceAiService");
 const response_1 = require("../utils/response");
 const router = (0, express_1.Router)();
 router.use(auth_1.requireAuth);
+router.get('/data', async (req, res, next) => {
+    try {
+        const data = await InventoryIntelligenceAiService_1.InventoryIntelligenceAiService.getFullInventory(req.auth.storeId.toString());
+        (0, response_1.sendSuccess)(res, data);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/ai-analysis', async (req, res, next) => {
+    try {
+        const data = await InventoryIntelligenceAiService_1.InventoryIntelligenceAiService.getFullInventory(req.auth.storeId.toString());
+        (0, response_1.sendSuccess)(res, data.latestAiInsights);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.post('/ai-analysis', async (req, res, next) => {
+    try {
+        const analysis = await InventoryIntelligenceAiService_1.InventoryIntelligenceAiService.generateAiAnalysis(req.auth.storeId.toString());
+        (0, response_1.sendSuccess)(res, analysis, 'AI inventory analysis generated successfully');
+    }
+    catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error?.message || 'Unable to generate inventory insights. Please try again.',
+        });
+    }
+});
 router.get('/summary', async (req, res, next) => {
     try {
         const { category, location } = req.query;

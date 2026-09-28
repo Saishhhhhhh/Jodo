@@ -9,4 +9,9 @@ export declare const env: {
     ADMIN_SEED_EMAIL: string;
     ADMIN_SEED_PASSWORD: string;
     CORS_ORIGIN: string;
+    OPENAI_MODEL: string;
+    OPENAI_API_KEY_1?: string | undefined;
+    OPENAI_API_KEY_2?: string | undefined;
+    OPENAI_API_KEY_3?: string | undefined;
+    OPENAI_API_KEY_4?: string | undefined;
 };

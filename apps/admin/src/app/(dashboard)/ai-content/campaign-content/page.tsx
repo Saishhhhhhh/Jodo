@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ import {
   CheckCircle2,
   RefreshCw,
   Copy,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAiContentStore, AiContentItem } from '@/stores/ai-content';
 import { QualityScoreBadge } from '@/components/ai-content/quality-score-badge';
@@ -39,6 +41,7 @@ const CAMPAIGN_TYPES = [
 const CAMPAIGN_TONES = ['Luxury', 'Elegant', 'Exciting', 'Minimal', 'Friendly', 'Urgent'];
 
 export default function CampaignContentPage() {
+  const router = useRouter();
   const { items, generateContent, saveDraft, submitForReview, publishToCms } = useAiContentStore();
 
   const [campaignType, setCampaignType] = useState('Festival');
@@ -173,6 +176,14 @@ export default function CampaignContentPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
         <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/ai-content')}
+            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2 -ml-2 mb-1 gap-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to AI Studio Hub
+          </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Campaign Content

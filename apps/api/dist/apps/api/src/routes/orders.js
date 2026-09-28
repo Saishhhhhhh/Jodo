@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
 const Order_1 = require("../models/Order");
+const Return_1 = require("../models/Return");
 const response_1 = require("../utils/response");
 const router = (0, express_1.Router)();
 router.use(auth_1.requireAuth);
@@ -84,7 +85,14 @@ router.get('/:id', async (req, res, next) => {
         if (!order) {
             return (0, response_1.sendError)(res, 'Order not found', 404);
         }
-        (0, response_1.sendSuccess)(res, order);
+        const returnRequest = await Return_1.Return.findOne({
+            orderId: order._id,
+            tenantId: req.auth.tenantId,
+            storeId: req.auth.storeId,
+        }).sort({ createdAt: -1 });
+        const orderData = order.toObject();
+        orderData.returnRequest = returnRequest;
+        (0, response_1.sendSuccess)(res, orderData);
     }
     catch (error) {
         next(error);

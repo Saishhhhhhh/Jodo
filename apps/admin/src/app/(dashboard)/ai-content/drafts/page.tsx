@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAiContentStore, AiContentItem, AiContentType, AiContentStatus } from '@/stores/ai-content';
 import { QualityScoreBadge } from '@/components/ai-content/quality-score-badge';
@@ -78,6 +79,14 @@ export default function DraftsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/ai-content')}
+            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2 -ml-2 mb-1 gap-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to AI Studio Hub
+          </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Draft Management
@@ -92,7 +101,7 @@ export default function DraftsPage() {
         </div>
 
         <Button
-          onClick={() => router.push('/ai-content/product-descriptions')}
+          onClick={() => router.push('/ai-content?tab=studio')}
           className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 shadow-sm text-xs self-start sm:self-auto"
         >
           <Sparkles className="w-3.5 h-3.5" />

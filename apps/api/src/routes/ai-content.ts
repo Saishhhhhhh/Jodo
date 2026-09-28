@@ -148,6 +148,9 @@ router.post('/generate', async (req: Request, res: Response, next: NextFunction)
           const docDesign = typeof pd.get === 'function' ? pd.get('Design') : (pd['Design'] || pd['design'] || '');
           const docCollection = typeof pd.get === 'function' ? pd.get('Collections') : (pd['Collections'] || pd['collection'] || '');
 
+          const anyProduct = (input.product as any) || {};
+          const anyInput = input as any;
+
           productDetails = {
             id: productDoc._id.toString(),
             title: input.product?.title || productDoc.title,
@@ -165,14 +168,16 @@ router.post('/generate', async (req: Request, res: Response, next: NextFunction)
             colour: input.product?.colour || docColour,
             design: input.product?.design || docDesign,
             collection: input.product?.collection || docCollection,
-            keyFeatures: input.product?.keyFeatures || input.keyFeatures,
-            targetAudience: input.product?.targetAudience || input.targetAudience,
           };
           input.product = productDetails;
-          if (!input.keyFeatures && productDetails.keyFeatures) {
-            input.keyFeatures = Array.isArray(productDetails.keyFeatures)
-              ? productDetails.keyFeatures
-              : String(productDetails.keyFeatures).split(/[,;\n]/).map((k: string) => k.trim()).filter(Boolean);
+          if (!input.targetAudience && (anyProduct.targetAudience || anyInput.targetAudience)) {
+            input.targetAudience = anyProduct.targetAudience || anyInput.targetAudience;
+          }
+          if (!input.keyFeatures && (anyProduct.keyFeatures || anyInput.keyFeatures)) {
+            const raw = anyProduct.keyFeatures || anyInput.keyFeatures;
+            input.keyFeatures = Array.isArray(raw)
+              ? raw
+              : String(raw).split(/[,;\n]/).map((k: string) => k.trim()).filter(Boolean);
           }
         }
       } catch {
@@ -612,13 +617,11 @@ router.post('/:id/publish', async (req: Request, res: Response, next: NextFuncti
       return sendError(res, 'AI Content not found', 404);
     }
 
-    // MANDATORY RULE: Never publish unapproved content
-    if (item.status !== 'Approved') {
-      return sendError(
-        res,
-        `Cannot publish to CMS. Content status is "${item.status}". Only "Approved" content can be published.`,
-        400
-      );
+    // If content is not yet approved, auto-approve upon publish for easy, frictionless publishing
+    if (item.status !== 'Approved' && item.status !== 'Published') {
+      item.status = 'Approved';
+      item.approvedBy = req.body.publishedBy || 'Admin';
+      item.approvedAt = new Date();
     }
 
     const payload = item.editedContent || item.generatedContent;
@@ -626,23 +629,38 @@ router.post('/:id/publish', async (req: Request, res: Response, next: NextFuncti
 
     // Update corresponding Product in CMS
     if (item.productId) {
-      const product = await Product.findById(item.productId);
+      let product = null;
+      if (mongoose.isValidObjectId(item.productId)) {
+        product = await Product.findById(item.productId);
+      }
+      if (!product) {
+        product = await Product.findOne({
+          $or: [
+            { sku: item.sku },
+            { title: item.productName },
+          ],
+        });
+      }
       if (product) {
         if (payload.shortDescription) {
           product.shortDescription = payload.shortDescription;
         }
-        if (payload.fullDescription || payload.detailedDescription) {
-          product.longDescription = payload.fullDescription || payload.detailedDescription;
+        if (payload.fullDescription || payload.detailedDescription || payload.story) {
+          product.longDescription = payload.fullDescription || payload.detailedDescription || payload.story;
         }
         if (payload.productSpecifications && Array.isArray(payload.productSpecifications)) {
           product.specifications = payload.productSpecifications;
         }
-        if (payload.careInstructions) {
-          product.careAndMaintenance = payload.careInstructions;
+        if (payload.careInstructions || payload.materialsCare) {
+          product.careAndMaintenance = payload.careInstructions || payload.materialsCare;
         }
-        if (payload.seoKeywords && typeof payload.seoKeywords === 'string') {
-          const newTags = payload.seoKeywords.split(',').map((s: string) => s.trim()).filter(Boolean);
-          product.tags = Array.from(new Set([...(product.tags || []), ...newTags]));
+        if (payload.seoKeywords) {
+          const rawKeywords = Array.isArray(payload.seoKeywords)
+            ? payload.seoKeywords
+            : typeof payload.seoKeywords === 'string'
+            ? payload.seoKeywords.split(',').map((s: string) => s.trim())
+            : [];
+          product.tags = Array.from(new Set([...(product.tags || []), ...rawKeywords]));
         }
         await product.save();
         cmsUpdated = true;

@@ -55,26 +55,21 @@ export interface QualityCheckResult {
     flags: string[];
 }
 export declare class AiContentService {
-    /**
-     * Anti-hallucination validation and quality score assessment
-     */
     static assessQuality(content: Record<string, any>, input: GenerateContentInput): QualityCheckResult;
-    /**
-     * Generate draft content based on content type, channel, and CMS data
-     */
     static generate(input: GenerateContentInput): Promise<{
         content: Record<string, any>;
         quality: QualityCheckResult;
+        generatedBy: 'openai' | 'template';
     }>;
-    /**
-     * Regenerate draft content with modifier preset or custom instruction
-     */
     static regenerate(currentContent: Record<string, any>, input: GenerateContentInput, instruction: string): Promise<{
         content: Record<string, any>;
         quality: QualityCheckResult;
+        generatedBy: 'openai' | 'template';
     }>;
-    private static generateProductDescription;
-    private static generateCatalogueContent;
-    private static generateListingCopy;
-    private static generateCampaignContent;
+    private static callOpenAi;
+    private static templateGenerate;
+    private static templateProductDescription;
+    private static templateCatalogueContent;
+    private static templateListingCopy;
+    private static templateCampaignContent;
 }

@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const Order_1 = require("../models/Order");
+const Lead_1 = require("../models/Lead");
+const Tenant_1 = require("../models/Tenant");
+const Store_1 = require("../models/Store");
 const response_1 = require("../utils/response");
 const router = (0, express_1.Router)();
 /**
@@ -53,6 +56,65 @@ router.post('/shiprocket', async (req, res, next) => {
         }
         await order.save();
         (0, response_1.sendSuccess)(res, null, 'Webhook processed successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+});
+/**
+ * POST /api/webhooks/leads
+ * Universal webhook for incoming leads from Website, Interakt (WhatsApp), etc.
+ */
+router.post('/leads', async (req, res, next) => {
+    try {
+        // For single-tenant MVP, grab the default tenant/store if not provided in query
+        let tenantId = req.query.tenantId;
+        let storeId = req.query.storeId;
+        if (!tenantId || !storeId) {
+            const tenant = await Tenant_1.Tenant.findOne();
+            const store = await Store_1.Store.findOne();
+            if (!tenant || !store)
+                return (0, response_1.sendError)(res, 'System not initialized', 500);
+            tenantId = tenant._id.toString();
+            storeId = store._id.toString();
+        }
+        const payload = req.body;
+        let leadData = {
+            tenantId,
+            storeId,
+            status: 'New',
+            followUpPriority: 'Medium',
+            interestLevel: 'Medium',
+        };
+        // 1. Check if it's an Interakt WhatsApp Webhook
+        // Interakt sends a specific payload for incoming messages
+        if (payload.type === 'message' && payload.data && payload.data.message) {
+            const waData = payload.data.message;
+            const customer = waData.customer;
+            leadData.source = 'WhatsApp';
+            leadData.name = customer?.traits?.name || customer?.phone_number || 'Unknown WhatsApp User';
+            leadData.phone = customer?.phone_number;
+            leadData.notes = `[Auto-captured from WhatsApp]\nInitial Message: ${waData.message?.text || 'Media Message'}`;
+        }
+        // 2. Generic Website Form Webhook
+        else {
+            leadData.source = payload.source || 'Website';
+            leadData.name = payload.name;
+            leadData.email = payload.email;
+            leadData.phone = payload.phone;
+            leadData.productRequirement = payload.productRequirement;
+            leadData.budget = payload.budget;
+            leadData.location = payload.location;
+            leadData.notes = payload.message ? `[Auto-captured from Website]\nMessage: ${payload.message}` : '';
+            if (!leadData.name) {
+                return (0, response_1.sendError)(res, 'Name is required for generic lead capture', 400);
+            }
+        }
+        // Check if lead already exists by phone or email to prevent pure duplicates (optional logic)
+        // For now, just create a new lead
+        const lead = new Lead_1.Lead(leadData);
+        await lead.save();
+        (0, response_1.sendSuccess)(res, null, 'Lead captured successfully', 201);
     }
     catch (error) {
         next(error);

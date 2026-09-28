@@ -32,6 +32,17 @@ const reviews_1 = __importDefault(require("./routes/reviews"));
 const returns_1 = __importDefault(require("./routes/returns"));
 const segments_1 = __importDefault(require("./routes/segments"));
 const campaigns_1 = __importDefault(require("./routes/campaigns"));
+require("./models/Tenant");
+require("./models/Store");
+require("./models/Role");
+require("./models/User");
+require("./models/InventoryItem");
+require("./models/AuditLog");
+require("./models/Media");
+require("./models/Report");
+require("./models/AiContent");
+require("./models/AiContentVersion");
+require("./models/AiContentActivity");
 const banners_1 = __importDefault(require("./routes/banners"));
 const media_1 = __importDefault(require("./routes/media"));
 const navigation_1 = __importDefault(require("./routes/navigation"));
@@ -42,6 +53,7 @@ const reports_1 = __importDefault(require("./routes/reports"));
 const teamMembers_1 = __importDefault(require("./routes/teamMembers"));
 const warehouse_1 = __importDefault(require("./routes/warehouse"));
 const ai_content_1 = __importDefault(require("./routes/ai-content"));
+const leads_1 = __importDefault(require("./routes/leads"));
 const app = (0, express_1.default)();
 // ============================================================
 // Security Middleware
@@ -70,12 +82,12 @@ app.use((0, cors_1.default)({
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // Max requests per window
+    max: env_1.env.NODE_ENV === 'development' ? 50000 : 500, // Generous limit in development for polling & hot reloading
     message: { success: false, message: 'Too many requests, please try again later' },
 });
 const authLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,
-    max: 20, // Strict limit for auth endpoints
+    max: env_1.env.NODE_ENV === 'development' ? 200 : 20,
     message: { success: false, message: 'Too many login attempts' },
 });
 app.use('/api/', limiter);
@@ -95,6 +107,7 @@ app.get('/api/health', (_req, res) => {
     res.json({
         success: true,
         status: 'ok',
+        database: (0, db_1.isDbConnected)() ? 'connected' : 'disconnected',
         version: '0.1.0',
         env: env_1.env.NODE_ENV,
         timestamp: new Date().toISOString(),
@@ -113,9 +126,11 @@ app.use('/api/admin/orders', orders_1.default);
 app.use('/api/admin/customers', customers_1.default);
 app.use('/api/admin/inventory', inventory_1.default);
 app.use('/api/admin/inventory/intelligence', inventory_intelligence_1.default);
+app.use('/api/inventory', inventory_intelligence_1.default);
 app.use('/api/admin/discounts', discounts_1.default);
 app.use('/api/admin/apps', apps_1.default);
 app.use('/api/admin/audit-logs', audit_logs_1.default);
+app.use('/api/admin/reports', reports_1.default);
 app.use('/api/admin/notifications', notifications_1.default);
 app.use('/api/admin/collections', collections_1.default);
 app.use('/api/admin/gift-cards', gift_cards_1.default);
@@ -129,6 +144,8 @@ app.use('/api/admin/navigation', navigation_1.default);
 app.use('/api/admin/reports', reports_1.default);
 app.use('/api/admin/tasks', tasks_1.default);
 app.use('/api/admin/team-members', teamMembers_1.default);
+app.use('/api/admin/leads', leads_1.default);
+app.use('/api/leads', leads_1.default);
 app.use('/api/warehouse', warehouse_1.default);
 app.use('/api/admin/warehouse', warehouse_1.default);
 app.use('/api/ai-content', ai_content_1.default);

@@ -37,21 +37,21 @@ exports.AiContent = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const aiContentSchema = new mongoose_1.Schema({
     contentId: { type: String, required: true, unique: true, index: true },
-    tenantId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Tenant' },
-    storeId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Store' },
+    tenantId: { type: mongoose_1.Schema.Types.Mixed, ref: 'Tenant' },
+    storeId: { type: mongoose_1.Schema.Types.Mixed, ref: 'Store' },
     contentType: {
         type: String,
         enum: ['product_description', 'catalogue_content', 'listing_copy', 'campaign_content'],
         required: true,
         index: true,
     },
-    productId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Product', index: true },
+    productId: { type: mongoose_1.Schema.Types.Mixed, ref: 'Product', index: true },
     productName: { type: String },
     sku: { type: String },
     category: { type: String },
     price: { type: Number },
     imageUrl: { type: String },
-    campaignId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Campaign' },
+    campaignId: { type: mongoose_1.Schema.Types.Mixed, ref: 'Campaign' },
     campaignName: { type: String },
     title: { type: String, required: true },
     generatedContent: { type: mongoose_1.Schema.Types.Mixed, required: true },
@@ -88,5 +88,11 @@ const aiContentSchema = new mongoose_1.Schema({
     publishedAt: { type: Date },
     reviewNotes: { type: String },
 }, { timestamps: true });
+aiContentSchema.pre('validate', function (next) {
+    if (!this.contentId) {
+        this.contentId = `AIC-2026-${Date.now().toString().slice(-4)}`;
+    }
+    next();
+});
 exports.AiContent = mongoose_1.default.models.AiContent || mongoose_1.default.model('AiContent', aiContentSchema);
 //# sourceMappingURL=AiContent.js.map

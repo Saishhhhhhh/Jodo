@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = connectDB;
+exports.isDbConnected = isDbConnected;
 exports.disconnectDB = disconnectDB;
 const mongoose_1 = __importDefault(require("mongoose"));
 const env_1 = require("./env");
@@ -23,6 +24,9 @@ async function connectDB() {
         // process.exit(1);
         throw error;
     }
+}
+function isDbConnected() {
+    return mongoose_1.default.connection.readyState === 1;
 }
 async function disconnectDB() {
     if (!isConnected)
