@@ -8,21 +8,21 @@ import { ArrowUpRight, ArrowLeftRight } from 'lucide-react';
 const HERO_SLIDES = [
   {
     image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=2000&q=85",
-    tagline: "Crafting Comfort, Shaping Style",
-    heading: "Elevating Everyday Living With Timeless Design",
-    subtext: "From modern minimalist to timeless classics, our collection offers something for every taste, transforming any space into a place you'll love."
+    tagline: "The Joy of Together",
+    heading: "Furniture That Brings You Closer",
+    subtext: "No tools. No waiting. No confusion. Just you, your people, and furniture that clicks into place — the way a good moment does."
   },
   {
     image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85",
-    tagline: "Minimalist Masterpieces",
-    heading: "Discover the Beauty of Simple Living",
-    subtext: "Embrace clean lines and uncluttered spaces. Our minimalist collection brings a sense of calm and clarity to your daily environment."
+    tagline: "A New Way to Experience Furniture",
+    heading: "Put It Together. Make It Yours.",
+    subtext: "JODO furniture assembles like a jigsaw puzzle — no screws, no carpenter, no stress. Just the quiet satisfaction of building something together."
   },
   {
     image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85",
-    tagline: "Bold & Contemporary",
-    heading: "Statement Pieces For Modern Homes",
-    subtext: "Make a lasting impression with our contemporary designs. Unique shapes and premium materials that define the modern aesthetic."
+    tagline: "Built Different. Felt Together.",
+    heading: "Convenience Without Compromise",
+    subtext: "Flat-packed. Tool-free. Made in-house with premium plywood. JODO delivers furniture that is ready when you are — and stays ready for life."
   }
 ];
 
@@ -185,23 +185,23 @@ export default function HeroSection() {
             <div className="flex-1 pr-6 flex flex-col justify-between py-1">
               <div>
                 <h3 className="text-[#1C1A17] font-bold text-[22px] leading-snug mb-3">
-                  60 Home Decor Ideas That Designers Swear By
+                  What Is JODO? A New Kind of Furniture Experience
                 </h3>
                 <p className="text-gray-500 text-[14px] leading-relaxed line-clamp-3 mb-5">
-                  Utilize drawers and shelves to store everyday office
-                  supplies and files you need access to. Credenzas with
-                  deep pull-out drawers can be fitted with file folder...
+                  No carpenter required. No confusing manuals. JODO furniture
+                  clicks together like a puzzle — designed for the moments
+                  you build together, not just the rooms you live in.
                 </p>
               </div>
               <Link
-                href="/blog"
+                href="/our-story"
                 className="inline-flex items-center gap-2 w-fit transition-transform hover:-translate-y-0.5 bg-terracotta"
                 style={{
                   borderRadius: '8px',
                   padding: '8px 8px 8px 20px',
                 }}
               >
-                <span className="text-white font-bold text-[14px]">Exclusive</span>
+                <span className="text-white font-bold text-[14px]">Discover JODO</span>
                 <span
                   className="flex items-center justify-center bg-white rounded-full"
                   style={{ width: '24px', height: '24px' }}

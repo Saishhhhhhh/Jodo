@@ -65,7 +65,7 @@ export default function Navbar() {
               onClick={() => setIsSearchOpen(true)}
               className="hidden md:flex items-center justify-between w-[250px] border-b border-gray-300 pb-1.5 text-gray-500 hover:text-terracotta transition-colors group"
             >
-              <span className="text-sm">Search for Furniture</span>
+              <span className="text-sm">Search for furniture...</span>
               <Search className="w-4 h-4 text-gray-400 group-hover:text-terracotta transition-colors" strokeWidth={1.5} />
             </button>
           </div>
