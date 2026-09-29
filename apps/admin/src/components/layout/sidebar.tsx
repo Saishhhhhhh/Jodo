@@ -64,6 +64,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/stores/auth';
 import { getImageUrl, apiClient } from '@/lib/api-client';
 import { useEffect } from 'react';
@@ -377,11 +378,12 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   function NotificationBadge({ count }: { count: number }) {
     if (!count || count <= 0) return null;
     return (
-      <span
-        className="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-primary/15 border border-primary/25 text-primary text-[10px] font-bold leading-none tabular-nums shrink-0 select-none shadow-xs"
+      <Badge
+        variant="default"
+        className="h-4 min-w-4 px-1 py-0 rounded-full text-[9px] font-bold leading-none tabular-nums inline-flex items-center justify-center shrink-0 border-0 select-none shadow-xs pointer-events-none"
       >
         {count > 99 ? '99+' : count}
-      </span>
+      </Badge>
     );
   }
 
