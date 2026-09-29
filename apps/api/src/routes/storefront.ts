@@ -285,17 +285,40 @@ router.post('/checkout', async (req, res, next) => {
 
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
+    const formattedShipping = shippingAddress ? {
+      firstName: shippingAddress.firstName || (customerName ? customerName.split(' ')[0] : 'Valued'),
+      lastName: shippingAddress.lastName || (customerName && customerName.split(' ').length > 1 ? customerName.split(' ').slice(1).join(' ') : 'Customer'),
+      address1: shippingAddress.address1 || 'Address Line 1',
+      address2: shippingAddress.address2 || '',
+      city: shippingAddress.city || 'Bengaluru',
+      state: shippingAddress.state || 'Karnataka',
+      zip: shippingAddress.zip || '560001',
+      country: shippingAddress.country || 'India',
+      phone: shippingAddress.phone || '',
+    } : undefined;
+
+    const formattedItems = (items || []).map((item: any) => {
+      const qty = Number(item.quantity || 1);
+      const price = Number(item.price || 0);
+      const total = item.total != null ? Number(item.total) : qty * price;
+      return {
+        productId: mongoose.Types.ObjectId.isValid(item.productId) ? item.productId : undefined,
+        sku: item.sku || `SKU-${item.productId ? String(item.productId).slice(-5) : 'GEN'}`,
+        title: item.title || 'Product Item',
+        quantity: qty,
+        price: price,
+        total: total,
+      };
+    });
+
     const order = new Order({
       tenantId: store.tenantId,
       storeId: store._id,
       orderNumber,
       customerName: customerName || 'Valued Customer',
       customerEmail: customerEmail || 'customer@example.com',
-      shippingAddress,
-      items: (items || []).map((item: any) => ({
-        ...item,
-        productId: mongoose.Types.ObjectId.isValid(item.productId) ? item.productId : undefined,
-      })),
+      shippingAddress: formattedShipping,
+      items: formattedItems,
       subtotal: subtotal || 0,
       taxTotal: taxTotal || 0,
       shippingTotal: shippingTotal || 0,
@@ -303,7 +326,7 @@ router.post('/checkout', async (req, res, next) => {
       currency: store.defaultCurrency || 'INR',
       paymentStatus: 'paid', // Simulating successful payment
       fulfillmentStatus: 'unfulfilled',
-      itemsCount: (items || []).reduce((acc: number, item: any) => acc + (item.quantity || 1), 0),
+      itemsCount: formattedItems.reduce((acc: number, item: any) => acc + item.quantity, 0),
     });
 
     await order.save();
@@ -356,16 +379,18 @@ router.post('/checkout', async (req, res, next) => {
       await Notification.create({
         tenantId: store.tenantId,
         storeId: store._id,
-        type: 'system_alert',
+        type: 'order_alert',
         title: `New Order #${orderNumber}`,
         message: `${customerName || 'Customer'} placed order #${orderNumber} for ₹${Number(totalAmount || 0).toLocaleString('en-IN')}`,
         severity: 'info',
         state: 'unread',
-        targetRoles: ['admin', 'operations', 'sales'],
+        targetRoles: ['admin', 'operations', 'sales', 'owner', 'dev-admin'],
         metadata: {
           orderId: order._id,
           orderNumber: order.orderNumber,
           totalAmount: order.totalAmount,
+          customerName: order.customerName,
+          itemsCount: order.itemsCount,
         },
       });
     } catch (notifErr) {

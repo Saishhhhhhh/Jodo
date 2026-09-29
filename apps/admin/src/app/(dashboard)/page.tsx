@@ -184,7 +184,8 @@ export default function DashboardPage() {
       return DEFAULT_SUMMARY;
     },
     initialData: DEFAULT_SUMMARY,
-    refetchInterval: 60_000, // Refresh every minute
+    refetchInterval: 5000, // Refresh every 5 seconds for live dashboard data
+    refetchOnWindowFocus: true,
   });
 
   const [counts, setCounts] = useState<any>({});
@@ -201,7 +202,7 @@ export default function DashboardPage() {
       }
     };
     fetchCounts();
-    const int = setInterval(fetchCounts, 60000);
+    const int = setInterval(fetchCounts, 5000);
     return () => clearInterval(int);
   }, []);
 

@@ -66,6 +66,8 @@ export default function OrdersPage() {
       const res = await ordersApi.list();
       return res.data.data as Order[];
     },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   const updateStatusMutation = useMutation({

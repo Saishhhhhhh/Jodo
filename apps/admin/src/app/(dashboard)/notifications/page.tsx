@@ -7,13 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import Link from 'next/link';
 import { 
   Bell, 
   AlertTriangle, 
   CheckCircle, 
   Package,
   TrendingUp,
-  Box
+  Box,
+  ShoppingBag
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -35,6 +37,8 @@ export default function NotificationsPage() {
       const res = await notificationsApi.list(params);
       return res.data.data;
     },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   const markAsRead = useMutation({
@@ -63,13 +67,14 @@ export default function NotificationsPage() {
     }
   });
 
-  const filters = ['All', 'Low Stock', 'Critical', 'Out of Stock', 'High Demand', 'Reservations', 'Resolved'];
+  const filters = ['All', 'Orders', 'Low Stock', 'Critical', 'Out of Stock', 'High Demand', 'Reservations', 'Resolved'];
 
   const filteredNotifications = React.useMemo(() => {
     if (!notifications) return [];
     if (filter === 'All' || filter === 'Resolved') return notifications;
     
     return notifications.filter((n: any) => {
+      if (filter === 'Orders' && (n.type === 'order_alert' || n.metadata?.orderId)) return true;
       if (filter === 'Low Stock' && n.metadata?.alertState === 'Low Stock') return true;
       if (filter === 'Critical' && n.metadata?.alertState === 'Critical Stock') return true;
       if (filter === 'Out of Stock' && n.metadata?.alertState === 'Out of Stock') return true;
@@ -125,7 +130,9 @@ export default function NotificationsPage() {
                   className={`p-4 flex gap-4 transition-colors hover:bg-muted/30 ${notif.state === 'unread' ? 'bg-primary/5' : ''}`}
                 >
                   <div className="shrink-0 pt-1">
-                    {notif.severity === 'critical' ? (
+                    {notif.type === 'order_alert' || notif.metadata?.orderId ? (
+                      <ShoppingBag className="h-5 w-5 text-primary" />
+                    ) : notif.severity === 'critical' ? (
                       <AlertTriangle className="h-5 w-5 text-red-500" />
                     ) : notif.severity === 'warning' ? (
                       <AlertTriangle className="h-5 w-5 text-amber-500" />
@@ -148,7 +155,22 @@ export default function NotificationsPage() {
                     
                     {/* Metadata Badges */}
                     {notif.metadata && (
-                      <div className="flex flex-wrap gap-2 pt-2">
+                      <div className="flex flex-wrap items-center gap-2 pt-2">
+                        {(notif.type === 'order_alert' || notif.metadata?.orderId) && (
+                          <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 font-medium">
+                            New Order
+                          </Badge>
+                        )}
+                        {notif.metadata.totalAmount && (
+                          <span className="text-xs font-semibold text-foreground bg-muted px-2 py-0.5 rounded">
+                            ₹{Number(notif.metadata.totalAmount).toLocaleString()}
+                          </span>
+                        )}
+                        {notif.metadata.orderId && (
+                          <Link href={`/orders/${notif.metadata.orderId}`} className="text-xs text-primary hover:underline font-medium ml-1">
+                            View Order Details →
+                          </Link>
+                        )}
                         {notif.metadata.sku && (
                           <Badge variant="secondary" className="text-[10px] font-mono"><Package className="h-3 w-3 mr-1"/> {notif.metadata.sku}</Badge>
                         )}

@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Package,
   CheckCircle,
+  ShoppingBag,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -54,7 +55,8 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
       const res = await notificationsApi.list({ state: 'unread' });
       return res.data.data;
     },
-    refetchInterval: 60000, // Poll every minute
+    refetchInterval: 5000, // Poll every 5 seconds for live order notifications
+    refetchOnWindowFocus: true,
   });
 
   const activeWarehouseAlerts = useMemo(() => {
@@ -105,6 +107,14 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
       } else {
         router.push('/inventory');
       }
+    } else if (notif.type === 'order_alert' || notif.type === 'system_alert' || notif.metadata?.orderId) {
+      if (notif.metadata?.orderId) {
+        router.push(`/orders/${notif.metadata.orderId}`);
+      } else {
+        router.push('/orders');
+      }
+    } else {
+      router.push('/orders');
     }
   };
 
@@ -193,9 +203,15 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
                       >
                         <div className="flex items-center justify-between w-full">
                           <span className="font-semibold text-sm line-clamp-1 flex items-center gap-2">
-                            {notif.severity === 'critical' && <AlertTriangle className="h-3 w-3 text-red-500" />}
-                            {notif.severity === 'warning' && <AlertTriangle className="h-3 w-3 text-amber-500" />}
-                            {notif.severity === 'info' && <CheckCircle className="h-3 w-3 text-green-500" />}
+                            {notif.type === 'order_alert' || notif.metadata?.orderId ? (
+                              <ShoppingBag className="h-3.5 w-3.5 text-primary shrink-0" />
+                            ) : notif.severity === 'critical' ? (
+                              <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                            ) : notif.severity === 'warning' ? (
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                            ) : (
+                              <CheckCircle className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                            )}
                             {notif.title}
                           </span>
                           <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
@@ -203,11 +219,23 @@ export function Topbar({ onToggleSidebar }: TopbarProps) {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.message}</p>
-                        {notif.metadata?.alertState && (
-                          <Badge variant="outline" className="mt-2 self-start text-[10px] uppercase">
-                            {notif.metadata.alertState}
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          {(notif.type === 'order_alert' || notif.metadata?.orderId) && (
+                            <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 font-medium">
+                              New Order
+                            </Badge>
+                          )}
+                          {notif.metadata?.totalAmount && (
+                            <span className="text-[10px] font-semibold text-foreground">
+                              ₹{Number(notif.metadata.totalAmount).toLocaleString()}
+                            </span>
+                          )}
+                          {notif.metadata?.alertState && (
+                            <Badge variant="outline" className="text-[10px] uppercase">
+                              {notif.metadata.alertState}
+                            </Badge>
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>
