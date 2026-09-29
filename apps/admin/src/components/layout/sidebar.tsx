@@ -374,23 +374,14 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
     }
   }
 
-  function NotificationBadge({ count, size = 'default' }: { count: number; size?: 'default' | 'sm' }) {
+  function NotificationBadge({ count }: { count: number }) {
     if (!count || count <= 0) return null;
     return (
-      <div
-        className={cn(
-          "flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary shrink-0 shadow-xs select-none",
-          size === 'sm' ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-0.5 text-[10px]"
-        )}
+      <span
+        className="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-primary/15 border border-primary/25 text-primary text-[10px] font-bold leading-none tabular-nums shrink-0 select-none shadow-xs"
       >
-        <span className="relative flex h-1.5 w-1.5 shrink-0">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-        </span>
-        <span className="font-bold leading-none tabular-nums font-mono">
-          {count > 99 ? '99+' : count}
-        </span>
-      </div>
+        {count > 99 ? '99+' : count}
+      </span>
     );
   }
 
@@ -475,7 +466,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                       </TooltipTrigger>
                       <TooltipContent side="right" className="flex items-center gap-2">
                         <span>{item.label}</span>
-                        {badgeCount > 0 && <NotificationBadge count={badgeCount} size="sm" />}
+                        {badgeCount > 0 && <NotificationBadge count={badgeCount} />}
                       </TooltipContent>
                     </Tooltip>
                   );
@@ -525,7 +516,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                         <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
                           {item.label}
                         </span>
-                        <NotificationBadge count={groupBadgeCount} size="sm" />
+                        <NotificationBadge count={groupBadgeCount} />
                       </div>
                       {item.children?.map((child) => (
                         <Link
@@ -537,7 +528,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             <child.icon className="h-3.5 w-3.5" />
                             <span>{child.label}</span>
                           </div>
-                          <NotificationBadge count={getBadgeForLabel(child.label)} size="sm" />
+                          <NotificationBadge count={getBadgeForLabel(child.label)} />
                         </Link>
                       ))}
                     </TooltipContent>
@@ -556,28 +547,44 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                     )}
                   >
                     {item.href ? (
-                      <Link
-                        href={item.href}
-                        onClick={() => {
-                          if (!openGroups.includes(item.label)) {
-                            setOpenGroups((prev) => [...prev, item.label]);
-                          }
-                        }}
-                        className="flex items-center gap-3 flex-1 px-2.5 py-2 text-left"
-                      >
-                        <item.icon
-                          className={cn(
-                            'shrink-0 h-4 w-4',
-                            groupActive ? 'text-primary' : 'text-sidebar-foreground/50'
+                      <div className="flex items-center w-full px-2.5 py-2">
+                        <Link
+                          href={item.href}
+                          onClick={() => {
+                            if (!openGroups.includes(item.label)) {
+                              setOpenGroups((prev) => [...prev, item.label]);
+                            }
+                          }}
+                          className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                        >
+                          <item.icon
+                            className={cn(
+                              'shrink-0 h-4 w-4',
+                              groupActive ? 'text-primary' : 'text-sidebar-foreground/50'
+                            )}
+                          />
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleGroup(item.label);
+                          }}
+                          className="p-0.5 text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors mr-2"
+                          aria-label="Toggle submenu"
+                        >
+                          {isOpen ? (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5" />
                           )}
-                        />
-                        <span className="flex-1 text-left">{item.label}</span>
+                        </button>
                         <NotificationBadge count={getBadgeForLabel(item.label)} />
-                      </Link>
+                      </div>
                     ) : (
                       <button
                         onClick={() => toggleGroup(item.label)}
-                        className="flex items-center gap-3 flex-1 px-2.5 py-2 text-left"
+                        className="flex items-center w-full px-2.5 py-2 text-left"
                       >
                         <item.icon
                           className={cn(
@@ -585,24 +592,17 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             groupActive ? 'text-primary' : 'text-sidebar-foreground/50'
                           )}
                         />
-                        <span className="flex-1 text-left">{item.label}</span>
+                        <span className="flex-1 truncate ml-3">{item.label}</span>
+                        <span className="text-sidebar-foreground/40 transition-colors mr-2">
+                          {isOpen ? (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          )}
+                        </span>
                         <NotificationBadge count={getBadgeForLabel(item.label)} />
                       </button>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGroup(item.label);
-                      }}
-                      className="px-2 py-2 text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors ml-1"
-                      aria-label="Toggle submenu"
-                    >
-                      {isOpen ? (
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      )}
-                    </button>
                   </div>
 
                   {isOpen && (
@@ -614,7 +614,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             key={child.label}
                             href={child.href!}
                             className={cn(
-                              'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[0.8125rem] transition-all duration-150',
+                              'flex items-center justify-between gap-2 rounded-md pl-2 pr-2.5 py-1.5 text-[0.8125rem] transition-all duration-150',
                               childActive
                                 ? 'text-primary font-medium bg-primary/8'
                                 : 'text-sidebar-foreground/60 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50'
@@ -624,7 +624,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                               <child.icon className={cn('h-3.5 w-3.5 shrink-0', childActive && 'text-primary')} />
                               <span className="truncate">{child.label}</span>
                             </div>
-                            <NotificationBadge count={getBadgeForLabel(child.label)} size="sm" />
+                            <NotificationBadge count={getBadgeForLabel(child.label)} />
                           </Link>
                         );
                       })}
