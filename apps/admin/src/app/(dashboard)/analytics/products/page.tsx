@@ -6,10 +6,12 @@ import {
   ArrowUpRight, 
   Calendar, 
   Download,
-  Package,
-  RotateCcw,
-  Percent,
-  ArchiveX
+  Package, 
+  RotateCcw, 
+  Percent, 
+  ArchiveX,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { 
   Bar, 
@@ -18,19 +20,23 @@ import {
   ResponsiveContainer, 
   Tooltip, 
   XAxis, 
-  YAxis,
-  Line,
-  PieChart,
-  Pie,
-  ComposedChart,
-  Scatter,
-  Legend
+  YAxis, 
+  Line, 
+  PieChart, 
+  Pie, 
+  ComposedChart, 
+  Scatter, 
+  Legend 
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+import { productsApi } from '@/lib/api-client';
+import { ProductAnalyticsDialog, ProductAnalyticsData } from './product-analytics-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formatCurrency = (value: number) => `₹${value.toLocaleString()}`;
 const formatNumber = (value: number) => value.toLocaleString();
@@ -55,7 +61,7 @@ const tooltipItemStyle = {
   fontWeight: 600,
 };
 
-const COLORS = ['hsl(var(--primary))', '#8b5cf6', '#10b981', '#f59e0b'];
+const COLORS = ['hsl(var(--primary))', '#8b5cf6', '#10b981', '#f59e0b', '#06b6d4', '#ec4899'];
 
 // Custom Pie Chart Label
 const RADIAN = Math.PI / 180;
@@ -64,8 +70,10 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  if (percent < 0.05) return null;
+
   return (
-    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600}>
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={600}>
       {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
@@ -73,46 +81,66 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 export default function AnalyticsProductsPage() {
   const [dateRange, setDateRange] = React.useState('30d');
+  const [selectedProduct, setSelectedProduct] = useState<ProductAnalyticsData | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { kpiData, topPerformers, variantData, inventoryHealth, profitMatrix } = React.useMemo(() => {
-    const m = dateRange === '7d' ? 0.25 : dateRange === '90d' ? 3 : dateRange === '12m' ? 12 : dateRange === 'ytd' ? 6 : 1;
-    
-    return {
-      kpiData: {
-        sold: Math.floor(4850 * m),
-        margin: dateRange === '7d' ? 61.2 : dateRange === '90d' ? 63.8 : dateRange === '12m' ? 64.1 : 62.5,
-        deadStock: Math.floor(14500 * (1 / (m > 0 ? Math.sqrt(m) : 1))),
-        returns: dateRange === '7d' ? 1.2 : dateRange === '90d' ? 2.1 : dateRange === '12m' ? 2.4 : 1.8
-      },
-      topPerformers: [
-        { name: 'Ergo Chair', volume: Math.floor(850 * m), margin: 68 },
-        { name: 'Pro Keyboard', volume: Math.floor(620 * m), margin: 45 },
-        { name: 'Desk Mat', volume: Math.floor(1200 * m), margin: 75 },
-        { name: 'Monitor Arm', volume: Math.floor(430 * m), margin: 55 },
-        { name: 'Webcam', volume: Math.floor(590 * m), margin: 40 },
-      ],
-      variantData: [
-        { name: 'Black / Medium', value: dateRange === '7d' ? 50 : 45 },
-        { name: 'Space Gray / Large', value: 30 },
-        { name: 'White / Small', value: dateRange === '7d' ? 10 : 15 },
-        { name: 'Silver / One Size', value: 10 },
-      ],
-      inventoryHealth: [
-        { name: 'T-Shirt', stock: 120, velocity: Math.floor(45 * m) },
-        { name: 'Hoodie', stock: 15, velocity: Math.floor(30 * m) },
-        { name: 'Cap', stock: 45, velocity: Math.floor(15 * m) },
-        { name: 'Socks', stock: 200, velocity: Math.floor(150 * m) },
-        { name: 'Jacket', stock: 5, velocity: Math.floor(2 * m) },
-      ],
-      profitMatrix: [
-        { id: 1, name: 'Premium Cotton T-Shirt', category: 'Apparel', cogs: 450, price: 1200, margin: 62.5, stock: Math.floor(450 - (20 * m)) },
-        { id: 2, name: 'Wireless Headphones', category: 'Electronics', cogs: 3500, price: 8900, margin: 60.6, stock: Math.floor(45 - (2 * m)) },
-        { id: 3, name: 'Ergonomic Office Chair', category: 'Furniture', cogs: 4200, price: 12500, margin: 66.4, stock: Math.max(0, Math.floor(12 - m)) },
-        { id: 4, name: 'Smart Fitness Watch', category: 'Electronics', cogs: 1800, price: 5400, margin: 66.6, stock: Math.max(0, Math.floor(89 - (5 * m))) },
-        { id: 5, name: 'Organic Coffee Beans', category: 'Food', cogs: 250, price: 800, margin: 68.7, stock: Math.floor(210 - (10 * m)) },
-      ]
-    };
-  }, [dateRange]);
+  // Fetch real database analytics
+  const { data: analyticsRes, isLoading } = useQuery({
+    queryKey: ['products-analytics', dateRange],
+    queryFn: async () => {
+      const res = await productsApi.analytics({ dateRange });
+      return res.data?.data;
+    },
+  });
+
+  const kpiData = analyticsRes?.kpiData || {
+    sold: 0,
+    margin: 0,
+    deadStock: 0,
+    returns: 0,
+  };
+  const topPerformers = analyticsRes?.topPerformers || [];
+  const variantData = analyticsRes?.variantData || [];
+  const inventoryHealth = analyticsRes?.inventoryHealth || [];
+  const profitMatrix = analyticsRes?.profitMatrix || [];
+  const productsMap = analyticsRes?.productsMap || {};
+
+  const handleOpenProductDetails = (productName: string) => {
+    if (!productName) return;
+    const lower = productName.toLowerCase().trim();
+
+    // Look up directly in real DB products map
+    let details = productsMap[productName] || productsMap[lower];
+
+    // If not found by key, search in all real products by name, sku, or _id
+    if (!details && analyticsRes?.allProducts) {
+      details = analyticsRes.allProducts.find((p: any) => 
+        p.name.toLowerCase() === lower ||
+        p.name.toLowerCase().includes(lower) ||
+        lower.includes(p.name.toLowerCase()) ||
+        (p.sku && p.sku.toLowerCase() === lower) ||
+        (p._id && p._id === productName)
+      );
+    }
+
+    if (details) {
+      setSelectedProduct(details);
+      setIsDialogOpen(true);
+    }
+  };
+
+  const extractProductName = (data: any): string | null => {
+    if (!data) return null;
+    if (typeof data === 'string') return data;
+    if (data.fullName && typeof data.fullName === 'string') return data.fullName;
+    if (data.name && typeof data.name === 'string') return data.name;
+    if (data.payload?.fullName) return data.payload.fullName;
+    if (data.payload?.name) return data.payload.name;
+    if (data.activePayload?.[0]?.payload?.fullName) return data.activePayload[0].payload.fullName;
+    if (data.activePayload?.[0]?.payload?.name) return data.activePayload[0].payload.name;
+    if (data.activeLabel && typeof data.activeLabel === 'string') return data.activeLabel;
+    return null;
+  };
 
   return (
     <div className="flex-1 space-y-6 p-6 md:p-8 pt-6">
@@ -219,13 +247,36 @@ export default function AnalyticsProductsPage() {
         {/* Volume vs Margin ComposedChart */}
         <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
-            <CardTitle>Top Movers: Volume vs Margin</CardTitle>
-            <CardDescription>Comparing total units sold against profit margins for top products.</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <span>Top Movers: Volume vs Margin</span>
+                  <Badge variant="outline" className="text-[11px] font-normal text-primary border-primary/30 bg-primary/5">
+                    Click Bar for Info
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  Comparing total units sold against profit margins for top products. Click any bar to inspect product popup.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full border border-border/40 shrink-0 self-start sm:self-auto">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Click bar to inspect
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-[350px] w-full mt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={topPerformers} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+                <ComposedChart 
+                  data={topPerformers} 
+                  margin={{ top: 10, right: 20, left: 10, bottom: 20 }}
+                  className="cursor-pointer"
+                  onClick={(state) => {
+                    const name = extractProductName(state);
+                    if (name) handleOpenProductDetails(name);
+                  }}
+                >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
                   <XAxis 
                     dataKey="name" 
@@ -253,17 +304,71 @@ export default function AnalyticsProductsPage() {
                     dx={5}
                   />
                   <Tooltip 
-                    contentStyle={tooltipStyle}
-                    labelStyle={tooltipLabelStyle}
-                    itemStyle={tooltipItemStyle}
-                    cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div style={tooltipStyle} className="p-3 shadow-xl min-w-[180px]">
+                            <p style={tooltipLabelStyle} className="font-semibold text-sm">{label}</p>
+                            <div className="space-y-1 my-1.5">
+                              {payload.map((entry: any, index: number) => (
+                                <div key={`tooltip-${index}`} className="flex items-center justify-between gap-4 text-xs">
+                                  <span className="text-muted-foreground flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                    {entry.name}:
+                                  </span>
+                                  <span className="font-bold text-foreground">
+                                    {entry.name.includes('Margin') || entry.name.includes('%') ? `${entry.value}%` : formatNumber(entry.value)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="pt-2 mt-2 border-t border-border/40 text-[11px] text-primary flex items-center gap-1 font-medium">
+                              <span>👆 Click bar to inspect product popup</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                    cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                   />
                   <Legend 
                     wrapperStyle={{ paddingTop: '20px' }} 
                     formatter={(value) => <span className="text-foreground font-medium">{value}</span>}
                   />
-                  <Bar yAxisId="left" dataKey="volume" name="Units Sold" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={40} />
-                  <Line yAxisId="right" type="monotone" dataKey="margin" name="Profit Margin %" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} />
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey="volume" 
+                    name="Units Sold" 
+                    fill="hsl(var(--primary))" 
+                    radius={[4, 4, 0, 0]} 
+                    barSize={40}
+                    cursor="pointer"
+                    className="cursor-pointer transition-opacity hover:opacity-80"
+                    onClick={(data) => {
+                      const name = extractProductName(data);
+                      if (name) handleOpenProductDetails(name);
+                    }}
+                  >
+                    {topPerformers.map((_entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} cursor="pointer" className="cursor-pointer hover:opacity-80 transition-opacity" />
+                    ))}
+                  </Bar>
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="margin" 
+                    name="Profit Margin %" 
+                    stroke="#10b981" 
+                    strokeWidth={3} 
+                    dot={{ r: 5, strokeWidth: 2, cursor: 'pointer' }} 
+                    activeDot={{ r: 7, cursor: 'pointer' }}
+                    cursor="pointer"
+                    onClick={(data) => {
+                      const name = extractProductName(data);
+                      if (name) handleOpenProductDetails(name);
+                    }}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -298,7 +403,7 @@ export default function AnalyticsProductsPage() {
                       stroke="hsl(var(--background))"
                       strokeWidth={2}
                     >
-                      {variantData.map((entry, index) => (
+                      {variantData.map((_entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -307,7 +412,7 @@ export default function AnalyticsProductsPage() {
               </div>
               <div className="w-full mt-6">
                 <ul className="flex flex-col space-y-2.5 text-sm w-[80%] mx-auto">
-                  {variantData.map((entry, index) => (
+                  {variantData.map((entry: any, index: number) => (
                     <li key={`item-${index}`} className="flex items-center">
                       <span 
                         className="w-3 h-3 rounded-full mr-3 shrink-0" 
@@ -328,13 +433,34 @@ export default function AnalyticsProductsPage() {
       <div className="grid gap-6 md:grid-cols-1">
         <Card>
           <CardHeader>
-            <CardTitle>Inventory Health Analysis</CardTitle>
-            <CardDescription>Comparing current stock levels vs 30-day sales velocity to identify overstocked or at-risk items.</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <span>Inventory Health Analysis</span>
+                  <Badge variant="outline" className="text-[11px] font-normal text-purple-400 border-purple-500/30 bg-purple-500/5">
+                    Click Bar for Info
+                  </Badge>
+                </CardTitle>
+                <CardDescription>Comparing current stock levels vs 30-day sales velocity to identify overstocked or at-risk items. Click any bar for details.</CardDescription>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full border border-border/40 shrink-0 self-start sm:self-auto">
+                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                Click bar to inspect
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full mt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={inventoryHealth} margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
+                <ComposedChart 
+                  data={inventoryHealth} 
+                  margin={{ top: 10, right: 20, left: 10, bottom: 20 }}
+                  className="cursor-pointer"
+                  onClick={(state) => {
+                    const name = extractProductName(state);
+                    if (name) handleOpenProductDetails(name);
+                  }}
+                >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
                   <XAxis 
                     dataKey="name" 
@@ -351,14 +477,63 @@ export default function AnalyticsProductsPage() {
                     dx={-5}
                   />
                   <Tooltip 
-                    contentStyle={tooltipStyle}
-                    labelStyle={tooltipLabelStyle}
-                    itemStyle={tooltipItemStyle}
-                    cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div style={tooltipStyle} className="p-3 shadow-xl min-w-[180px]">
+                            <p style={tooltipLabelStyle} className="font-semibold text-sm">{label}</p>
+                            <div className="space-y-1 my-1.5">
+                              {payload.map((entry: any, index: number) => (
+                                <div key={`health-tooltip-${index}`} className="flex items-center justify-between gap-4 text-xs">
+                                  <span className="text-muted-foreground flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                    {entry.name}:
+                                  </span>
+                                  <span className="font-bold text-foreground">
+                                    {formatNumber(entry.value)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="pt-2 mt-2 border-t border-border/40 text-[11px] text-primary flex items-center gap-1 font-medium">
+                              <span>👆 Click bar to inspect product popup</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                    cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar dataKey="stock" name="Current Stock" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={40} opacity={0.8} />
-                  <Scatter dataKey="velocity" name="Sales Velocity (30d)" fill="#f43f5e" />
+                  <Bar 
+                    dataKey="stock" 
+                    name="Current Stock" 
+                    fill="#8b5cf6" 
+                    radius={[4, 4, 0, 0]} 
+                    barSize={40} 
+                    opacity={0.8} 
+                    cursor="pointer"
+                    className="cursor-pointer hover:opacity-100 transition-opacity"
+                    onClick={(data) => {
+                      const name = extractProductName(data);
+                      if (name) handleOpenProductDetails(name);
+                    }}
+                  >
+                    {inventoryHealth.map((_entry: any, index: number) => (
+                      <Cell key={`health-cell-${index}`} cursor="pointer" className="cursor-pointer hover:opacity-100 transition-opacity" />
+                    ))}
+                  </Bar>
+                  <Scatter 
+                    dataKey="velocity" 
+                    name="Sales Velocity (30d)" 
+                    fill="#f43f5e" 
+                    cursor="pointer"
+                    onClick={(data) => {
+                      const name = extractProductName(data);
+                      if (name) handleOpenProductDetails(name);
+                    }}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -370,7 +545,12 @@ export default function AnalyticsProductsPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="space-y-1">
-            <CardTitle>Product Profitability Matrix</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <span>Product Profitability Matrix</span>
+              <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground">
+                Click row for full popup
+              </Badge>
+            </CardTitle>
             <CardDescription>Detailed financial performance metrics for individual products.</CardDescription>
           </div>
           <Button variant="outline" size="sm">Export Report</Button>
@@ -388,9 +568,16 @@ export default function AnalyticsProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {profitMatrix.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.name}</TableCell>
+              {profitMatrix.map((item: any) => (
+                <TableRow 
+                  key={item.id}
+                  className="cursor-pointer hover:bg-muted/60 transition-colors group"
+                  onClick={() => handleOpenProductDetails(item.name)}
+                >
+                  <TableCell className="font-medium group-hover:text-primary transition-colors flex items-center gap-1.5">
+                    <span>{item.name}</span>
+                    <Sparkles className="w-3 h-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="bg-muted text-muted-foreground">{item.category}</Badge>
                   </TableCell>
@@ -408,6 +595,13 @@ export default function AnalyticsProductsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Product Analytics Detail Modal Popup */}
+      <ProductAnalyticsDialog
+        product={selectedProduct}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </div>
   );
 }

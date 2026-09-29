@@ -123,6 +123,7 @@ export const staffApi = {
 export const productsApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/products', { params }),
   get: (id: string) => apiClient.get(`/admin/products/${id}`),
+  analytics: (params?: Record<string, unknown>) => apiClient.get('/admin/products/analytics', { params }),
   create: (data: any) => apiClient.post('/admin/products', data),
   update: (id: string, data: any) => apiClient.put(`/admin/products/${id}`, data),
   delete: (id: string) => apiClient.delete(`/admin/products/${id}`),
