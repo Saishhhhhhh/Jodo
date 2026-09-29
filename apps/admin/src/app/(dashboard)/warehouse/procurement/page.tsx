@@ -2,9 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ArrowLeft, Truck } from 'lucide-react';
 import { ProcurementTab } from '@/components/warehouse/tabs/procurement-tab';
 import { CreateProcurementDrawer } from '@/components/warehouse/modals/create-procurement-drawer';
 
@@ -31,13 +29,6 @@ function ProcurementPageContent() {
           <p className="text-sm text-muted-foreground mt-1">
             Manage fabric, hardware and raw material purchase orders, track supplier deliveries, and receive inventory directly at warehouse docks.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            <span>Create Purchase Order</span>
-          </Button>
         </div>
       </div>
 
