@@ -335,6 +335,15 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
     return item.children?.some((child) => child.href && isActive(child.href));
   }
 
+  // Auto-expand active group when route changes
+  useEffect(() => {
+    visibleNavItems.forEach((item) => {
+      if (item.children?.some((child) => child.href && isActive(child.href))) {
+        setOpenGroups((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
+      }
+    });
+  }, [bestMatch, visibleNavItems]);
+
   function getBadgeForLabel(label: string): number {
     switch (label) {
       case 'Notifications':
@@ -478,7 +487,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
 
               // Group with children
               const groupActive = isGroupActive(item);
-              const isOpen = openGroups.includes(item.label) || !!groupActive;
+              const isOpen = openGroups.includes(item.label);
               const groupBadgeCount = getBadgeForLabel(item.label);
 
               if (collapsed) {
