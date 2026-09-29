@@ -70,10 +70,14 @@ app.use(
       if (!origin) return callback(null, true);
       
       const allowedOrigins = env.CORS_ORIGIN.split(',').map(s => s.trim());
-      allowedOrigins.push('http://localhost:3000', 'http://localhost:3001');
+      allowedOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001');
       
-      // Allow Vercel preview/production URLs automatically, or exact matches
-      if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      // Allow Vercel preview/production URLs, or localhost/127.0.0.1 on any port, or exact matches
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        origin.endsWith('.vercel.app') ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
         return callback(null, true);
       }
       

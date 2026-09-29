@@ -30,6 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
           strategy="afterInteractive"
         />
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
         <StoreLayoutWrapper>{children}</StoreLayoutWrapper>
       </body>
     </html>

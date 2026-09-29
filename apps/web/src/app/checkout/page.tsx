@@ -6,7 +6,7 @@ import { useCustomerStore } from '../../store/useCustomerStore';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Lock, ShieldCheck, Tag, CreditCard, Banknote, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Lock, ShieldCheck, Tag, CreditCard, Banknote, CheckCircle2, Sparkles, AlertCircle } from 'lucide-react';
 import { loadRazorpayScript, openRazorpayCheckout } from '../../lib/razorpay';
 
 export default function CheckoutPage() {
@@ -72,30 +72,74 @@ export default function CheckoutPage() {
 
   const finalTotal = cartTotal() - discountAmount;
 
+  // Error state
+  const [formError, setFormError] = useState<string>('');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (formError) setFormError('');
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const getApiUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    if (typeof window !== 'undefined' && window.location.hostname === '127.0.0.1') {
+      return 'http://127.0.0.1:4000';
+    }
+    return 'http://localhost:4000';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (items.length === 0) return;
+    setFormError('');
+
+    if (items.length === 0) {
+      setFormError('Your cart is empty. Please add items to cart before checking out.');
+      return;
+    }
+
+    // Validate essential fields
+    if (!formData.email.trim()) {
+      setFormError('Please enter your email address.');
+      return;
+    }
+    if (!formData.firstName.trim()) {
+      setFormError('Please enter your first name.');
+      return;
+    }
+    if (!formData.address.trim()) {
+      setFormError('Please enter your shipping address.');
+      return;
+    }
+    if (!formData.city.trim()) {
+      setFormError('Please enter your city.');
+      return;
+    }
+    if (!formData.pincode.trim()) {
+      setFormError('Please enter your PIN code.');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      setFormError('Please enter your contact phone number.');
+      return;
+    }
     
     setIsSubmitting(true);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const apiUrl = getApiUrl();
+    console.log('[Checkout] Submitting order. API URL:', apiUrl, 'Method:', paymentMethod);
 
     try {
       const basePayload = {
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        customerEmail: formData.email,
+        customerName: `${formData.firstName} ${formData.lastName}`.trim(),
+        customerEmail: formData.email.trim(),
         shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          address1: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip: formData.pincode,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          address1: formData.address.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim() || 'Karnataka',
+          zip: formData.pincode.trim(),
           country: 'India',
-          phone: formData.phone,
+          phone: formData.phone.trim(),
         },
         items: items.map(item => ({
           productId: item.id,
@@ -112,14 +156,18 @@ export default function CheckoutPage() {
       };
 
       if (paymentMethod === 'RAZORPAY') {
+        console.log('[Razorpay] Loading Razorpay script...');
         // 1. Ensure Razorpay SDK script is loaded
         const loaded = await loadRazorpayScript();
         if (!loaded) {
-          alert('Could not load Razorpay payment gateway. Please check your internet connection.');
+          const err = 'Could not load Razorpay payment gateway. Please check your internet connection or ad-blocker.';
+          setFormError(err);
+          alert(err);
           setIsSubmitting(false);
           return;
         }
 
+        console.log('[Razorpay] Creating Razorpay order on backend for amount: ₹', finalTotal);
         // 2. Create Razorpay order on backend
         const orderRes = await fetch(`${apiUrl}/api/storefront/razorpay/create-order`, {
           method: 'POST',
@@ -134,68 +182,100 @@ export default function CheckoutPage() {
           }),
         });
 
+        if (!orderRes.ok) {
+          const errorJson = await orderRes.json().catch(() => ({}));
+          const errMsg = errorJson.message || `Server returned error (${orderRes.status})`;
+          setFormError(`Payment Gateway Error: ${errMsg}`);
+          setIsSubmitting(false);
+          return;
+        }
+
         const orderData = await orderRes.json();
+        console.log('[Razorpay] Backend order response:', orderData);
+
         if (!orderData.success || !orderData.data?.orderId) {
-          alert(orderData.message || 'Failed to initialize Razorpay payment.');
+          const errMsg = orderData.message || 'Failed to initialize Razorpay payment order.';
+          setFormError(errMsg);
+          alert(errMsg);
           setIsSubmitting(false);
           return;
         }
 
         const rzpOrder = orderData.data;
+        const cleanPhone = formData.phone.replace(/[^0-9]/g, '').slice(-10);
+
+        console.log('[Razorpay] Opening Razorpay checkout modal with orderId:', rzpOrder.orderId);
 
         // 3. Open Razorpay Checkout modal
-        openRazorpayCheckout({
-          key: rzpOrder.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_ThqAXccEenS0Um',
-          amount: rzpOrder.amount,
-          currency: rzpOrder.currency || 'INR',
-          name: 'Jodo Commerce',
-          description: `Payment for ${items.length} item(s)`,
-          order_id: rzpOrder.orderId,
-          prefill: {
-            name: `${formData.firstName} ${formData.lastName}`.trim(),
-            email: formData.email,
-            contact: formData.phone,
-          },
-          theme: {
-            color: '#B65A45', // Jodo Terracotta brand color
-          },
-          handler: async (response) => {
-            try {
-              // 4. Submit order to backend with verified payment details
-              const checkoutRes = await fetch(`${apiUrl}/api/storefront/checkout`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  ...basePayload,
-                  paymentMethod: 'RAZORPAY',
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                }),
-              });
+        openRazorpayCheckout(
+          {
+            key: rzpOrder.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_ThqAXccEenS0Um',
+            amount: rzpOrder.amount,
+            currency: rzpOrder.currency || 'INR',
+            name: 'Jodo Commerce',
+            description: `Payment for ${items.length} item(s)`,
+            order_id: rzpOrder.orderId,
+            prefill: {
+              name: `${formData.firstName} ${formData.lastName}`.trim(),
+              email: formData.email.trim(),
+              ...(cleanPhone.length >= 10 ? { contact: cleanPhone } : {}),
+            },
+            theme: {
+              color: '#B65A45', // Jodo Terracotta brand color
+            },
+            handler: async (response) => {
+              console.log('[Razorpay] Payment successful! Verifying and finalizing order...', response);
+              try {
+                // 4. Submit order to backend with verified payment details
+                const checkoutRes = await fetch(`${apiUrl}/api/storefront/checkout`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    ...basePayload,
+                    paymentMethod: 'RAZORPAY',
+                    razorpayOrderId: response.razorpay_order_id,
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpaySignature: response.razorpay_signature,
+                  }),
+                });
 
-              const checkoutData = await checkoutRes.json();
-              if (checkoutData.success) {
-                clearCart();
-                router.push(`/checkout/success?orderId=${checkoutData.data.orderNumber || checkoutData.data._id}`);
-              } else {
-                alert('Payment captured, but order creation failed. Please contact support.');
+                const checkoutData = await checkoutRes.json();
+                console.log('[Razorpay] Checkout API response:', checkoutData);
+
+                if (checkoutData.success) {
+                  clearCart();
+                  router.push(`/checkout/success?orderId=${checkoutData.data.orderNumber || checkoutData.data._id}`);
+                } else {
+                  const msg = checkoutData.message || 'Payment captured, but order creation failed. Please contact support.';
+                  setFormError(msg);
+                  alert(msg);
+                  setIsSubmitting(false);
+                }
+              } catch (err: any) {
+                console.error('[Razorpay] Error completing order after payment:', err);
+                const msg = `Payment was successful (ID: ${response.razorpay_payment_id}), but saving your order encountered an error. Please contact support with this Payment ID.`;
+                setFormError(msg);
+                alert(msg);
                 setIsSubmitting(false);
               }
-            } catch (err) {
-              console.error('Error completing order after payment:', err);
-              alert('Error completing your order. Please contact support with your payment ID: ' + response.razorpay_payment_id);
-              setIsSubmitting(false);
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              setIsSubmitting(false);
+            },
+            modal: {
+              ondismiss: () => {
+                console.log('[Razorpay] Checkout modal dismissed by user');
+                setIsSubmitting(false);
+              },
             },
           },
-        });
+          (failure) => {
+            console.error('[Razorpay] Payment failure received:', failure);
+            setIsSubmitting(false);
+            const reason = failure.error?.description || failure.error?.reason || 'Payment could not be processed.';
+            setFormError(`Payment Failed: ${reason}`);
+          }
+        );
       } else {
         // Cash on Delivery
+        console.log('[Checkout] Placing COD order...');
         const res = await fetch(`${apiUrl}/api/storefront/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -210,13 +290,17 @@ export default function CheckoutPage() {
           clearCart();
           router.push(`/checkout/success?orderId=${data.data.orderNumber || data.data._id}`);
         } else {
-          alert('Failed to place order. Please try again.');
+          const msg = data.message || 'Failed to place order. Please try again.';
+          setFormError(msg);
+          alert(msg);
           setIsSubmitting(false);
         }
       }
-    } catch (error) {
-      console.error(error);
-      alert('An error occurred. Please try again.');
+    } catch (error: any) {
+      console.error('[Checkout] Uncaught error during checkout:', error);
+      const msg = error?.message || 'A network error occurred. Please check your connection and try again.';
+      setFormError(msg);
+      alert(msg);
       setIsSubmitting(false);
     }
   };
@@ -377,10 +461,17 @@ export default function CheckoutPage() {
               </div>
             </section>
 
+            {formError && (
+              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm animate-shake">
+                <AlertCircle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />
+                <div className="flex-1">{formError}</div>
+              </div>
+            )}
+
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full py-4 mt-4 bg-[#B65A45] text-white font-bold text-lg rounded-xl hover:bg-[#a04e3b] transition-all duration-300 disabled:opacity-70 flex items-center justify-center shadow-md hover:shadow-lg gap-2"
+              className="w-full py-4 bg-[#B65A45] text-white font-bold text-lg rounded-xl hover:bg-[#a04e3b] transition-all duration-300 disabled:opacity-70 flex items-center justify-center shadow-md hover:shadow-lg gap-2"
             >
               {isSubmitting ? (
                 <span>Processing...</span>
