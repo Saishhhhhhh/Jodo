@@ -53,6 +53,10 @@ export interface IOrder extends Document {
   currency: string;
   
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod?: 'RAZORPAY' | 'COD' | 'MANUAL';
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
   fulfillmentStatus: 'unfulfilled' | 'partial' | 'fulfilled' | 'returned';
   itemsCount: number;
   
@@ -126,6 +130,14 @@ const orderSchema = new Schema<IOrder>(
       enum: ['pending', 'paid', 'failed', 'refunded'],
       default: 'pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['RAZORPAY', 'COD', 'MANUAL'],
+      default: 'RAZORPAY',
+    },
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
+    razorpaySignature: { type: String },
     fulfillmentStatus: {
       type: String,
       enum: ['unfulfilled', 'partial', 'fulfilled', 'returned'],

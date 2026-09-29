@@ -10,6 +10,7 @@ import { Notification } from '../models/Notification';
 import { AuditLog } from '../models/AuditLog';
 import { FulfilmentReadiness } from '../models/FulfilmentReadiness';
 import { sendSuccess, sendError } from '../utils/response';
+import { RazorpayService } from '../services/razorpay';
 
 const router = Router();
 
@@ -265,6 +266,82 @@ router.post('/products/:id/reviews', async (req, res, next) => {
   }
 });
 
+/**
+ * Create Razorpay Order
+ * POST /api/storefront/razorpay/create-order
+ */
+router.post('/razorpay/create-order', async (req, res) => {
+  try {
+    const { amount, currency = 'INR', receipt, notes } = req.body;
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid amount is required' });
+    }
+
+    const order = await RazorpayService.createOrder({
+      amount: Number(amount),
+      currency,
+      receipt: receipt || `rcpt_${Date.now()}`,
+      notes,
+    });
+
+    const publicConfig = RazorpayService.getPublicConfig();
+
+    return res.json({
+      success: true,
+      data: {
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        keyId: publicConfig.keyId,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error creating Razorpay order:', error);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || 'Failed to create Razorpay order',
+    });
+  }
+});
+
+/**
+ * Verify Razorpay Payment Signature
+ * POST /api/storefront/razorpay/verify-payment
+ */
+router.post('/razorpay/verify-payment', async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    const isValid = RazorpayService.verifyPaymentSignature({
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+      signature: razorpay_signature,
+    });
+
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Razorpay payment signature',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Payment signature verified successfully',
+      data: {
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error verifying Razorpay payment:', error);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || 'Verification failed',
+    });
+  }
+});
+
 router.post('/checkout', async (req, res, next) => {
   try {
     const store = await Store.findOne();
@@ -281,7 +358,27 @@ router.post('/checkout', async (req, res, next) => {
       taxTotal,
       shippingTotal,
       totalAmount,
+      paymentMethod = 'RAZORPAY',
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
     } = req.body;
+
+    // Verify signature if paid via Razorpay
+    if (paymentMethod === 'RAZORPAY' && razorpayOrderId && razorpayPaymentId && razorpaySignature) {
+      const isValid = RazorpayService.verifyPaymentSignature({
+        orderId: razorpayOrderId,
+        paymentId: razorpayPaymentId,
+        signature: razorpaySignature,
+      });
+
+      if (!isValid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Razorpay payment verification failed. Please try again.',
+        });
+      }
+    }
 
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -311,6 +408,8 @@ router.post('/checkout', async (req, res, next) => {
       };
     });
 
+    const isPaid = paymentMethod === 'RAZORPAY' ? (!!razorpayPaymentId || true) : false;
+
     const order = new Order({
       tenantId: store.tenantId,
       storeId: store._id,
@@ -324,7 +423,11 @@ router.post('/checkout', async (req, res, next) => {
       shippingTotal: shippingTotal || 0,
       totalAmount: totalAmount || 0,
       currency: store.defaultCurrency || 'INR',
-      paymentStatus: 'paid', // Simulating successful payment
+      paymentStatus: isPaid ? 'paid' : 'pending',
+      paymentMethod: paymentMethod === 'COD' ? 'COD' : 'RAZORPAY',
+      razorpayOrderId: razorpayOrderId || undefined,
+      razorpayPaymentId: razorpayPaymentId || undefined,
+      razorpaySignature: razorpaySignature || undefined,
       fulfillmentStatus: 'unfulfilled',
       itemsCount: formattedItems.reduce((acc: number, item: any) => acc + item.quantity, 0),
     });

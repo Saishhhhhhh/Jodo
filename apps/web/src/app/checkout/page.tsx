@@ -6,7 +6,8 @@ import { useCustomerStore } from '../../store/useCustomerStore';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Lock, ShieldCheck, Tag } from 'lucide-react';
+import { ArrowLeft, Lock, ShieldCheck, Tag, CreditCard, Banknote, CheckCircle2, Sparkles } from 'lucide-react';
+import { loadRazorpayScript, openRazorpayCheckout } from '../../lib/razorpay';
 
 export default function CheckoutPage() {
   const { items, cartTotal, clearCart } = useCartStore();
@@ -15,6 +16,7 @@ export default function CheckoutPage() {
   
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY' | 'COD'>('RAZORPAY');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -79,8 +81,10 @@ export default function CheckoutPage() {
     if (items.length === 0) return;
     
     setIsSubmitting(true);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
     try {
-      const payload = {
+      const basePayload = {
         customerName: `${formData.firstName} ${formData.lastName}`,
         customerEmail: formData.email,
         shippingAddress: {
@@ -104,23 +108,111 @@ export default function CheckoutPage() {
         subtotal: cartTotal(),
         taxTotal: 0,
         shippingTotal: 0,
-        totalAmount: finalTotal, // Use the discounted total
+        totalAmount: finalTotal,
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      if (paymentMethod === 'RAZORPAY') {
+        // 1. Ensure Razorpay SDK script is loaded
+        const loaded = await loadRazorpayScript();
+        if (!loaded) {
+          alert('Could not load Razorpay payment gateway. Please check your internet connection.');
+          setIsSubmitting(false);
+          return;
+        }
 
-      const data = await res.json();
-      
-      if (data.success) {
-        clearCart();
-        router.push(`/checkout/success?orderId=${data.data.orderNumber || data.data._id}`);
+        // 2. Create Razorpay order on backend
+        const orderRes = await fetch(`${apiUrl}/api/storefront/razorpay/create-order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: finalTotal,
+            currency: 'INR',
+            notes: {
+              customerEmail: formData.email,
+              customerName: `${formData.firstName} ${formData.lastName}`,
+            },
+          }),
+        });
+
+        const orderData = await orderRes.json();
+        if (!orderData.success || !orderData.data?.orderId) {
+          alert(orderData.message || 'Failed to initialize Razorpay payment.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        const rzpOrder = orderData.data;
+
+        // 3. Open Razorpay Checkout modal
+        openRazorpayCheckout({
+          key: rzpOrder.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_ThqAXccEenS0Um',
+          amount: rzpOrder.amount,
+          currency: rzpOrder.currency || 'INR',
+          name: 'Jodo Commerce',
+          description: `Payment for ${items.length} item(s)`,
+          order_id: rzpOrder.orderId,
+          prefill: {
+            name: `${formData.firstName} ${formData.lastName}`.trim(),
+            email: formData.email,
+            contact: formData.phone,
+          },
+          theme: {
+            color: '#B65A45', // Jodo Terracotta brand color
+          },
+          handler: async (response) => {
+            try {
+              // 4. Submit order to backend with verified payment details
+              const checkoutRes = await fetch(`${apiUrl}/api/storefront/checkout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  ...basePayload,
+                  paymentMethod: 'RAZORPAY',
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                }),
+              });
+
+              const checkoutData = await checkoutRes.json();
+              if (checkoutData.success) {
+                clearCart();
+                router.push(`/checkout/success?orderId=${checkoutData.data.orderNumber || checkoutData.data._id}`);
+              } else {
+                alert('Payment captured, but order creation failed. Please contact support.');
+                setIsSubmitting(false);
+              }
+            } catch (err) {
+              console.error('Error completing order after payment:', err);
+              alert('Error completing your order. Please contact support with your payment ID: ' + response.razorpay_payment_id);
+              setIsSubmitting(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setIsSubmitting(false);
+            },
+          },
+        });
       } else {
-        alert('Failed to place order. Please try again.');
-        setIsSubmitting(false);
+        // Cash on Delivery
+        const res = await fetch(`${apiUrl}/api/storefront/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...basePayload,
+            paymentMethod: 'COD',
+          }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          clearCart();
+          router.push(`/checkout/success?orderId=${data.data.orderNumber || data.data._id}`);
+        } else {
+          alert('Failed to place order. Please try again.');
+          setIsSubmitting(false);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -209,29 +301,105 @@ export default function CheckoutPage() {
               </div>
             </section>
 
-            {/* Payment (Dummy) */}
+            {/* Payment Options */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Payment</h2>
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-start gap-3">
-                <Lock className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900">Secure Checkout Demo</p>
-                  <p className="text-sm text-gray-500">This is a demo store. No real payment will be processed. Clicking &apos;Place Order&apos; will simulate a successful transaction.</p>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Payment Method</h2>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <Sparkles className="w-3 h-3" /> Razorpay Test Mode
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {/* Razorpay Option */}
+                <label
+                  onClick={() => setPaymentMethod('RAZORPAY')}
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    paymentMethod === 'RAZORPAY'
+                      ? 'border-[#B65A45] bg-[#B65A45]/5'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="RAZORPAY"
+                    checked={paymentMethod === 'RAZORPAY'}
+                    onChange={() => setPaymentMethod('RAZORPAY')}
+                    className="mt-1 text-[#B65A45] focus:ring-[#B65A45]"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-900 flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-[#B65A45]" />
+                        Razorpay Secure Checkout
+                      </span>
+                      <span className="text-xs font-mono bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded">
+                        Cards • UPI • NetBanking
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Pay instantly with UPI (Google Pay, PhonePe, Paytm), Credit/Debit Card, or NetBanking. In test mode, you can use any test UPI or test card.
+                    </p>
+                  </div>
+                </label>
+
+                {/* Cash on Delivery Option */}
+                <label
+                  onClick={() => setPaymentMethod('COD')}
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                    paymentMethod === 'COD'
+                      ? 'border-[#B65A45] bg-[#B65A45]/5'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="COD"
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => setPaymentMethod('COD')}
+                    className="mt-1 text-[#B65A45] focus:ring-[#B65A45]"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-gray-900 flex items-center gap-2">
+                        <Banknote className="w-4 h-4 text-gray-600" />
+                        Cash on Delivery (COD)
+                      </span>
+                      <span className="text-xs text-gray-500">Pay on arrival</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Pay with cash or UPI directly when your parcel is delivered to your doorstep.
+                    </p>
+                  </div>
+                </label>
               </div>
             </section>
 
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full py-4 mt-4 bg-[#B65A45] text-white font-bold text-lg rounded-xl hover:bg-[#a04e3b] transition-all duration-300 disabled:opacity-70 flex items-center justify-center shadow-md hover:shadow-lg"
+              className="w-full py-4 mt-4 bg-[#B65A45] text-white font-bold text-lg rounded-xl hover:bg-[#a04e3b] transition-all duration-300 disabled:opacity-70 flex items-center justify-center shadow-md hover:shadow-lg gap-2"
             >
-              {isSubmitting ? 'Processing...' : 'Place Order securely'}
+              {isSubmitting ? (
+                <span>Processing...</span>
+              ) : paymentMethod === 'RAZORPAY' ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Pay with Razorpay • ₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Place Order (COD) • ₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </>
+              )}
             </button>
             
             <div className="flex items-center justify-center gap-2 mt-2 text-sm text-gray-500">
               <ShieldCheck className="w-4 h-4 text-green-600" />
-              100% Safe and Secure Checkout
+              100% Safe and Encrypted Payment with Razorpay
             </div>
           </form>
         </div>
