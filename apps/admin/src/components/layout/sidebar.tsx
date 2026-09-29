@@ -83,6 +83,11 @@ export const NAV_ITEMS: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
+    label: 'Notifications',
+    href: '/notifications',
+    icon: Bell,
+  },
+  {
     label: 'Store',
     icon: Store,
     children: [
@@ -237,11 +242,11 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const [counts, setCounts] = useState<any>({});
 
   useEffect(() => {
-    if (!user) return;
+    let isMounted = true;
     const fetchCounts = async () => {
       try {
         const { data } = await apiClient.get('/admin/counts');
-        if (data.success) {
+        if (data?.success && isMounted) {
           setCounts(data.data);
         }
       } catch (err) {
@@ -249,10 +254,15 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
       }
     };
     fetchCounts();
-    // Optional: poll every 30 seconds
-    const interval = setInterval(fetchCounts, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+    // Poll every 5 seconds for real-time order & notification counter updates
+    const interval = setInterval(fetchCounts, 5000);
+    window.addEventListener('focus', fetchCounts);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('focus', fetchCounts);
+    };
+  }, []);
 
   function toggleGroup(label: string) {
     setOpenGroups((prev) =>
@@ -324,20 +334,74 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
     return item.children?.some((child) => child.href && isActive(child.href));
   }
 
-  function getBadgeForLabel(label: string) {
+  function getBadgeForLabel(label: string): number {
     switch (label) {
-      case 'Products': return counts?.products?.requiresAction || 0;
-      case 'Inventory': return (counts?.inventory?.lowStock || 0) + (counts?.inventory?.outOfStock || 0);
-      case 'Product Reviews': return counts?.reviews?.pending || 0;
-      case 'All Orders': return counts?.orders?.pending || 0;
-      case 'Draft Orders': return counts?.orders?.draft || 0;
-      case 'Shipping Labels': return counts?.orders?.shippingPending || 0;
-      case 'Returns & Complaints': return counts?.returns?.open || 0;
-      case 'Fraud Review': return counts?.orders?.fraudReview || 0;
-      case 'Tasks': return counts?.tasks?.totalOpen || 0;
-      case 'Messages': return counts?.messages?.unread || 0;
-      default: return 0;
+      case 'Notifications':
+        return counts?.notifications?.unread || 0;
+      case 'Store':
+        return (
+          (counts?.products?.requiresAction || 0) +
+          (counts?.inventory?.lowStock || 0) +
+          (counts?.inventory?.outOfStock || 0) +
+          (counts?.reviews?.pending || 0)
+        );
+      case 'Products':
+        return counts?.products?.requiresAction || 0;
+      case 'Inventory':
+        return (counts?.inventory?.lowStock || 0) + (counts?.inventory?.outOfStock || 0);
+      case 'Product Reviews':
+        return counts?.reviews?.pending || 0;
+      case 'Orders':
+        return counts?.orders?.pending || 0;
+      case 'All Orders':
+        return counts?.orders?.pending || 0;
+      case 'Draft Orders':
+        return counts?.orders?.draft || 0;
+      case 'Shipping Labels':
+        return counts?.orders?.shippingPending || 0;
+      case 'Returns & Complaints':
+        return counts?.returns?.open || 0;
+      case 'Fraud Review':
+        return counts?.orders?.fraudReview || 0;
+      case 'Tasks':
+        return counts?.tasks?.totalOpen || 0;
+      case 'Overdue':
+        return counts?.tasks?.overdue || 0;
+      case 'Messages':
+        return counts?.messages?.unread || 0;
+      default:
+        return 0;
     }
+  }
+
+  function NotificationBadge({ count, size = 'default' }: { count: number; size?: 'default' | 'sm' }) {
+    if (!count || count <= 0) return null;
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary shrink-0 shadow-xs select-none",
+          size === 'sm' ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-0.5 text-[10px]"
+        )}
+      >
+        <span className="relative flex h-1.5 w-1.5 shrink-0">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+        </span>
+        <span className="font-bold leading-none tabular-nums font-mono">
+          {count > 99 ? '99+' : count}
+        </span>
+      </div>
+    );
+  }
+
+  function CollapsedStatusPoint({ count }: { count: number }) {
+    if (!count || count <= 0) return null;
+    return (
+      <span className="absolute top-1 right-1 flex h-2 w-2 pointer-events-none">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary ring-2 ring-sidebar" />
+      </span>
+    );
   }
 
   return (
@@ -378,6 +442,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
               if (!item.children) {
                 // Top-level link (Dashboard)
                 const active = item.href ? isActive(item.href) : false;
+                const badgeCount = getBadgeForLabel(item.label);
                 const NavLink = (
                   <Link
                     href={item.href!}
@@ -394,15 +459,24 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                         active ? 'text-primary' : 'text-sidebar-foreground/60'
                       )}
                     />
-                    {!collapsed && <span>{item.label}</span>}
+                    {!collapsed && <span className="flex-1">{item.label}</span>}
+                    {!collapsed && <NotificationBadge count={badgeCount} />}
                   </Link>
                 );
 
                 if (collapsed) {
                   return (
                     <Tooltip key={item.label}>
-                      <TooltipTrigger asChild>{NavLink}</TooltipTrigger>
-                      <TooltipContent side="right">{item.label}</TooltipContent>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          {NavLink}
+                          <CollapsedStatusPoint count={badgeCount} />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="flex items-center gap-2">
+                        <span>{item.label}</span>
+                        {badgeCount > 0 && <NotificationBadge count={badgeCount} size="sm" />}
+                      </TooltipContent>
                     </Tooltip>
                   );
                 }
@@ -412,48 +486,58 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
               // Group with children
               const groupActive = isGroupActive(item);
               const isOpen = openGroups.includes(item.label) || !!groupActive;
+              const groupBadgeCount = getBadgeForLabel(item.label);
 
               if (collapsed) {
                 return (
                   <Tooltip key={item.label}>
                     <TooltipTrigger asChild>
-                      {item.href ? (
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
-                            groupActive
-                              ? 'bg-sidebar-accent text-primary'
-                              : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
-                          )}
-                        >
-                          <item.icon className="h-4 w-4" />
-                        </Link>
-                      ) : (
-                        <button
-                          className={cn(
-                            'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
-                            groupActive
-                              ? 'bg-sidebar-accent text-primary'
-                              : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
-                          )}
-                        >
-                          <item.icon className="h-4 w-4" />
-                        </button>
-                      )}
+                      <div className="relative">
+                        {item.href ? (
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
+                              groupActive
+                                ? 'bg-sidebar-accent text-primary'
+                                : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
+                            )}
+                          >
+                            <item.icon className="h-4 w-4" />
+                          </Link>
+                        ) : (
+                          <button
+                            className={cn(
+                              'flex items-center justify-center w-full rounded-md p-2 transition-all duration-150',
+                              groupActive
+                                ? 'bg-sidebar-accent text-primary'
+                                : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
+                            )}
+                          >
+                            <item.icon className="h-4 w-4" />
+                          </button>
+                        )}
+                        <CollapsedStatusPoint count={groupBadgeCount} />
+                      </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="flex flex-col gap-1 p-2">
-                      <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                        {item.label}
-                      </span>
+                      <div className="flex items-center justify-between gap-3 mb-1">
+                        <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                          {item.label}
+                        </span>
+                        <NotificationBadge count={groupBadgeCount} size="sm" />
+                      </div>
                       {item.children?.map((child) => (
                         <Link
                           key={child.label}
                           href={child.href!}
-                          className="flex items-center gap-2 text-sm hover:text-primary transition-colors py-0.5"
+                          className="flex items-center justify-between gap-3 text-sm hover:text-primary transition-colors py-0.5"
                         >
-                          <child.icon className="h-3.5 w-3.5" />
-                          {child.label}
+                          <div className="flex items-center gap-2">
+                            <child.icon className="h-3.5 w-3.5" />
+                            <span>{child.label}</span>
+                          </div>
+                          <NotificationBadge count={getBadgeForLabel(child.label)} size="sm" />
                         </Link>
                       ))}
                     </TooltipContent>
@@ -488,14 +572,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                           )}
                         />
                         <span className="flex-1 text-left">{item.label}</span>
-                        {getBadgeForLabel(item.label) > 0 && (
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-5 text-center flex items-center justify-center",
-                            item.label === 'Fraud Review' || item.label === 'Tasks' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"
-                          )}>
-                            {getBadgeForLabel(item.label)}
-                          </span>
-                        )}
+                        <NotificationBadge count={getBadgeForLabel(item.label)} />
                       </Link>
                     ) : (
                       <button
@@ -509,14 +586,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                           )}
                         />
                         <span className="flex-1 text-left">{item.label}</span>
-                        {getBadgeForLabel(item.label) > 0 && (
-                          <span className={cn(
-                            "px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-5 text-center flex items-center justify-center mr-1",
-                            item.label === 'Fraud Review' || item.label === 'Tasks' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"
-                          )}>
-                            {getBadgeForLabel(item.label)}
-                          </span>
-                        )}
+                        <NotificationBadge count={getBadgeForLabel(item.label)} />
                       </button>
                     )}
                     <button
@@ -524,7 +594,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                         e.stopPropagation();
                         toggleGroup(item.label);
                       }}
-                      className="px-2 py-2 text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+                      className="px-2 py-2 text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors ml-1"
                       aria-label="Toggle submenu"
                     >
                       {isOpen ? (
@@ -544,22 +614,17 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             key={child.label}
                             href={child.href!}
                             className={cn(
-                              'flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[0.8125rem] transition-all duration-150',
+                              'flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-[0.8125rem] transition-all duration-150',
                               childActive
                                 ? 'text-primary font-medium bg-primary/8'
                                 : 'text-sidebar-foreground/60 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50'
                             )}
                           >
-                            <child.icon className={cn('h-3.5 w-3.5 shrink-0', childActive && 'text-primary')} />
-                            <span className="flex-1">{child.label}</span>
-                            {getBadgeForLabel(child.label) > 0 && (
-                              <span className={cn(
-                                "px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-5 text-center flex items-center justify-center",
-                                child.label === 'Fraud Review' || child.label === 'Overdue' ? "bg-red-500/10 text-red-600" : "bg-primary/10 text-primary"
-                              )}>
-                                {getBadgeForLabel(child.label)}
-                              </span>
-                            )}
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <child.icon className={cn('h-3.5 w-3.5 shrink-0', childActive && 'text-primary')} />
+                              <span className="truncate">{child.label}</span>
+                            </div>
+                            <NotificationBadge count={getBadgeForLabel(child.label)} size="sm" />
                           </Link>
                         );
                       })}
