@@ -442,12 +442,12 @@ export const ChairScene: React.FC = () => {
     updatePartsTransformation(0, 0);
 
     // Lenis Smooth Scroll Integration directly synced with GSAP
-    let lenis: Lenis | null = null;
+    let lenis: any = null;
     let updateLenis: ((time: number) => void) | null = null;
     try {
       lenis = new Lenis({
         duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        easing: (t: any) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         orientation: 'vertical',
         smoothWheel: true,
         touchMultiplier: 1.8,
@@ -525,7 +525,7 @@ export const ChairScene: React.FC = () => {
       start: 'top top',
       end: 'bottom bottom',
       scrub: 1.2,
-      onUpdate: (self) => {
+      onUpdate: (self: any) => {
         handleScrollProgress(self.progress);
       },
     });
@@ -617,7 +617,7 @@ export const ChairScene: React.FC = () => {
       scrollTrigger.kill();
       renderer.dispose();
       parts.forEach((p) => {
-        p.mesh.traverse((c) => {
+        p.mesh.traverse((c: any) => {
           if (c instanceof THREE.Mesh) c.geometry.dispose();
         });
       });

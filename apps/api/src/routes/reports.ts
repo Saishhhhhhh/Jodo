@@ -113,7 +113,7 @@ router.post('/send-digest', async (req: Request, res: Response, next) => {
     const tenantId = req.auth!.tenantId;
     const storeId = req.auth!.storeId;
     
-    const tenant = await Tenant.findById(tenantId);
+    const tenant: any = await Tenant.findById(tenantId);
     if (!tenant?.settings?.interaktApiKey) {
       return sendError(res, 'Interakt is not configured for this tenant.', 400);
     }
@@ -134,25 +134,14 @@ router.post('/send-digest', async (req: Request, res: Response, next) => {
     
     const lowStockCount = await Product.countDocuments({ tenantId, storeId, status: 'active', inventoryQuantity: { $lte: 15 } });
 
-    // Send via Interakt
-    const interakt = new InteraktService(tenant.settings.interaktApiKey);
-    
-    // Using standard message event since we don't have a specific template name guaranteed for this.
-    // In production, we'd use a template: await interakt.sendTemplateMessage(...)
-    // For MVP demonstration, we will send an event that can trigger a template in Interakt.
-    
-    await interakt.trackEvent({
-      userId: tenantId.toString(),
-      phoneNumber: targetPhone,
-      event: 'Daily_Digest_Generated',
-      traits: {
-        daily_revenue: dailyRevenue,
-        daily_orders: dailyOrders.length,
-        daily_leads: dailyLeads,
-        pending_followups: pendingFollowUps,
-        low_stock_alerts: lowStockCount
-      }
-    });
+    // In production, we'd use a template: await InteraktService.sendTemplateMessage(...)
+    await InteraktService.sendTemplateMessage(
+      tenant.settings.interaktApiKey,
+      targetPhone,
+      'daily_digest_template',
+      'en',
+      [String(dailyRevenue), String(dailyOrders.length), String(dailyLeads), String(pendingFollowUps), String(lowStockCount)]
+    );
 
     sendSuccess(res, null, 'Digest sent successfully via WhatsApp event.');
   } catch (err) {

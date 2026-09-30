@@ -66,7 +66,7 @@ export const TableScene: React.FC<TableSceneProps> = ({ finish, onAssemblyProgre
       const newMat = getWoodMaterial(finish);
       partsRef.current.forEach((part) => {
         if (!part.name.includes('Brass')) {
-          part.mesh.traverse((child) => {
+          part.mesh.traverse((child: any) => {
             if (child instanceof THREE.Mesh && child !== shadowPlaneRef.current) {
               child.material = newMat;
             }
@@ -338,7 +338,7 @@ export const TableScene: React.FC<TableSceneProps> = ({ finish, onAssemblyProgre
       start: 'top top',
       end: 'bottom bottom',
       scrub: 1.2,
-      onUpdate: (self) => {
+      onUpdate: (self: any) => {
         const p = self.progress;
         setProgressPercent(Math.round(p * 100));
         if (onAssemblyProgress) onAssemblyProgress(p);
@@ -427,7 +427,7 @@ export const TableScene: React.FC<TableSceneProps> = ({ finish, onAssemblyProgre
       scrollTrigger.kill();
       renderer.dispose();
       parts.forEach((p) => {
-        p.mesh.traverse((c) => {
+        p.mesh.traverse((c: any) => {
           if (c instanceof THREE.Mesh) c.geometry.dispose();
         });
       });

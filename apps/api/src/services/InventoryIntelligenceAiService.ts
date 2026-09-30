@@ -139,7 +139,7 @@ export class InventoryIntelligenceAiService {
       totalReservedSum += reservedStock;
 
       return {
-        _id: String(inv._id || prod._id),
+        _id: String((inv as any)._id || prod._id),
         productName: prod.title || 'Unknown Product',
         sku: prod.sku || 'N/A',
         imageUrl: prod.imageUrl,
