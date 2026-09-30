@@ -117,7 +117,7 @@ const FALLBACK_PRODUCTS: CmsProduct[] = [
   },
 ];
 
-export default function AiContentHubPage() {
+function AiContentHubInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get('tab') || 'studio';
@@ -1260,5 +1260,13 @@ export default function AiContentHubPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function AiContentHubPage() {
+  return (
+    <React.Suspense fallback={<div className="p-6 text-center text-muted-foreground">Loading AI Studio...</div>}>
+      <AiContentHubInner />
+    </React.Suspense>
   );
 }

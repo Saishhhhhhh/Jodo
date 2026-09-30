@@ -222,7 +222,7 @@ const FALLBACK_PRESETS: NormalizedProduct[] = [
 const TONE_OPTIONS = ['Premium', 'Luxury', 'Elegant', 'Professional', 'Friendly', 'Minimal'];
 const LENGTH_OPTIONS: ('Short' | 'Medium' | 'Detailed')[] = ['Short', 'Medium', 'Detailed'];
 
-export default function ProductDescriptionsPage() {
+function ProductDescriptionsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryProductId = searchParams.get('productId');
@@ -911,5 +911,13 @@ export default function ProductDescriptionsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ProductDescriptionsPage() {
+  return (
+    <React.Suspense fallback={<div className="p-6 text-center text-muted-foreground">Loading Product Descriptions...</div>}>
+      <ProductDescriptionsInner />
+    </React.Suspense>
   );
 }
