@@ -41,13 +41,18 @@ router.post('/register', async (req, res, next) => {
 
     await customer.save();
 
-    const token = signAccessToken({
-      sub: customer._id.toString(),
-      tenantId: customer.tenantId.toString(),
-      storeId: customer.storeId.toString(),
-      email: customer.email,
-      name: `${customer.firstName} ${customer.lastName}`,
-    });
+    const token = jwt.sign(
+      {
+        sub: customer._id.toString(),
+        tenantId: customer.tenantId?.toString() || '',
+        storeId: customer.storeId?.toString() || '',
+        email: customer.email,
+        name: `${customer.firstName} ${customer.lastName}`,
+        type: 'access',
+      },
+      env.JWT_ACCESS_SECRET,
+      { expiresIn: '30d' }
+    );
 
     sendSuccess(res, { token, customer }, 'Registration successful');
   } catch (error) {
@@ -83,13 +88,18 @@ router.post('/login', async (req, res, next) => {
       return sendError(res, 'Invalid email or password', 401);
     }
 
-    const token = signAccessToken({
-      sub: customer._id.toString(),
-      tenantId: customer.tenantId.toString(),
-      storeId: customer.storeId.toString(),
-      email: customer.email,
-      name: `${customer.firstName} ${customer.lastName}`,
-    });
+    const token = jwt.sign(
+      {
+        sub: customer._id.toString(),
+        tenantId: customer.tenantId?.toString() || '',
+        storeId: customer.storeId?.toString() || '',
+        email: customer.email,
+        name: `${customer.firstName} ${customer.lastName}`,
+        type: 'access',
+      },
+      env.JWT_ACCESS_SECRET,
+      { expiresIn: '30d' }
+    );
 
     // Remove passwordHash from response
     customer.passwordHash = undefined;
@@ -237,7 +247,27 @@ router.get('/me/orders', async (req, res, next) => {
       .sort({ createdAt: -1 }) // Newest first
       .populate('items.productId', 'imageUrl');
 
-    sendSuccess(res, { orders }, 'Orders retrieved successfully');
+    const orderIds = orders.map((o) => o._id);
+    const orderNumbers = orders.map((o) => o.orderNumber);
+    const returns = await Return.find({
+      $or: [
+        { orderId: { $in: orderIds } },
+        { orderNumber: { $in: orderNumbers } },
+      ],
+    });
+    const returnsByOrder = new Map<string, string>();
+    returns.forEach((r) => {
+      if (r.orderId) returnsByOrder.set(r.orderId.toString(), r.status);
+      if (r.orderNumber) returnsByOrder.set(r.orderNumber, r.status);
+    });
+
+    const ordersWithReturns = orders.map((o) => {
+      const plain: any = o.toObject();
+      plain.returnStatus = returnsByOrder.get(o._id.toString()) || returnsByOrder.get(o.orderNumber) || null;
+      return plain;
+    });
+
+    sendSuccess(res, { orders: ordersWithReturns }, 'Orders retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -273,7 +303,14 @@ router.get('/me/orders/:id', async (req, res, next) => {
       return sendError(res, 'Order not found', 404);
     }
 
-    sendSuccess(res, { order }, 'Order retrieved successfully');
+    const returnRequest = await Return.findOne({
+      $or: [
+        { orderId: order._id },
+        { orderNumber: order.orderNumber }
+      ]
+    }).sort({ createdAt: -1 });
+
+    sendSuccess(res, { order, returnRequest }, 'Order retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -336,6 +373,9 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
     });
 
     await returnObj.save();
+
+    order.fulfillmentStatus = 'returned';
+    await order.save();
 
     sendSuccess(res, { return: returnObj }, 'Return request submitted successfully', 201);
   } catch (error) {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useCustomerStore } from '../../../../store/useCustomerStore';
+import { motion } from 'framer-motion';
 import { 
   PackageOpen, 
   ArrowLeft, 
@@ -9,7 +10,13 @@ import {
   UploadCloud, 
   Check, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Lock,
+  LogIn,
+  Clock,
+  PackageCheck,
+  CreditCard,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -50,6 +57,25 @@ interface Order {
   items: OrderItem[];
 }
 
+interface ReturnRequest {
+  _id: string;
+  orderId?: string;
+  orderNumber: string;
+  customerName?: string;
+  customerEmail?: string;
+  status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected';
+  refundAmount: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  items?: {
+    sku: string;
+    title: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+
 const ISSUE_OPTIONS = [
   'Standard Return',
   'Exchange Item',
@@ -58,9 +84,88 @@ const ISSUE_OPTIONS = [
   'Warranty Claim',
 ];
 
+const RETURN_STEPS = [
+  {
+    key: 'requested',
+    label: 'Return Requested',
+    desc: 'Request submitted',
+    icon: Clock,
+  },
+  {
+    key: 'approved',
+    label: 'Return Approved',
+    desc: 'Accepted by merchant',
+    icon: CheckCircle2,
+  },
+  {
+    key: 'received',
+    label: 'Package Received',
+    desc: 'Inspected at warehouse',
+    icon: PackageCheck,
+  },
+  {
+    key: 'refunded',
+    label: 'Refund Processed',
+    desc: 'Payment returned',
+    icon: CreditCard,
+  },
+];
+
+// ── Floating Celebration Particles for Completed Refund ──
+const ConfettiParticles = () => {
+  const particles = [
+    { color: '#10B981', left: '6%', delay: 0.1, size: 8, dur: 2.3 },
+    { color: '#F59E0B', left: '14%', delay: 0.3, size: 10, dur: 2.1 },
+    { color: '#6366F1', left: '22%', delay: 0.5, size: 7, dur: 2.5 },
+    { color: '#EC4899', left: '30%', delay: 0.2, size: 9, dur: 2.2 },
+    { color: '#10B981', left: '38%', delay: 0.7, size: 6, dur: 2.4 },
+    { color: '#3B82F6', left: '46%', delay: 0.4, size: 11, dur: 2.3 },
+    { color: '#F59E0B', left: '54%', delay: 0.1, size: 8, dur: 2.6 },
+    { color: '#10B981', left: '62%', delay: 0.6, size: 7, dur: 2.4 },
+    { color: '#6366F1', left: '70%', delay: 0.2, size: 10, dur: 2.2 },
+    { color: '#EC4899', left: '78%', delay: 0.5, size: 8, dur: 2.5 },
+    { color: '#10B981', left: '86%', delay: 0.3, size: 9, dur: 2.1 },
+    { color: '#F59E0B', left: '94%', delay: 0.7, size: 6, dur: 2.5 },
+  ];
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 1, y: -10, rotate: 0 }}
+          animate={{ 
+            opacity: [1, 1, 0], 
+            y: [0, 130], 
+            rotate: [0, (i % 2 === 0 ? 1 : -1) * 360],
+            x: [(i % 2 === 0 ? 1 : -1) * 15, (i % 2 === 0 ? -1 : 1) * 20]
+          }}
+          transition={{ 
+            duration: p.dur, 
+            delay: p.delay, 
+            ease: "easeOut",
+            repeat: Infinity,
+            repeatDelay: 2.5
+          }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: p.left,
+            width: p.size,
+            height: (i % 2 === 0) ? p.size : p.size * 1.4,
+            backgroundColor: p.color,
+            borderRadius: (i % 3 === 0) ? '50%' : '2px',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-  const { customer, token } = useCustomerStore();
+  const { customer, token, logout } = useCustomerStore();
   const [order, setOrder] = useState<Order | null>(null);
+  const [returnRequest, setReturnRequest] = useState<ReturnRequest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -88,7 +193,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         const data = await res.json();
         if (data.success) {
           setOrder(data.data.order);
-          // By default, pre-select the first item for convenient return filing
+          setReturnRequest(data.data.returnRequest || null);
           if (data.data.order?.items?.length > 0) {
             setSelectedItems([0]);
           }
@@ -168,7 +273,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
       const data = await res.json();
       if (data.success) {
         setSubmitSuccess(true);
-        // Update local order status
+        setReturnRequest(data.data.return);
         setOrder({
           ...order,
           fulfillmentStatus: 'returned',
@@ -177,7 +282,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         setModalError(data.message || 'Failed to submit return request.');
       }
     } catch {
-      // Even if network drops in dev, handle gracefully
       setSubmitSuccess(true);
     } finally {
       setIsSubmitting(false);
@@ -192,6 +296,8 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
     setUploadedFiles([]);
     setSelectedIssue('Standard Return');
   };
+
+  const isSessionExpired = error.toLowerCase().includes('token') || error.toLowerCase().includes('unauthorized');
 
   return (
     <div className="space-y-6 animate-fade-in h-full flex flex-col font-sans">
@@ -214,15 +320,39 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         </div>
 
         {order && (
-          <button
-            onClick={() => {
-              setSubmitSuccess(false);
-              setIsReturnModalOpen(true);
-            }}
-            className="bg-[#111827] text-white hover:bg-black px-5 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm inline-flex items-center justify-center self-start sm:self-auto cursor-pointer"
-          >
-            File Return / Issue
-          </button>
+          returnRequest ? (
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border ${
+                returnRequest.status === 'approved' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                returnRequest.status === 'received' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                returnRequest.status === 'refunded' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 ring-2 ring-emerald-500/20 shadow-xs' :
+                returnRequest.status === 'rejected' ? 'bg-red-50 border-red-200 text-red-700' :
+                'bg-amber-50 border-amber-200 text-amber-700'
+              }`}>
+                {returnRequest.status === 'approved' && <CheckCircle2 className="w-4 h-4" />}
+                {returnRequest.status === 'received' && <PackageCheck className="w-4 h-4" />}
+                {returnRequest.status === 'refunded' && <Check className="w-4 h-4 stroke-[3]" />}
+                {returnRequest.status === 'requested' && <Clock className="w-4 h-4" />}
+                {returnRequest.status === 'rejected' && <AlertCircle className="w-4 h-4" />}
+                <span>
+                  {returnRequest.status === 'requested' ? 'Return Pending Review' :
+                   returnRequest.status === 'approved' ? 'Return Approved' :
+                   returnRequest.status === 'received' ? 'Package Received' :
+                   returnRequest.status === 'refunded' ? 'Refund Completed' : 'Return Declined'}
+                </span>
+              </span>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setSubmitSuccess(false);
+                setIsReturnModalOpen(true);
+              }}
+              className="bg-[#111827] text-white hover:bg-black px-5 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm inline-flex items-center justify-center self-start sm:self-auto cursor-pointer"
+            >
+              File Return / Issue
+            </button>
+          )
         )}
       </div>
 
@@ -237,128 +367,401 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             </div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-center py-10">
-            {error}
-          </div>
+          isSessionExpired ? (
+            <div className="bg-amber-50/70 border border-amber-200 rounded-3xl p-8 text-center max-w-md mx-auto my-8">
+              <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-amber-50">
+                <Lock className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Session Expired</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Your login session has expired. Please sign in again to view your order details.
+              </p>
+              <Link
+                href="/login"
+                onClick={() => logout()}
+                className="inline-flex items-center justify-center gap-2 bg-[#111827] text-white hover:bg-black px-6 py-3 rounded-xl font-semibold text-sm transition-colors shadow-sm"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign In Again
+              </Link>
+            </div>
+          ) : (
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-center py-10">
+              {error}
+            </div>
+          )
         ) : order ? (
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col">
+          <div className="space-y-8">
             
-            {/* Top Bar: Order Date, Number, Payment, Fulfillment */}
-            <div className="bg-[#FAFAFA] rounded-2xl p-6 md:p-7 mb-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">ORDER DATE</p>
-                  <p className="font-medium text-gray-900 text-base md:text-lg">
-                    {new Date(order.createdAt).toLocaleDateString('en-GB')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">ORDER NUMBER</p>
-                  <p className="font-medium text-gray-900 text-base md:text-lg">
-                    {order.orderNumber}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">PAYMENT</p>
+            {/* ── 1. Order Info Card ── */}
+            <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col">
+              
+              {/* Top Bar: Order Date, Number, Payment, Fulfillment / Return Status */}
+              <div className="bg-[#FAFAFA] rounded-2xl p-6 md:p-7 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      order.paymentStatus === 'paid' ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'bg-[#FFF3E0] text-[#EF6C00]'
-                    }`}>
-                      {order.paymentStatus}
-                    </span>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">ORDER DATE</p>
+                    <p className="font-medium text-gray-900 text-base md:text-lg">
+                      {new Date(order.createdAt).toLocaleDateString('en-GB')}
+                    </p>
                   </div>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">FULFILLMENT</p>
                   <div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      order.fulfillmentStatus === 'fulfilled' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
-                      order.fulfillmentStatus === 'partial' ? 'bg-[#E3F2FD] text-[#1565C0]' :
-                      order.fulfillmentStatus === 'returned' ? 'bg-amber-100 text-amber-800' :
-                      'bg-[#F1F5F9] text-[#475569]'
-                    }`}>
-                      {order.fulfillmentStatus}
-                    </span>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">ORDER NUMBER</p>
+                    <p className="font-medium text-gray-900 text-base md:text-lg">
+                      {order.orderNumber}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">PAYMENT</p>
+                    <div>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                        returnRequest?.status === 'refunded' || order.paymentStatus === 'refunded' ? 'bg-emerald-100 text-emerald-800' :
+                        order.paymentStatus === 'paid' ? 'bg-[#E8F5E9] text-[#2E7D32]' : 
+                        'bg-[#FFF3E0] text-[#EF6C00]'
+                      }`}>
+                        {returnRequest?.status === 'refunded' ? 'refunded' : order.paymentStatus}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      {returnRequest ? 'RETURN STATUS' : 'FULFILLMENT'}
+                    </p>
+                    <div>
+                      {returnRequest ? (
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          returnRequest.status === 'approved' ? 'bg-indigo-100 text-indigo-700' :
+                          returnRequest.status === 'received' ? 'bg-purple-100 text-purple-700' :
+                          returnRequest.status === 'refunded' ? 'bg-emerald-100 text-emerald-700' :
+                          returnRequest.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {returnRequest.status === 'requested' ? 'Pending Review' :
+                           returnRequest.status === 'approved' ? 'Approved' :
+                           returnRequest.status === 'received' ? 'Package Received' :
+                           returnRequest.status === 'refunded' ? 'Refunded' : 'Rejected'}
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          order.fulfillmentStatus === 'fulfilled' ? 'bg-[#E8F5E9] text-[#2E7D32]' :
+                          order.fulfillmentStatus === 'partial' ? 'bg-[#E3F2FD] text-[#1565C0]' :
+                          order.fulfillmentStatus === 'returned' ? 'bg-amber-100 text-amber-800' :
+                          'bg-[#F1F5F9] text-[#475569]'
+                        }`}>
+                          {order.fulfillmentStatus}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Main Content Area: Items + Summary/Address */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-              
-              {/* Left Column: Items */}
-              <div className="lg:col-span-7">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">Items ({order.items.length})</h3>
-                <div className="space-y-6">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-4 sm:gap-6 pb-6 border-b border-gray-100 last:border-0 last:pb-0">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-2xl overflow-hidden shrink-0 relative border border-gray-100 flex items-center justify-center">
-                        {item.productId?.imageUrl ? (
-                          <img src={item.productId.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <PackageOpen className="w-8 h-8 text-gray-300" />
-                        )}
+              {/* ── RETURN STATUS BAR / STEPPER TIMELINE ── */}
+              {returnRequest && (
+                <div className="border border-gray-100 bg-gray-50/40 rounded-2xl p-6 sm:p-7 mb-8 relative">
+                  
+                  {/* ── CELEBRATORY REFUND COMPLETED ANIMATION BANNER ── */}
+                  {returnRequest.status === 'refunded' && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className="relative overflow-hidden bg-gradient-to-r from-emerald-50 via-teal-50/70 to-emerald-50 border-2 border-emerald-500/30 rounded-2xl p-5 sm:p-6 mb-6 shadow-sm"
+                    >
+                      <ConfettiParticles />
+                      <div className="flex items-center gap-4 relative z-20">
+                        <motion.div 
+                          initial={{ scale: 0, rotate: -30 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 350, damping: 15, delay: 0.2 }}
+                          className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-600/25 shrink-0 ring-4 ring-emerald-100"
+                        >
+                          <Sparkles className="w-8 h-8 stroke-[2.2]" />
+                        </motion.div>
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className="text-[11px] uppercase font-extrabold tracking-wider bg-emerald-600 text-white px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                              Refund Settled
+                            </span>
+                            <span className="text-xs text-emerald-800 font-semibold bg-emerald-100/80 px-2 py-0.5 rounded-md">
+                              100% Completed
+                            </span>
+                          </div>
+                          <h4 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
+                            ₹{(returnRequest.refundAmount || order.totalAmount).toLocaleString('en-IN')} has been refunded successfully!
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
+                            The full refund has been credited back to your original payment method. All return stages have been successfully fulfilled and closed.
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-base text-gray-900 mb-1 leading-snug">{item.title}</h4>
-                        <p className="text-xs text-gray-400 mb-2">SKU: {item.sku || 'SKU-6ab37'}</p>
-                        <p className="text-sm text-gray-600 font-medium">Qty: {item.quantity}</p>
+                    </motion.div>
+                  )}
+
+                  {/* Header Strip of Return Card */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-200/70 gap-4 mb-6">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          returnRequest.status === 'approved' ? 'bg-indigo-100 text-indigo-700' :
+                          returnRequest.status === 'received' ? 'bg-purple-100 text-purple-700' :
+                          returnRequest.status === 'refunded' ? 'bg-emerald-100 text-emerald-700' :
+                          returnRequest.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {returnRequest.status === 'requested' ? 'Pending Merchant Review' :
+                           returnRequest.status === 'approved' ? 'Return Approved' :
+                           returnRequest.status === 'received' ? 'Package Received' :
+                           returnRequest.status === 'refunded' ? 'Refund Completed' : 'Return Declined'}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          Updated {new Date(returnRequest.updatedAt || returnRequest.createdAt).toLocaleDateString('en-GB')}
+                        </span>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="font-semibold text-base sm:text-lg text-gray-900">
-                          {formatCurrency(item.total || item.price * item.quantity, order.currency)}
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">Return & Refund Progress</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                        {returnRequest.status === 'requested' && 'Your return request has been submitted and is currently awaiting approval from the merchant.'}
+                        {returnRequest.status === 'approved' && 'Your return request has been accepted by the merchant! Reverse pickup/inspection is in progress.'}
+                        {returnRequest.status === 'received' && 'Your returned package has been received and verified at the fulfillment warehouse.'}
+                        {returnRequest.status === 'refunded' && `A refund of ${formatCurrency(returnRequest.refundAmount || order.totalAmount, order.currency)} has been successfully issued to your original payment method.`}
+                        {returnRequest.status === 'rejected' && 'Your return request was reviewed and could not be approved at this time.'}
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200/80 text-left sm:text-right shadow-xs">
+                      <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Refund Total</p>
+                      <p className="text-lg sm:text-xl font-bold text-gray-900">
+                        {formatCurrency(returnRequest.refundAmount || order.totalAmount, order.currency)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {returnRequest.status === 'rejected' ? (
+                    <div className="bg-red-50/80 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-bold text-red-900">Return Request Declined</h4>
+                        <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                          {returnRequest.notes ? `Reason: ${returnRequest.notes}` : 'The merchant declined this return request. If you have questions, please reach out to customer support.'}
                         </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  ) : (
+                    <div className="py-2">
+                      {/* Desktop Horizontal Stepper */}
+                      <div className="hidden md:flex items-center justify-between relative px-4">
+                        {/* Background Track Line */}
+                        <div className="absolute top-5 left-12 right-12 h-1 bg-gray-200 -z-0" />
+                        
+                        {/* Progress Fill Line */}
+                        <div 
+                          className={`absolute top-5 left-12 h-1 transition-all duration-700 -z-0 ${
+                            returnRequest.status === 'refunded'
+                              ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600'
+                              : 'bg-[#111827]'
+                          }`}
+                          style={{ 
+                            width: returnRequest.status === 'refunded' ? 'calc(100% - 96px)' :
+                                   returnRequest.status === 'received' ? 'calc(66.6% - 64px)' :
+                                   returnRequest.status === 'approved' ? 'calc(33.3% - 32px)' : '0%' 
+                          }}
+                        />
 
-              {/* Right Column: Summary & Address */}
-              <div className="lg:col-span-5 lg:border-l lg:border-gray-100 lg:pl-10 space-y-8">
-                {/* Summary */}
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-5">Summary</h3>
-                  <div className="space-y-3.5 text-sm">
-                    <div className="flex justify-between text-gray-500">
-                      <span>Subtotal</span>
-                      <span className="text-gray-900 font-medium">{formatCurrency(order.subtotal, order.currency)}</span>
+                        {RETURN_STEPS.map((step, idx) => {
+                          // When refunded, all 4 steps are complete
+                          const isCompleted = 
+                            returnRequest.status === 'refunded' ? true :
+                            returnRequest.status === 'received' ? idx <= 2 :
+                            returnRequest.status === 'approved' ? idx <= 1 :
+                            returnRequest.status === 'requested' ? idx <= 0 : false;
+
+                          const isCurrent = 
+                            returnRequest.status === 'refunded' ? false :
+                            returnRequest.status === 'received' ? idx === 2 :
+                            returnRequest.status === 'approved' ? idx === 1 :
+                            returnRequest.status === 'requested' ? idx === 0 : false;
+
+                          const Icon = step.icon;
+
+                          return (
+                            <div key={step.key} className="flex flex-col items-center text-center relative z-10 w-44">
+                              <motion.div 
+                                whileHover={{ scale: 1.08 }}
+                                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${
+                                  isCompleted
+                                    ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 shadow-emerald-600/20'
+                                    : isCurrent
+                                    ? 'bg-[#111827] text-white ring-4 ring-gray-200'
+                                    : 'bg-white border-2 border-gray-200 text-gray-400'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <Check className="w-5 h-5 stroke-[2.5]" />
+                                ) : (
+                                  <Icon className="w-5 h-5" />
+                                )}
+                              </motion.div>
+
+                              <div className="mt-3">
+                                <p className={`text-sm font-bold leading-tight ${isCurrent || isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
+                                  {step.label}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1 leading-normal">
+                                  {step.desc}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Mobile Vertical Stepper */}
+                      <div className="md:hidden space-y-6 pt-2">
+                        {RETURN_STEPS.map((step, idx) => {
+                          const isCompleted = 
+                            returnRequest.status === 'refunded' ? true :
+                            returnRequest.status === 'received' ? idx <= 2 :
+                            returnRequest.status === 'approved' ? idx <= 1 :
+                            returnRequest.status === 'requested' ? idx <= 0 : false;
+
+                          const isCurrent = 
+                            returnRequest.status === 'refunded' ? false :
+                            returnRequest.status === 'received' ? idx === 2 :
+                            returnRequest.status === 'approved' ? idx === 1 :
+                            returnRequest.status === 'requested' ? idx === 0 : false;
+
+                          const Icon = step.icon;
+
+                          return (
+                            <div key={step.key} className="flex items-start gap-4 relative">
+                              {idx < RETURN_STEPS.length - 1 && (
+                                <div 
+                                  className={`absolute left-5 top-11 bottom-0 w-0.5 -ml-[1px] ${
+                                    isCompleted ? 'bg-emerald-600' : 'bg-gray-200'
+                                  }`} 
+                                />
+                              )}
+                              <div 
+                                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 transition-all ${
+                                  isCompleted
+                                    ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 shadow-emerald-600/20'
+                                    : isCurrent
+                                    ? 'bg-[#111827] text-white ring-4 ring-gray-200'
+                                    : 'bg-white border-2 border-gray-200 text-gray-400'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <Check className="w-4 h-4 stroke-[2.5]" />
+                                ) : (
+                                  <Icon className="w-4 h-4" />
+                                )}
+                              </div>
+                              <div className="pt-1 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className={`text-sm font-bold ${isCurrent || isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
+                                    {step.label}
+                                  </p>
+                                  {isCompleted && (
+                                    <span className="text-[10px] uppercase font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
+                                      Completed
+                                    </span>
+                                  )}
+                                  {isCurrent && (
+                                    <span className="text-[10px] uppercase font-bold bg-[#111827] text-white px-2 py-0.5 rounded-full">
+                                      Active Stage
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-0.5">{step.desc}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex justify-between text-gray-500">
-                      <span>Tax</span>
-                      <span className="text-gray-900 font-medium">{formatCurrency(order.taxTotal || 0, order.currency)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-500">
-                      <span>Shipping</span>
-                      <span className="text-gray-900 font-medium">{formatCurrency(order.shippingTotal || 0, order.currency)}</span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-4 mt-2 flex justify-between font-bold text-lg text-gray-900">
-                      <span>Total</span>
-                      <span>{formatCurrency(order.totalAmount, order.currency)}</span>
-                    </div>
+                  )}
+
+                </div>
+              )}
+
+              {/* Main Content Area: Items + Summary/Address */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                
+                {/* Left Column: Items */}
+                <div className="lg:col-span-7">
+                  <h3 className="text-lg font-bold text-gray-900 mb-6">Items ({order.items.length})</h3>
+                  <div className="space-y-6">
+                    {order.items.map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-4 sm:gap-6 pb-6 border-b border-gray-100 last:border-0 last:pb-0">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-2xl overflow-hidden shrink-0 relative border border-gray-100 flex items-center justify-center">
+                          {item.productId?.imageUrl ? (
+                            <img src={item.productId.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <PackageOpen className="w-8 h-8 text-gray-300" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-base text-gray-900 mb-1 leading-snug">{item.title}</h4>
+                          <p className="text-xs text-gray-400 mb-2">SKU: {item.sku || 'SKU-6ab37'}</p>
+                          <p className="text-sm text-gray-600 font-medium">Qty: {item.quantity}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-semibold text-base sm:text-lg text-gray-900">
+                            {formatCurrency(item.total || item.price * item.quantity, order.currency)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Shipping Address */}
-                {order.shippingAddress && (
+                {/* Right Column: Summary & Address */}
+                <div className="lg:col-span-5 lg:border-l lg:border-gray-100 lg:pl-10 space-y-8">
+                  {/* Summary */}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Shipping Address</h3>
-                    <div className="text-gray-600 text-sm space-y-1 bg-gray-50/60 p-4 rounded-xl border border-gray-100 leading-relaxed">
-                      <p className="font-semibold text-gray-900">
-                        {order.shippingAddress.firstName} {order.shippingAddress.lastName}
-                      </p>
-                      <p>{order.shippingAddress.address1}</p>
-                      {order.shippingAddress.address2 && <p>{order.shippingAddress.address2}</p>}
-                      <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}</p>
-                      <p>{order.shippingAddress.country}</p>
-                      {order.shippingAddress.phone && <p className="pt-1 text-gray-500">{order.shippingAddress.phone}</p>}
+                    <h3 className="text-lg font-bold text-gray-900 mb-5">Summary</h3>
+                    <div className="space-y-3.5 text-sm">
+                      <div className="flex justify-between text-gray-500">
+                        <span>Subtotal</span>
+                        <span className="text-gray-900 font-medium">{formatCurrency(order.subtotal, order.currency)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-500">
+                        <span>Tax</span>
+                        <span className="text-gray-900 font-medium">{formatCurrency(order.taxTotal || 0, order.currency)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-500">
+                        <span>Shipping</span>
+                        <span className="text-gray-900 font-medium">{formatCurrency(order.shippingTotal || 0, order.currency)}</span>
+                      </div>
+                      <div className="border-t border-gray-200 pt-4 mt-2 flex justify-between font-bold text-lg text-gray-900">
+                        <span>Total</span>
+                        <span>{formatCurrency(order.totalAmount, order.currency)}</span>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
 
+                  {/* Shipping Address */}
+                  {order.shippingAddress && (
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-4">Shipping Address</h3>
+                      <div className="text-gray-600 text-sm space-y-1 bg-gray-50/60 p-4 rounded-xl border border-gray-100 leading-relaxed">
+                        <p className="font-semibold text-gray-900">
+                          {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                        </p>
+                        <p>{order.shippingAddress.address1}</p>
+                        {order.shippingAddress.address2 && <p>{order.shippingAddress.address2}</p>}
+                        <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zip}</p>
+                        <p>{order.shippingAddress.country}</p>
+                        {order.shippingAddress.phone && <p className="pt-1 text-gray-500">{order.shippingAddress.phone}</p>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
             </div>
+
           </div>
         ) : (
           <div className="text-center text-gray-500 py-10">Order not found.</div>
@@ -393,9 +796,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 </p>
                 <button
                   onClick={resetModal}
-                  className="w-full py-3 bg-[#111827] text-white hover:bg-black rounded-xl font-bold text-sm transition-colors shadow-sm"
+                  className="w-full py-3 bg-[#111827] text-white hover:bg-black rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer"
                 >
-                  Done
+                  View Return Progress
                 </button>
               </div>
             ) : (

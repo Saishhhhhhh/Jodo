@@ -119,17 +119,23 @@ router.put('/:id', async (req, res, next) => {
 
     await returnObj.save();
 
-    // If the return is successfully refunded, transition the associated order's payment status to refunded
-    if (status === 'refunded') {
-      const order = await Order.findOne({
-        _id: returnObj.orderId,
-        tenantId: req.auth!.tenantId,
-        storeId: req.auth!.storeId,
-      });
-      if (order) {
-        order.paymentStatus = 'refunded';
-        await order.save();
+    // Update associated order status
+    const order = await Order.findOne({
+      $or: [
+        { _id: returnObj.orderId },
+        { orderNumber: returnObj.orderNumber }
+      ],
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+    });
+    if (order) {
+      if (status === 'approved' || status === 'received' || status === 'refunded') {
+        order.fulfillmentStatus = 'returned';
       }
+      if (status === 'refunded') {
+        order.paymentStatus = 'refunded';
+      }
+      await order.save();
     }
 
     sendSuccess(res, returnObj, 'Return request updated successfully');

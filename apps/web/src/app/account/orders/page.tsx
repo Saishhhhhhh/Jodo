@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useCustomerStore } from '../../../store/useCustomerStore';
-import { PackageOpen, ExternalLink } from 'lucide-react';
+import { PackageOpen, ExternalLink, Lock, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -22,6 +22,7 @@ interface Order {
   createdAt: string;
   paymentStatus: string;
   fulfillmentStatus: string;
+  returnStatus?: string;
   totalAmount: number;
   currency?: string;
   shippingAddress?: {
@@ -32,7 +33,7 @@ interface Order {
 }
 
 export default function AccountOrdersPage() {
-  const { customer, token } = useCustomerStore();
+  const { customer, token, logout } = useCustomerStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -69,8 +70,10 @@ export default function AccountOrdersPage() {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(val);
   };
 
+  const isSessionExpired = error.toLowerCase().includes('token') || error.toLowerCase().includes('unauthorized');
+
   return (
-    <div className="space-y-8 animate-fade-in h-full flex flex-col">
+    <div className="space-y-8 animate-fade-in h-full flex flex-col font-sans">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Order History</h2>
         <p className="text-gray-500 text-sm">View and track all your recent orders.</p>
@@ -86,9 +89,29 @@ export default function AccountOrdersPage() {
             </div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-center py-10">
-            {error}
-          </div>
+          isSessionExpired ? (
+            <div className="bg-amber-50/70 border border-amber-200 rounded-3xl p-8 text-center max-w-md mx-auto my-8">
+              <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-amber-50">
+                <Lock className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Session Expired</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Your login session has expired. Please sign in again to view your order history.
+              </p>
+              <Link
+                href="/login"
+                onClick={() => logout()}
+                className="inline-flex items-center justify-center gap-2 bg-[#111827] text-white hover:bg-black px-6 py-3 rounded-xl font-semibold text-sm transition-colors shadow-sm"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign In Again
+              </Link>
+            </div>
+          ) : (
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-center py-10">
+              {error}
+            </div>
+          )
         ) : orders.length > 0 ? (
           <div className="space-y-6">
             {orders.map((order) => (
@@ -125,10 +148,29 @@ export default function AccountOrdersPage() {
                 {/* Order Items */}
                 <div className="p-4 sm:p-6 space-y-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-gray-900 text-lg">
-                      {order.fulfillmentStatus === 'fulfilled' ? 'Delivered' : 
-                       order.fulfillmentStatus === 'partial' ? 'Partially Delivered' : 
-                       'Preparing for Shipment'}
+                    <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2.5">
+                      <span>
+                        {order.returnStatus === 'approved' ? 'Return Approved' :
+                         order.returnStatus === 'requested' ? 'Return Pending Review' :
+                         order.returnStatus === 'received' ? 'Returned Package Received' :
+                         order.returnStatus === 'refunded' ? 'Refund Completed' :
+                         order.returnStatus === 'rejected' ? 'Return Declined' :
+                         order.fulfillmentStatus === 'returned' ? 'Return in Progress' :
+                         order.fulfillmentStatus === 'fulfilled' ? 'Delivered' : 
+                         order.fulfillmentStatus === 'partial' ? 'Partially Delivered' : 
+                         'Preparing for Shipment'}
+                      </span>
+                      {order.returnStatus && (
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          order.returnStatus === 'approved' ? 'bg-indigo-100 text-indigo-700' :
+                          order.returnStatus === 'received' ? 'bg-purple-100 text-purple-700' :
+                          order.returnStatus === 'refunded' ? 'bg-emerald-100 text-emerald-700' :
+                          order.returnStatus === 'rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          Return {order.returnStatus}
+                        </span>
+                      )}
                     </h3>
                   </div>
 
