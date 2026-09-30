@@ -171,7 +171,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1617806118233-18e1c12e8467?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Solid Oak Wood', dimensions: '72 x 36 x 30 inches',
       weight: 120.5, assemblyRequired: true,
       shortDescription: 'A beautiful oak dining table for family dinners.'
@@ -187,7 +187,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Mesh, Plastic, Metal Base', dimensions: '26 x 26 x 45 inches',
       weight: 35.0, assemblyRequired: true,
       shortDescription: 'Stay comfortable all day with this ergonomic office chair.'
@@ -203,7 +203,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Velvet Fabric, Pine Wood Frame', dimensions: '84 x 35 x 32 inches',
       weight: 110.0, assemblyRequired: false,
       shortDescription: 'Add a touch of elegance with this plush velvet sofa.'
@@ -219,7 +219,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Engineered Wood, Metal Hardware', dimensions: '18 x 15 x 24 inches',
       weight: 22.0, assemblyRequired: true,
       shortDescription: 'Keep essentials close at hand with this minimalist piece.'
@@ -235,7 +235,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Upholstered Linen, Steel Frame', dimensions: '80 x 60 x 14 inches',
       weight: 75.0, assemblyRequired: true,
       shortDescription: 'Rest peacefully on this sturdy platform bed.'
@@ -251,7 +251,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Reclaimed Wood, Black Iron Pipes', dimensions: '48 x 12 x 72 inches',
       weight: 65.5, assemblyRequired: true,
       shortDescription: 'Showcase your library on this durable bookshelf.'
@@ -267,7 +267,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Grade A Teak Wood', dimensions: '30 x 35 x 34 inches',
       weight: 40.0, assemblyRequired: false,
       shortDescription: 'Relax outdoors on this weather-resistant chair.'
@@ -283,7 +283,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
         'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=1200&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Tempered Glass, Chrome Base', dimensions: '40 x 40 x 18 inches',
       weight: 55.0, assemblyRequired: true,
       shortDescription: 'A sleek coffee table that makes any room feel larger.'
@@ -298,7 +298,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
       galleryImages: [
         'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Walnut Veneer', dimensions: '60 x 16 x 22 inches',
       weight: 80.0, assemblyRequired: true,
       shortDescription: 'The perfect focal point for your entertainment center.'
@@ -313,7 +313,7 @@ async function seedDummyData(tenantId: any, storeId: any) {
       galleryImages: [
         'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=1200&auto=format&fit=crop&q=80'
       ],
-      model3dUrl: '/vr/public/models/thermos-hydration-bottle.glb',
+      model3dUrl: '/vr/public/models/chair.glb',
       material: 'Carrara Marble, Brass Base', dimensions: '84 x 42 x 30 inches',
       weight: 350.0, assemblyRequired: true,
       shortDescription: 'Make a statement with this premium dining table.'
