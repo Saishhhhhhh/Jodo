@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, Settings, Copy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 export default function TemplatesPage() {
   const templates = [
@@ -20,7 +21,7 @@ export default function TemplatesPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Task Templates</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Reusable task structures for recurring workflows.</p>
         </div>
-        <Button>
+        <Button onClick={() => toast.info('Template creation workflow will be available in the next update!')}>
           <Plus className="w-4 h-4 mr-2" /> Create Template
         </Button>
       </div>
