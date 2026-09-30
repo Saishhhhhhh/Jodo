@@ -54,6 +54,9 @@ const teamMembers_1 = __importDefault(require("./routes/teamMembers"));
 const warehouse_1 = __importDefault(require("./routes/warehouse"));
 const ai_content_1 = __importDefault(require("./routes/ai-content"));
 const leads_1 = __importDefault(require("./routes/leads"));
+const counts_1 = __importDefault(require("./routes/counts"));
+const messages_1 = __importDefault(require("./routes/messages"));
+require("./models/Message");
 const app = (0, express_1.default)();
 // ============================================================
 // Security Middleware
@@ -67,9 +70,11 @@ app.use((0, cors_1.default)({
         if (!origin)
             return callback(null, true);
         const allowedOrigins = env_1.env.CORS_ORIGIN.split(',').map(s => s.trim());
-        allowedOrigins.push('http://localhost:3000', 'http://localhost:3001');
-        // Allow Vercel preview/production URLs automatically, or exact matches
-        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+        allowedOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001');
+        // Allow Vercel preview/production URLs, or localhost/127.0.0.1 on any port, or exact matches
+        if (allowedOrigins.indexOf(origin) !== -1 ||
+            origin.endsWith('.vercel.app') ||
+            /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
             return callback(null, true);
         }
         var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -146,6 +151,8 @@ app.use('/api/admin/tasks', tasks_1.default);
 app.use('/api/admin/team-members', teamMembers_1.default);
 app.use('/api/admin/leads', leads_1.default);
 app.use('/api/leads', leads_1.default);
+app.use('/api/admin/counts', counts_1.default);
+app.use('/api/admin/messages', messages_1.default);
 app.use('/api/warehouse', warehouse_1.default);
 app.use('/api/admin/warehouse', warehouse_1.default);
 app.use('/api/ai-content', ai_content_1.default);

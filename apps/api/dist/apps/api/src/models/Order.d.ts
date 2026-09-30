@@ -45,6 +45,10 @@ export interface IOrder extends Document {
     totalAmount: number;
     currency: string;
     paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+    paymentMethod?: 'RAZORPAY' | 'COD' | 'MANUAL';
+    razorpayOrderId?: string;
+    razorpayPaymentId?: string;
+    razorpaySignature?: string;
     fulfillmentStatus: 'unfulfilled' | 'partial' | 'fulfilled' | 'returned';
     itemsCount: number;
     notes?: string;

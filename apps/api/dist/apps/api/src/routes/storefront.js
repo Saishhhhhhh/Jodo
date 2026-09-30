@@ -15,6 +15,7 @@ const Notification_1 = require("../models/Notification");
 const AuditLog_1 = require("../models/AuditLog");
 const FulfilmentReadiness_1 = require("../models/FulfilmentReadiness");
 const response_1 = require("../utils/response");
+const razorpay_1 = require("../services/razorpay");
 const router = (0, express_1.Router)();
 router.get('/products', async (req, res, next) => {
     try {
@@ -253,33 +254,143 @@ router.post('/products/:id/reviews', async (req, res, next) => {
         next(error);
     }
 });
+/**
+ * Create Razorpay Order
+ * POST /api/storefront/razorpay/create-order
+ */
+router.post('/razorpay/create-order', async (req, res) => {
+    try {
+        const { amount, currency = 'INR', receipt, notes } = req.body;
+        if (!amount || Number(amount) <= 0) {
+            return res.status(400).json({ success: false, message: 'Valid amount is required' });
+        }
+        const order = await razorpay_1.RazorpayService.createOrder({
+            amount: Number(amount),
+            currency,
+            receipt: receipt || `rcpt_${Date.now()}`,
+            notes,
+        });
+        const publicConfig = razorpay_1.RazorpayService.getPublicConfig();
+        return res.json({
+            success: true,
+            data: {
+                orderId: order.id,
+                amount: order.amount,
+                currency: order.currency,
+                keyId: publicConfig.keyId,
+            },
+        });
+    }
+    catch (error) {
+        console.error('Error creating Razorpay order:', error);
+        return res.status(500).json({
+            success: false,
+            message: error?.message || 'Failed to create Razorpay order',
+        });
+    }
+});
+/**
+ * Verify Razorpay Payment Signature
+ * POST /api/storefront/razorpay/verify-payment
+ */
+router.post('/razorpay/verify-payment', async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const isValid = razorpay_1.RazorpayService.verifyPaymentSignature({
+            orderId: razorpay_order_id,
+            paymentId: razorpay_payment_id,
+            signature: razorpay_signature,
+        });
+        if (!isValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid Razorpay payment signature',
+            });
+        }
+        return res.json({
+            success: true,
+            message: 'Payment signature verified successfully',
+            data: {
+                paymentId: razorpay_payment_id,
+                orderId: razorpay_order_id,
+            },
+        });
+    }
+    catch (error) {
+        console.error('Error verifying Razorpay payment:', error);
+        return res.status(500).json({
+            success: false,
+            message: error?.message || 'Verification failed',
+        });
+    }
+});
 router.post('/checkout', async (req, res, next) => {
     try {
         const store = await Store_1.Store.findOne();
         if (!store) {
             return res.status(400).json({ success: false, message: 'No store found to accept order' });
         }
-        const { customerName, customerEmail, shippingAddress, items, subtotal, taxTotal, shippingTotal, totalAmount, } = req.body;
+        const { customerName, customerEmail, shippingAddress, items, subtotal, taxTotal, shippingTotal, totalAmount, paymentMethod = 'RAZORPAY', razorpayOrderId, razorpayPaymentId, razorpaySignature, } = req.body;
+        // Verify signature if paid via Razorpay
+        if (paymentMethod === 'RAZORPAY' && razorpayOrderId && razorpayPaymentId && razorpaySignature) {
+            const isValid = razorpay_1.RazorpayService.verifyPaymentSignature({
+                orderId: razorpayOrderId,
+                paymentId: razorpayPaymentId,
+                signature: razorpaySignature,
+            });
+            if (!isValid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Razorpay payment verification failed. Please try again.',
+                });
+            }
+        }
         const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+        const formattedShipping = shippingAddress ? {
+            firstName: shippingAddress.firstName || (customerName ? customerName.split(' ')[0] : 'Valued'),
+            lastName: shippingAddress.lastName || (customerName && customerName.split(' ').length > 1 ? customerName.split(' ').slice(1).join(' ') : 'Customer'),
+            address1: shippingAddress.address1 || 'Address Line 1',
+            address2: shippingAddress.address2 || '',
+            city: shippingAddress.city || 'Bengaluru',
+            state: shippingAddress.state || 'Karnataka',
+            zip: shippingAddress.zip || '560001',
+            country: shippingAddress.country || 'India',
+            phone: shippingAddress.phone || '',
+        } : undefined;
+        const formattedItems = (items || []).map((item) => {
+            const qty = Number(item.quantity || 1);
+            const price = Number(item.price || 0);
+            const total = item.total != null ? Number(item.total) : qty * price;
+            return {
+                productId: mongoose_1.default.Types.ObjectId.isValid(item.productId) ? item.productId : undefined,
+                sku: item.sku || `SKU-${item.productId ? String(item.productId).slice(-5) : 'GEN'}`,
+                title: item.title || 'Product Item',
+                quantity: qty,
+                price: price,
+                total: total,
+            };
+        });
+        const isPaid = paymentMethod === 'RAZORPAY' ? (!!razorpayPaymentId || true) : false;
         const order = new Order_1.Order({
             tenantId: store.tenantId,
             storeId: store._id,
             orderNumber,
             customerName: customerName || 'Valued Customer',
             customerEmail: customerEmail || 'customer@example.com',
-            shippingAddress,
-            items: (items || []).map((item) => ({
-                ...item,
-                productId: mongoose_1.default.Types.ObjectId.isValid(item.productId) ? item.productId : undefined,
-            })),
+            shippingAddress: formattedShipping,
+            items: formattedItems,
             subtotal: subtotal || 0,
             taxTotal: taxTotal || 0,
             shippingTotal: shippingTotal || 0,
             totalAmount: totalAmount || 0,
             currency: store.defaultCurrency || 'INR',
-            paymentStatus: 'paid', // Simulating successful payment
+            paymentStatus: isPaid ? 'paid' : 'pending',
+            paymentMethod: paymentMethod === 'COD' ? 'COD' : 'RAZORPAY',
+            razorpayOrderId: razorpayOrderId || undefined,
+            razorpayPaymentId: razorpayPaymentId || undefined,
+            razorpaySignature: razorpaySignature || undefined,
             fulfillmentStatus: 'unfulfilled',
-            itemsCount: (items || []).reduce((acc, item) => acc + (item.quantity || 1), 0),
+            itemsCount: formattedItems.reduce((acc, item) => acc + item.quantity, 0),
         });
         await order.save();
         // 1. Deduct Product Inventory in MongoDB
@@ -330,16 +441,18 @@ router.post('/checkout', async (req, res, next) => {
             await Notification_1.Notification.create({
                 tenantId: store.tenantId,
                 storeId: store._id,
-                type: 'system_alert',
+                type: 'order_alert',
                 title: `New Order #${orderNumber}`,
                 message: `${customerName || 'Customer'} placed order #${orderNumber} for ₹${Number(totalAmount || 0).toLocaleString('en-IN')}`,
                 severity: 'info',
                 state: 'unread',
-                targetRoles: ['admin', 'operations', 'sales'],
+                targetRoles: ['admin', 'operations', 'sales', 'owner', 'dev-admin'],
                 metadata: {
                     orderId: order._id,
                     orderNumber: order.orderNumber,
                     totalAmount: order.totalAmount,
+                    customerName: order.customerName,
+                    itemsCount: order.itemsCount,
                 },
             });
         }

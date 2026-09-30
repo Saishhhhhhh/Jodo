@@ -7,6 +7,7 @@ const express_1 = require("express");
 const Customer_1 = require("../models/Customer");
 const Store_1 = require("../models/Store");
 const Order_1 = require("../models/Order");
+const Return_1 = require("../models/Return");
 const response_1 = require("../utils/response");
 const jwt_1 = require("../utils/jwt");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -243,6 +244,62 @@ router.get('/me/orders/:id', async (req, res, next) => {
             return (0, response_1.sendError)(res, 'Order not found', 404);
         }
         (0, response_1.sendSuccess)(res, { order }, 'Order retrieved successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// Submit Return / Issue for Order
+router.post('/me/orders/:id/returns', async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
+        }
+        const token = authHeader.split(' ')[1];
+        let decoded;
+        try {
+            decoded = jsonwebtoken_1.default.verify(token, env_1.env.JWT_ACCESS_SECRET);
+        }
+        catch (err) {
+            return (0, response_1.sendError)(res, 'Invalid or expired token', 401);
+        }
+        const customer = await Customer_1.Customer.findById(decoded.sub);
+        if (!customer) {
+            return (0, response_1.sendError)(res, 'Customer not found', 404);
+        }
+        const order = await Order_1.Order.findOne({
+            _id: req.params.id,
+            customerEmail: customer.email
+        });
+        if (!order) {
+            return (0, response_1.sendError)(res, 'Order not found', 404);
+        }
+        const { items, issueType, details } = req.body;
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return (0, response_1.sendError)(res, 'Please select at least one item having issues', 400);
+        }
+        const returnObj = new Return_1.Return({
+            tenantId: order.tenantId,
+            storeId: order.storeId,
+            orderId: order._id,
+            orderNumber: order.orderNumber,
+            customerName: order.customerName || `${customer.firstName} ${customer.lastName}`,
+            customerEmail: order.customerEmail || customer.email,
+            items: items.map((it) => ({
+                productId: it.productId,
+                sku: it.sku || 'SKU-GEN',
+                title: it.title,
+                quantity: it.quantity || 1,
+                price: it.price || 0,
+                reason: 'other',
+            })),
+            refundAmount: order.totalAmount || 0,
+            notes: `[Issue Type: ${issueType || 'Standard Return'}] ${details || ''}`.trim(),
+            status: 'requested',
+        });
+        await returnObj.save();
+        (0, response_1.sendSuccess)(res, { return: returnObj }, 'Return request submitted successfully', 201);
     }
     catch (error) {
         next(error);

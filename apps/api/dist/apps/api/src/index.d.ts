@@ -9,5 +9,6 @@ import './models/Report';
 import './models/AiContent';
 import './models/AiContentVersion';
 import './models/AiContentActivity';
+import './models/Message';
 declare const app: import("express-serve-static-core").Express;
 export default app;

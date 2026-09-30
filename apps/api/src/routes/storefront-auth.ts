@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Customer } from '../models/Customer';
 import { Store } from '../models/Store';
 import { Order } from '../models/Order';
+import { Return } from '../models/Return';
 import { sendSuccess, sendError } from '../utils/response';
 import { signAccessToken } from '../utils/jwt';
 import jwt from 'jsonwebtoken';
@@ -273,6 +274,70 @@ router.get('/me/orders/:id', async (req, res, next) => {
     }
 
     sendSuccess(res, { order }, 'Order retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Submit Return / Issue for Order
+router.post('/me/orders/:id/returns', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch (err) {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const customer = await Customer.findById(decoded.sub);
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    const order = await Order.findOne({ 
+      _id: req.params.id, 
+      customerEmail: customer.email 
+    });
+
+    if (!order) {
+      return sendError(res, 'Order not found', 404);
+    }
+
+    const { items, issueType, details } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return sendError(res, 'Please select at least one item having issues', 400);
+    }
+
+    const returnObj = new Return({
+      tenantId: order.tenantId,
+      storeId: order.storeId,
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      customerName: order.customerName || `${customer.firstName} ${customer.lastName}`,
+      customerEmail: order.customerEmail || customer.email,
+      items: items.map((it: any) => ({
+        productId: it.productId,
+        sku: it.sku || 'SKU-GEN',
+        title: it.title,
+        quantity: it.quantity || 1,
+        price: it.price || 0,
+        reason: 'other',
+      })),
+      refundAmount: order.totalAmount || 0,
+      notes: `[Issue Type: ${issueType || 'Standard Return'}] ${details || ''}`.trim(),
+      status: 'requested',
+    });
+
+    await returnObj.save();
+
+    sendSuccess(res, { return: returnObj }, 'Return request submitted successfully', 201);
   } catch (error) {
     next(error);
   }

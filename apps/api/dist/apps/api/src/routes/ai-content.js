@@ -134,6 +134,8 @@ router.post('/generate', async (req, res, next) => {
                     const docColour = typeof pd.get === 'function' ? pd.get('Colour') : (pd['Colour'] || pd['colour'] || pd['Color'] || '');
                     const docDesign = typeof pd.get === 'function' ? pd.get('Design') : (pd['Design'] || pd['design'] || '');
                     const docCollection = typeof pd.get === 'function' ? pd.get('Collections') : (pd['Collections'] || pd['collection'] || '');
+                    const anyProduct = input.product || {};
+                    const anyInput = input;
                     productDetails = {
                         id: productDoc._id.toString(),
                         title: input.product?.title || productDoc.title,
@@ -151,14 +153,16 @@ router.post('/generate', async (req, res, next) => {
                         colour: input.product?.colour || docColour,
                         design: input.product?.design || docDesign,
                         collection: input.product?.collection || docCollection,
-                        keyFeatures: input.product?.keyFeatures || input.keyFeatures,
-                        targetAudience: input.product?.targetAudience || input.targetAudience,
                     };
                     input.product = productDetails;
-                    if (!input.keyFeatures && productDetails.keyFeatures) {
-                        input.keyFeatures = Array.isArray(productDetails.keyFeatures)
-                            ? productDetails.keyFeatures
-                            : String(productDetails.keyFeatures).split(/[,;\n]/).map((k) => k.trim()).filter(Boolean);
+                    if (!input.targetAudience && (anyProduct.targetAudience || anyInput.targetAudience)) {
+                        input.targetAudience = anyProduct.targetAudience || anyInput.targetAudience;
+                    }
+                    if (!input.keyFeatures && (anyProduct.keyFeatures || anyInput.keyFeatures)) {
+                        const raw = anyProduct.keyFeatures || anyInput.keyFeatures;
+                        input.keyFeatures = Array.isArray(raw)
+                            ? raw
+                            : String(raw).split(/[,;\n]/).map((k) => k.trim()).filter(Boolean);
                     }
                 }
             }
