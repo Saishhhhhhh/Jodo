@@ -352,74 +352,82 @@ export default function InventoryIntelligencePage() {
         {/* Results View */}
         {aiInsights && !aiMutation.isPending && (
           <div className="space-y-4">
-            {/* Overall Summary */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Overall Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed text-foreground/90">
-                  {aiInsights.summary}
-                </p>
-              </CardContent>
-            </Card>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Critical Stock Items */}
-              <Card className="shadow-sm border-amber-500/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Critical Stock Items
+              {/* Overall Summary */}
+              <Card className="shadow-sm border-purple-500/20 bg-gradient-to-br from-purple-500/5 via-background to-background md:col-span-2">
+                <CardHeader className="pb-3 border-b border-border/50">
+                  <CardTitle className="text-base font-bold text-purple-700 dark:text-purple-400 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Executive Summary & Strategy
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="pt-4">
+                  <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
+                    {aiInsights.summary}
+                  </div>
+                </CardContent>
+              </Card>
+              {/* Critical Stock Items */}
+              <Card className="shadow-sm border-destructive/20 bg-gradient-to-b from-destructive/5 to-background">
+                <CardHeader className="pb-3 border-b border-border/50">
+                  <CardTitle className="text-sm font-bold text-destructive flex items-center gap-2 uppercase tracking-wide">
+                    <AlertTriangle className="h-4 w-4" />
+                    Critical Action Required
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-4">
                   {aiInsights.criticalItems && aiInsights.criticalItems.length > 0 ? (
                     aiInsights.criticalItems.map((item: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-lg border bg-muted/30 space-y-1 text-xs">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-foreground">
+                      <div key={idx} className="p-4 rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <span className="font-bold text-foreground text-sm leading-tight">
                             {item.productName || item.sku}
                           </span>
-                          <span className="font-mono text-[11px] text-muted-foreground">
+                          <Badge variant="outline" className="font-mono text-[10px] shrink-0 bg-muted/50">
                             {item.sku}
-                          </span>
+                          </Badge>
                         </div>
-                        <p className="text-muted-foreground">
-                          <strong>Reason:</strong> {item.reason}
-                        </p>
-                        <p className="text-foreground/90 flex items-center gap-1 text-[11px] font-medium pt-0.5">
-                          <ArrowRight className="h-3 w-3 text-primary shrink-0" />
-                          <span><strong>Action:</strong> {item.recommendation}</span>
-                        </p>
+                        <div className="space-y-3">
+                          <div className="text-muted-foreground text-xs leading-relaxed">
+                            <span className="font-semibold text-foreground/80">Risk Analysis:</span> {item.reason}
+                          </div>
+                          <div className="text-destructive/90 bg-destructive/10 p-2.5 rounded-md text-xs font-medium flex items-start gap-2">
+                            <ArrowRight className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                            <span>{item.recommendation}</span>
+                          </div>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">No critical stock risks identified.</p>
+                    <div className="p-6 text-center text-sm text-muted-foreground italic bg-muted/20 rounded-xl border border-dashed">
+                      No critical stock risks identified.
+                    </div>
                   )}
                 </CardContent>
               </Card>
 
               {/* Recommended Actions */}
-              <Card className="shadow-sm border-primary/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-primary flex items-center gap-2">
+              <Card className="shadow-sm border-primary/20 bg-gradient-to-b from-primary/5 to-background">
+                <CardHeader className="pb-3 border-b border-border/50">
+                  <CardTitle className="text-sm font-bold text-primary flex items-center gap-2 uppercase tracking-wide">
                     <CheckCircle2 className="h-4 w-4" />
-                    Recommended Actions
+                    Strategic Recommendations
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2.5">
+                <CardContent className="space-y-3 pt-4">
                   {aiInsights.recommendations && aiInsights.recommendations.length > 0 ? (
                     aiInsights.recommendations.map((rec: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/40 border text-xs">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span className="text-foreground leading-relaxed">{rec}</span>
+                      <div key={idx} className="flex items-start gap-3 p-3.5 rounded-xl bg-card border shadow-sm hover:shadow-md transition-shadow text-sm">
+                        <div className="bg-emerald-500/10 p-1.5 rounded-full shrink-0">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <span className="text-foreground/90 leading-relaxed pt-0.5">{rec}</span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-muted-foreground italic">No specific recommendations at this time.</p>
+                    <div className="p-6 text-center text-sm text-muted-foreground italic bg-muted/20 rounded-xl border border-dashed">
+                      No specific recommendations at this time.
+                    </div>
                   )}
                 </CardContent>
               </Card>

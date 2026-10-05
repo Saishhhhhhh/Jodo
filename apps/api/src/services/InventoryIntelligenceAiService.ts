@@ -207,21 +207,22 @@ Crucially, you MUST contextualize your analysis based on Indian customer sentime
     const userPrompt = `Here is the current inventory data:
 ${JSON.stringify(payloadForAi, null, 2)}
 
-Based on the current date, upcoming Indian festivals/seasons, and typical Indian furniture buying behaviors, return your analysis strictly as JSON matching this structure:
+Based on the current date, upcoming Indian festivals/seasons, and typical Indian furniture buying behaviors, analyze the inventory data. DO NOT copy the example values below. Generate REAL, highly detailed insights specific to the data provided.
+
+Return your analysis strictly as JSON matching this structure:
 {
-  "summary": "Overall inventory is healthy, but several products require attention ahead of the upcoming Diwali season.",
+  "summary": "<Write a 2-3 paragraph detailed summary evaluating the current state of inventory, major risks, and strategic opportunities ahead of upcoming Indian festivals. Be extremely detailed.>",
   "criticalItems": [
     {
-      "sku": "SKU",
-      "productName": "Product Name",
-      "reason": "Stock is critically low just as wedding season demand is peaking",
-      "recommendation": "Immediately manufacture/reorder 50 units"
+      "sku": "<Actual SKU>",
+      "productName": "<Actual Product Name>",
+      "reason": "<Provide a highly detailed, 2-sentence reason explaining why this item is at risk (e.g., low stock, high reservations) and contextualizing it with Indian consumer demand (e.g., this dining set is highly popular during wedding season)>",
+      "recommendation": "<Provide a very specific, actionable recommendation (e.g., Immediate production of 150 units required)>"
     }
   ],
   "recommendations": [
-    "Reorder low-stock products",
-    "Increase stock of premium living room furniture ahead of Dhanteras",
-    "Review products with high reserved quantities"
+    "<Provide a highly detailed, multi-sentence strategic recommendation for operations/marketing.>",
+    "<Provide another detailed strategic recommendation.>"
   ]
 }`;
 
