@@ -43,12 +43,20 @@ export function EditTaskModal({ task, open, onOpenChange, onTaskUpdated }: EditT
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Sales');
+  const [category, setCategory] = useState('Operations');
   const [taskType, setTaskType] = useState('General');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [status, setStatus] = useState<TaskStatus>('Pending');
   const [assignedTo, setAssignedTo] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [projectName, setProjectName] = useState('');
+  const [clientBrief, setClientBrief] = useState('');
+  const [projectDeliverable, setProjectDeliverable] = useState('');
+  const [driveUrl, setDriveUrl] = useState('');
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
   const [remark, setRemark] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,10 +64,20 @@ export function EditTaskModal({ task, open, onOpenChange, onTaskUpdated }: EditT
     if (task && open) {
       setTitle(task.title || '');
       setDescription(task.description || '');
-      setCategory(task.category || 'Sales');
+      setCategory(task.category || 'Operations');
       setTaskType((task as any).taskType || 'General');
       setPriority((task.priority as TaskPriority) || 'Medium');
-      setStatus(task.status || 'Pending');
+      setStatus((task.status as TaskStatus) || 'Pending');
+      setClientName(task.clientName || '');
+      setProjectName(task.projectName || '');
+      setClientBrief(task.clientBrief || '');
+      setProjectDeliverable(task.projectDeliverable || '');
+      setDriveUrl(task.driveUrl || '');
+
+      const totalSecs = task.loggedDuration || 0;
+      setHours(Math.floor(totalSecs / 3600));
+      setMinutes(Math.floor((totalSecs % 3600) / 60));
+      setSeconds(totalSecs % 60);
 
       const assignedId = typeof task.assignedTo === 'object' && task.assignedTo
         ? (task.assignedTo as any)._id || (task.assignedTo as any).id
@@ -102,10 +120,12 @@ export function EditTaskModal({ task, open, onOpenChange, onTaskUpdated }: EditT
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !dueDate) return;
+    if (!title.trim()) return;
 
     setIsSubmitting(true);
     try {
+      const totalDurationSecs = Math.max(0, Number(hours || 0) * 3600 + Number(minutes || 0) * 60 + Number(seconds || 0));
+
       const updates: any = {
         title: title.trim(),
         description: description.trim(),
@@ -113,7 +133,13 @@ export function EditTaskModal({ task, open, onOpenChange, onTaskUpdated }: EditT
         taskType,
         priority,
         status,
-        dueDate: new Date(dueDate).toISOString(),
+        clientName: clientName.trim() || undefined,
+        projectName: projectName.trim() || undefined,
+        clientBrief: clientBrief.trim() || undefined,
+        projectDeliverable: projectDeliverable.trim() || undefined,
+        driveUrl: driveUrl.trim() || undefined,
+        loggedDuration: totalDurationSecs,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
       };
 
       if (assignedTo && assignedTo !== 'unassigned') {
@@ -237,13 +263,87 @@ export function EditTaskModal({ task, open, onOpenChange, onTaskUpdated }: EditT
 
           {/* Due Date */}
           <div className="space-y-2">
-            <Label htmlFor="edit-due-date">Due Date <span className="text-red-500">*</span></Label>
+            <Label htmlFor="edit-due-date">Due Date (Optional)</Label>
             <Input
               id="edit-due-date"
               type="date"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
-              required
+            />
+          </div>
+
+          {/* Client & Project */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="edit-client">Client Name</Label>
+              <Input
+                id="edit-client"
+                value={clientName}
+                onChange={e => setClientName(e.target.value)}
+                placeholder="e.g. Arbor Decor"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-project">Project Name</Label>
+              <Input
+                id="edit-project"
+                value={projectName}
+                onChange={e => setProjectName(e.target.value)}
+                placeholder="e.g. JODO Ecommerce"
+              />
+            </div>
+          </div>
+
+          {/* Logged Duration */}
+          <div className="p-3 rounded-lg bg-muted/40 border border-border/60 space-y-2">
+            <Label className="text-xs font-semibold flex items-center gap-1.5">
+              Work Duration Logged (Hours / Mins / Secs)
+            </Label>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase font-medium">Hours</span>
+                <Input
+                  type="number"
+                  min="0"
+                  value={hours}
+                  onChange={e => setHours(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="text-center font-mono h-9"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase font-medium">Minutes</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={minutes}
+                  onChange={e => setMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                  className="text-center font-mono h-9"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase font-medium">Seconds</span>
+                <Input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={seconds}
+                  onChange={e => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                  className="text-center font-mono h-9"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Drive Link / Deliverable */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-drive">Drive Link / Asset URL (Optional)</Label>
+            <Input
+              id="edit-drive"
+              value={driveUrl}
+              onChange={e => setDriveUrl(e.target.value)}
+              placeholder="https://drive.google.com/..."
             />
           </div>
 

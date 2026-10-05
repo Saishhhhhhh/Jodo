@@ -39,6 +39,7 @@ export function CreateProcurementDrawer({ open, onOpenChange }: CreateProcuremen
   const [expectedDelivery, setExpectedDelivery] = useState('');
   const [warehouse, setWarehouse] = useState('Central Hub - BLR');
   const [owner, setOwner] = useState('Procurement Admin');
+  const [status, setStatus] = useState<ProcurementItem['status']>('PO Raised');
   const [notes, setNotes] = useState('');
 
   const totalCost = (parseInt(quantity, 10) || 0) * (parseFloat(unitCost) || 0);
@@ -53,6 +54,25 @@ export function CreateProcurementDrawer({ open, onOpenChange }: CreateProcuremen
     const poNumber = `PO-2026-0${90 + procurements.length}`;
     const orderDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
+    let formattedDelivery = 'Flexible / TBD';
+    if (expectedDelivery && expectedDelivery.trim()) {
+      try {
+        const parts = expectedDelivery.split('-');
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          formattedDelivery = d.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          });
+        } else {
+          formattedDelivery = expectedDelivery;
+        }
+      } catch {
+        formattedDelivery = expectedDelivery;
+      }
+    }
+
     addProcurement({
       supplier,
       product,
@@ -63,13 +83,14 @@ export function CreateProcurementDrawer({ open, onOpenChange }: CreateProcuremen
       totalCost,
       purchaseOrderNumber: poNumber,
       orderDate,
-      expectedDeliveryDate: expectedDelivery || '14 days',
+      expectedDeliveryDate: formattedDelivery,
       destinationWarehouse: warehouse,
       procurementOwner: owner,
+      status,
       notes,
     });
 
-    toast.success(`Procurement PO ${poNumber} created successfully`);
+    toast.success(`Procurement PO ${poNumber} created with status "${status}"`);
     onOpenChange(false);
 
     setSupplier('');
@@ -78,6 +99,7 @@ export function CreateProcurementDrawer({ open, onOpenChange }: CreateProcuremen
     setQuantity('1000');
     setUnitCost('250');
     setExpectedDelivery('');
+    setStatus('PO Raised');
     setNotes('');
   };
 
@@ -209,14 +231,18 @@ export function CreateProcurementDrawer({ open, onOpenChange }: CreateProcuremen
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="delivery">Expected Delivery Date *</Label>
-              <Input
-                id="delivery"
-                placeholder="e.g. 25 Sep 2026"
-                value={expectedDelivery}
-                onChange={(e) => setExpectedDelivery(e.target.value)}
-                required
-              />
+              <Label htmlFor="order-status">Initial Status *</Label>
+              <Select value={status} onValueChange={(val: ProcurementItem['status']) => setStatus(val)}>
+                <SelectTrigger id="order-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PO Raised">PO Raised (Sent to Supplier)</SelectItem>
+                  <SelectItem value="Draft">Draft (Internal)</SelectItem>
+                  <SelectItem value="Confirmed">Confirmed (Supplier Accepted)</SelectItem>
+                  <SelectItem value="In Transit">In Transit (Dispatched)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="warehouse">Destination Hub *</Label>
@@ -233,13 +259,25 @@ export function CreateProcurementDrawer({ open, onOpenChange }: CreateProcuremen
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="owner">Procurement Owner</Label>
-            <Input
-              id="owner"
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="delivery">Expected Delivery Date (Optional)</Label>
+              <Input
+                id="delivery"
+                type="date"
+                value={expectedDelivery}
+                onChange={(e) => setExpectedDelivery(e.target.value)}
+                className="w-full text-xs font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="owner">Procurement Owner</Label>
+              <Input
+                id="owner"
+                value={owner}
+                onChange={(e) => setOwner(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">

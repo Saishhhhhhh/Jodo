@@ -21,12 +21,12 @@ const DEFAULT_FOOTER_LINKS: FooterLinks = {
   company: [
     { label: 'About Jodo', href: '/about' },
     { label: 'Our Story', href: '/about' },
-    { label: 'Blog', href: '#' },
+    { label: 'Blog', href: '/blog' },
     { label: 'Careers', href: '#' },
     { label: 'Press', href: '#' },
   ],
   support: [
-    { label: 'Help Center', href: '#' },
+    { label: 'FAQs & Help', href: '/faqs' },
     { label: 'Track Order', href: '#' },
     { label: 'Returns & Refunds', href: '#' },
     { label: 'Shipping Policy', href: '#' },

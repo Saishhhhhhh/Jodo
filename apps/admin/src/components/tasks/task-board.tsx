@@ -7,16 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus, Pencil, Paperclip } from 'lucide-react';
+import { Trash2, MessageSquare, AlertTriangle, Clock, MessageSquarePlus, Pencil, Paperclip, LayoutGrid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { StatusRemarkModal } from './status-remark-modal';
 import { EditTaskModal } from './edit-task-modal';
+import { TaskCard } from './task-card';
 
 export function TaskBoard({ tasks }: { tasks: Task[] }) {
   const router = useRouter();
+  const deleteTask = useTasksStore(state => state.deleteTask);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [modalTask, setModalTask] = useState<Task | null>(null);
   const [modalInitialStatus, setModalInitialStatus] = useState<TaskStatus | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,14 +29,73 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
 
   const openRemarkModal = (task: Task, newStatus?: TaskStatus) => {
     setModalTask(task);
-    setModalInitialStatus(newStatus || task.status);
+    setModalInitialStatus(newStatus || (task.status as TaskStatus));
     setIsModalOpen(true);
   };
 
   return (
-    <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
-      <Table>
-        <TableHeader className="bg-muted/30 border-b border-border">
+    <div className="space-y-4">
+      {/* View Mode Switcher Header */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground font-medium">
+          Showing {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+        </span>
+
+        <div className="flex items-center bg-muted/60 p-0.5 rounded-lg border text-xs">
+          <button
+            type="button"
+            onClick={() => setViewMode('cards')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+              viewMode === 'cards'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Cards</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('table')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+              viewMode === 'table'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <List className="w-3.5 h-3.5" />
+            <span>Table</span>
+          </button>
+        </div>
+      </div>
+
+      {tasks.length === 0 ? (
+        <div className="text-center py-16 bg-card border rounded-xl text-muted-foreground text-xs space-y-2">
+          <p className="font-semibold text-sm text-foreground">No tasks found</p>
+          <p>No tasks match the active filters.</p>
+        </div>
+      ) : viewMode === 'cards' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {tasks.map((task) => (
+            <TaskCard
+              key={task._id || task.id}
+              task={task}
+              onEdit={(t) => {
+                setEditModalTask(t);
+                setIsEditModalOpen(true);
+              }}
+              onDelete={async (id) => {
+                if (confirm('Are you sure you want to delete this task?')) {
+                  await deleteTask(id);
+                }
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
+          <Table>
+            <TableHeader className="bg-muted/30 border-b border-border">
           <TableRow className="hover:bg-transparent">
             <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[75px]">Task ID</TableHead>
             <TableHead className="text-xs text-muted-foreground py-3 px-3 min-w-[140px]">Title</TableHead>
@@ -252,6 +314,8 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
           )}
         </TableBody>
       </Table>
+    </div>
+  )}
 
       {/* Edit Task Modal */}
       <EditTaskModal

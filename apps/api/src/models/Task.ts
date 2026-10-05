@@ -74,6 +74,17 @@ export interface ITask extends Document {
   remarkUpdatedBy?: Types.ObjectId;
   remarks: ITaskRemark[];
 
+  clientName?: string;
+  projectName?: string;
+  clientBrief?: string;
+  projectDeliverable?: string;
+  driveUrl?: string;
+  estimatedHours?: string;
+  isUrgent?: boolean;
+  loggedDuration?: number; // Total duration in seconds
+  timerStartedAt?: Date;
+  timerRunning?: boolean;
+
   completedAt?: Date;
   completedBy?: Types.ObjectId;
   createdAt: Date;
@@ -167,6 +178,17 @@ const taskSchema = new Schema<ITask>(
         createdAt: { type: Date, default: Date.now }
       }
     ],
+
+    clientName: { type: String },
+    projectName: { type: String },
+    clientBrief: { type: String },
+    projectDeliverable: { type: String },
+    driveUrl: { type: String },
+    estimatedHours: { type: String },
+    isUrgent: { type: Boolean, default: false },
+    loggedDuration: { type: Number, default: 0 },
+    timerStartedAt: { type: Date },
+    timerRunning: { type: Boolean, default: false },
 
     completedAt: { type: Date },
     completedBy: { type: Schema.Types.ObjectId, ref: 'User' },

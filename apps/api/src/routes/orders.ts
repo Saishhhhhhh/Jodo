@@ -5,6 +5,7 @@ import { Return } from '../models/Return';
 import { Tenant } from '../models/Tenant';
 import { Store } from '../models/Store';
 import { sendSuccess, sendError } from '../utils/response';
+import { InventoryIntelligenceService } from '../services/InventoryIntelligenceService';
 
 const router = Router();
 
@@ -152,6 +153,10 @@ router.put('/:id', async (req, res, next) => {
       return sendError(res, 'Order not found', 404);
     }
 
+    const previousStatus = order.status;
+    const previousPayment = order.paymentStatus;
+    const previousFulfillment = order.fulfillmentStatus;
+
     if (paymentStatus) order.paymentStatus = paymentStatus;
     if (fulfillmentStatus) order.fulfillmentStatus = fulfillmentStatus;
     if (notes !== undefined) order.notes = notes;
@@ -159,6 +164,30 @@ router.put('/:id', async (req, res, next) => {
     if (status) order.status = status;
 
     await order.save();
+
+    // Section 3: Handle reservation lifecycle
+    // Release reservations if cancelled or refunded
+    if (
+      (status === 'cancelled' && previousStatus !== 'cancelled') ||
+      (paymentStatus === 'refunded' && previousPayment !== 'refunded')
+    ) {
+      await InventoryIntelligenceService.releaseOrderReservation(
+        req.auth!.tenantId,
+        req.auth!.storeId,
+        order._id,
+        status === 'cancelled' ? 'Order Cancelled' : 'Order Refunded'
+      ).catch((err) => console.error('[Orders] Failed to release reservation:', err));
+    }
+
+    // Fulfill reservations if marked as fulfilled
+    if (fulfillmentStatus === 'fulfilled' && previousFulfillment !== 'fulfilled') {
+      await InventoryIntelligenceService.fulfillOrderReservation(
+        req.auth!.tenantId,
+        req.auth!.storeId,
+        order._id
+      ).catch((err) => console.error('[Orders] Failed to fulfill reservation:', err));
+    }
+
     sendSuccess(res, order, 'Order updated successfully');
   } catch (error) {
     next(error);
@@ -198,9 +227,14 @@ router.post('/:id/fulfill', async (req, res, next) => {
     order.fulfillmentStatus = 'fulfilled';
 
     await order.save();
-    
-    // In a real application, you would send an email here if notifyCustomer is true
-    
+
+    // Section 3: Convert/Fulfill reservations cleanly without double deduction
+    await InventoryIntelligenceService.fulfillOrderReservation(
+      req.auth!.tenantId,
+      req.auth!.storeId,
+      order._id
+    ).catch((err) => console.error('[Orders] Fulfill reservation error:', err));
+
     sendSuccess(res, order, 'Order fulfilled successfully');
   } catch (error) {
     next(error);

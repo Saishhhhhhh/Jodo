@@ -34,10 +34,14 @@ interface QualityChecksTabProps {
 }
 
 export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
-  const { qualityChecks, recordQualityCheck } = useWarehouseStore();
+  const { qualityChecks, recordQualityCheck, syncFromDatabase, isLoadingFromDb } = useWarehouseStore();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  React.useEffect(() => {
+    syncFromDatabase();
+  }, [syncFromDatabase]);
 
   const filteredData = useMemo(() => {
     return qualityChecks.filter((item) => {
@@ -202,7 +206,30 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
               <SelectItem value="Reinspection Required">Reinspection Required</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              syncFromDatabase();
+              toast.info('Fetching live data from MongoDB...');
+            }}
+            disabled={isLoadingFromDb}
+            className="h-9 text-xs gap-1.5"
+          >
+            <RotateCcw className={`h-3 w-3 ${isLoadingFromDb ? 'animate-spin' : ''}`} />
+            {isLoadingFromDb ? 'Syncing...' : 'Sync DB'}
+          </Button>
         </div>
+
+        <Button
+          size="sm"
+          onClick={() => onOpenRecordQC()}
+          className="h-9 text-xs gap-1.5 shrink-0"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Record Quality Inspection
+        </Button>
       </div>
 
       {/* Table */}

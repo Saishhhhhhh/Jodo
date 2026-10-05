@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { warehouseApi } from '@/lib/api-client';
 
 export interface ProcurementItem {
   id: string; // e.g. PRC-2026-089
@@ -356,7 +357,7 @@ export interface WarehouseState {
   };
 
   // Actions
-  addProcurement: (data: Omit<ProcurementItem, 'id' | 'quantityReceived' | 'status'>) => void;
+  addProcurement: (data: Omit<ProcurementItem, 'id' | 'quantityReceived' | 'status'> & { status?: ProcurementItem['status'] }) => void;
   updateProcurementStatus: (id: string, status: ProcurementItem['status']) => void;
   receiveProcurementStock: (id: string, qty: number) => void;
   receiveIncomingAtDock: (incomingId: string) => void;
@@ -388,6 +389,8 @@ export interface WarehouseState {
   dismissNotification: (id: string) => void;
   markAllNotificationsRead: () => void;
   addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'dateTime'>) => void;
+  isLoadingFromDb: boolean;
+  syncFromDatabase: () => Promise<void>;
 }
 
 // Initial realistic dataset
@@ -1643,13 +1646,115 @@ export const useWarehouseStore = create<WarehouseState>()(
         };
       },
 
+      isLoadingFromDb: false,
+
+      syncFromDatabase: async () => {
+        try {
+          set({ isLoadingFromDb: true });
+          const [qcRes, issuesRes, prodRes, invRes] = await Promise.allSettled([
+            warehouseApi.qualityChecks(),
+            warehouseApi.issues(),
+            warehouseApi.productionOrders(),
+            warehouseApi.inventory(),
+          ]);
+
+          const updates: Partial<WarehouseState> = {};
+
+          if (qcRes.status === 'fulfilled' && Array.isArray(qcRes.value?.data?.data) && qcRes.value.data.data.length > 0) {
+            const dbQcs: QualityCheckItem[] = qcRes.value.data.data.map((item: any) => ({
+              id: item.batchId || item._id,
+              productionOrder: item.productionOrderId || 'PRD-2026-001',
+              product: item.product,
+              sku: item.sku,
+              manufacturer: item.manufacturer || 'Sterling Garments Ltd',
+              batchNumber: item.batchId || 'BATCH-26A-01',
+              quantityInspected: item.inspectedQty ?? ((item.passedQty || 0) + (item.failedQty || 0)),
+              passedQuantity: item.passedQty ?? 0,
+              failedQuantity: item.failedQty ?? 0,
+              inspectionDate: item.date ? new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+              inspector: item.inspector || 'Senior QC Inspector',
+              defectType: item.defectType || 'None',
+              defectNotes: item.defectNotes,
+              checkpoints: item.checkpoints || {},
+              images: item.images || [],
+              qcStatus: item.status || 'Pending',
+            }));
+            updates.qualityChecks = dbQcs;
+          }
+
+          if (issuesRes.status === 'fulfilled' && Array.isArray(issuesRes.value?.data?.data) && issuesRes.value.data.data.length > 0) {
+            const dbIssues: WarehouseIssueItem[] = issuesRes.value.data.data.map((item: any) => ({
+              id: item.issueNumber || item._id,
+              relatedOrder: item.relatedOrder,
+              type: item.type,
+              product: item.product,
+              supplierManufacturer: item.supplierManufacturer,
+              issue: item.issueDescription,
+              expectedDate: item.expectedResolution ? new Date(item.expectedResolution).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Pending',
+              daysDelayed: 1,
+              severity: item.severity || 'Medium',
+              assignedTo: item.assignedTo || 'Escalations Team',
+              status: item.status === 'Resolved' ? 'Resolved' : item.status === 'Investigating' ? 'Investigating' : 'Open',
+              createdAt: item.reportedDate ? new Date(item.reportedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+              updatedAt: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+            }));
+            updates.issues = dbIssues;
+          }
+
+          if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value?.data?.data) && prodRes.value.data.data.length > 0) {
+            const dbProds: ProductionOrderItem[] = prodRes.value.data.data.map((item: any) => ({
+              id: item.orderNumber || item._id,
+              product: item.product,
+              sku: item.sku,
+              manufacturer: item.manufacturerName || 'Factory Partner',
+              quantity: item.quantity,
+              completedQuantity: item.completedQuantity || 0,
+              rawMaterialRequirement: 'Standard BOM',
+              plannedStartDate: item.startDate ? new Date(item.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+              plannedCompletionDate: item.targetDate ? new Date(item.targetDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Flexible',
+              priority: 'High',
+              destinationWarehouse: item.destinationWarehouse || 'Central Hub - BLR',
+              assignedManager: 'Production Lead',
+              progress: item.progressPercentage || 0,
+              qcPassed: 0,
+              status: item.status === 'Completed' ? 'Completed' : item.status === 'Delayed' ? 'Delayed' : 'In Production',
+            }));
+            updates.productionOrders = dbProds;
+          }
+
+          if (invRes.status === 'fulfilled' && Array.isArray(invRes.value?.data?.data) && invRes.value.data.data.length > 0) {
+            const dbStock: StockItem[] = invRes.value.data.data.map((item: any) => ({
+              id: item._id,
+              product: item.product || item.sku,
+              sku: item.sku,
+              warehouse: item.warehouseName || 'Central Hub - BLR',
+              stockInHand: item.stockInHand ?? 0,
+              reserved: item.reserved ?? 0,
+              available: item.available ?? ((item.stockInHand || 0) - (item.reserved || 0)),
+              incoming: item.incoming ?? 0,
+              reorderLevel: item.reorderLevel ?? 100,
+              status: item.status || 'Healthy',
+              lastUpdated: item.lastUpdated ? new Date(item.lastUpdated).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+            }));
+            updates.stock = dbStock;
+          }
+
+          set(updates);
+        } catch (err) {
+          console.error('Failed to sync warehouse from DB:', err);
+        } finally {
+          set({ isLoadingFromDb: false });
+        }
+      },
+
       addProcurement: (data) => {
         const id = `PRC-2026-0${100 + get().procurements.length}`;
+        const newStatus = data.status || 'PO Raised';
         const newProc: ProcurementItem = {
           ...data,
           id,
           quantityReceived: 0,
-          status: 'Confirmed',
+          status: newStatus,
         };
 
         const newIncoming: IncomingStockItem = {
@@ -2215,9 +2320,25 @@ export const useWarehouseStore = create<WarehouseState>()(
             issues: newIssues,
             notifications: newNotifications,
             fulfilments: updatedFulfilments,
-            auditLog: [audit, ...state.auditLog],
           };
         });
+
+        // Persist directly to backend database
+        warehouseApi
+          .recordQC({
+            qcId,
+            passedQuantity,
+            failedQuantity,
+            inspector,
+            defectType,
+            defectNotes,
+            defectDescription,
+            checkpoints,
+            images,
+          })
+          .catch((err) => {
+            console.warn('API sync: recordQC background error', err);
+          });
       },
 
       adjustStock: (stockId, newStockInHand, reason) => {

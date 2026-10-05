@@ -73,8 +73,9 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
       toast.success('Return initiated successfully');
       onOpenChange(false);
     },
-    onError: () => {
-      toast.error('Failed to initiate return');
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'Failed to initiate return';
+      toast.error(msg);
     },
   });
 
@@ -124,6 +125,11 @@ export function CreateReturnSheet({ order, open, onOpenChange }: CreateReturnShe
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (order.fulfillmentStatus !== 'fulfilled') {
+      toast.error('Returns can only be initiated for orders that have been fulfilled and delivered to the customer.');
+      return;
+    }
+
     const itemsArray = Object.values(selectedItems);
 
     if (itemsArray.length === 0) {

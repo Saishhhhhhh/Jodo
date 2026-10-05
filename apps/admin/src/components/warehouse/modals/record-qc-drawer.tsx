@@ -42,6 +42,16 @@ const CHECKPOINTS = [
 
 type CheckpointStatus = 'Pass' | 'Fail' | 'NA';
 
+const toIsoDate = (d?: string) => {
+  if (!d) return new Date().toISOString().split('T')[0];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  try {
+    const parsed = new Date(d);
+    if (!isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+  } catch {}
+  return new Date().toISOString().split('T')[0];
+};
+
 export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawerProps) {
   const { qualityChecks, recordQualityCheck } = useWarehouseStore();
 
@@ -53,7 +63,7 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
   const [defectDescription, setDefectDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [inspectionDate, setInspectionDate] = useState(
-    new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    new Date().toISOString().split('T')[0]
   );
   const [checkpoints, setCheckpoints] = useState<Record<string, CheckpointStatus>>(() => {
     const initial: Record<string, CheckpointStatus> = {};
@@ -75,7 +85,7 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
       setDefectType(selectedQC.defectType || 'None');
       setDefectDescription(selectedQC.defectDescription || '');
       setNotes(selectedQC.defectNotes || '');
-      setInspectionDate(selectedQC.inspectionDate || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+      setInspectionDate(toIsoDate(selectedQC.inspectionDate));
       if (selectedQC.checkpoints) {
         setCheckpoints(selectedQC.checkpoints);
       }
@@ -89,7 +99,7 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
         setDefectType(first.defectType || 'None');
         setDefectDescription(first.defectDescription || '');
         setNotes(first.defectNotes || '');
-        setInspectionDate(first.inspectionDate || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+        setInspectionDate(toIsoDate(first.inspectionDate));
         if (first.checkpoints) {
           setCheckpoints(first.checkpoints);
         }
@@ -107,7 +117,7 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
       setDefectType(item.defectType || 'None');
       setDefectDescription(item.defectDescription || '');
       setNotes(item.defectNotes || '');
-      setInspectionDate(item.inspectionDate || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+      setInspectionDate(toIsoDate(item.inspectionDate));
     }
   };
 
@@ -358,11 +368,13 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="qc-date">Inspection Date</Label>
+              <Label htmlFor="qc-date">Inspection Date (Optional)</Label>
               <Input
                 id="qc-date"
+                type="date"
                 value={inspectionDate}
                 onChange={(e) => setInspectionDate(e.target.value)}
+                className="w-full text-xs font-mono"
               />
             </div>
           </div>

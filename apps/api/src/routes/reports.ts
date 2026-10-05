@@ -7,7 +7,6 @@ import { Lead } from '../models/Lead';
 import { Product } from '../models/Product';
 import { InteraktService } from '../services/interakt';
 import { Tenant } from '../models/Tenant';
-import { AiContentService } from '../services/aiContentService';
 
 const router = Router();
 
@@ -52,12 +51,6 @@ router.get('/digest', async (req: Request, res: Response, next) => {
     const dailyRevenue = dailyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
     const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
-    const recentOrderDetails = dailyOrders.map(o => ({
-      customer: o.customerName || 'Unknown',
-      revenue: o.totalAmount,
-      items: o.items.map((i: any) => `${i.quantity}x ${i.title}`).join(', ')
-    }));
-
     // 2. Leads & Follow-ups
     const leads = await Lead.find({ tenantId, storeId });
     
@@ -68,27 +61,15 @@ router.get('/digest', async (req: Request, res: Response, next) => {
       l.followUpPriority === 'High' && 
       l.status !== 'Won' && 
       l.status !== 'Lost'
-    );
-
-    const recentLeadDetails = dailyLeads.map(l => ({
-      name: l.name,
-      source: l.source,
-      notes: l.notes || 'No notes'
-    }));
+    ).length;
 
     // 3. Inventory
-    const lowStockProducts = await Product.find({
+    const lowStockCount = await Product.countDocuments({
       tenantId,
       storeId,
       status: 'active',
       inventoryQuantity: { $lte: 15 } // Using 15 as standard fallback threshold
     });
-
-    const lowStockDetails = lowStockProducts.map(p => ({
-      name: p.title,
-      quantity: p.inventoryQuantity,
-      sku: p.sku
-    }));
 
     // 4. Quotations & Support Cases (Stubbed for now as they are not implemented in core schema yet)
     const quotations = { daily: 0, weekly: 0, pending: 0 };
@@ -100,9 +81,7 @@ router.get('/digest', async (req: Request, res: Response, next) => {
         orders: dailyOrders.length,
         newLeads: dailyLeads.length,
         quotationsSent: quotations.daily,
-        supportCasesOpened: supportCases.daily,
-        recentOrderDetails,
-        recentLeadDetails
+        supportCasesOpened: supportCases.daily
       },
       weekly: {
         revenue: weeklyRevenue,
@@ -112,40 +91,14 @@ router.get('/digest', async (req: Request, res: Response, next) => {
         supportCasesOpened: supportCases.weekly
       },
       current: {
-        pendingFollowUpsCount: pendingFollowUps.length,
-        pendingFollowUpNames: pendingFollowUps.map(l => l.name).slice(0, 5),
-        lowStockItemsCount: lowStockProducts.length,
-        lowStockDetails,
+        pendingFollowUps,
+        lowStockItems: lowStockCount,
         openSupportCases: supportCases.open,
         pendingQuotations: quotations.pending
       }
     };
 
     sendSuccess(res, payload);
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * POST /api/admin/reports/generate-ai-summary
- * Generates an AI summary on demand for the current metrics
- */
-router.post('/generate-ai-summary', async (req: Request, res: Response, next) => {
-  try {
-    const { payload } = req.body;
-    if (!payload) {
-      return sendError(res, 'Report data payload is required.', 400);
-    }
-
-    const aiResult = await AiContentService.generate({
-      contentType: 'report_digest',
-      reportData: payload,
-      tone: 'Professional and Encouraging',
-      length: 'Short'
-    });
-
-    sendSuccess(res, aiResult.content);
   } catch (err) {
     next(err);
   }
@@ -160,8 +113,9 @@ router.post('/send-digest', async (req: Request, res: Response, next) => {
     const tenantId = req.auth!.tenantId;
     const storeId = req.auth!.storeId;
     
-    const tenant: any = await Tenant.findById(tenantId);
-    if (!tenant?.settings?.interaktApiKey) {
+    const tenant = await Tenant.findById(tenantId);
+    const tenantSettings = (tenant as any)?.settings;
+    if (!tenantSettings?.interaktApiKey) {
       return sendError(res, 'Interakt is not configured for this tenant.', 400);
     }
 
@@ -181,14 +135,25 @@ router.post('/send-digest', async (req: Request, res: Response, next) => {
     
     const lowStockCount = await Product.countDocuments({ tenantId, storeId, status: 'active', inventoryQuantity: { $lte: 15 } });
 
-    // In production, we'd use a template: await InteraktService.sendTemplateMessage(...)
-    await InteraktService.sendTemplateMessage(
-      tenant.settings.interaktApiKey,
-      targetPhone,
-      'daily_digest_template',
-      'en',
-      [String(dailyRevenue), String(dailyOrders.length), String(dailyLeads), String(pendingFollowUps), String(lowStockCount)]
-    );
+    // Send via Interakt
+    const interakt = new InteraktService(tenantSettings.interaktApiKey);
+    
+    // Using standard message event since we don't have a specific template name guaranteed for this.
+    // In production, we'd use a template: await interakt.sendTemplateMessage(...)
+    // For MVP demonstration, we will send an event that can trigger a template in Interakt.
+    
+    await interakt.trackEvent({
+      userId: tenantId.toString(),
+      phoneNumber: targetPhone,
+      event: 'Daily_Digest_Generated',
+      traits: {
+        daily_revenue: dailyRevenue,
+        daily_orders: dailyOrders.length,
+        daily_leads: dailyLeads,
+        pending_followups: pendingFollowUps,
+        low_stock_alerts: lowStockCount
+      }
+    });
 
     sendSuccess(res, null, 'Digest sent successfully via WhatsApp event.');
   } catch (err) {

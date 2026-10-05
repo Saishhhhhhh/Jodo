@@ -67,7 +67,7 @@ export function CreateTaskModal({ children, onTaskCreated }: { children?: React.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !dueDate || !category) return;
+    if (!title || !category) return;
 
     setIsSubmitting(true);
     try {
@@ -78,7 +78,7 @@ export function CreateTaskModal({ children, onTaskCreated }: { children?: React.
         taskType,
         priority,
         assignedTo: assignedTo || (currentUser?.id ? currentUser.id : undefined),
-        dueDate: new Date(dueDate).toISOString(),
+        dueDate: dueDate ? new Date(dueDate).toISOString() : new Date(Date.now() + 7 * 86400000).toISOString(),
         remark: remark.trim() || undefined,
       });
       setOpen(false);
@@ -184,12 +184,11 @@ export function CreateTaskModal({ children, onTaskCreated }: { children?: React.
               </div>
 
               <div className="space-y-2">
-                <Label>Due Date <span className="text-red-500">*</span></Label>
+                <Label>Due Date (Optional)</Label>
                 <Input
                   type="date"
                   value={dueDate}
                   onChange={e => setDueDate(e.target.value)}
-                  required
                 />
               </div>
             </div>

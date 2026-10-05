@@ -62,7 +62,7 @@ export function ProductionTrackingTab() {
   const [notesInput, setNotesInput] = useState('');
   const [updatedByInput, setUpdatedByInput] = useState('Rahul Sharma (Floor Supervisor)');
   const [updateDateInput, setUpdateDateInput] = useState(
-    new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    new Date().toISOString().split('T')[0]
   );
 
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -90,7 +90,7 @@ export function ProductionTrackingTab() {
     setStatusInput(item.status);
     setNotesInput('');
     setUpdatedByInput('Rahul Sharma (Floor Supervisor)');
-    setUpdateDateInput(new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+    setUpdateDateInput(new Date().toISOString().split('T')[0]);
   };
 
   const handleSaveUpdate = (e: React.FormEvent) => {
@@ -364,11 +364,13 @@ export function ProductionTrackingTab() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="update-date">Update Date</Label>
+                  <Label htmlFor="update-date">Update Date (Optional)</Label>
                   <Input
                     id="update-date"
+                    type="date"
                     value={updateDateInput}
                     onChange={(e) => setUpdateDateInput(e.target.value)}
+                    className="w-full text-xs font-mono"
                   />
                 </div>
               </div>

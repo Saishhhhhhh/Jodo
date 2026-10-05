@@ -1,0 +1,233 @@
+[
+  {
+    "question": "What is tool-free flat-pack furniture? How is it different from the IKEA flat-pack I already know?",
+    "answer": "Regular flat-pack needs screws, Allen key, some basic tools and 60 minutes of DIY, loose hardware you can lose. JODO panels slide into a connector system entirely by hand — nothing to screw in, nothing to misplace — and disassembly is just as easy unlike conventional flat-pack",
+    "category": "New to Tool-Free Furniture?",
+    "order": 1,
+    "status": "active"
+  },
+  {
+    "question": "Is anyone else doing this in India? How do I trust a brand new category?",
+    "answer": "Tool-free, connector-based furniture is an established category internationally, conceptually it adapts and modernises centuries old traditional Indian and Japanese tool free joinery. JODO is made for Indian homes, climate, and moving patterns. Our own connector mechanism goes through structural load and repeated assembly-disassembly cycle testing before any SKU ships.",
+    "category": "New to Tool-Free Furniture?",
+    "order": 2,
+    "status": "active"
+  },
+  {
+    "question": "JODO is a new brand. How does the warranty work across the product life?",
+    "answer": "Every order is registered against your account from day one, so warranty cover isn't dependent on a physical card you could lose. Spare connectors and panels are also sold independently of a warranty claim, so the furniture stays repairable regardless of when you bought it, even outside the warranty.",
+    "category": "New to Tool-Free Furniture?",
+    "order": 3,
+    "status": "active"
+  },
+  {
+    "question": "Can I see or try the product before I buy, since I can't quite picture how 'tool-free' works?",
+    "answer": "We currently sell JODO products only via our e-commerce website – www.jodoshop.com. We are in the process of getting ourselves into retail stores by 2027 first quarter",
+    "category": "New to Tool-Free Furniture?",
+    "order": 4,
+    "status": "active"
+  },
+  {
+    "question": "Is tool free joinery as safe as screwed-together furniture — could it loosen or come apart on its own?",
+    "answer": "The connectors are engineered to slide and lock into place, not just hold by friction, so normal use and moderate load don't make them loose or cause them to come apart. Load-bearing, drop tests, multiple disassembly-assembly cycles, quality performances are tested to BIS structural safety standards",
+    "category": "New to Tool-Free Furniture?",
+    "order": 5,
+    "status": "active"
+  },
+  {
+    "question": "Does tool-free mean toy-like, shabby looking pieces compared to traditional screwed-on carpentry furniture?",
+    "answer": "No — the connector sits within the panel instead of a visible add-on fitting, so finished pieces look like standard furniture. Once assembled, a JODO piece looks and functions like any other regular furniture",
+    "category": "New to Tool-Free Furniture?",
+    "order": 6,
+    "status": "active"
+  },
+  {
+    "question": "Is this safe for homes with young kids or pets?",
+    "answer": "Panels have no exposed connectors or sharp hardware edges. Joined panels aren’t something a child or pet can easily loosen. JODO pieces are safe around kids and pets",
+    "category": "New to Tool-Free Furniture?",
+    "order": 7,
+    "status": "active"
+  },
+  {
+    "question": "What if I assemble it and don't like it — can I return it?",
+    "answer": "Return and trial period window is mentioned in our Returns and Warranty guidelines",
+    "category": "New to Tool-Free Furniture?",
+    "order": 8,
+    "status": "active"
+  },
+  {
+    "question": "Can I really ditch the tool box to assemble this?",
+    "answer": "Yes. Every JODO piece uses our proprietary connector system — no screwdriver, no Allen key, no drilling into walls or floors. Most pieces slide together by hand in under 30 minutes approximately",
+    "category": "Assembly & Ease of Use",
+    "order": 9,
+    "status": "active"
+  },
+  {
+    "question": "I've never assembled furniture before. Will I mess it up?",
+    "answer": "The connectors are designed to only fit one way, so there's no way to attach a panel incorrectly. Each product ships with a visual, step-by-step guide, plus a QR code linking to a short assembly video.",
+    "category": "Assembly & Ease of Use",
+    "order": 10,
+    "status": "active"
+  },
+  {
+    "question": "What if I lose a part or a connector breaks?",
+    "answer": "Every SKU has spare connectors available to order separately on our website, so a lost or damaged part never means replacing the whole piece.",
+    "category": "Assembly & Ease of Use",
+    "order": 11,
+    "status": "active"
+  },
+  {
+    "question": "Can one person assemble this alone?",
+    "answer": "Certainly, our furniture is built for a simple one person setup, you can grab a friend if you’d like some company",
+    "category": "Assembly & Ease of Use",
+    "order": 12,
+    "status": "active"
+  },
+  {
+    "question": "I move apartments often — will this survive multiple moves?",
+    "answer": "Our core design foundation is to make JODO for people on the go. Furniture disassembles back into flat-pack form just as easily as it assembles, so you can take it apart, move it, and reassemble it without damage and carpenter intervention.",
+    "category": "Moving & Renting",
+    "order": 13,
+    "status": "active"
+  },
+  {
+    "question": "Will assembling or disassembling this damage my rented walls or floors?",
+    "answer": "No wall and floor drilling, everything is freestanding and connector-based, so it's landlord- and deposit-friendly.",
+    "category": "Moving & Renting",
+    "order": 14,
+    "status": "active"
+  },
+  {
+    "question": "Can this fit through narrow stairwells or small elevators?",
+    "answer": "Yes this ships flat-packed, JODO furniture is built and packaged to fit narrow stairwells and compact lift shafts that assembled furniture often can't",
+    "category": "Moving & Renting",
+    "order": 15,
+    "status": "active"
+  },
+  {
+    "question": "Which Pincodes are serviceable by JODO?",
+    "answer": "You can check our Pincode compatibility option to confirm if JODO delivers or if you need to wait a little longer",
+    "category": "Moving & Renting",
+    "order": 16,
+    "status": "active"
+  },
+  {
+    "question": "Is tool-free furniture as sturdy as regular furniture?",
+    "answer": "Tool free doesn't mean flimsy. We use solid wood and plywood in premium laminate finish and high density foam for our upholstered SKUs. Our connector mechanism is tested for quality and built to BIS compliance standards for structural safety and daily use",
+    "category": "Quality & Durability",
+    "order": 17,
+    "status": "active"
+  },
+  {
+    "question": "Will it hold up in Indian weather and humidity?",
+    "answer": "Yes. Materials are selected and climate-tested specifically for Indian conditions — humidity and heat cycles — not adapted from a foreign spec sheet. We use solid wood and plywood in premium laminate finish and high density foam for our upholstered SKUs",
+    "category": "Quality & Durability",
+    "order": 18,
+    "status": "active"
+  },
+  {
+    "question": "How many times can I actually take it apart and put it back together?",
+    "answer": "Exact cycle count claim is pending, post manufacturing testings",
+    "category": "Quality & Durability",
+    "order": 19,
+    "status": "active"
+  },
+  {
+    "question": "What materials does JODO use?",
+    "answer": "Solid wood and plywood boards are the primary materials used across the range, metal parts in powder coated finish for some SKUs, 40 density foam for our upholstered pieces and our connectors are fabricated in the highest grade of stainless steel 304. All materials are chosen for structural performance not just appearance",
+    "category": "Materials & Origin",
+    "order": 20,
+    "status": "active"
+  },
+  {
+    "question": "Is JODO furniture made in India?",
+    "answer": "Yes — JODO is designed and manufactured in India, built around Indian homes, climate, and usage rather than adapted from a foreign product line",
+    "category": "Materials & Origin",
+    "order": 21,
+    "status": "active"
+  },
+  {
+    "question": "How do I care for JODO furniture, especially in India's climate?",
+    "answer": "Wipe with a soft, lightly damp cloth and dry after — avoid abrasive cleaners, harsh chemicals, and standing water. Keep pieces out of prolonged direct sunlight to prevent discolouration, and away from continuous high humidity or constant dampness where possible. Materials are chosen with Indian conditions in mind, normal care still extends the life of any furniture",
+    "category": "Care & Maintenance",
+    "order": 22,
+    "status": "active"
+  },
+  {
+    "question": "How is it delivered — do I need to arrange movers or a carpenter?",
+    "answer": "It arrives flat-packed at your door, and you assemble it yourself, by hand — no carpenter or installer needed by default. If you'd rather have help anyway, optional Assisted Setup is available as a paid add-on.",
+    "category": "Delivery & Logistics",
+    "order": 23,
+    "status": "active"
+  },
+  {
+    "question": "I'd rather not assemble it myself — can I pay someone to do it for me?",
+    "answer": "All JODO pieces can be self assembled but if you’d rather have help, optional Assisted Setup is available as a paid add-on. Technicians are trained specifically to work with our connector systems so the piece is assembled the same way you would do it yourself",
+    "category": "Delivery & Logistics",
+    "order": 24,
+    "status": "active"
+  },
+  {
+    "question": "What's the delivery timeline for Mumbai and Bengaluru?",
+    "answer": "We are trying to optimise this further and bring your JODO pieces to you faster. But as of now Mumbai delivery takes 2-7 days and Bengaluru delivery takes 8-10 days. Thank you for your patience",
+    "category": "Delivery & Logistics",
+    "order": 25,
+    "status": "active"
+  },
+  {
+    "question": "How can I track my JODO order?",
+    "answer": "Your order can be tracked through our WhatsApp, SMS and email updates using your order number",
+    "category": "Delivery & Logistics",
+    "order": 26,
+    "status": "active"
+  },
+  {
+    "question": "Why should I pay this much for flat-pack furniture instead of a local carpenter or a mass-market flat-pack brand?",
+    "answer": "JODO is the sweet spot between mass market flat packed furniture that is not built for Indian living and homes with limited durability and the custom carpentry market that is expensive, slow, tool and labour intense. Solid wood and plywood being our core material across SKUs, JODO promises value over years of living with our pieces",
+    "category": "Pricing & Value",
+    "order": 27,
+    "status": "active"
+  },
+  {
+    "question": "Do you offer EMI, UPI, or Cash on Delivery?",
+    "answer": "Yes, we offer EMI, UPI and Cash on Delivery options for all items",
+    "category": "Pricing & Value",
+    "order": 28,
+    "status": "active"
+  },
+  {
+    "question": "Is there a warranty?",
+    "answer": "Yes, JODO offers a tiered warranty policy for different SKUs where applicable. Full terms are in JODO's Returns and Warranty guidelines",
+    "category": "Returns & Warranty",
+    "order": 29,
+    "status": "active"
+  },
+  {
+    "question": "What should I do if my furniture arrives damaged?",
+    "answer": "We’re sorry your furniture had a rough trip. Report it within 24 hours with 2-3 clear photos or a short video to our customer support team (share link) as soon as you receive the package along with your Order ID. We will raise a claim ticket instantly and a resolution timeline will be communicated to you via WhatsApp, SMS and email",
+    "category": "Returns & Warranty",
+    "order": 30,
+    "status": "active"
+  },
+  {
+    "question": "What if a part is missing, or a connector breaks later on?",
+    "answer": "Because the connector system is modular, replacement connectors and panels can be ordered individually from JODO's website (share link) — you don't need to wait on a warranty claim or replace the whole piece",
+    "category": "Returns & Warranty",
+    "order": 31,
+    "status": "active"
+  },
+  {
+    "question": "What if a JODO piece gets damaged due to incorrect, forced installation using tools?",
+    "answer": "Kindly refer to our Returns and Warranty guidelines for the same",
+    "category": "Returns & Warranty",
+    "order": 32,
+    "status": "active"
+  },
+  {
+    "question": "Can I return it after I've already assembled it even if there is no damage?",
+    "answer": "You will need to reach out to our customer support team (share link) for us to understand the cause of return and to asses next steps. Kindly refer to our Returns and Warranty guidelines for the same",
+    "category": "Returns & Warranty",
+    "order": 33,
+    "status": "active"
+  }
+]

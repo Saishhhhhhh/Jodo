@@ -113,11 +113,17 @@ export default function OrderDetailsPage() {
               Cancel Order
             </Button>
           )}
-          {order.fulfillmentStatus !== 'returned' && order.status !== 'cancelled' && (
+          {order.fulfillmentStatus === 'fulfilled' && order.status !== 'cancelled' && (
             <Button variant="outline" size="sm" onClick={() => setIsReturnDialogOpen(true)} className="flex items-center gap-1.5 font-medium">
               <RotateCcw className="h-4 w-4" />
               Return Items
             </Button>
+          )}
+          {order.fulfillmentStatus !== 'fulfilled' && order.fulfillmentStatus !== 'returned' && order.status !== 'cancelled' && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground px-2.5 py-1 rounded-md bg-muted/60 border self-center">
+              <Package className="h-3.5 w-3.5" />
+              <span>Return opens after fulfillment</span>
+            </span>
           )}
         </div>
       </div>
