@@ -141,12 +141,27 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
                 
-                {aiSummary.detailedBreakdown && aiSummary.detailedBreakdown.map((section: any, idx: number) => (
-                  <div key={idx} className="space-y-1">
-                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">{section.category}</h3>
-                    <p className="text-sm text-foreground/90 leading-relaxed">{section.details}</p>
+                {aiSummary.metricsBreakdown && (
+                  <div className="space-y-4">
+                    {aiSummary.metricsBreakdown.map((section: any, idx: number) => (
+                      <div key={idx} className="border border-border/50 rounded-lg p-4 bg-muted/10">
+                        <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3 border-b border-border/50 pb-2">
+                          {section.metric}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Daily Summary</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed">{section.dailySummary}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Weekly Summary</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed">{section.weeklySummary}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
 
                 {aiSummary.actionItems && aiSummary.actionItems.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-border/50">
