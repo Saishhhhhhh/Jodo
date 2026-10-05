@@ -1,26 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { reportsApi } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { 
   BarChart2, 
-  Send, 
   TrendingUp, 
   Users, 
   Package, 
   FileText,
-  AlertCircle
+  AlertCircle,
+  PieChart as PieChartIcon,
+  MousePointerClick
 } from 'lucide-react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+
+const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e'];
 
 export default function ReportsPage() {
-  const [phone, setPhone] = useState('');
   const [aiSummary, setAiSummary] = useState<any>(null);
+  const [selectedMetric, setSelectedMetric] = useState<any>(null);
 
   const { data: digest, isLoading } = useQuery({
     queryKey: ['reports', 'digest'],
@@ -30,32 +32,19 @@ export default function ReportsPage() {
     }
   });
 
-  const sendMutation = useMutation({
-    mutationFn: (targetPhone: string) => reportsApi.sendDigest(targetPhone),
-    onSuccess: () => {
-      toast.success('Daily Digest sent successfully via WhatsApp!');
-      setPhone('');
-    },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to send digest. Check Interakt settings.');
-    }
-  });
-
   const generateMutation = useMutation({
     mutationFn: () => reportsApi.generateAiSummary(digest),
     onSuccess: (res) => {
       setAiSummary(res.data.data);
+      if (res.data.data?.metricsBreakdown?.length > 0) {
+        setSelectedMetric(res.data.data.metricsBreakdown[0]);
+      }
       toast.success('AI Summary generated successfully!');
     },
     onError: () => {
       toast.error('Failed to generate AI summary.');
     }
   });
-
-  const handleSend = () => {
-    if (!phone) return toast.error('Please enter a WhatsApp number');
-    sendMutation.mutate(phone);
-  };
 
   if (isLoading || !digest) {
     return <div className="p-6 text-muted-foreground animate-pulse">Generating reports...</div>;
@@ -118,11 +107,15 @@ export default function ReportsPage() {
         
         {/* Left Col: The Data */}
         <div className="md:col-span-2 space-y-6">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center bg-muted/20 p-4 rounded-xl border border-border/50">
+            <div>
+              <h3 className="font-semibold text-lg">AI Performance Analysis</h3>
+              <p className="text-sm text-muted-foreground">Generate a detailed executive summary based on live metrics.</p>
+            </div>
             <Button 
               onClick={() => generateMutation.mutate()} 
               disabled={generateMutation.isPending}
-              className="bg-primary/90 hover:bg-primary text-primary-foreground"
+              className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-md"
             >
               {generateMutation.isPending ? 'Generating...' : 'Generate AI Summary'}
             </Button>
@@ -141,43 +134,51 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
                 
-                {aiSummary.metricsBreakdown && (
-                  <div className="space-y-4">
-                    {aiSummary.metricsBreakdown.map((section: any, idx: number) => (
-                      <div key={idx} className="border border-border/50 rounded-lg p-4 bg-muted/10">
-                        <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-3 border-b border-border/50 pb-2">
-                          {section.metric}
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Daily Summary</p>
-                            <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.dailySummary}</p>
-                            {section.dailyDetails && section.dailyDetails.length > 0 && (
-                              <ul className="list-disc pl-4 space-y-1">
-                                {section.dailyDetails.map((detail: any, i: number) => (
-                                  <li key={i} className="text-xs text-foreground/70">
-                                    {typeof detail === 'object' ? JSON.stringify(detail) : detail}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Weekly Summary</p>
-                            <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.weeklySummary}</p>
-                            {section.weeklyDetails && section.weeklyDetails.length > 0 && (
-                              <ul className="list-disc pl-4 space-y-1">
-                                {section.weeklyDetails.map((detail: any, i: number) => (
-                                  <li key={i} className="text-xs text-foreground/70">
-                                    {typeof detail === 'object' ? JSON.stringify(detail) : detail}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        </div>
+                {/* Interactive Detail View */}
+                {selectedMetric ? (
+                  <div className="border border-border/50 rounded-lg p-6 bg-muted/5 shadow-inner">
+                    <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
+                      <h3 className="text-lg font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                        <MousePointerClick className="w-5 h-5" />
+                        {selectedMetric.metric} Details
+                      </h3>
+                      <span className="text-xs font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">
+                        Score: {selectedMetric.attentionScore || 0}/100
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Daily Summary</p>
+                        <p className="text-sm text-foreground/90 leading-relaxed mb-3">{selectedMetric.dailySummary}</p>
+                        {selectedMetric.dailyDetails && selectedMetric.dailyDetails.length > 0 && (
+                          <ul className="list-disc pl-5 space-y-1.5">
+                            {selectedMetric.dailyDetails.map((detail: any, i: number) => (
+                              <li key={i} className="text-xs text-foreground/80">
+                                {typeof detail === 'object' ? JSON.stringify(detail) : detail}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Weekly Summary</p>
+                        <p className="text-sm text-foreground/90 leading-relaxed mb-3">{selectedMetric.weeklySummary}</p>
+                        {selectedMetric.weeklyDetails && selectedMetric.weeklyDetails.length > 0 && (
+                          <ul className="list-disc pl-5 space-y-1.5">
+                            {selectedMetric.weeklyDetails.map((detail: any, i: number) => (
+                              <li key={i} className="text-xs text-foreground/80">
+                                {typeof detail === 'object' ? JSON.stringify(detail) : detail}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
+                    Click on a segment in the pie chart to view detailed analysis for that category.
                   </div>
                 )}
 
@@ -201,7 +202,7 @@ export default function ReportsPage() {
           <Card className="border-primary/20 shadow-sm">
             <CardHeader className="bg-muted/30 border-b">
               <CardTitle>Performance Digest</CardTitle>
-              <CardDescription>Metrics calculated from midnight today and start of this week.</CardDescription>
+              <CardDescription>Raw metrics calculated from midnight today and start of this week.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y">
@@ -231,61 +232,62 @@ export default function ReportsPage() {
           </Card>
         </div>
 
-        {/* Right Col: Action & Alerts */}
+        {/* Right Col: Pie Chart Analysis */}
         <div className="space-y-6">
-          <Card className="border-none shadow-md bg-gradient-to-br from-primary/10 via-background to-background">
+          <Card className="border-none shadow-md h-full bg-gradient-to-br from-primary/5 via-background to-background">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Send className="w-4 h-4" />
-                Dispatch Digest
+                <PieChartIcon className="w-4 h-4 text-primary" />
+                Attention Score
               </CardTitle>
               <CardDescription>
-                Manually trigger the daily WhatsApp summary report to your phone. (This will be automated via Cron at 8 AM).
+                AI-driven analysis of which business areas require the most attention right now.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>WhatsApp Number</Label>
-                <Input 
-                  placeholder="+1234567890" 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-              <Button 
-                className="w-full" 
-                onClick={handleSend}
-                disabled={sendMutation.isPending}
-              >
-                {sendMutation.isPending ? 'Sending...' : 'Send Daily Summary'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-destructive/20 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg text-destructive">Action Required Alerts</CardTitle>
-              <CardDescription>Critical items pending your attention.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-medium">High Priority Follow-ups</span>
-                <span className="bg-destructive/10 text-destructive font-bold px-2 py-0.5 rounded">
-                  {digest.current.pendingFollowUps}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-medium">Low Stock Products</span>
-                <span className="bg-destructive/10 text-destructive font-bold px-2 py-0.5 rounded">
-                  {digest.current.lowStockItems}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="font-medium">Open Support Cases</span>
-                <span className="bg-muted text-muted-foreground font-bold px-2 py-0.5 rounded">
-                  {digest.current.openSupportCases}
-                </span>
-              </div>
+            <CardContent className="flex flex-col items-center justify-center pt-8">
+              {aiSummary?.metricsBreakdown ? (
+                <div className="w-full h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={aiSummary.metricsBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="attentionScore"
+                        nameKey="metric"
+                        onClick={(data) => setSelectedMetric(data.payload)}
+                        className="cursor-pointer outline-none"
+                      >
+                        {aiSummary.metricsBreakdown.map((entry: any, index: number) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={COLORS[index % COLORS.length]} 
+                            className="hover:opacity-80 transition-opacity stroke-background stroke-2"
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                        formatter={(value: number, name: string) => [`Score: ${value}`, name]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <p className="text-center text-xs text-muted-foreground mt-4 italic">
+                    * Click any segment to view detailed insights.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground/50 border-2 border-dashed border-muted rounded-full w-full max-w-[300px] aspect-square">
+                  <PieChartIcon className="w-16 h-16 mb-4 opacity-20" />
+                  <span className="text-sm font-medium">No Analysis Data</span>
+                  <span className="text-xs">Generate a summary to view chart</span>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -294,3 +296,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

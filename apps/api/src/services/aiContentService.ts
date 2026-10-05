@@ -371,17 +371,18 @@ Return ONLY valid JSON in this exact format. Ensure dailyDetails and weeklyDetai
   "metricsBreakdown": [
     { 
       "metric": "Sales", 
+      "attentionScore": 85,
       "dailySummary": "Detailed paragraph about today's sales.", 
       "dailyDetails": ["Order #1 (Priya Patel): ₹30,000 - 2x Ergonomic Office Chair"], 
       "weeklySummary": "Detailed paragraph about this week's sales.",
       "weeklyDetails": []
     },
-    { "metric": "Leads", "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
-    { "metric": "Inventory", "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
-    { "metric": "Quotations", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
-    { "metric": "Orders", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
-    { "metric": "Support Cases", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
-    { "metric": "Pending Follow-ups", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] }
+    { "metric": "Leads", "attentionScore": 20, "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Inventory", "attentionScore": 90, "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Quotations", "attentionScore": 0, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Orders", "attentionScore": 50, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Support Cases", "attentionScore": 0, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Pending Follow-ups", "attentionScore": 75, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] }
   ],
   "actionItems": [
     "Clear, professional action item 1",
@@ -886,13 +887,13 @@ export class AiContentService {
       summaryTitle: "Executive Performance Report",
       executiveSummary: `Overall business health remains stable. Today generated ${data.daily?.revenue || 0} in revenue from ${data.daily?.orders || 0} orders.`,
       metricsBreakdown: [
-        { metric: "Sales", dailySummary: `Today's revenue is ${data.daily?.revenue || 0}.`, dailyDetails: [], weeklySummary: `This week's revenue is ${data.weekly?.revenue || 0}.`, weeklyDetails: [] },
-        { metric: "Leads", dailySummary: `Acquired ${data.daily?.newLeads || 0} leads today.`, dailyDetails: [], weeklySummary: `Acquired ${data.weekly?.newLeads || 0} leads this week.`, weeklyDetails: [] },
-        { metric: "Inventory", dailySummary: `Currently ${data.current?.lowStockItemsCount || 0} items are low on stock.`, dailyDetails: [], weeklySummary: `Stock levels remain stable overall.`, weeklyDetails: [] },
-        { metric: "Quotations", dailySummary: `Sent ${data.daily?.quotationsSent || 0} quotations today.`, dailyDetails: [], weeklySummary: `Sent ${data.weekly?.quotationsSent || 0} quotations this week.`, weeklyDetails: [] },
-        { metric: "Orders", dailySummary: `Received ${data.daily?.orders || 0} orders today.`, dailyDetails: [], weeklySummary: `Received ${data.weekly?.orders || 0} orders this week.`, weeklyDetails: [] },
-        { metric: "Support Cases", dailySummary: `Opened ${data.daily?.supportCasesOpened || 0} cases today.`, dailyDetails: [], weeklySummary: `Opened ${data.weekly?.supportCasesOpened || 0} cases this week.`, weeklyDetails: [] },
-        { metric: "Pending Follow-ups", dailySummary: `${data.current?.pendingFollowUpsCount || 0} high-priority follow-ups are pending action today.`, dailyDetails: [], weeklySummary: `Follow-up backlog is being managed.`, weeklyDetails: [] }
+        { metric: "Sales", attentionScore: 50, dailySummary: `Today's revenue is ${data.daily?.revenue || 0}.`, dailyDetails: [], weeklySummary: `This week's revenue is ${data.weekly?.revenue || 0}.`, weeklyDetails: [] },
+        { metric: "Leads", attentionScore: 50, dailySummary: `Acquired ${data.daily?.newLeads || 0} leads today.`, dailyDetails: [], weeklySummary: `Acquired ${data.weekly?.newLeads || 0} leads this week.`, weeklyDetails: [] },
+        { metric: "Inventory", attentionScore: 50, dailySummary: `Currently ${data.current?.lowStockItemsCount || 0} items are low on stock.`, dailyDetails: [], weeklySummary: `Stock levels remain stable overall.`, weeklyDetails: [] },
+        { metric: "Quotations", attentionScore: 50, dailySummary: `Sent ${data.daily?.quotationsSent || 0} quotations today.`, dailyDetails: [], weeklySummary: `Sent ${data.weekly?.quotationsSent || 0} quotations this week.`, weeklyDetails: [] },
+        { metric: "Orders", attentionScore: 50, dailySummary: `Received ${data.daily?.orders || 0} orders today.`, dailyDetails: [], weeklySummary: `Received ${data.weekly?.orders || 0} orders this week.`, weeklyDetails: [] },
+        { metric: "Support Cases", attentionScore: 50, dailySummary: `Opened ${data.daily?.supportCasesOpened || 0} cases today.`, dailyDetails: [], weeklySummary: `Opened ${data.weekly?.supportCasesOpened || 0} cases this week.`, weeklyDetails: [] },
+        { metric: "Pending Follow-ups", attentionScore: 50, dailySummary: `${data.current?.pendingFollowUpsCount || 0} high-priority follow-ups are pending action today.`, dailyDetails: [], weeklySummary: `Follow-up backlog is being managed.`, weeklyDetails: [] }
       ],
       actionItems: [
         `Follow up with ${data.current?.pendingFollowUpsCount || 0} high-priority leads.`,
