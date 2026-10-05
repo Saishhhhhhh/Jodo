@@ -134,51 +134,57 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
                 
-                {/* Interactive Detail View */}
-                {selectedMetric ? (
-                  <div className="border border-border/50 rounded-lg p-6 bg-muted/5 shadow-inner">
-                    <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-3">
-                      <h3 className="text-lg font-bold text-primary uppercase tracking-widest flex items-center gap-2">
-                        <MousePointerClick className="w-5 h-5" />
-                        {selectedMetric.metric} Details
-                      </h3>
-                      <span className="text-xs font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">
-                        Score: {selectedMetric.attentionScore || 0}/100
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Daily Summary</p>
-                        <p className="text-sm text-foreground/90 leading-relaxed mb-3">{selectedMetric.dailySummary}</p>
-                        {selectedMetric.dailyDetails && selectedMetric.dailyDetails.length > 0 && (
-                          <ul className="list-disc pl-5 space-y-1.5">
-                            {selectedMetric.dailyDetails.map((detail: any, i: number) => (
-                              <li key={i} className="text-xs text-foreground/80">
-                                {typeof detail === 'object' ? JSON.stringify(detail) : detail}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                {/* Full Breakdown View */}
+                {aiSummary.metricsBreakdown && (
+                  <div className="space-y-4">
+                    {aiSummary.metricsBreakdown.map((section: any, idx: number) => (
+                      <div 
+                        key={idx} 
+                        id={`metric-${section.metric.replace(/\s+/g, '-')}`}
+                        className={`border rounded-lg p-4 transition-all duration-300 ${
+                          selectedMetric?.metric === section.metric 
+                            ? 'border-primary bg-primary/5 shadow-sm' 
+                            : 'border-border/50 bg-muted/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-3 border-b border-border/50 pb-2">
+                          <h3 className="text-sm font-bold text-primary uppercase tracking-widest">
+                            {section.metric}
+                          </h3>
+                          <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            Score: {section.attentionScore || 0}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Daily Summary</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.dailySummary}</p>
+                            {section.dailyDetails && section.dailyDetails.length > 0 && (
+                              <ul className="list-disc pl-4 space-y-1">
+                                {section.dailyDetails.map((detail: any, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/70">
+                                    {typeof detail === 'object' ? JSON.stringify(detail) : detail}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Weekly Summary</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.weeklySummary}</p>
+                            {section.weeklyDetails && section.weeklyDetails.length > 0 && (
+                              <ul className="list-disc pl-4 space-y-1">
+                                {section.weeklyDetails.map((detail: any, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/70">
+                                    {typeof detail === 'object' ? JSON.stringify(detail) : detail}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Weekly Summary</p>
-                        <p className="text-sm text-foreground/90 leading-relaxed mb-3">{selectedMetric.weeklySummary}</p>
-                        {selectedMetric.weeklyDetails && selectedMetric.weeklyDetails.length > 0 && (
-                          <ul className="list-disc pl-5 space-y-1.5">
-                            {selectedMetric.weeklyDetails.map((detail: any, i: number) => (
-                              <li key={i} className="text-xs text-foreground/80">
-                                {typeof detail === 'object' ? JSON.stringify(detail) : detail}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
-                    Click on a segment in the pie chart to view detailed analysis for that category.
+                    ))}
                   </div>
                 )}
 
@@ -258,7 +264,10 @@ export default function ReportsPage() {
                         paddingAngle={5}
                         dataKey="attentionScore"
                         nameKey="metric"
-                        onClick={(data) => setSelectedMetric(data.payload)}
+                        onClick={(data) => {
+                          setSelectedMetric(data.payload);
+                          document.getElementById(`metric-${data.payload.metric.replace(/\s+/g, '-')}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
                         className="cursor-pointer outline-none"
                       >
                         {aiSummary.metricsBreakdown.map((entry: any, index: number) => (
