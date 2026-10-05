@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { 
   Calendar as CalendarIcon, 
   Check, 
+  CheckCircle2,
   Clock, 
   Play, 
   Pause, 
@@ -29,6 +30,8 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onEdit, onDelete, isAdminOrManager = true }: TaskCardProps) {
   const toggleTimer = useTasksStore((state) => state.toggleTimer);
+  const completeTask = useTasksStore((state) => state.completeTask);
+  const reopenTask = useTasksStore((state) => state.reopenTask);
   const [durationModalOpen, setDurationModalOpen] = useState(false);
   const [liveSeconds, setLiveSeconds] = useState(task.loggedDuration || 0);
 
@@ -252,87 +255,111 @@ export function TaskCard({ task, onEdit, onDelete, isAdminOrManager = true }: Ta
           </div>
         </div>
 
-        {/* Bottom Section: Duration Badge, Timer Control, Edit & Delete */}
+        {/* Bottom Section: Duration Badge, Start, Done, Edit & Delete */}
         <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t">
-          {/* Duration Badge & Live Timer */}
-          <div className="flex items-center gap-1.5">
+          {/* Duration Badge / Stopwatch display (Click to log or manually adjust duration) */}
+          <button
+            type="button"
+            onClick={() => setDurationModalOpen(true)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono transition-colors border ${
+              task.timerRunning
+                ? 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400 font-semibold'
+                : liveSeconds > 0
+                ? 'bg-muted/60 border-border text-foreground font-medium hover:bg-muted'
+                : 'bg-muted/40 border-border text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+            title="Click to view or edit logged work duration"
+          >
             {task.timerRunning ? (
-              <button
-                type="button"
-                onClick={() => setDurationModalOpen(true)}
-                className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 text-xs font-mono font-semibold px-2.5 py-1 rounded-md hover:bg-green-500/20 transition-colors"
-                title="Click to view/edit duration"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
-                <Clock className="w-3 h-3 text-green-500" />
-                <span>{formatDurationDisplay(liveSeconds)}</span>
-              </button>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
             ) : liveSeconds > 0 ? (
-              <button
-                type="button"
-                onClick={() => setDurationModalOpen(true)}
-                className="flex items-center gap-1.5 bg-muted/60 border border-border text-foreground text-xs font-mono font-medium px-2.5 py-1 rounded-md hover:bg-muted transition-colors"
-                title="Click to update duration"
-              >
-                <Check className="w-3 h-3 text-green-500 stroke-[2.5]" />
-                <span>{formatDurationDisplay(liveSeconds)}</span>
-              </button>
+              <Check className="w-3 h-3 text-green-500 stroke-[2.5]" />
             ) : (
-              <button
+              <Clock className="w-3 h-3 text-muted-foreground" />
+            )}
+            <span>{formatDurationDisplay(liveSeconds)}</span>
+          </button>
+
+          {/* Action buttons: Start, Done, Edit, and Delete (Admin only) */}
+          <div className="flex items-center gap-1.5">
+            {/* Start / Pause Button */}
+            {task.status !== 'Completed' && (
+              <Button
                 type="button"
-                onClick={() => setDurationModalOpen(true)}
-                className="flex items-center gap-1.5 bg-muted/40 border border-border text-muted-foreground text-xs font-mono px-2.5 py-1 rounded-md hover:text-foreground hover:bg-muted transition-colors"
-                title="Click to log duration"
+                size="sm"
+                variant={task.timerRunning ? 'default' : 'outline'}
+                onClick={() => toggleTimer(taskId)}
+                className={`h-7 px-2.5 text-xs font-semibold gap-1 transition-all ${
+                  task.timerRunning
+                    ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600'
+                    : 'text-foreground hover:text-primary hover:border-primary/40'
+                }`}
+                title={task.timerRunning ? 'Pause work timer' : 'Start working on this task'}
               >
-                <Clock className="w-3 h-3 text-muted-foreground" />
-                <span>00:00:00</span>
-              </button>
+                {task.timerRunning ? (
+                  <>
+                    <Pause className="w-3 h-3 fill-current" />
+                    <span>Pause</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Start</span>
+                  </>
+                )}
+              </Button>
             )}
 
-            {/* Start / Pause quick button for team members */}
-            <button
-              type="button"
-              onClick={() => toggleTimer(taskId)}
-              className={`p-1.5 rounded-md border text-xs transition-colors ${
-                task.timerRunning
-                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20'
-                  : 'bg-muted/40 text-muted-foreground border-border hover:text-foreground hover:bg-muted'
-              }`}
-              title={task.timerRunning ? 'Pause timer' : 'Start working timer'}
-            >
-              {task.timerRunning ? (
-                <Pause className="w-3.5 h-3.5 fill-current" />
-              ) : (
-                <Play className="w-3.5 h-3.5 fill-current" />
-              )}
-            </button>
-          </div>
+            {/* Done Button */}
+            {task.status === 'Completed' ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => reopenTask(taskId)}
+                className="h-7 px-2.5 text-xs font-medium gap-1 text-green-600 dark:text-green-400 bg-green-500/10 border-green-500/30 hover:bg-green-500/20"
+                title="Task completed! Click to re-open"
+              >
+                <CheckCircle2 className="w-3 h-3 text-green-600 dark:text-green-400" />
+                <span>Done</span>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => completeTask(taskId)}
+                className="h-7 px-2.5 text-xs font-medium gap-1 text-muted-foreground hover:text-green-600 hover:bg-green-500/10 hover:border-green-500/30 transition-colors"
+                title="Mark task as Completed"
+              >
+                <Check className="w-3 h-3" />
+                <span>Done</span>
+              </Button>
+            )}
 
-          {/* Edit / Delete Icons */}
-          <div className="flex items-center gap-1 text-muted-foreground">
-            {/* Team members & Admin can edit */}
+            {/* Edit Button */}
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={() => onEdit?.(task)}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               title="Edit task & status"
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Pencil className="w-3 h-3" />
             </Button>
 
-            {/* Only admin/manager can delete */}
+            {/* Delete Button (STRICTLY ADMIN / MANAGER ONLY) */}
             {isAdminOrManager && onDelete && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => onDelete(taskId)}
-                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                title="Delete task"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Delete task (Admin only)"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-3 h-3" />
               </Button>
             )}
           </div>

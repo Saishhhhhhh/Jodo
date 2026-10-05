@@ -76,6 +76,8 @@ interface TasksState {
   addTask: (task: any) => Promise<void>;
   updateTask: (id: string, updates: any) => Promise<void>;
   toggleTimer: (id: string) => Promise<void>;
+  completeTask: (id: string) => Promise<void>;
+  reopenTask: (id: string) => Promise<void>;
   updateDuration: (id: string, durationSeconds: number) => Promise<void>;
   addRemark: (id: string, remark: string, status?: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -143,10 +145,11 @@ export const useTasksStore = create<TasksState>((set, get) => ({
         }));
         toast.info('Timer paused');
       } else {
-        // Start timer
+        // Start timer & transition from Pending to In Progress
         const res = await tasksApi.update(id, {
           timerRunning: true,
           timerStartedAt: new Date().toISOString(),
+          status: task.status === 'Pending' ? 'In Progress' : task.status,
         });
         set((state) => ({
           tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
@@ -155,6 +158,53 @@ export const useTasksStore = create<TasksState>((set, get) => ({
       }
     } catch (error: any) {
       const msg = error?.response?.data?.message || 'Failed to update timer';
+      toast.error(msg);
+    }
+  },
+  completeTask: async (id) => {
+    const task = get().tasks.find((t: any) => (t._id || t.id) === id);
+    if (!task) return;
+
+    try {
+      let newDuration = task.loggedDuration || 0;
+      if (task.timerRunning && task.timerStartedAt) {
+        const started = new Date(task.timerStartedAt).getTime();
+        const now = Date.now();
+        const additional = Math.max(0, Math.floor((now - started) / 1000));
+        newDuration += additional;
+      }
+
+      const res = await tasksApi.update(id, {
+        status: 'Completed',
+        timerRunning: false,
+        loggedDuration: newDuration,
+        completedAt: new Date().toISOString(),
+      });
+
+      set((state) => ({
+        tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
+      }));
+      toast.success(`Task marked as Completed!`);
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Failed to complete task';
+      toast.error(msg);
+    }
+  },
+  reopenTask: async (id) => {
+    const task = get().tasks.find((t: any) => (t._id || t.id) === id);
+    if (!task) return;
+
+    try {
+      const res = await tasksApi.update(id, {
+        status: 'In Progress',
+      });
+
+      set((state) => ({
+        tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
+      }));
+      toast.success(`Task re-opened and set to In Progress`);
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Failed to re-open task';
       toast.error(msg);
     }
   },
