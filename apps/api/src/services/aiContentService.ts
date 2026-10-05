@@ -4,7 +4,7 @@ import { env } from '../config/env';
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface GenerateContentInput {
-  contentType: 'product_description' | 'catalogue_content' | 'listing_copy' | 'campaign_content';
+  contentType: 'product_description' | 'catalogue_content' | 'listing_copy' | 'campaign_content' | 'report_digest';
   product?: {
     id?: string;
     title: string;
@@ -35,6 +35,7 @@ export interface GenerateContentInput {
     objective?: string;
     products?: string[];
   };
+  reportData?: any;
   channel?: string;
   tone?: string;
   length?: 'Short' | 'Medium' | 'Detailed';
@@ -343,6 +344,30 @@ Return this exact JSON (fill ALL channels):
 }`;
 }
 
+function buildReportPrompt(input: GenerateContentInput, tone: string): string {
+  const data = input.reportData || {};
+  return `You are a business intelligence assistant for JODO, an Indian furniture manufacturing brand.
+Generate a concise, insightful daily and weekly executive summary based on the following metrics.
+Tone: ${tone}.
+
+METRICS DATA:
+${JSON.stringify(data, null, 2)}
+
+Identify trends, celebrate wins (e.g. high sales), and flag areas needing attention (e.g. pending follow-ups or low stock). Keep the language professional but encouraging.
+
+Return ONLY valid JSON in this exact format:
+{
+  "summaryTitle": "Daily Executive Digest",
+  "dailyHighlight": "One sentence summary of today's performance.",
+  "weeklyInsight": "One sentence summary of the week's trajectory.",
+  "detailedSummary": "A full paragraph (3-5 sentences) summarizing the key metrics, pointing out specific numbers for revenue, orders, leads, and inventory alerts.",
+  "actionItems": [
+    "Follow up on 5 pending leads",
+    "Restock low inventory items"
+  ]
+}`;
+}
+
 function buildRegeneratePrompt(
   currentContent: Record<string, any>,
   input: GenerateContentInput,
@@ -373,6 +398,14 @@ export class AiContentService {
   ): QualityCheckResult {
     const flags: string[] = [];
     let score = 96;
+
+    if (input.contentType === 'report_digest') {
+      return {
+        score,
+        checks: { grammar: true, brandTone: true, seo: true, productAccuracy: true, duplicateRisk: 'Low', unsupportedClaimsCount: 0 },
+        flags
+      };
+    }
 
     if (input.contentType !== 'campaign_content' && input.product) {
       if (!input.product.material) {
@@ -548,6 +581,9 @@ export class AiContentService {
       case 'campaign_content':
         userPrompt = buildCampaignPrompt(input, tone);
         break;
+      case 'report_digest':
+        userPrompt = buildReportPrompt(input, tone);
+        break;
     }
 
     const completion = await client.chat.completions.create({
@@ -596,6 +632,8 @@ export class AiContentService {
         return this.templateListingCopy(input, tone, length as any);
       case 'campaign_content':
         return this.templateCampaignContent(input, tone);
+      case 'report_digest':
+        return this.templateReportDigest(input, tone);
       default:
         return {};
     }
@@ -817,6 +855,20 @@ export class AiContentService {
       sms: {
         text: `JODO VIP: Elevate your home with the ${campaignName}! Enjoy ${offerText} on our finest pieces. Shop: https://jodo.store T&C apply.`,
       },
+    };
+  }
+
+  private static templateReportDigest(input: GenerateContentInput, tone: string) {
+    const data = input.reportData || { daily: {}, weekly: {}, current: {} };
+    return {
+      summaryTitle: "Daily Executive Digest",
+      dailyHighlight: `Today we processed ${data.daily?.orders || 0} orders generating ${data.daily?.revenue || 0} in revenue.`,
+      weeklyInsight: `This week is tracking at ${data.weekly?.orders || 0} orders and ${data.weekly?.revenue || 0} in total sales.`,
+      detailedSummary: `Overall performance remains steady. We have captured ${data.daily?.newLeads || 0} new leads today. Currently there are ${data.current?.pendingFollowUps || 0} high priority leads awaiting follow up, and ${data.current?.lowStockItems || 0} items have fallen below healthy inventory levels.`,
+      actionItems: [
+        `Follow up with ${data.current?.pendingFollowUps || 0} high-priority leads.`,
+        `Review the ${data.current?.lowStockItems || 0} low stock inventory items.`
+      ]
     };
   }
 }

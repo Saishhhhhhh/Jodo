@@ -7,6 +7,7 @@ import { Lead } from '../models/Lead';
 import { Product } from '../models/Product';
 import { InteraktService } from '../services/interakt';
 import { Tenant } from '../models/Tenant';
+import { AiContentService } from '../services/aiContentService';
 
 const router = Router();
 
@@ -98,7 +99,20 @@ router.get('/digest', async (req: Request, res: Response, next) => {
       }
     };
 
-    sendSuccess(res, payload);
+    let aiSummary = null;
+    try {
+      const aiResult = await AiContentService.generate({
+        contentType: 'report_digest',
+        reportData: payload,
+        tone: 'Professional and Encouraging',
+        length: 'Short'
+      });
+      aiSummary = aiResult.content;
+    } catch (aiErr) {
+      console.error('Failed to generate AI report summary:', aiErr);
+    }
+
+    sendSuccess(res, { ...payload, aiSummary });
   } catch (err) {
     next(err);
   }

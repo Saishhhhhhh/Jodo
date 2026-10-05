@@ -5,6 +5,7 @@ import { Customer } from '../models/Customer';
 import { InventoryItem } from '../models/InventoryItem';
 import { Reservation } from '../models/Reservation';
 import { NotificationService } from './NotificationService';
+import { AiContentService } from './aiContentService';
 
 const Report = mongoose.model('Report');
 
@@ -70,6 +71,19 @@ async function generateReport(type: 'daily' | 'weekly') {
         followUps: { pending: 0, overdue: 0 }
       };
 
+      let aiSummary = null;
+      try {
+        const aiResult = await AiContentService.generate({
+          contentType: 'report_digest',
+          reportData: data,
+          tone: 'Professional and Insightful',
+          length: 'Medium'
+        });
+        aiSummary = aiResult.content;
+      } catch (err) {
+        console.error('Failed to generate AI summary for cron report:', err);
+      }
+
       const report = new Report({
         tenantId,
         storeId,
@@ -77,7 +91,8 @@ async function generateReport(type: 'daily' | 'weekly') {
         type,
         dateRange: { from, to },
         status: 'completed',
-        data
+        data,
+        aiSummary
       });
       await report.save();
     }
