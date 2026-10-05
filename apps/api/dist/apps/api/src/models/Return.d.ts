@@ -18,6 +18,7 @@ export interface IReturn extends Document {
     status: 'requested' | 'approved' | 'received' | 'refunded' | 'rejected';
     refundAmount: number;
     notes?: string;
+    images?: string[];
     createdAt: Date;
     updatedAt: Date;
 }

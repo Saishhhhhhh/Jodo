@@ -55,7 +55,7 @@ router.get('/digest', async (req: Request, res: Response, next) => {
     const recentOrderDetails = dailyOrders.map(o => ({
       customer: o.customerName || 'Unknown',
       revenue: o.totalAmount,
-      items: o.items.map(i => `${i.quantity}x ${i.title}`).join(', ')
+      items: o.items.map((i: any) => `${i.quantity}x ${i.title}`).join(', ')
     }));
 
     // 2. Leads & Follow-ups

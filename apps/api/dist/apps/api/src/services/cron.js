@@ -10,6 +10,7 @@ const Order_1 = require("../models/Order");
 const Customer_1 = require("../models/Customer");
 const InventoryItem_1 = require("../models/InventoryItem");
 const Reservation_1 = require("../models/Reservation");
+const aiContentService_1 = require("./aiContentService");
 const Report = mongoose_1.default.model('Report');
 // Function to generate the actual report
 async function generateReport(type) {
@@ -65,6 +66,19 @@ async function generateReport(type) {
                 supportCases: { total: 0, open: 0, resolved: 0 },
                 followUps: { pending: 0, overdue: 0 }
             };
+            let aiSummary = null;
+            try {
+                const aiResult = await aiContentService_1.AiContentService.generate({
+                    contentType: 'report_digest',
+                    reportData: data,
+                    tone: 'Professional and Insightful',
+                    length: 'Medium'
+                });
+                aiSummary = aiResult.content;
+            }
+            catch (err) {
+                console.error('Failed to generate AI summary for cron report:', err);
+            }
             const report = new Report({
                 tenantId,
                 storeId,
@@ -72,7 +86,8 @@ async function generateReport(type) {
                 type,
                 dateRange: { from, to },
                 status: 'completed',
-                data
+                data,
+                aiSummary
             });
             await report.save();
         }

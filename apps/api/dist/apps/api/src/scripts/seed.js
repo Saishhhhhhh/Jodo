@@ -142,11 +142,164 @@ async function seedDummyData(tenantId, storeId) {
     await Return_1.Return.deleteMany({});
     await CustomerSegment_1.CustomerSegment.deleteMany({});
     const products = await Product_1.Product.insertMany([
-        { tenantId: tenantId, storeId: storeId, title: 'Premium Cotton T-Shirt', slug: 'cotton-tshirt', status: 'active', price: 29.99, compareAtPrice: 39.99, sku: 'TSH-001', inventoryQuantity: 150, category: 'Apparel', vendor: 'Jodo Apparel', imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80', galleryImages: ['https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?auto=format&fit=crop&w=1200&q=80', 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=1200&q=80'] },
-        { tenantId: tenantId, storeId: storeId, title: 'Wireless Noise-Canceling Headphones', slug: 'wireless-headphones', status: 'active', price: 199.99, compareAtPrice: 249.99, sku: 'WH-002', inventoryQuantity: 45, category: 'Electronics', vendor: 'Jodo Audio', imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80', galleryImages: ['https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=1200&q=80', 'https://images.unsplash.com/photo-1546435770-a3e426fa47ce?auto=format&fit=crop&w=1200&q=80'] },
-        { tenantId: tenantId, storeId: storeId, title: 'Ergonomic Office Chair', slug: 'office-chair', status: 'active', price: 149.50, sku: 'OC-003', inventoryQuantity: 12, category: 'Furniture', vendor: 'Jodo Living', imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?auto=format&fit=crop&w=1200&q=80', galleryImages: ['https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?auto=format&fit=crop&w=1200&q=80', 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&w=1200&q=80'] },
-        { tenantId: tenantId, storeId: storeId, title: 'Organic Arabica Coffee Beans', slug: 'coffee-beans', status: 'active', price: 18.00, sku: 'CB-004', inventoryQuantity: 300, category: 'Food & Beverage', vendor: 'Jodo Farms', imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1200&q=80', galleryImages: ['https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=1200&q=80', 'https://images.unsplash.com/photo-1611162616475-46b635cb6868?auto=format&fit=crop&w=1200&q=80'] },
-        { tenantId: tenantId, storeId: storeId, title: 'Minimalist Leather Wallet', slug: 'leather-wallet', status: 'draft', price: 45.00, sku: 'LW-005', inventoryQuantity: 0, category: 'Accessories', vendor: 'Jodo Leather', imageUrl: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=1200&q=80', galleryImages: ['https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=1200&q=80', 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=1200&q=80'] },
+        {
+            tenantId, storeId,
+            title: 'Modern Oak Dining Table', slug: 'modern-oak-dining-table',
+            status: 'active', price: 899.00, compareAtPrice: 1200.00,
+            sku: 'FURN-DT-01', inventoryQuantity: 24, category: 'Dining Room',
+            vendor: 'Jodo Living',
+            imageUrl: 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1617806118233-18e1c12e8467?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1577140917170-285929fb55b7?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Solid Oak Wood', dimensions: '72 x 36 x 30 inches',
+            weight: 120.5, assemblyRequired: true,
+            shortDescription: 'A beautiful oak dining table for family dinners.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Velvet Accent Sofa', slug: 'ergonomic-office-chair',
+            status: 'active', price: 199.50, compareAtPrice: 249.00,
+            sku: 'FURN-OC-01', inventoryQuantity: 85, category: 'Office',
+            vendor: 'ErgoMates',
+            imageUrl: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Mesh, Plastic, Metal Base', dimensions: '26 x 26 x 45 inches',
+            weight: 35.0, assemblyRequired: true,
+            shortDescription: 'Stay comfortable all day with this ergonomic office chair.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Velvet Accent Sofa', slug: 'velvet-accent-sofa',
+            status: 'active', price: 1450.00, compareAtPrice: 1800.00,
+            sku: 'FURN-SOFA-01', inventoryQuantity: 10, category: 'Living Room',
+            vendor: 'Plush Designs',
+            imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Velvet Fabric, Pine Wood Frame', dimensions: '84 x 35 x 32 inches',
+            weight: 110.0, assemblyRequired: false,
+            shortDescription: 'Add a touch of elegance with this plush velvet sofa.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Minimalist Nightstand', slug: 'minimalist-nightstand',
+            status: 'active', price: 145.00, compareAtPrice: 199.00,
+            sku: 'FURN-NS-01', inventoryQuantity: 45, category: 'Bedroom',
+            vendor: 'Jodo Living',
+            imageUrl: 'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1532372576444-dda954194ad0?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Engineered Wood, Metal Hardware', dimensions: '18 x 15 x 24 inches',
+            weight: 22.0, assemblyRequired: true,
+            shortDescription: 'Keep essentials close at hand with this minimalist piece.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Queen Size Platform Bed', slug: 'queen-size-platform-bed',
+            status: 'active', price: 599.00, compareAtPrice: 750.00,
+            sku: 'FURN-BED-01', inventoryQuantity: 15, category: 'Bedroom',
+            vendor: 'SleepWell',
+            imageUrl: 'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1505693314120-0d443867891c?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Upholstered Linen, Steel Frame', dimensions: '80 x 60 x 14 inches',
+            weight: 75.0, assemblyRequired: true,
+            shortDescription: 'Rest peacefully on this sturdy platform bed.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Industrial Bookshelf', slug: 'industrial-bookshelf',
+            status: 'active', price: 349.00, compareAtPrice: 450.00,
+            sku: 'FURN-BS-01', inventoryQuantity: 30, category: 'Living Room',
+            vendor: 'IronCraft',
+            imageUrl: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Reclaimed Wood, Black Iron Pipes', dimensions: '48 x 12 x 72 inches',
+            weight: 65.5, assemblyRequired: true,
+            shortDescription: 'Showcase your library on this durable bookshelf.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Outdoor Teak Lounge Chair', slug: 'outdoor-teak-lounge-chair',
+            status: 'active', price: 499.00, compareAtPrice: 650.00,
+            sku: 'FURN-OUT-01', inventoryQuantity: 20, category: 'Outdoor',
+            vendor: 'Jodo Outdoors',
+            imageUrl: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=800&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Grade A Teak Wood', dimensions: '30 x 35 x 34 inches',
+            weight: 40.0, assemblyRequired: false,
+            shortDescription: 'Relax outdoors on this weather-resistant chair.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Glass Top Coffee Table', slug: 'glass-top-coffee-table',
+            status: 'active', price: 249.00, compareAtPrice: 350.00,
+            sku: 'FURN-CT-01', inventoryQuantity: 55, category: 'Living Room',
+            vendor: 'ClearView',
+            imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=1200&auto=format&fit=crop&q=80',
+                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Tempered Glass, Chrome Base', dimensions: '40 x 40 x 18 inches',
+            weight: 55.0, assemblyRequired: true,
+            shortDescription: 'A sleek coffee table that makes any room feel larger.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Mid-Century TV Stand', slug: 'mid-century-tv-stand',
+            status: 'active', price: 399.00, compareAtPrice: 500.00,
+            sku: 'FURN-TV-01', inventoryQuantity: 40, category: 'Living Room',
+            vendor: 'RetroHome',
+            imageUrl: 'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Walnut Veneer', dimensions: '60 x 16 x 22 inches',
+            weight: 80.0, assemblyRequired: true,
+            shortDescription: 'The perfect focal point for your entertainment center.'
+        },
+        {
+            tenantId, storeId,
+            title: 'Luxury Marble Dining Table', slug: 'luxury-marble-dining-table',
+            status: 'active', price: 2499.00, compareAtPrice: 3000.00,
+            sku: 'FURN-DT-02', inventoryQuantity: 5, category: 'Dining Room',
+            vendor: 'Jodo Premium',
+            imageUrl: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=800&auto=format&fit=crop&q=80',
+            galleryImages: [
+                'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=1200&auto=format&fit=crop&q=80'
+            ],
+            model3dUrl: '/vr/public/models/chair.glb',
+            material: 'Carrara Marble, Brass Base', dimensions: '84 x 42 x 30 inches',
+            weight: 350.0, assemblyRequired: true,
+            shortDescription: 'Make a statement with this premium dining table.'
+        }
     ]);
     console.log(`✅ ${products.length} Products seeded.`);
     const customers = await Customer_1.Customer.insertMany([
@@ -161,10 +314,10 @@ async function seedDummyData(tenantId, storeId) {
             tenantId, storeId, orderNumber: 'ORD-1001',
             customerName: 'Alice Smith', customerEmail: 'alice@example.com',
             items: [
-                { productId: products[0]._id, sku: 'TSH-001', title: 'Premium Cotton T-Shirt', quantity: 3, price: 29.99, total: 89.97 }
+                { productId: products[0]._id, sku: 'FURN-DT-01', title: 'Modern Oak Dining Table', quantity: 3, price: 899.00, total: 2697.00 }
             ],
             shippingAddress: { firstName: 'Alice', lastName: 'Smith', address1: '123 Fashion Ave', city: 'Mumbai', state: 'MH', zip: '400001', country: 'India' },
-            subtotal: 89.97, taxTotal: 10.03, shippingTotal: 25.00, totalAmount: 125.00, currency: 'INR',
+            subtotal: 2697.00, taxTotal: 10.03, shippingTotal: 25.00, totalAmount: 2732.03, currency: 'INR',
             paymentStatus: 'paid', fulfillmentStatus: 'fulfilled', itemsCount: 3,
             notes: 'Please leave package at the front door.',
             riskScore: 12, riskLevel: 'low',
@@ -178,10 +331,10 @@ async function seedDummyData(tenantId, storeId) {
             tenantId, storeId, orderNumber: 'ORD-1002',
             customerName: 'Bob Johnson', customerEmail: 'bob@example.com',
             items: [
-                { productId: products[2]._id, sku: 'OC-003', title: 'Ergonomic Office Chair', quantity: 1, price: 149.50, total: 149.50 }
+                { productId: products[2]._id, sku: 'FURN-SOFA-01', title: 'Velvet Accent Sofa', quantity: 1, price: 1450.00, total: 1450.00 }
             ],
             shippingAddress: { firstName: 'Bob', lastName: 'Johnson', address1: '456 Tech Park', city: 'Bengaluru', state: 'KA', zip: '560001', country: 'India' },
-            subtotal: 149.50, taxTotal: 15.50, shippingTotal: 0.00, totalAmount: 165.00, currency: 'INR',
+            subtotal: 1450.00, taxTotal: 15.50, shippingTotal: 0.00, totalAmount: 1465.50, currency: 'INR',
             paymentStatus: 'pending', fulfillmentStatus: 'unfulfilled', itemsCount: 1,
             riskScore: 88, riskLevel: 'high',
             riskIndicators: [
@@ -195,10 +348,10 @@ async function seedDummyData(tenantId, storeId) {
             tenantId, storeId, orderNumber: 'ORD-1003',
             customerName: 'Diana Prince', customerEmail: 'diana@example.com',
             items: [
-                { productId: products[1]._id, sku: 'WH-002', title: 'Wireless Noise-Canceling Headphones', quantity: 2, price: 199.99, total: 399.98 }
+                { productId: products[1]._id, sku: 'FURN-OC-01', title: 'Ergonomic Office Chair', quantity: 2, price: 199.50, total: 399.00 }
             ],
             shippingAddress: { firstName: 'Diana', lastName: 'Prince', address1: '789 Justice Blvd', city: 'Delhi', state: 'DL', zip: '110001', country: 'India' },
-            subtotal: 399.98, taxTotal: 40.02, shippingTotal: 0.00, totalAmount: 440.00, currency: 'INR',
+            subtotal: 399.00, taxTotal: 40.02, shippingTotal: 0.00, totalAmount: 439.02, currency: 'INR',
             paymentStatus: 'refunded', fulfillmentStatus: 'returned', itemsCount: 2,
             notes: 'Customer requested cancellation.',
             riskScore: 5, riskLevel: 'low',
@@ -211,10 +364,10 @@ async function seedDummyData(tenantId, storeId) {
             tenantId, storeId, orderNumber: 'ORD-1004',
             customerName: 'Eve Adams', customerEmail: 'eve@example.com',
             items: [
-                { productId: products[3]._id, sku: 'CB-004', title: 'Organic Arabica Coffee Beans', quantity: 1, price: 18.00, total: 18.00 }
+                { productId: products[3]._id, sku: 'FURN-NS-01', title: 'Minimalist Nightstand', quantity: 1, price: 145.00, total: 145.00 }
             ],
             shippingAddress: { firstName: 'Eve', lastName: 'Adams', address1: '321 Brew St', city: 'Pune', state: 'MH', zip: '411001', country: 'India' },
-            subtotal: 18.00, taxTotal: 2.00, shippingTotal: 5.00, totalAmount: 25.00, currency: 'INR',
+            subtotal: 145.00, taxTotal: 2.00, shippingTotal: 5.00, totalAmount: 152.00, currency: 'INR',
             paymentStatus: 'paid', fulfillmentStatus: 'unfulfilled', itemsCount: 1,
             riskScore: 42, riskLevel: 'medium',
             riskIndicators: [
@@ -238,15 +391,15 @@ async function seedDummyData(tenantId, storeId) {
                 items: [
                     {
                         productId: products[1]._id,
-                        sku: 'WH-002',
-                        title: 'Wireless Noise-Canceling Headphones',
+                        sku: 'FURN-OC-01',
+                        title: 'Ergonomic Office Chair',
                         quantity: 2,
                         price: 199.99,
                         reason: 'did_not_like',
                     }
                 ],
                 status: 'received',
-                refundAmount: 399.98,
+                refundAmount: 399.00,
                 notes: 'Customer returned as they wanted a different model.',
             }
         ]);
@@ -301,9 +454,9 @@ async function seedDummyData(tenantId, storeId) {
     ]);
     console.log(`✅ ${segments.length} Customer Segments seeded.`);
     const inventoryItems = await InventoryItem_1.InventoryItem.insertMany([
-        { tenantId: tenantId, storeId: storeId, sku: 'TSH-001', locationName: 'Main Warehouse', onHand: 150, available: 140, committed: 10, status: 'in_stock' },
-        { tenantId: tenantId, storeId: storeId, sku: 'WH-002', locationName: 'Main Warehouse', onHand: 45, available: 45, committed: 0, status: 'in_stock' },
-        { tenantId: tenantId, storeId: storeId, sku: 'OC-003', locationName: 'East Coast Hub', onHand: 12, available: 2, committed: 10, status: 'low_stock' },
+        { tenantId: tenantId, storeId: storeId, sku: 'FURN-DT-01', locationName: 'Main Warehouse', onHand: 150, available: 140, committed: 10, status: 'in_stock' },
+        { tenantId: tenantId, storeId: storeId, sku: 'FURN-OC-01', locationName: 'Main Warehouse', onHand: 45, available: 45, committed: 0, status: 'in_stock' },
+        { tenantId: tenantId, storeId: storeId, sku: 'FURN-SOFA-01', locationName: 'East Coast Hub', onHand: 12, available: 2, committed: 10, status: 'low_stock' },
         { tenantId: tenantId, storeId: storeId, sku: 'LW-005', locationName: 'Main Warehouse', onHand: 0, available: 0, committed: 0, status: 'out_of_stock' },
     ]);
     console.log(`✅ ${inventoryItems.length} Inventory Items seeded.`);
@@ -407,7 +560,7 @@ async function seedDummyData(tenantId, storeId) {
                 resourceType: 'Product',
                 resourceId: 'prod-999',
                 before: {},
-                after: { title: 'Premium Cotton T-Shirt', price: 29.99, sku: 'TSH-001' },
+                after: { title: 'Modern Oak Dining Table', price: 29.99, sku: 'FURN-DT-01' },
                 ip: '127.0.0.1',
                 userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
                 createdAt: new Date(Date.now() - 3600000 * 24),

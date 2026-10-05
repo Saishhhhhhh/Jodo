@@ -148,24 +148,30 @@ class InventoryIntelligenceAiService {
             cacheByStore.set(storeId, { data: fallback, timestamp: Date.now() });
             return fallback;
         }
-        const systemPrompt = `You are an expert inventory analysis system. Analyze the provided stock data and identify risks (such as low stock and high reservations). Provide concise, clear, and actionable recommendations. Return strictly valid JSON.`;
-        const userPrompt = `Here is the current inventory data:
+        const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const systemPrompt = `You are an expert inventory analysis and predictive forecasting system for JODO, an Indian furniture manufacturing brand. Analyze the provided stock data and identify risks (such as low stock and high reservations). 
+Crucially, you MUST contextualize your analysis based on Indian customer sentiment, major upcoming Indian festivals (e.g., Diwali, Dussehra, Holi, Dhanteras), wedding seasons, and seasonal demand fluctuations relative to TODAY'S DATE. Provide concise, clear, and actionable recommendations on what to manufacture, restock, or push. Return strictly valid JSON.`;
+        const userPrompt = `TODAY'S DATE IS: ${currentDate}.
+
+Here is the current inventory data:
 ${JSON.stringify(payloadForAi, null, 2)}
+
+Based on today's date (${currentDate}), upcoming Indian festivals/seasons, and typical Indian furniture buying behaviors, analyze the inventory data. DO NOT copy the example values below. Generate REAL, highly detailed insights specific to the data provided.
 
 Return your analysis strictly as JSON matching this structure:
 {
-  "summary": "Overall inventory is healthy, but several products require attention.",
+  "summary": "<Write a 2-3 paragraph detailed summary evaluating the current state of inventory, major risks, and strategic opportunities ahead of upcoming Indian festivals. Be extremely detailed.>",
   "criticalItems": [
     {
-      "sku": "SKU",
-      "productName": "Product Name",
-      "reason": "Stock is close to the reorder level",
-      "recommendation": "Reorder inventory"
+      "sku": "<Actual SKU>",
+      "productName": "<Actual Product Name>",
+      "reason": "<Provide a highly detailed, 2-sentence reason explaining why this item is at risk (e.g., low stock, high reservations) and contextualizing it with Indian consumer demand (e.g., this dining set is highly popular during wedding season)>",
+      "recommendation": "<Provide a very specific, actionable recommendation (e.g., Immediate production of 150 units required)>"
     }
   ],
   "recommendations": [
-    "Reorder low-stock products",
-    "Review products with high reserved quantities"
+    "<Provide a highly detailed, multi-sentence strategic recommendation for operations/marketing.>",
+    "<Provide another detailed strategic recommendation.>"
   ]
 }`;
         const modelToUse = env_1.env.OPENAI_MODEL || 'gpt-4o-mini';

@@ -89,7 +89,7 @@ router.post('/:id/reset-password', async (req, res, next) => {
             await AuditLog_1.AuditLog.create({
                 tenantId: req.auth.tenantId,
                 storeId: req.auth.storeId,
-                actorUserId: req.auth.userId,
+                actorUserId: req.auth.sub,
                 actorType: 'user',
                 action: 'customer.password_reset',
                 resourceType: 'Customer',

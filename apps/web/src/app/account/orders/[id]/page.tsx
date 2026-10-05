@@ -257,6 +257,18 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         };
       });
 
+      // Convert uploaded files to base64
+      const base64Images = await Promise.all(
+        uploadedFiles.map((file) => {
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+          });
+        })
+      );
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me/orders/${order._id}/returns`, {
         method: 'POST',
         headers: {
@@ -267,6 +279,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
           items: itemsToReturn,
           issueType: selectedIssue,
           details: additionalDetails,
+          images: base64Images,
         }),
       });
 
@@ -897,19 +910,30 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   </div>
 
                   {uploadedFiles.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {uploadedFiles.map((file, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium">
-                          <span className="truncate max-w-[150px]">{file.name}</span>
-                          <button 
-                            type="button" 
-                            onClick={() => handleRemoveFile(idx)} 
-                            className="hover:text-red-500"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                    <div className="flex flex-wrap gap-3 mt-4">
+                      {uploadedFiles.map((file, idx) => {
+                        const previewUrl = URL.createObjectURL(file);
+                        return (
+                          <div key={idx} className="relative group w-20 h-20 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                            <img 
+                              src={previewUrl} 
+                              alt={`Preview ${idx + 1}`} 
+                              className="w-full h-full object-cover"
+                              onLoad={() => URL.revokeObjectURL(previewUrl)} // Clean up memory
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button 
+                                type="button" 
+                                onClick={(e) => { e.stopPropagation(); handleRemoveFile(idx); }}
+                                className="bg-white/20 hover:bg-red-500 hover:text-white text-gray-200 p-1.5 rounded-full backdrop-blur-sm transition-colors"
+                                title="Remove Image"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

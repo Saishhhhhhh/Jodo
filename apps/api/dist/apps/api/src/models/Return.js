@@ -62,6 +62,7 @@ const returnSchema = new mongoose_1.Schema({
     },
     refundAmount: { type: Number, required: true, default: 0 },
     notes: { type: String },
+    images: { type: [String], default: [] },
 }, { timestamps: true });
 exports.Return = mongoose_1.default.models.Return || mongoose_1.default.model('Returns', returnSchema);
 //# sourceMappingURL=Return.js.map

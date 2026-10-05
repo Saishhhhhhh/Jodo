@@ -9,7 +9,6 @@ const Store_1 = require("../models/Store");
 const Order_1 = require("../models/Order");
 const Return_1 = require("../models/Return");
 const response_1 = require("../utils/response");
-const jwt_1 = require("../utils/jwt");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../config/env");
 const router = (0, express_1.Router)();
@@ -38,13 +37,14 @@ router.post('/register', async (req, res, next) => {
             passwordHash: password, // The pre-save hook will hash this!
         });
         await customer.save();
-        const token = (0, jwt_1.signAccessToken)({
+        const token = jsonwebtoken_1.default.sign({
             sub: customer._id.toString(),
-            tenantId: customer.tenantId.toString(),
-            storeId: customer.storeId.toString(),
+            tenantId: customer.tenantId?.toString() || '',
+            storeId: customer.storeId?.toString() || '',
             email: customer.email,
             name: `${customer.firstName} ${customer.lastName}`,
-        });
+            type: 'access',
+        }, env_1.env.JWT_ACCESS_SECRET, { expiresIn: '30d' });
         (0, response_1.sendSuccess)(res, { token, customer }, 'Registration successful');
     }
     catch (error) {
@@ -73,13 +73,14 @@ router.post('/login', async (req, res, next) => {
         if (!isMatch) {
             return (0, response_1.sendError)(res, 'Invalid email or password', 401);
         }
-        const token = (0, jwt_1.signAccessToken)({
+        const token = jsonwebtoken_1.default.sign({
             sub: customer._id.toString(),
-            tenantId: customer.tenantId.toString(),
-            storeId: customer.storeId.toString(),
+            tenantId: customer.tenantId?.toString() || '',
+            storeId: customer.storeId?.toString() || '',
             email: customer.email,
             name: `${customer.firstName} ${customer.lastName}`,
-        });
+            type: 'access',
+        }, env_1.env.JWT_ACCESS_SECRET, { expiresIn: '30d' });
         // Remove passwordHash from response
         customer.passwordHash = undefined;
         (0, response_1.sendSuccess)(res, { token, customer }, 'Login successful');
@@ -211,7 +212,27 @@ router.get('/me/orders', async (req, res, next) => {
         const orders = await Order_1.Order.find({ customerEmail: customer.email })
             .sort({ createdAt: -1 }) // Newest first
             .populate('items.productId', 'imageUrl');
-        (0, response_1.sendSuccess)(res, { orders }, 'Orders retrieved successfully');
+        const orderIds = orders.map((o) => o._id);
+        const orderNumbers = orders.map((o) => o.orderNumber);
+        const returns = await Return_1.Return.find({
+            $or: [
+                { orderId: { $in: orderIds } },
+                { orderNumber: { $in: orderNumbers } },
+            ],
+        });
+        const returnsByOrder = new Map();
+        returns.forEach((r) => {
+            if (r.orderId)
+                returnsByOrder.set(r.orderId.toString(), r.status);
+            if (r.orderNumber)
+                returnsByOrder.set(r.orderNumber, r.status);
+        });
+        const ordersWithReturns = orders.map((o) => {
+            const plain = o.toObject();
+            plain.returnStatus = returnsByOrder.get(o._id.toString()) || returnsByOrder.get(o.orderNumber) || null;
+            return plain;
+        });
+        (0, response_1.sendSuccess)(res, { orders: ordersWithReturns }, 'Orders retrieved successfully');
     }
     catch (error) {
         next(error);
@@ -243,7 +264,13 @@ router.get('/me/orders/:id', async (req, res, next) => {
         if (!order) {
             return (0, response_1.sendError)(res, 'Order not found', 404);
         }
-        (0, response_1.sendSuccess)(res, { order }, 'Order retrieved successfully');
+        const returnRequest = await Return_1.Return.findOne({
+            $or: [
+                { orderId: order._id },
+                { orderNumber: order.orderNumber }
+            ]
+        }).sort({ createdAt: -1 });
+        (0, response_1.sendSuccess)(res, { order, returnRequest }, 'Order retrieved successfully');
     }
     catch (error) {
         next(error);
@@ -275,9 +302,34 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
         if (!order) {
             return (0, response_1.sendError)(res, 'Order not found', 404);
         }
-        const { items, issueType, details } = req.body;
+        const { items, issueType, details, images } = req.body;
         if (!items || !Array.isArray(items) || items.length === 0) {
             return (0, response_1.sendError)(res, 'Please select at least one item having issues', 400);
+        }
+        // Handle base64 image uploads
+        const imageUrls = [];
+        if (images && Array.isArray(images)) {
+            const fs = require('fs');
+            const path = require('path');
+            const UPLOADS_DIR = path.join(__dirname, '../../public/uploads');
+            if (!fs.existsSync(UPLOADS_DIR)) {
+                fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+            }
+            for (const base64Str of images) {
+                try {
+                    const matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                    if (matches && matches.length === 3) {
+                        const data = Buffer.from(matches[2], 'base64');
+                        const uniqueFilename = `return-${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`;
+                        const filePath = path.join(UPLOADS_DIR, uniqueFilename);
+                        fs.writeFileSync(filePath, data);
+                        imageUrls.push(`/uploads/${uniqueFilename}`);
+                    }
+                }
+                catch (e) {
+                    console.error('Failed to process base64 image on return', e);
+                }
+            }
         }
         const returnObj = new Return_1.Return({
             tenantId: order.tenantId,
@@ -296,9 +348,12 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
             })),
             refundAmount: order.totalAmount || 0,
             notes: `[Issue Type: ${issueType || 'Standard Return'}] ${details || ''}`.trim(),
+            images: imageUrls,
             status: 'requested',
         });
         await returnObj.save();
+        order.fulfillmentStatus = 'returned';
+        await order.save();
         (0, response_1.sendSuccess)(res, { return: returnObj }, 'Return request submitted successfully', 201);
     }
     catch (error) {

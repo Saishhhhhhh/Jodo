@@ -51,7 +51,7 @@ router.get('/:id', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
     try {
-        const { orderId, items, refundAmount, notes } = req.body;
+        const { orderId, items, refundAmount, notes, images } = req.body;
         if (!orderId || !items || !Array.isArray(items) || items.length === 0) {
             return (0, response_1.sendError)(res, 'Order ID and returned items are required', 400);
         }
@@ -73,6 +73,7 @@ router.post('/', async (req, res, next) => {
             items,
             refundAmount: refundAmount || 0,
             notes,
+            images: Array.isArray(images) ? images : [],
             status: 'requested',
         });
         await returnObj.save();
@@ -105,17 +106,23 @@ router.put('/:id', async (req, res, next) => {
         if (notes !== undefined)
             returnObj.notes = notes;
         await returnObj.save();
-        // If the return is successfully refunded, transition the associated order's payment status to refunded
-        if (status === 'refunded') {
-            const order = await Order_1.Order.findOne({
-                _id: returnObj.orderId,
-                tenantId: req.auth.tenantId,
-                storeId: req.auth.storeId,
-            });
-            if (order) {
-                order.paymentStatus = 'refunded';
-                await order.save();
+        // Update associated order status
+        const order = await Order_1.Order.findOne({
+            $or: [
+                { _id: returnObj.orderId },
+                { orderNumber: returnObj.orderNumber }
+            ],
+            tenantId: req.auth.tenantId,
+            storeId: req.auth.storeId,
+        });
+        if (order) {
+            if (status === 'approved' || status === 'received' || status === 'refunded') {
+                order.fulfillmentStatus = 'returned';
             }
+            if (status === 'refunded') {
+                order.paymentStatus = 'refunded';
+            }
+            await order.save();
         }
         (0, response_1.sendSuccess)(res, returnObj, 'Return request updated successfully');
     }

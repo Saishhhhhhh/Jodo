@@ -188,6 +188,74 @@ export function ReturnDetailsSheet({ returnObj, open, onOpenChange }: ReturnDeta
             </div>
           )}
 
+          {/* Attachments / Images */}
+          {returnObj.images && returnObj.images.length > 0 && (
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Attached Images</h4>
+              <div className="flex gap-3 flex-wrap">
+                {returnObj.images.map((img: string, idx: number) => {
+                  const getImageUrl = (url: string) => {
+                    if (url.startsWith('http')) return url;
+                    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+                    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+                  };
+                  const fullUrl = getImageUrl(img);
+                  
+                  return (
+                    <div key={idx} className="relative group block overflow-hidden rounded-xl border border-zinc-800 shadow-sm hover:border-primary transition-all h-24 w-24 bg-muted/50">
+                      <a 
+                        href={fullUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="block h-full w-full"
+                      >
+                        <img 
+                          src={fullUrl} 
+                          alt={`Attachment ${idx + 1}`} 
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </a>
+                      
+                      {/* Download Button Overlay */}
+                      <a 
+                        href={fullUrl}
+                        download={`return-attachment-${idx + 1}`}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200"
+                        title="Download Image"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Fetch and force download since it's likely cross-origin
+                          fetch(fullUrl)
+                            .then(res => res.blob())
+                            .then(blob => {
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.style.display = 'none';
+                              a.href = url;
+                              a.download = `return-attachment-${idx + 1}`;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                            })
+                            .catch(console.error);
+                        }}
+                      >
+                        <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm hover:bg-white/40 transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                          </svg>
+                        </div>
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground">Click image to view, or hover to download</p>
+            </div>
+          )}
+
           {/* Moderate workflow actions block */}
           {returnObj.status !== 'refunded' && returnObj.status !== 'rejected' && (
             <div className="pt-2">

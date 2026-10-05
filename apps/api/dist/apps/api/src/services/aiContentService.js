@@ -272,6 +272,52 @@ Return this exact JSON (fill ALL channels):
   }
 }`;
 }
+function buildReportPrompt(input, tone) {
+    const data = input.reportData || {};
+    return `You are a business intelligence assistant for JODO, an Indian furniture manufacturing brand.
+Generate a comprehensive, highly detailed executive summary covering all key business areas.
+Do NOT use emojis. Tone: ${tone}.
+
+METRICS DATA:
+${JSON.stringify(data, null, 2)}
+
+You must provide an explicit Daily Summary, Weekly Summary, and Detailed Itemized Lists for EACH of the following exactly 7 areas:
+1. Sales (Mention specific recent order details, products sold, and customers if available in daily.recentOrderDetails)
+2. Leads (Mention specific new lead names and notes if available in daily.recentLeadDetails)
+3. Inventory (Daily = Current Status, Weekly = Overall Trend/Status. Mention exact names and stock of lowStockDetails)
+4. Quotations
+5. Orders
+6. Support Cases
+7. Pending Follow-ups (Daily = Action needed today, Weekly = Backlog status. Mention names from pendingFollowUpNames if available)
+
+Analyze the numbers provided. If a number is 0, mention that there was no activity or no items require attention in that category. Return empty arrays for details if no items exist.
+
+Return ONLY valid JSON in this exact format. Ensure dailyDetails and weeklyDetails are arrays of STRINGS, not objects.
+{
+  "summaryTitle": "Executive Performance Report",
+  "executiveSummary": "A strong opening paragraph summarizing overall business health and the most critical metric.",
+  "metricsBreakdown": [
+    { 
+      "metric": "Sales", 
+      "attentionScore": 85,
+      "dailySummary": "Detailed paragraph about today's sales.", 
+      "dailyDetails": ["Order #1 (Priya Patel): ₹30,000 - 2x Ergonomic Office Chair"], 
+      "weeklySummary": "Detailed paragraph about this week's sales.",
+      "weeklyDetails": []
+    },
+    { "metric": "Leads", "attentionScore": 20, "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Inventory", "attentionScore": 90, "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Quotations", "attentionScore": 0, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Orders", "attentionScore": 50, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Support Cases", "attentionScore": 0, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Pending Follow-ups", "attentionScore": 75, "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] }
+  ],
+  "actionItems": [
+    "Clear, professional action item 1",
+    "Clear, professional action item 2"
+  ]
+}`;
+}
 function buildRegeneratePrompt(currentContent, input, instruction) {
     return `You are refining existing JODO AI-generated content based on a reviewer instruction.
 
@@ -293,6 +339,13 @@ class AiContentService {
     static assessQuality(content, input) {
         const flags = [];
         let score = 96;
+        if (input.contentType === 'report_digest') {
+            return {
+                score,
+                checks: { grammar: true, brandTone: true, seo: true, productAccuracy: true, duplicateRisk: 'Low', unsupportedClaimsCount: 0 },
+                flags
+            };
+        }
         if (input.contentType !== 'campaign_content' && input.product) {
             if (!input.product.material) {
                 flags.push('Material not specified in CMS — omitted from copy to avoid hallucination.');
@@ -429,6 +482,9 @@ class AiContentService {
             case 'campaign_content':
                 userPrompt = buildCampaignPrompt(input, tone);
                 break;
+            case 'report_digest':
+                userPrompt = buildReportPrompt(input, tone);
+                break;
         }
         const completion = await client.chat.completions.create({
             model: env_1.env.OPENAI_MODEL || 'gpt-4o-mini',
@@ -473,6 +529,8 @@ class AiContentService {
                 return this.templateListingCopy(input, tone, length);
             case 'campaign_content':
                 return this.templateCampaignContent(input, tone);
+            case 'report_digest':
+                return this.templateReportDigest(input, tone);
             default:
                 return {};
         }
@@ -690,6 +748,26 @@ class AiContentService {
             sms: {
                 text: `JODO VIP: Elevate your home with the ${campaignName}! Enjoy ${offerText} on our finest pieces. Shop: https://jodo.store T&C apply.`,
             },
+        };
+    }
+    static templateReportDigest(input, tone) {
+        const data = input.reportData || { daily: {}, weekly: {}, current: {} };
+        return {
+            summaryTitle: "Executive Performance Report",
+            executiveSummary: `Overall business health remains stable. Today generated ${data.daily?.revenue || 0} in revenue from ${data.daily?.orders || 0} orders.`,
+            metricsBreakdown: [
+                { metric: "Sales", attentionScore: 50, dailySummary: `Today's revenue is ${data.daily?.revenue || 0}.`, dailyDetails: [], weeklySummary: `This week's revenue is ${data.weekly?.revenue || 0}.`, weeklyDetails: [] },
+                { metric: "Leads", attentionScore: 50, dailySummary: `Acquired ${data.daily?.newLeads || 0} leads today.`, dailyDetails: [], weeklySummary: `Acquired ${data.weekly?.newLeads || 0} leads this week.`, weeklyDetails: [] },
+                { metric: "Inventory", attentionScore: 50, dailySummary: `Currently ${data.current?.lowStockItemsCount || 0} items are low on stock.`, dailyDetails: [], weeklySummary: `Stock levels remain stable overall.`, weeklyDetails: [] },
+                { metric: "Quotations", attentionScore: 50, dailySummary: `Sent ${data.daily?.quotationsSent || 0} quotations today.`, dailyDetails: [], weeklySummary: `Sent ${data.weekly?.quotationsSent || 0} quotations this week.`, weeklyDetails: [] },
+                { metric: "Orders", attentionScore: 50, dailySummary: `Received ${data.daily?.orders || 0} orders today.`, dailyDetails: [], weeklySummary: `Received ${data.weekly?.orders || 0} orders this week.`, weeklyDetails: [] },
+                { metric: "Support Cases", attentionScore: 50, dailySummary: `Opened ${data.daily?.supportCasesOpened || 0} cases today.`, dailyDetails: [], weeklySummary: `Opened ${data.weekly?.supportCasesOpened || 0} cases this week.`, weeklyDetails: [] },
+                { metric: "Pending Follow-ups", attentionScore: 50, dailySummary: `${data.current?.pendingFollowUpsCount || 0} high-priority follow-ups are pending action today.`, dailyDetails: [], weeklySummary: `Follow-up backlog is being managed.`, weeklyDetails: [] }
+            ],
+            actionItems: [
+                `Follow up with ${data.current?.pendingFollowUpsCount || 0} high-priority leads.`,
+                `Review the ${data.current?.lowStockItemsCount || 0} low stock inventory items.`
+            ]
         };
     }
 }

@@ -55,7 +55,7 @@ router.get('/:id', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
   try {
-    const { orderId, items, refundAmount, notes } = req.body;
+    const { orderId, items, refundAmount, notes, images } = req.body;
 
     if (!orderId || !items || !Array.isArray(items) || items.length === 0) {
       return sendError(res, 'Order ID and returned items are required', 400);
@@ -81,6 +81,7 @@ router.post('/', async (req, res, next) => {
       items,
       refundAmount: refundAmount || 0,
       notes,
+      images: Array.isArray(images) ? images : [],
       status: 'requested',
     });
 

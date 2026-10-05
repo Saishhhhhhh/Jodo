@@ -346,10 +346,36 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
       return sendError(res, 'Order not found', 404);
     }
 
-    const { items, issueType, details } = req.body;
+    const { items, issueType, details, images } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return sendError(res, 'Please select at least one item having issues', 400);
+    }
+
+    // Handle base64 image uploads
+    const imageUrls: string[] = [];
+    if (images && Array.isArray(images)) {
+      const fs = require('fs');
+      const path = require('path');
+      const UPLOADS_DIR = path.join(__dirname, '../../public/uploads');
+      if (!fs.existsSync(UPLOADS_DIR)) {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      }
+
+      for (const base64Str of images) {
+        try {
+          const matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const data = Buffer.from(matches[2], 'base64');
+            const uniqueFilename = `return-${Date.now()}-${Math.floor(Math.random() * 1000)}.jpg`;
+            const filePath = path.join(UPLOADS_DIR, uniqueFilename);
+            fs.writeFileSync(filePath, data);
+            imageUrls.push(`/uploads/${uniqueFilename}`);
+          }
+        } catch (e) {
+          console.error('Failed to process base64 image on return', e);
+        }
+      }
     }
 
     const returnObj = new Return({
@@ -369,6 +395,7 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
       })),
       refundAmount: order.totalAmount || 0,
       notes: `[Issue Type: ${issueType || 'Standard Return'}] ${details || ''}`.trim(),
+      images: imageUrls,
       status: 'requested',
     });
 

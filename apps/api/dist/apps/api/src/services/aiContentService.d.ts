@@ -1,5 +1,5 @@
 export interface GenerateContentInput {
-    contentType: 'product_description' | 'catalogue_content' | 'listing_copy' | 'campaign_content';
+    contentType: 'product_description' | 'catalogue_content' | 'listing_copy' | 'campaign_content' | 'report_digest';
     product?: {
         id?: string;
         title: string;
@@ -33,6 +33,7 @@ export interface GenerateContentInput {
         objective?: string;
         products?: string[];
     };
+    reportData?: any;
     channel?: string;
     tone?: string;
     length?: 'Short' | 'Medium' | 'Detailed';
@@ -72,4 +73,5 @@ export declare class AiContentService {
     private static templateCatalogueContent;
     private static templateListingCopy;
     private static templateCampaignContent;
+    private static templateReportDigest;
 }

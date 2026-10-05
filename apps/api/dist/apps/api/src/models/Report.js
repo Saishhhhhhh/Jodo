@@ -16,6 +16,7 @@ const reportSchema = new mongoose_1.default.Schema({
     },
     status: { type: String, enum: ['generating', 'completed', 'failed'], default: 'completed' },
     data: { type: mongoose_1.default.Schema.Types.Mixed },
+    aiSummary: { type: mongoose_1.default.Schema.Types.Mixed },
     downloadUrl: { type: String },
     createdAt: { type: Date, default: Date.now }
 });
