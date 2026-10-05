@@ -201,13 +201,17 @@ export class InventoryIntelligenceAiService {
       return fallback;
     }
 
-    const systemPrompt = `You are an expert inventory analysis and predictive forecasting system for JODO, an Indian furniture manufacturing brand. Analyze the provided stock data and identify risks (such as low stock and high reservations). 
-Crucially, you MUST contextualize your analysis based on Indian customer sentiment, major upcoming Indian festivals (e.g., Diwali, Dussehra, Holi, Dhanteras), wedding seasons, and seasonal demand fluctuations. Provide concise, clear, and actionable recommendations on what to manufacture, restock, or push. Return strictly valid JSON.`;
+    const currentDate = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    const userPrompt = `Here is the current inventory data:
+    const systemPrompt = `You are an expert inventory analysis and predictive forecasting system for JODO, an Indian furniture manufacturing brand. Analyze the provided stock data and identify risks (such as low stock and high reservations). 
+Crucially, you MUST contextualize your analysis based on Indian customer sentiment, major upcoming Indian festivals (e.g., Diwali, Dussehra, Holi, Dhanteras), wedding seasons, and seasonal demand fluctuations relative to TODAY'S DATE. Provide concise, clear, and actionable recommendations on what to manufacture, restock, or push. Return strictly valid JSON.`;
+
+    const userPrompt = `TODAY'S DATE IS: ${currentDate}.
+
+Here is the current inventory data:
 ${JSON.stringify(payloadForAi, null, 2)}
 
-Based on the current date, upcoming Indian festivals/seasons, and typical Indian furniture buying behaviors, analyze the inventory data. DO NOT copy the example values below. Generate REAL, highly detailed insights specific to the data provided.
+Based on today's date (${currentDate}), upcoming Indian festivals/seasons, and typical Indian furniture buying behaviors, analyze the inventory data. DO NOT copy the example values below. Generate REAL, highly detailed insights specific to the data provided.
 
 Return your analysis strictly as JSON matching this structure:
 {
