@@ -52,6 +52,12 @@ router.get('/digest', async (req: Request, res: Response, next) => {
     const dailyRevenue = dailyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
     const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
+    const recentOrderDetails = dailyOrders.map(o => ({
+      customer: o.customerName || 'Unknown',
+      revenue: o.totalAmount,
+      items: o.items.map(i => `${i.quantity}x ${i.title}`).join(', ')
+    }));
+
     // 2. Leads & Follow-ups
     const leads = await Lead.find({ tenantId, storeId });
     
@@ -62,15 +68,27 @@ router.get('/digest', async (req: Request, res: Response, next) => {
       l.followUpPriority === 'High' && 
       l.status !== 'Won' && 
       l.status !== 'Lost'
-    ).length;
+    );
+
+    const recentLeadDetails = dailyLeads.map(l => ({
+      name: l.name,
+      source: l.source,
+      notes: l.notes || 'No notes'
+    }));
 
     // 3. Inventory
-    const lowStockCount = await Product.countDocuments({
+    const lowStockProducts = await Product.find({
       tenantId,
       storeId,
       status: 'active',
       inventoryQuantity: { $lte: 15 } // Using 15 as standard fallback threshold
     });
+
+    const lowStockDetails = lowStockProducts.map(p => ({
+      name: p.title,
+      quantity: p.inventoryQuantity,
+      sku: p.sku
+    }));
 
     // 4. Quotations & Support Cases (Stubbed for now as they are not implemented in core schema yet)
     const quotations = { daily: 0, weekly: 0, pending: 0 };
@@ -82,7 +100,9 @@ router.get('/digest', async (req: Request, res: Response, next) => {
         orders: dailyOrders.length,
         newLeads: dailyLeads.length,
         quotationsSent: quotations.daily,
-        supportCasesOpened: supportCases.daily
+        supportCasesOpened: supportCases.daily,
+        recentOrderDetails,
+        recentLeadDetails
       },
       weekly: {
         revenue: weeklyRevenue,
@@ -92,8 +112,10 @@ router.get('/digest', async (req: Request, res: Response, next) => {
         supportCasesOpened: supportCases.weekly
       },
       current: {
-        pendingFollowUps,
-        lowStockItems: lowStockCount,
+        pendingFollowUpsCount: pendingFollowUps.length,
+        pendingFollowUpNames: pendingFollowUps.map(l => l.name).slice(0, 5),
+        lowStockItemsCount: lowStockProducts.length,
+        lowStockDetails,
         openSupportCases: supportCases.open,
         pendingQuotations: quotations.pending
       }

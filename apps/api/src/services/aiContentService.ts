@@ -354,13 +354,13 @@ METRICS DATA:
 ${JSON.stringify(data, null, 2)}
 
 You must provide an explicit Daily Summary and Weekly Summary for EACH of the following exactly 7 areas:
-1. Sales
-2. Leads
-3. Inventory (For current state metrics like this, Daily = Current Status, Weekly = Overall Trend/Status)
+1. Sales (Mention specific recent order details, products sold, and customers if available in daily.recentOrderDetails)
+2. Leads (Mention specific new lead names and notes if available in daily.recentLeadDetails)
+3. Inventory (Daily = Current Status, Weekly = Overall Trend/Status. Mention exact names and stock of lowStockDetails)
 4. Quotations
 5. Orders
 6. Support Cases
-7. Pending Follow-ups (Daily = Action needed today, Weekly = Backlog status)
+7. Pending Follow-ups (Daily = Action needed today, Weekly = Backlog status. Mention names from pendingFollowUpNames if available)
 
 Analyze the numbers provided. If a number is 0, mention that there was no activity or no items require attention in that category.
 
