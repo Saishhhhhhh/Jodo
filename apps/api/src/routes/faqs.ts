@@ -1,0 +1,77 @@
+import { Router } from 'express';
+import { FAQ } from '../models/FAQ';
+import { requireAuth } from '../middleware/auth';
+import { sendSuccess, sendError } from '../utils/response';
+
+const router = Router();
+
+router.use(requireAuth);
+
+router.get('/', async (req, res, next) => {
+  try {
+    const filter: any = {};
+    if (req.query.category && req.query.category !== 'All') {
+      filter.category = req.query.category;
+    }
+    const faqs = await FAQ.find(filter).sort({ order: 1, createdAt: -1 });
+    sendSuccess(res, faqs);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:id', async (req, res, next) => {
+  try {
+    const faq = await FAQ.findById(req.params.id);
+    if (!faq) return sendError(res, 'FAQ not found', 404);
+    sendSuccess(res, faq);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/', async (req, res, next) => {
+  try {
+    const { question, answer, category, order, status } = req.body;
+    if (!question || !answer) {
+      return sendError(res, 'Question and Answer are required', 400);
+    }
+    const faq = new FAQ({
+      question,
+      answer,
+      category: category || 'Orders & Delivery',
+      order: order !== undefined ? Number(order) : 0,
+      status: status || 'active',
+    });
+    await faq.save();
+    sendSuccess(res, faq, 'FAQ created successfully', 201);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const faq = await FAQ.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!faq) return sendError(res, 'FAQ not found', 404);
+    sendSuccess(res, faq, 'FAQ updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const faq = await FAQ.findByIdAndDelete(req.params.id);
+    if (!faq) return sendError(res, 'FAQ not found', 404);
+    sendSuccess(res, null, 'FAQ deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;

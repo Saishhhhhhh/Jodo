@@ -262,6 +262,22 @@ export const navigationApi = {
   delete: (id: string) => apiClient.delete(`/admin/navigation/${id}`),
 };
 
+export const faqsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/faqs', { params }),
+  get: (id: string) => apiClient.get(`/admin/faqs/${id}`),
+  create: (data: any) => apiClient.post('/admin/faqs', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/faqs/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/faqs/${id}`),
+};
+
+export const blogsApi = {
+  list: (params?: Record<string, unknown>) => apiClient.get('/admin/blogs', { params }),
+  get: (id: string) => apiClient.get(`/admin/blogs/${id}`),
+  create: (data: any) => apiClient.post('/admin/blogs', data),
+  update: (id: string, data: any) => apiClient.put(`/admin/blogs/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/admin/blogs/${id}`),
+};
+
 export const reportsApi = {
   getDigest: () => apiClient.get('/admin/reports/digest'),
   sendDigest: (targetPhone: string) => apiClient.post('/admin/reports/send-digest', { targetPhone }),

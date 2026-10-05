@@ -13,11 +13,24 @@ import { useCustomerStore } from '../store/useCustomerStore';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { usePathname } from 'next/navigation';
 
+const DEFAULT_HEADER_MENU = [
+  { label: 'Furniture', url: '/shop' },
+  { label: 'Sofas & Seating', url: '/shop?category=sofas' },
+  { label: 'Mattresses', url: '/shop?category=mattresses' },
+  { label: 'Home Decor', url: '/shop?category=decor' },
+  { label: 'Explore Collections', url: '/collections' },
+  { label: 'Shop All', url: '/shop' },
+  { label: 'FAQs', url: '/faqs' },
+  { label: 'Blog', url: '/blog' },
+  { label: 'Our Story', url: '/about' },
+  { label: 'Contact Us', url: '/contact' },
+];
+
 export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState<{ label: string, url: string }[]>([]);
+  const [menuItems, setMenuItems] = useState<{ label: string, url: string }[]>(DEFAULT_HEADER_MENU);
   const cartCount = useCartStore((state) => state.cartCount());
   const wishlistCount = useWishlistStore((state) => state.wishlistCount());
   const pathname = usePathname();

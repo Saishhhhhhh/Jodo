@@ -194,9 +194,10 @@ export const NAV_ITEMS: NavItem[] = [
     icon: FileText,
     children: [
       { label: 'Banners', href: '/banners', icon: ImageIcon },
+      { label: 'Blog Posts', href: '/blog', icon: BookOpen },
+      { label: 'FAQs', href: '/faqs', icon: HelpCircle },
       { label: 'Media Library', href: '/media', icon: ImageIcon },
       { label: 'Navigation', href: '/navigation', icon: Navigation },
-
     ],
   },
 

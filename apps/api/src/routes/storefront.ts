@@ -9,6 +9,8 @@ import { Customer } from '../models/Customer';
 import { Notification } from '../models/Notification';
 import { AuditLog } from '../models/AuditLog';
 import { FulfilmentReadiness } from '../models/FulfilmentReadiness';
+import { FAQ } from '../models/FAQ';
+import { BlogPost } from '../models/BlogPost';
 import { sendSuccess, sendError } from '../utils/response';
 import { RazorpayService } from '../services/razorpay';
 
@@ -199,6 +201,59 @@ router.get('/navigation/:handle', async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Menu not found' });
     }
     sendSuccess(res, menu);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/faqs', async (req, res, next) => {
+  try {
+    const { category, q } = req.query;
+    const filter: any = { status: 'active' };
+    if (category && category !== 'all') {
+      filter.category = category;
+    }
+    if (q && typeof q === 'string' && q.trim()) {
+      filter.$or = [
+        { question: { $regex: q.trim(), $options: 'i' } },
+        { answer: { $regex: q.trim(), $options: 'i' } },
+      ];
+    }
+    const faqs = await FAQ.find(filter).sort({ order: 1, createdAt: 1 });
+    sendSuccess(res, faqs);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/blogs', async (req, res, next) => {
+  try {
+    const { category, q } = req.query;
+    const filter: any = { status: 'published' };
+    if (category && category !== 'all' && category !== 'All Stories') {
+      filter.category = category;
+    }
+    if (q && typeof q === 'string' && q.trim()) {
+      filter.$or = [
+        { title: { $regex: q.trim(), $options: 'i' } },
+        { excerpt: { $regex: q.trim(), $options: 'i' } },
+        { content: { $regex: q.trim(), $options: 'i' } },
+      ];
+    }
+    const blogs = await BlogPost.find(filter).sort({ featured: -1, publishedAt: -1 });
+    sendSuccess(res, blogs);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/blogs/:slug', async (req, res, next) => {
+  try {
+    const blog = await BlogPost.findOne({ slug: req.params.slug, status: 'published' });
+    if (!blog) {
+      return res.status(404).json({ success: false, message: 'Blog post not found' });
+    }
+    sendSuccess(res, blog);
   } catch (error) {
     next(error);
   }
