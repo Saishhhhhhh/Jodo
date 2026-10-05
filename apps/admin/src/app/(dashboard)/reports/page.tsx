@@ -275,7 +275,7 @@ export default function ReportsPage() {
               {aiSummary?.metricsBreakdown ? (
                 <ChartContainer
                   config={chartConfig}
-                  className="mx-auto aspect-square max-h-[300px] w-full"
+                  className="mx-auto aspect-square max-h-[400px] pb-6 w-full"
                 >
                   <PieChart>
                     <ChartTooltip
@@ -295,7 +295,9 @@ export default function ReportsPage() {
                       }}
                       className="cursor-pointer"
                     />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartLegend 
+                      content={<ChartLegendContent className="flex-wrap gap-2 pt-6 justify-center" />} 
+                    />
                   </PieChart>
                 </ChartContainer>
               ) : (
