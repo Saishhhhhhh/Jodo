@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   inventoryIntelligenceApi, 
   getImageUrl 
@@ -47,6 +47,7 @@ export default function InventoryIntelligencePage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('all');
   const [stockStatusFilter, setStockStatusFilter] = useState('all');
+  const [aiInsights, setAiInsights] = useState<any>(null);
   
   const [activeFilters, setActiveFilters] = useState({ category: 'all', location: 'all', status: 'all' });
   
@@ -97,6 +98,29 @@ export default function InventoryIntelligencePage() {
       const res = await inventoryIntelligenceApi.stockMovements(activeFilters);
       return res.data.data;
     },
+  });
+
+  const { data: initialAiAnalysis } = useQuery({
+    queryKey: ['inventory-intelligence-ai-analysis'],
+    queryFn: async () => {
+      const res = await inventoryIntelligenceApi.aiAnalysis();
+      if (res.data.data) {
+        setAiInsights(res.data.data);
+      }
+      return res.data.data;
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: () => inventoryIntelligenceApi.generateAiAnalysis(),
+    onSuccess: (res) => {
+      setAiInsights(res.data.data);
+      toast.success('AI Festive & Seasonal Analysis Generated successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to generate AI analysis.');
+    }
   });
 
   const handleRefresh = () => {
@@ -255,6 +279,70 @@ export default function InventoryIntelligencePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* AI Inventory Insights */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
+          <div>
+            <h3 className="font-semibold text-lg text-purple-700 dark:text-purple-400">Festive & Seasonal AI Forecasting</h3>
+            <p className="text-sm text-muted-foreground">Generate predictive inventory insights tailored for upcoming Indian festivals and demand trends.</p>
+          </div>
+          <Button 
+            onClick={() => aiMutation.mutate()} 
+            disabled={aiMutation.isPending}
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+          >
+            {aiMutation.isPending ? 'Analyzing...' : 'Generate AI Forecasting'}
+          </Button>
+        </div>
+
+        {aiInsights && (
+          <Card className="border-purple-500/30 shadow-md bg-gradient-to-br from-purple-500/5 via-background to-background">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <CardTitle className="text-xl flex items-center gap-2 text-purple-700 dark:text-purple-400">
+                <TrendingUp className="w-5 h-5" />
+                AI Strategic Insights
+              </CardTitle>
+              <CardDescription className="text-base text-foreground/90 mt-2 font-medium">
+                {aiInsights.summary}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              {aiInsights.criticalItems && aiInsights.criticalItems.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-bold text-destructive uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Critical Action Required
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {aiInsights.criticalItems.map((item: any, idx: number) => (
+                      <div key={idx} className="border border-destructive/30 bg-destructive/5 rounded-lg p-4">
+                        <p className="font-semibold text-sm mb-1">{item.productName}</p>
+                        <p className="text-xs text-muted-foreground mb-3 font-mono">{item.sku}</p>
+                        <p className="text-sm mb-2 text-destructive/90"><strong>Risk:</strong> {item.reason}</p>
+                        <p className="text-sm font-medium text-foreground"><strong>Action:</strong> {item.recommendation}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {aiInsights.recommendations && aiInsights.recommendations.length > 0 && (
+                <div className="pt-4 border-t border-border/50">
+                  <h4 className="text-sm font-bold text-primary uppercase tracking-widest mb-3">
+                    Strategic Recommendations
+                  </h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {aiInsights.recommendations.map((rec: string, idx: number) => (
+                      <li key={idx} className="text-sm text-foreground/80">{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

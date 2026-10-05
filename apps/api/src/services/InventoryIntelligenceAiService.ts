@@ -201,24 +201,26 @@ export class InventoryIntelligenceAiService {
       return fallback;
     }
 
-    const systemPrompt = `You are an expert inventory analysis system. Analyze the provided stock data and identify risks (such as low stock and high reservations). Provide concise, clear, and actionable recommendations. Return strictly valid JSON.`;
+    const systemPrompt = `You are an expert inventory analysis and predictive forecasting system for JODO, an Indian furniture manufacturing brand. Analyze the provided stock data and identify risks (such as low stock and high reservations). 
+Crucially, you MUST contextualize your analysis based on Indian customer sentiment, major upcoming Indian festivals (e.g., Diwali, Dussehra, Holi, Dhanteras), wedding seasons, and seasonal demand fluctuations. Provide concise, clear, and actionable recommendations on what to manufacture, restock, or push. Return strictly valid JSON.`;
 
     const userPrompt = `Here is the current inventory data:
 ${JSON.stringify(payloadForAi, null, 2)}
 
-Return your analysis strictly as JSON matching this structure:
+Based on the current date, upcoming Indian festivals/seasons, and typical Indian furniture buying behaviors, return your analysis strictly as JSON matching this structure:
 {
-  "summary": "Overall inventory is healthy, but several products require attention.",
+  "summary": "Overall inventory is healthy, but several products require attention ahead of the upcoming Diwali season.",
   "criticalItems": [
     {
       "sku": "SKU",
       "productName": "Product Name",
-      "reason": "Stock is close to the reorder level",
-      "recommendation": "Reorder inventory"
+      "reason": "Stock is critically low just as wedding season demand is peaking",
+      "recommendation": "Immediately manufacture/reorder 50 units"
     }
   ],
   "recommendations": [
     "Reorder low-stock products",
+    "Increase stock of premium living room furniture ahead of Dhanteras",
     "Review products with high reserved quantities"
   ]
 }`;
