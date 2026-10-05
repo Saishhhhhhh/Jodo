@@ -9,7 +9,6 @@ import {
   ArrowUpRight,
   Sparkles,
   Search,
-  BookOpen,
   CheckCircle2,
 } from 'lucide-react';
 
@@ -183,65 +182,58 @@ export default function BlogPage() {
   }, [blogs, activeCategory, searchQuery]);
 
   return (
-    <div className="flex flex-col gap-10 md:gap-16 pb-16 font-sans bg-white text-[#1C1A17]">
-      {/* ── 1. JODO HERO BANNER (Framed Container) ── */}
-      <section className="px-4 lg:px-6 py-0 mt-2 md:mt-4">
-        <div className="max-w-[1400px] mx-auto bg-[#FAF7F2] border border-[#EBE3D9] rounded-[24px] md:rounded-[32px] p-6 sm:p-10 md:p-14 lg:p-16 relative overflow-hidden shadow-sm">
-          {/* Subtle warm glow background */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#F5EBE0] rounded-full blur-3xl -z-0 pointer-events-none opacity-60" />
+    <div className="flex flex-col gap-10 md:gap-14 pb-16 font-sans bg-white text-[#1C1A17]">
+      {/* ── 1. CLEAN CENTERED JODO HEADER (max-w-[1440px] matching Navbar) ── */}
+      <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 pt-8 md:pt-14">
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase mb-3">
+            The Jodo Journal • Stories of Living
+          </p>
 
-          <div className="relative z-10 max-w-[840px]">
-            <div className="mb-3 md:mb-4">
-              <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase">
-                The Jodo Journal • Stories of Living
-              </p>
-            </div>
+          <h1 className="font-heading text-[#1C1A17] font-bold text-3xl sm:text-5xl lg:text-[56px] tracking-tight leading-[1.12] mb-4">
+            Furniture, rituals &amp;{' '}
+            <span className="text-terracotta italic font-serif font-light">
+              the joy of home.
+            </span>
+          </h1>
 
-            <h1 className="font-heading text-[#1C1A17] font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[56px] tracking-tight leading-[1.12] mb-4">
-              Furniture, rituals &amp;{' '}
-              <span className="text-terracotta italic font-serif font-light">
-                the joy of home.
-              </span>
-            </h1>
+          <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mx-auto mb-8 font-normal">
+            Design essays, woodworking secrets, living room inspiration, and the quiet satisfaction of making things together.
+          </p>
 
-            <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mb-8 font-normal">
-              Design essays, woodworking secrets, living room inspiration, and the quiet satisfaction of making things together.
-            </p>
-
-            {/* Embedded Journal Search Bar */}
-            <div className="w-full max-w-[500px]">
-              <div className="relative flex items-center">
-                <Search
-                  className="w-5 h-5 text-terracotta absolute left-4 pointer-events-none stroke-[2]"
-                  aria-hidden="true"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search articles, timber tips, styling..."
-                  aria-label="Search articles"
-                  className="w-full h-13 pl-12 pr-16 bg-white rounded-full border border-[#DDCFC3] text-[#1C1A17] text-sm md:text-[15px] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 shadow-sm transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    aria-label="Clear search"
-                    className="absolute right-4 text-xs font-semibold text-gray-500 hover:text-[#1C1A17] bg-[#FAF7F2] rounded-full px-2.5 py-1 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+          {/* Embedded Journal Search Bar */}
+          <div className="max-w-[560px] mx-auto">
+            <div className="relative flex items-center">
+              <Search
+                className="w-5 h-5 text-terracotta absolute left-4 pointer-events-none stroke-[2]"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search articles, timber tips, styling..."
+                aria-label="Search articles"
+                className="w-full h-13 pl-12 pr-16 bg-[#FAF7F2] rounded-full border border-[#DDCFC3] text-[#1C1A17] text-sm md:text-[15px] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 shadow-xs transition-all"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-4 text-xs font-semibold text-gray-500 hover:text-[#1C1A17] bg-white rounded-full px-2.5 py-1 transition-colors shadow-2xs"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 2. FEATURED STORY (JODO Dual-Column Editorial Card) ── */}
+      {/* ── 2. FEATURED STORY (max-w-[1440px] matching Navbar) ── */}
       {featuredPost && !searchQuery && activeCategory === 'All Stories' && (
-        <section className="max-w-[1400px] mx-auto px-5 md:px-10 w-full">
+        <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
           <div className="bg-[#FAF9F7] rounded-[28px] md:rounded-[36px] overflow-hidden border border-[#ECE6DE] shadow-sm hover:shadow-xl transition-all duration-500 group">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
               {/* Image side */}
@@ -312,8 +304,8 @@ export default function BlogPage() {
         </section>
       )}
 
-      {/* ── 3. JOURNAL ARTICLES GRID SECTION ── */}
-      <main className="max-w-[1400px] mx-auto px-5 md:px-10 w-full">
+      {/* ── 3. JOURNAL ARTICLES GRID SECTION (max-w-[1440px] matching Navbar) ── */}
+      <main className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
         {/* Category Tabs */}
         <div className="border-b border-[#ECE6DE] mb-10 md:mb-12 overflow-x-auto hide-scrollbar">
           <div className="flex items-center gap-6 md:gap-8 justify-start md:justify-center whitespace-nowrap min-w-max pb-3 px-1">
@@ -443,7 +435,7 @@ export default function BlogPage() {
           </div>
         )}
 
-        {/* ── 4. THE JODO SOCIETY NEWSLETTER (CollectionsSection Style) ── */}
+        {/* ── 4. THE JODO SOCIETY NEWSLETTER ── */}
         <section
           aria-labelledby="society-heading"
           className="mt-16 md:mt-24 bg-[#1C1A17] text-white rounded-[28px] md:rounded-[36px] p-8 sm:p-12 md:p-16 relative overflow-hidden shadow-xl"

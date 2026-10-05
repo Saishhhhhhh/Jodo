@@ -2,18 +2,15 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Search,
   ChevronDown,
   ArrowUpRight,
   Phone,
-  MessageSquare,
   Puzzle,
   PackageCheck,
   ShieldCheck,
   Wrench,
-  Sparkles,
   CheckCircle2,
 } from 'lucide-react';
 
@@ -192,112 +189,72 @@ export default function FAQsPage() {
   }, [faqs, activeCategory, searchQuery]);
 
   return (
-    <div className="flex flex-col gap-10 md:gap-16 pb-16 font-sans bg-white text-[#1C1A17]">
-      {/* ── 1. JODO HERO BANNER (Framed Container) ── */}
-      <section className="px-4 lg:px-6 py-0 mt-2 md:mt-4">
-        <div className="max-w-[1400px] mx-auto bg-[#FAF7F2] border border-[#EBE3D9] rounded-[24px] md:rounded-[32px] p-6 sm:p-10 md:p-14 lg:p-16 relative overflow-hidden shadow-sm">
-          {/* Subtle architectural warm glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#F5EBE0] rounded-full blur-3xl -z-0 pointer-events-none opacity-60" />
+    <div className="flex flex-col gap-10 md:gap-14 pb-16 font-sans bg-white text-[#1C1A17]">
+      {/* ── 1. CLEAN CENTERED JODO HEADER (max-w-[1440px] matching Navbar) ── */}
+      <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 pt-8 md:pt-14">
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-terracotta font-bold text-xs sm:text-sm tracking-widest uppercase mb-3">
+            The Joy of Together • Help Center
+          </p>
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-7 flex flex-col justify-center">
-              <div className="mb-3 md:mb-4">
-                <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase">
-                  The Joy of Together • Help &amp; Care
-                </p>
-              </div>
+          <h1 className="font-heading text-[#1C1A17] font-bold text-3xl sm:text-5xl lg:text-[56px] tracking-tight leading-[1.12] mb-4">
+            Frequently Asked{' '}
+            <span className="text-terracotta italic font-serif font-light">
+              Questions.
+            </span>
+          </h1>
 
-              <h1 className="font-heading text-[#1C1A17] font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-tight leading-[1.12] mb-4">
-                Questions about JODO?{' '}
-                <span className="text-terracotta italic font-serif font-light">
-                  We’ve got you covered.
-                </span>
-              </h1>
+          <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mx-auto mb-8 font-normal">
+            Everything you need to know about our tool-free click assembly, sustainably crafted hardwoods, flat-pack delivery, and lifetime care.
+          </p>
 
-              <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[560px] mb-6 md:mb-8 font-normal">
-                Everything you need to know about our tool-free click assembly, sustainably crafted hardwoods, flat-pack delivery, and lifetime care.
-              </p>
-
-              {/* JODO Search Bar */}
-              <div className="w-full max-w-[540px]">
-                <div className="relative flex items-center">
-                  <Search
-                    className="w-5 h-5 text-terracotta absolute left-4 pointer-events-none stroke-[2]"
-                    aria-hidden="true"
-                  />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search questions (e.g. assembly, warranty, shipping)..."
-                    aria-label="Search FAQs"
-                    className="w-full h-13 pl-12 pr-16 bg-white rounded-full border border-[#DDCFC3] text-[#1C1A17] text-sm md:text-[15px] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 shadow-sm transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      aria-label="Clear search"
-                      className="absolute right-4 text-xs font-semibold text-gray-500 hover:text-[#1C1A17] bg-[#FAF7F2] rounded-full px-2.5 py-1 transition-colors"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-
-                {/* Quick Search Chips */}
-                <div className="flex items-center gap-2 flex-wrap mt-3 pt-1">
-                  <span className="text-xs text-[#8E867E] font-medium">Popular:</span>
-                  {QUICK_SEARCH_TAGS.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setSearchQuery(tag)}
-                      className="text-xs font-medium bg-white hover:bg-terracotta hover:text-white text-[#57524C] px-3 py-1 rounded-full border border-[#E5DDD2] transition-colors shadow-2xs"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          {/* JODO Search Bar (Centered & Spacious) */}
+          <div className="max-w-[620px] mx-auto">
+            <div className="relative flex items-center">
+              <Search
+                className="w-5 h-5 text-terracotta absolute left-4 pointer-events-none stroke-[2]"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search questions (e.g. assembly, warranty, shipping)..."
+                aria-label="Search FAQs"
+                className="w-full h-13 pl-12 pr-16 bg-[#FAF7F2] rounded-full border border-[#DDCFC3] text-[#1C1A17] text-sm md:text-[15px] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 shadow-xs transition-all"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-4 text-xs font-semibold text-gray-500 hover:text-[#1C1A17] bg-white rounded-full px-2.5 py-1 transition-colors shadow-2xs"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
-            {/* Right Visual Card (JODO Signature Badge & Image) */}
-            <div className="lg:col-span-5 relative hidden sm:block">
-              <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden shadow-md border border-[#E5DDD2] group">
-                <Image
-                  src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1000&q=80"
-                  alt="JODO click together furniture"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                  unoptimized
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                {/* Floating pill badge */}
-                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-bold text-terracotta shadow-sm flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Built in Minutes</span>
-                </div>
-
-                {/* Bottom caption */}
-                <div className="absolute bottom-5 left-5 right-5 text-white">
-                  <p className="font-heading font-bold text-lg md:text-xl leading-snug">
-                    Tool-Free Click Assembly
-                  </p>
-                  <p className="text-xs md:text-sm text-white/80 mt-1">
-                    Slides and locks like a jigsaw puzzle. Designed for the moments you build together.
-                  </p>
-                </div>
-              </div>
+            {/* Quick Search Chips */}
+            <div className="flex items-center justify-center gap-2 flex-wrap mt-3 pt-1">
+              <span className="text-xs text-[#8E867E] font-medium">Popular:</span>
+              {QUICK_SEARCH_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setSearchQuery(tag)}
+                  className="text-xs font-medium bg-white hover:bg-terracotta hover:text-white text-[#57524C] px-3.5 py-1 rounded-full border border-[#E5DDD2] transition-colors shadow-2xs"
+                >
+                  {tag}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 2. QUICK TOPIC CARDS (FeaturesBar Style) ── */}
-      <section className="max-w-[1400px] mx-auto px-5 md:px-10 w-full">
+      {/* ── 2. QUICK TOPIC CARDS (max-w-[1440px] matching Navbar) ── */}
+      <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {TOPIC_CARDS.map(({ icon: Icon, title, category, desc }) => {
             const isSelected = activeCategory === category;
@@ -344,191 +301,193 @@ export default function FAQsPage() {
         </div>
       </section>
 
-      {/* ── 3. MAIN FAQ ACCORDION SECTION ── */}
-      <main id="faqs-list" className="max-w-[1040px] mx-auto px-5 md:px-10 w-full pt-4">
-        {/* Category Tabs */}
-        <div className="border-b border-[#ECE6DE] mb-8 md:mb-12 overflow-x-auto hide-scrollbar">
-          <div className="flex items-center gap-6 md:gap-8 justify-start md:justify-center whitespace-nowrap min-w-max pb-3 px-1">
-            {CATEGORIES.map((category) => {
-              const isActive = activeCategory === category;
-              const count =
-                category === 'All'
-                  ? faqs.length
-                  : faqs.filter((f) => f.category === category).length;
+      {/* ── 3. MAIN FAQ ACCORDION SECTION (max-w-[1440px] matching Navbar) ── */}
+      <main id="faqs-list" className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 pt-2">
+        <div className="max-w-[1040px] mx-auto">
+          {/* Category Tabs */}
+          <div className="border-b border-[#ECE6DE] mb-8 md:mb-12 overflow-x-auto hide-scrollbar">
+            <div className="flex items-center gap-6 md:gap-8 justify-start md:justify-center whitespace-nowrap min-w-max pb-3 px-1">
+              {CATEGORIES.map((category) => {
+                const isActive = activeCategory === category;
+                const count =
+                  category === 'All'
+                    ? faqs.length
+                    : faqs.filter((f) => f.category === category).length;
 
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveCategory(category)}
-                  className={`relative text-sm md:text-[15px] font-semibold pb-2 transition-colors flex items-center gap-2 ${
-                    isActive
-                      ? 'text-terracotta font-bold'
-                      : 'text-[#666666] hover:text-[#1C1A17]'
-                  }`}
-                >
-                  <span>{category}</span>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                      isActive
-                        ? 'bg-terracotta/10 text-terracotta'
-                        : 'bg-[#FAF7F2] text-[#8E867E]'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-terracotta rounded-full" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* FAQ List */}
-        {filteredFAQs.length === 0 ? (
-          <div className="text-center py-16 px-6 bg-[#FAF7F2] rounded-[24px] border border-[#E5DDD2]">
-            <p className="font-heading text-lg font-bold text-[#1C1A17] mb-2">
-              No matching questions found.
-            </p>
-            <p className="text-sm text-[#666666] mb-6 max-w-md mx-auto">
-              We couldn’t find an answer for &ldquo;{searchQuery}&rdquo;. Try another term or speak directly with our concierge.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setActiveCategory('All');
-              }}
-              className="inline-flex items-center gap-2 bg-[#1C1A17] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-terracotta transition-colors"
-            >
-              Reset Filters
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3.5">
-            {filteredFAQs.map((faq) => {
-              const isOpen = openId === faq.id;
-              const contentId = `faq-answer-${faq.id}`;
-              const buttonId = `faq-btn-${faq.id}`;
-
-              return (
-                <div
-                  key={faq.id}
-                  className={`rounded-[20px] border transition-all duration-300 overflow-hidden ${
-                    isOpen
-                      ? 'bg-[#FCF6F4] border-terracotta/30 shadow-sm'
-                      : 'bg-[#FAF9F7] border-[#ECE6DE] hover:bg-[#F4EFE8] hover:border-[#DDD0C4]'
-                  }`}
-                >
+                return (
                   <button
-                    id={buttonId}
+                    key={category}
                     type="button"
-                    aria-expanded={isOpen}
-                    aria-controls={contentId}
-                    onClick={() => toggleItem(faq.id)}
-                    className="w-full text-left py-5 px-5 sm:px-8 flex items-center justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
-                  >
-                    <span
-                      className={`font-heading text-base md:text-[17px] font-bold transition-colors ${
-                        isOpen ? 'text-[#1C1A17]' : 'text-[#1C1A17]/90'
-                      }`}
-                    >
-                      {faq.question}
-                    </span>
-                    <span
-                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isOpen
-                          ? 'bg-terracotta text-white rotate-180 shadow-xs'
-                          : 'bg-white text-[#666666] shadow-2xs'
-                      }`}
-                    >
-                      <ChevronDown className="w-4 h-4" />
-                    </span>
-                  </button>
-
-                  <div
-                    id={contentId}
-                    role="region"
-                    aria-labelledby={buttonId}
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
-                      isOpen
-                        ? 'grid-rows-[1fr] opacity-100'
-                        : 'grid-rows-[0fr] opacity-0 invisible'
+                    onClick={() => setActiveCategory(category)}
+                    className={`relative text-sm md:text-[15px] font-semibold pb-2 transition-colors flex items-center gap-2 ${
+                      isActive
+                        ? 'text-terracotta font-bold'
+                        : 'text-[#666666] hover:text-[#1C1A17]'
                     }`}
                   >
-                    <div className="overflow-hidden">
-                      <div className="px-5 sm:px-8 pb-6 pt-1 text-[14.5px] sm:text-[15.5px] leading-relaxed text-[#57524C] border-t border-[#E8DFD5]/60 font-normal">
-                        {faq.answer}
+                    <span>{category}</span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                        isActive
+                          ? 'bg-terracotta/10 text-terracotta'
+                          : 'bg-[#FAF7F2] text-[#8E867E]'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-terracotta rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* FAQ List */}
+          {filteredFAQs.length === 0 ? (
+            <div className="text-center py-16 px-6 bg-[#FAF7F2] rounded-[24px] border border-[#E5DDD2]">
+              <p className="font-heading text-lg font-bold text-[#1C1A17] mb-2">
+                No matching questions found.
+              </p>
+              <p className="text-sm text-[#666666] mb-6 max-w-md mx-auto">
+                We couldn’t find an answer for &ldquo;{searchQuery}&rdquo;. Try another term or speak directly with our concierge.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveCategory('All');
+                }}
+                className="inline-flex items-center gap-2 bg-[#1C1A17] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-terracotta transition-colors"
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {filteredFAQs.map((faq) => {
+                const isOpen = openId === faq.id;
+                const contentId = `faq-answer-${faq.id}`;
+                const buttonId = `faq-btn-${faq.id}`;
+
+                return (
+                  <div
+                    key={faq.id}
+                    className={`rounded-[20px] border transition-all duration-300 overflow-hidden ${
+                      isOpen
+                        ? 'bg-[#FCF6F4] border-terracotta/30 shadow-sm'
+                        : 'bg-[#FAF9F7] border-[#ECE6DE] hover:bg-[#F4EFE8] hover:border-[#DDD0C4]'
+                    }`}
+                  >
+                    <button
+                      id={buttonId}
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={contentId}
+                      onClick={() => toggleItem(faq.id)}
+                      className="w-full text-left py-5 px-5 sm:px-8 flex items-center justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
+                    >
+                      <span
+                        className={`font-heading text-base md:text-[17px] font-bold transition-colors ${
+                          isOpen ? 'text-[#1C1A17]' : 'text-[#1C1A17]/90'
+                        }`}
+                      >
+                        {faq.question}
+                      </span>
+                      <span
+                        className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          isOpen
+                            ? 'bg-terracotta text-white rotate-180 shadow-xs'
+                            : 'bg-white text-[#666666] shadow-2xs'
+                        }`}
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </span>
+                    </button>
+
+                    <div
+                      id={contentId}
+                      role="region"
+                      aria-labelledby={buttonId}
+                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                        isOpen
+                          ? 'grid-rows-[1fr] opacity-100'
+                          : 'grid-rows-[0fr] opacity-0 invisible'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="px-5 sm:px-8 pb-6 pt-1 text-[14.5px] sm:text-[15.5px] leading-relaxed text-[#57524C] border-t border-[#E8DFD5]/60 font-normal">
+                          {faq.answer}
+                        </div>
                       </div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── 4. CONCIERGE / ASSISTANCE BANNER ── */}
+          <section
+            aria-labelledby="concierge-heading"
+            className="mt-14 md:mt-20 bg-[#1C1A17] text-white rounded-[28px] md:rounded-[36px] p-8 sm:p-12 md:p-14 relative overflow-hidden shadow-xl"
+          >
+            {/* Terracotta atmospheric glow */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-terracotta/20 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+              <div className="max-w-xl">
+                <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase mb-2">
+                  Need Personal Assistance?
+                </p>
+                <h2
+                  id="concierge-heading"
+                  className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight tracking-tight"
+                >
+                  Still have a question about your home?
+                </h2>
+                <p className="text-white/80 text-sm md:text-base leading-relaxed font-light">
+                  Our in-house design team is ready to help with custom dimensions, timber swatches, order updates, or assembly assistance.
+                </p>
+
+                <div className="flex items-center gap-6 mt-6 text-xs text-white/70">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-terracotta" /> 5-Year Warranty
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-terracotta" /> Free Doorstep Delivery
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
 
-        {/* ── 4. CONCIERGE / ASSISTANCE BANNER (Collections / About Style) ── */}
-        <section
-          aria-labelledby="concierge-heading"
-          className="mt-14 md:mt-20 bg-[#1C1A17] text-white rounded-[28px] md:rounded-[36px] p-8 sm:p-12 md:p-14 relative overflow-hidden shadow-xl"
-        >
-          {/* Terracotta atmospheric glow */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-terracotta/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                {/* JODO Signature Button */}
+                <Link
+                  href="/contact"
+                  className="group relative inline-flex items-center gap-3 bg-terracotta text-white rounded-full px-6 py-3.5 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 justify-center whitespace-nowrap"
+                >
+                  <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out" />
+                  <span className="relative z-10 font-bold text-sm group-hover:text-[#1C1A17] transition-colors">
+                    Contact Concierge
+                  </span>
+                  <span className="relative z-10 flex items-center justify-center bg-white rounded-full w-7 h-7 group-hover:bg-[#1C1A17] transition-colors duration-500">
+                    <ArrowUpRight className="w-3.5 h-3.5 text-terracotta group-hover:text-white transition-colors duration-500" />
+                  </span>
+                </Link>
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="max-w-xl">
-              <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase mb-2">
-                Need Personal Assistance?
-              </p>
-              <h2
-                id="concierge-heading"
-                className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight tracking-tight"
-              >
-                Still have a question about your home?
-              </h2>
-              <p className="text-white/80 text-sm md:text-base leading-relaxed font-light">
-                Our in-house design team is ready to help with custom dimensions, timber swatches, order updates, or assembly assistance.
-              </p>
-
-              <div className="flex items-center gap-6 mt-6 text-xs text-white/70">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-terracotta" /> 5-Year Warranty
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-terracotta" /> Free Doorstep Delivery
-                </span>
+                {/* Secondary Call Button */}
+                <a
+                  href="tel:+918001234567"
+                  className="inline-flex items-center justify-center gap-2 border border-white/30 text-white hover:bg-white hover:text-[#1C1A17] rounded-full px-6 py-3 font-semibold text-sm transition-all duration-300 whitespace-nowrap"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>Call Us</span>
+                </a>
               </div>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-              {/* JODO Signature Button */}
-              <Link
-                href="/contact"
-                className="group relative inline-flex items-center gap-3 bg-terracotta text-white rounded-full px-6 py-3.5 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 justify-center whitespace-nowrap"
-              >
-                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out" />
-                <span className="relative z-10 font-bold text-sm group-hover:text-[#1C1A17] transition-colors">
-                  Contact Concierge
-                </span>
-                <span className="relative z-10 flex items-center justify-center bg-white rounded-full w-7 h-7 group-hover:bg-[#1C1A17] transition-colors duration-500">
-                  <ArrowUpRight className="w-3.5 h-3.5 text-terracotta group-hover:text-white transition-colors duration-500" />
-                </span>
-              </Link>
-
-              {/* Secondary Call Button */}
-              <a
-                href="tel:+918001234567"
-                className="inline-flex items-center justify-center gap-2 border border-white/30 text-white hover:bg-white hover:text-[#1C1A17] rounded-full px-6 py-3 font-semibold text-sm transition-all duration-300 whitespace-nowrap"
-              >
-                <Phone className="w-4 h-4" />
-                <span>Call Us</span>
-              </a>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
     </div>
   );
