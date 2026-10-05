@@ -14,7 +14,8 @@ import {
   FileText,
   AlertCircle,
   PieChart as PieChartIcon,
-  MousePointerClick
+  MousePointerClick,
+  Download
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -110,6 +111,33 @@ export default function ReportsPage() {
     }
   ];
 
+  const handleExportCSV = () => {
+    if (!digest) return;
+    
+    const headers = ['Metric', 'Today', 'This Week'];
+    const rows = kpis.map(kpi => [
+      `"${kpi.label}"`,
+      `"${kpi.daily.toString().replace(/,/g, '')}"`, // Clean out commas so Excel doesn't break columns
+      `"${kpi.weekly.toString().replace(/,/g, '')}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `jodo_performance_report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('CSV Exported Successfully');
+  };
+
   return (
     <div className="p-6 animate-fade-in max-w-6xl mx-auto space-y-8">
       {/* Header */}
@@ -123,6 +151,10 @@ export default function ReportsPage() {
             Automated daily and weekly summaries of your business performance.
           </p>
         </div>
+        <Button variant="outline" onClick={handleExportCSV} className="gap-2 shadow-sm border-primary/20 hover:bg-primary/5 hover:text-primary">
+          <Download className="w-4 h-4" />
+          Export CSV
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
