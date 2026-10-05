@@ -47,15 +47,10 @@ export default function TasksPage() {
   // Active tab: 'list' or 'new'
   const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
 
-  // Role simulation: allow testing as Admin/Manager vs Team Member
-  const defaultIsAdmin = currentUser?.roles?.some(r => 
+  // Derive role from actual logged-in user — no simulation toggle
+  const isAdminOrManager = currentUser?.roles?.some(r =>
     ['admin', 'owner', 'manager', 'ADMIN', 'OWNER', 'MANAGER', 'superadmin', 'SUPER_ADMIN'].includes(r)
   ) ?? true;
-  const [simulatedRole, setSimulatedRole] = useState<'admin' | 'team_member'>(
-    defaultIsAdmin ? 'admin' : 'team_member'
-  );
-
-  const isAdminOrManager = simulatedRole === 'admin';
 
   // Filters
   const [search, setSearch] = useState('');
@@ -320,34 +315,8 @@ export default function TasksPage() {
           </p>
         </div>
 
-        {/* Right side controls: Role switch, Refresh, Clear All, Create Task */}
+        {/* Right side controls: Refresh, Clear All, Create Task */}
         <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-          {/* Role simulation switcher */}
-          <div className="flex items-center bg-muted/60 p-1 rounded-lg border border-border/80 text-xs">
-            <button
-              type="button"
-              onClick={() => setSimulatedRole('admin')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                isAdminOrManager 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Admin / Manager
-            </button>
-            <button
-              type="button"
-              onClick={() => setSimulatedRole('team_member')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                !isAdminOrManager 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Team Member
-            </button>
-          </div>
-
           {/* Refresh button */}
           <Button
             variant="outline"
