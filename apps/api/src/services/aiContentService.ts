@@ -364,7 +364,7 @@ You must provide an explicit Daily Summary, Weekly Summary, and Detailed Itemize
 
 Analyze the numbers provided. If a number is 0, mention that there was no activity or no items require attention in that category. Return empty arrays for details if no items exist.
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON in this exact format. Ensure dailyDetails and weeklyDetails are arrays of STRINGS, not objects.
 {
   "summaryTitle": "Executive Performance Report",
   "executiveSummary": "A strong opening paragraph summarizing overall business health and the most critical metric.",
@@ -376,8 +376,8 @@ Return ONLY valid JSON in this exact format:
       "weeklySummary": "Detailed paragraph about this week's sales.",
       "weeklyDetails": []
     },
-    { "metric": "Leads", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
-    { "metric": "Inventory", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Leads", "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Inventory", "dailySummary": "...", "dailyDetails": ["String detail 1"], "weeklySummary": "...", "weeklyDetails": [] },
     { "metric": "Quotations", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
     { "metric": "Orders", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
     { "metric": "Support Cases", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },

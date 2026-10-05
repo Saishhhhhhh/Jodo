@@ -154,8 +154,10 @@ export default function ReportsPage() {
                             <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.dailySummary}</p>
                             {section.dailyDetails && section.dailyDetails.length > 0 && (
                               <ul className="list-disc pl-4 space-y-1">
-                                {section.dailyDetails.map((detail: string, i: number) => (
-                                  <li key={i} className="text-xs text-foreground/70">{detail}</li>
+                                {section.dailyDetails.map((detail: any, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/70">
+                                    {typeof detail === 'object' ? JSON.stringify(detail) : detail}
+                                  </li>
                                 ))}
                               </ul>
                             )}
@@ -165,8 +167,10 @@ export default function ReportsPage() {
                             <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.weeklySummary}</p>
                             {section.weeklyDetails && section.weeklyDetails.length > 0 && (
                               <ul className="list-disc pl-4 space-y-1">
-                                {section.weeklyDetails.map((detail: string, i: number) => (
-                                  <li key={i} className="text-xs text-foreground/70">{detail}</li>
+                                {section.weeklyDetails.map((detail: any, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/70">
+                                    {typeof detail === 'object' ? JSON.stringify(detail) : detail}
+                                  </li>
                                 ))}
                               </ul>
                             )}
