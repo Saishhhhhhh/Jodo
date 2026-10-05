@@ -16,9 +16,24 @@ import {
   PieChart as PieChartIcon,
   MousePointerClick
 } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart';
+import { PieChart, Pie } from 'recharts';
 
-const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e'];
+const chartConfig = {
+  Sales: { label: 'Sales', color: 'hsl(var(--chart-1))' },
+  Leads: { label: 'Leads', color: 'hsl(var(--chart-2))' },
+  Inventory: { label: 'Inventory', color: 'hsl(var(--chart-3))' },
+  Quotations: { label: 'Quotations', color: 'hsl(var(--chart-4))' },
+  Orders: { label: 'Orders', color: 'hsl(var(--chart-5))' },
+  'Support Cases': { label: 'Support Cases', color: 'hsl(var(--chart-1))' },
+  'Pending Follow-ups': { label: 'Pending Follow-ups', color: 'hsl(var(--chart-2))' },
+};
 
 export default function ReportsPage() {
   const [aiSummary, setAiSummary] = useState<any>(null);
@@ -35,6 +50,13 @@ export default function ReportsPage() {
   const generateMutation = useMutation({
     mutationFn: () => reportsApi.generateAiSummary(digest),
     onSuccess: (res) => {
+      // Add fill colors for the pie chart
+      if (res.data.data?.metricsBreakdown) {
+        res.data.data.metricsBreakdown = res.data.data.metricsBreakdown.map((item: any) => ({
+          ...item,
+          fill: (chartConfig as any)[item.metric]?.color || 'hsl(var(--chart-1))'
+        }));
+      }
       setAiSummary(res.data.data);
       if (res.data.data?.metricsBreakdown?.length > 0) {
         setSelectedMetric(res.data.data.metricsBreakdown[0]);
@@ -251,44 +273,31 @@ export default function ReportsPage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pt-8">
               {aiSummary?.metricsBreakdown ? (
-                <div className="w-full h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={aiSummary.metricsBreakdown}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="attentionScore"
-                        nameKey="metric"
-                        onClick={(data) => {
-                          setSelectedMetric(data.payload);
-                          document.getElementById(`metric-${data.payload.metric.replace(/\s+/g, '-')}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }}
-                        className="cursor-pointer outline-none"
-                      >
-                        {aiSummary.metricsBreakdown.map((entry: any, index: number) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={COLORS[index % COLORS.length]} 
-                            className="hover:opacity-80 transition-opacity stroke-background stroke-2"
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                        itemStyle={{ color: 'var(--foreground)' }}
-                        formatter={(value: number, name: string) => [`Score: ${value}`, name]}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <p className="text-center text-xs text-muted-foreground mt-4 italic">
-                    * Click any segment to view detailed insights.
-                  </p>
-                </div>
+                <ChartContainer
+                  config={chartConfig}
+                  className="mx-auto aspect-square max-h-[300px] w-full"
+                >
+                  <PieChart>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Pie
+                      data={aiSummary.metricsBreakdown}
+                      dataKey="attentionScore"
+                      nameKey="metric"
+                      innerRadius={60}
+                      paddingAngle={5}
+                      strokeWidth={2}
+                      onClick={(data) => {
+                        setSelectedMetric(data.payload);
+                        document.getElementById(`metric-${data.payload.metric.replace(/\s+/g, '-')}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+                </ChartContainer>
               ) : (
                 <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground/50 border-2 border-dashed border-muted rounded-full w-full max-w-[300px] aspect-square">
                   <PieChartIcon className="w-16 h-16 mb-4 opacity-20" />
