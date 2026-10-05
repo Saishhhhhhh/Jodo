@@ -4,6 +4,8 @@ import { InventoryItem } from '../models/InventoryItem';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { Reservation } from '../models/Reservation';
+import { StockMovement } from '../models/StockMovement';
+import { InventoryIntelligenceService } from '../services/InventoryIntelligenceService';
 import { sendSuccess, sendError } from '../utils/response';
 import { InteraktService } from '../services/interakt';
 import { User } from '../models/User';
@@ -12,6 +14,47 @@ import { Tenant } from '../models/Tenant';
 const router = Router();
 
 router.use(requireAuth);
+
+router.post('/adjust', async (req, res, next) => {
+  try {
+    const { sku, action, quantity, reason } = req.body;
+    if (!sku || !action || quantity === undefined) {
+      return sendError(res, 'SKU, action, and quantity are required', 400);
+    }
+
+    const result = await InventoryIntelligenceService.adjustStock({
+      tenantId: req.auth!.tenantId,
+      storeId: req.auth!.storeId,
+      sku: String(sku),
+      action,
+      quantity: Number(quantity),
+      reason: reason ? String(reason) : undefined,
+      userId: req.auth!.sub,
+      adminName: req.auth!.name || 'Admin',
+    });
+
+    sendSuccess(res, result, 'Stock adjusted successfully');
+  } catch (error: any) {
+    return sendError(res, error?.message || 'Failed to adjust stock', 400);
+  }
+});
+
+router.get('/:sku/history', async (req, res, next) => {
+  try {
+    const { sku } = req.params;
+    const history = await StockMovement.find({
+      storeId: req.auth!.storeId,
+      sku: sku.trim(),
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    sendSuccess(res, history);
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/intelligence', async (req, res, next) => {
   try {

@@ -31,6 +31,28 @@ interface BlogPost {
   tags?: string[];
 }
 
+// Inline markdown helper for bold and italic text
+function renderInlineMarkdown(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return (
+        <strong key={index} className="font-bold text-[#1C1A17]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return (
+        <em key={index} className="italic text-[#1C1A17]">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return part;
+  });
+}
+
 export default function BlogPostPage() {
   const params = useParams();
   const router = useRouter();
@@ -100,8 +122,8 @@ export default function BlogPostPage() {
     );
   }
 
-  // Parse markdown headings / paragraphs for clean rendering
-  const paragraphs = post.content.split('\n\n').filter(Boolean);
+  // Parse markdown headings / paragraphs / lists
+  const paragraphs = post.content ? post.content.split('\n\n').filter(Boolean) : [];
 
   return (
     <article className="min-h-screen bg-white font-sans text-[#1C1A17] pb-16">
@@ -214,8 +236,32 @@ export default function BlogPostPage() {
                   key={i}
                   className="pl-5 border-l-4 border-terracotta my-6 italic font-serif text-lg sm:text-xl text-[#1C1A17] bg-[#FAF7F2] py-4 px-5 rounded-r-[16px]"
                 >
-                  {p.replace('> ', '')}
+                  {renderInlineMarkdown(p.replace('> ', ''))}
                 </blockquote>
+              );
+            }
+            if (p.startsWith('- ') || p.startsWith('* ')) {
+              const listItems = p.split('\n').filter(Boolean);
+              return (
+                <ul key={i} className="list-disc pl-6 space-y-2 text-[#3D3A36]">
+                  {listItems.map((item, idx) => (
+                    <li key={idx}>
+                      {renderInlineMarkdown(item.replace(/^[-*]\s*/, ''))}
+                    </li>
+                  ))}
+                </ul>
+              );
+            }
+            if (/^\d+\.\s/.test(p)) {
+              const listItems = p.split('\n').filter(Boolean);
+              return (
+                <ol key={i} className="list-decimal pl-6 space-y-2 text-[#3D3A36]">
+                  {listItems.map((item, idx) => (
+                    <li key={idx}>
+                      {renderInlineMarkdown(item.replace(/^\d+\.\s*/, ''))}
+                    </li>
+                  ))}
+                </ol>
               );
             }
             return (
@@ -227,7 +273,7 @@ export default function BlogPostPage() {
                     : 'leading-relaxed'
                 }
               >
-                {p}
+                {renderInlineMarkdown(p)}
               </p>
             );
           })}

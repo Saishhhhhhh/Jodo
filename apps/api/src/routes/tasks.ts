@@ -192,20 +192,32 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const { tenantId, storeId, sub: userId } = req.auth!;
     const user = await User.findById(userId).populate('roleIds', 'name');
-    const isTeamMember = user?.roleIds?.some((r: any) => r.name === 'TEAM_MEMBER');
-    const userName = user?.name || 'Employee';
+    const roleNames = user?.roleIds?.map((r: any) => r.name?.toUpperCase()) || [];
+    const isTeamMember = roleNames.includes('TEAM_MEMBER') || roleNames.includes('EMPLOYEE');
+    const isAdminOrManager = roleNames.includes('OWNER') || roleNames.includes('ADMIN') || roleNames.includes('MANAGER');
 
+    if (isTeamMember && !isAdminOrManager) {
+      return sendError(
+        res,
+        'Team members cannot create tasks. Only administrators and project managers can create and assign tasks.',
+        403
+      );
+    }
+
+    const userName = user?.name || 'Administrator';
     const taskData = req.body;
     
-    // Determine assignedTo: if employee creates task without assigning or selects self, assign to themselves
+    // Determine assignedTo
     let assignedToId: mongoose.Types.ObjectId | undefined;
     if (taskData.assignedTo && taskData.assignedTo !== 'unassigned') {
       assignedToId = new mongoose.Types.ObjectId(taskData.assignedTo);
-    } else if (isTeamMember) {
-      assignedToId = new mongoose.Types.ObjectId(userId);
     }
 
     const remarkText = taskData.remark ? taskData.remark.trim() : '';
+
+    if (taskData.category === 'Follow-ups') taskData.category = 'Follow-up';
+    if (taskData.department === 'Follow-ups') taskData.department = 'Follow-up';
+    if (taskData.priority === 'Critical') taskData.priority = 'Urgent';
 
     const newTask = new Task({
       ...taskData,
@@ -414,12 +426,43 @@ router.patch('/:id', async (req: Request, res: Response) => {
     }
 
     // Direct updates for other simple fields
-    ['title', 'description', 'priority', 'dueDate', 'category', 'taskType', 'team'].forEach(field => {
+    [
+      'title',
+      'description',
+      'priority',
+      'dueDate',
+      'category',
+      'taskType',
+      'team',
+      'clientName',
+      'projectName',
+      'clientBrief',
+      'projectDeliverable',
+      'driveUrl',
+      'estimatedHours',
+      'isUrgent',
+      'loggedDuration',
+      'timerStartedAt',
+      'timerRunning',
+    ].forEach((field) => {
       if (updates[field] !== undefined && updates[field] !== task[field as keyof typeof task]) {
         (task as any)[field] = updates[field];
         shouldSave = true;
       }
     });
+
+    if (updates.timerRunning !== undefined && updates.timerRunning !== task.timerRunning) {
+      task.timerRunning = updates.timerRunning;
+      if (updates.timerRunning) {
+        task.timerStartedAt = new Date();
+        task.activities.push(createActivity('Started task timer', userId));
+      } else {
+        const secs = updates.loggedDuration || task.loggedDuration || 0;
+        const mins = Math.round(secs / 60);
+        task.activities.push(createActivity(`Paused timer (Total: ${mins}m logged)`, userId));
+      }
+      shouldSave = true;
+    }
 
     if (shouldSave) {
       await task.save();

@@ -33,7 +33,7 @@ const campaignSchema = z.object({
   type: z.enum(['email', 'sms', 'push', 'whatsapp']),
   status: z.enum(['draft', 'scheduled', 'active', 'completed']),
   budget: z.coerce.number().min(0).optional(),
-  startDate: z.string().min(1, 'Start date is required'),
+  startDate: z.string().optional().or(z.literal('')),
   endDate: z.string().optional().or(z.literal('')),
 });
 
@@ -186,7 +186,7 @@ export function CampaignSheet({
                   name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel>Start Date (Optional)</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>
@@ -200,7 +200,7 @@ export function CampaignSheet({
                   name="endDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Date</FormLabel>
+                      <FormLabel>End Date (Optional)</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
                       </FormControl>

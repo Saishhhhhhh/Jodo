@@ -122,17 +122,8 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Tasks',
+    href: '/tasks',
     icon: CheckSquare,
-    children: [
-      { label: 'Dashboard', href: '/tasks', icon: LayoutDashboard },
-      { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
-      { label: 'All Tasks', href: '/tasks/all-tasks', icon: FileText },
-      { label: 'Team Tasks', href: '/tasks/team-tasks', icon: Users },
-      { label: 'Overdue', href: '/tasks/overdue', icon: AlertTriangle },
-      { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
-      { label: 'Templates', href: '/tasks/templates', icon: Copy },
-      { label: 'Reports', href: '/tasks/reports', icon: BarChart3 },
-    ],
   },
   {
     label: 'CRM / Leads',
@@ -190,12 +181,20 @@ export const NAV_ITEMS: NavItem[] = [
     icon: MessageSquare,
   },
   {
+    label: 'Blog Posts',
+    href: '/blog',
+    icon: BookOpen,
+  },
+  {
+    label: 'FAQs',
+    href: '/faqs',
+    icon: HelpCircle,
+  },
+  {
     label: 'Content',
     icon: FileText,
     children: [
       { label: 'Banners', href: '/banners', icon: ImageIcon },
-      { label: 'Blog Posts', href: '/blog', icon: BookOpen },
-      { label: 'FAQs', href: '/faqs', icon: HelpCircle },
       { label: 'Media Library', href: '/media', icon: ImageIcon },
       { label: 'Navigation', href: '/navigation', icon: Navigation },
     ],
@@ -240,7 +239,7 @@ interface SidebarProps {
 export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuthStore();
-  const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders', 'Warehouse', 'AI Content']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders', 'Warehouse', 'AI Content', 'Content']);
   const [counts, setCounts] = useState<any>({});
 
   useEffect(() => {

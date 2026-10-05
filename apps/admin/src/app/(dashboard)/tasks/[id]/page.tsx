@@ -124,7 +124,7 @@ export default function TaskDetailPage() {
             <Pencil className="w-4 h-4" />
             Edit Task
           </Button>
-          <Button onClick={() => handleOpenStatusModal(task.status)} className="gap-2">
+          <Button onClick={() => handleOpenStatusModal(task.status as TaskStatus)} className="gap-2">
             <MessageSquare className="w-4 h-4" />
             Update Status & Remark
           </Button>

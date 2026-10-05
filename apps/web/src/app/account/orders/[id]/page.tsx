@@ -14,6 +14,7 @@ import {
   Lock,
   LogIn,
   Clock,
+  Package,
   PackageCheck,
   CreditCard,
   Sparkles
@@ -237,6 +238,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
     e.preventDefault();
     if (!order) return;
 
+    if (order.fulfillmentStatus !== 'fulfilled') {
+      setModalError('Return & complaint options only open after you have received your product.');
+      return;
+    }
+
     if (selectedItems.length === 0) {
       setModalError('Please select at least one item having issues.');
       return;
@@ -342,7 +348,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 </span>
               </span>
             </div>
-          ) : (
+          ) : order.fulfillmentStatus === 'fulfilled' ? (
             <button
               onClick={() => {
                 setSubmitSuccess(false);
@@ -352,6 +358,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             >
               File Return / Issue
             </button>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gray-100 text-gray-500 text-xs font-medium border border-gray-200/80 self-start sm:self-auto">
+              <Package className="w-4 h-4 text-gray-400" />
+              <span>Return / complaint option opens once product is delivered &amp; received</span>
+            </div>
           )
         )}
       </div>
@@ -799,6 +810,22 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   className="w-full py-3 bg-[#111827] text-white hover:bg-black rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer"
                 >
                   View Return Progress
+                </button>
+              </div>
+            ) : order.fulfillmentStatus !== 'fulfilled' ? (
+              <div className="text-center py-6">
+                <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-amber-50">
+                  <Package className="w-7 h-7" />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Product Not Delivered Yet</h4>
+                <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                  Returns and complaints can only be opened once you have received your product. Your order is currently being processed for delivery.
+                </p>
+                <button
+                  onClick={resetModal}
+                  className="w-full py-3 bg-[#111827] text-white hover:bg-black rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer"
+                >
+                  Close
                 </button>
               </div>
             ) : (

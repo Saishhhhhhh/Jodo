@@ -311,10 +311,10 @@ export default function BlogPage() {
         {filteredPosts.length === 0 ? (
           <div className="text-center py-16 px-6 bg-[#FAF7F2] rounded-[24px] border border-[#E5DDD2]">
             <p className="font-heading text-lg font-bold text-[#1C1A17] mb-2">
-              No matching stories found.
+              No matching stories found in this category.
             </p>
             <p className="text-sm text-[#666666] mb-6 max-w-md mx-auto">
-              No articles are currently published in this category.
+              Browse all journal stories to explore our complete collection of design articles.
             </p>
             <button
               type="button"
@@ -329,125 +329,127 @@ export default function BlogPage() {
             {filteredPosts.map((post) => (
               <article
                 key={post._id || post.slug}
-                className="group flex flex-col bg-[#FAF9F7] rounded-[24px] p-5 sm:p-6 border border-[#ECE6DE] hover:border-terracotta/40 hover:bg-[#FAF6F1] hover:-translate-y-1.5 hover:shadow-xl transition-all duration-500"
+                className="bg-[#FAF9F7] rounded-[24px] overflow-hidden border border-[#ECE6DE] flex flex-col justify-between shadow-2xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
               >
-                {/* Image Banner */}
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className="relative aspect-[16/10] w-full rounded-[18px] overflow-hidden bg-[#EFE9E4] block mb-5"
-                >
-                  <Image
-                    src={post.coverImage}
-                    alt={post.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    unoptimized
-                  />
-                  <span className="absolute top-3.5 left-3.5 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-terracotta shadow-2xs">
-                    {post.category}
-                  </span>
-                </Link>
-
-                {/* Content */}
-                <div className="flex flex-col flex-1">
-                  <div className="flex items-center gap-3 text-xs text-[#8E867E] font-medium mb-3">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> {post.readTime}
-                    </span>
-                  </div>
-
-                  <Link href={`/blog/${post.slug}`}>
-                    <h3 className="font-heading text-xl sm:text-[21px] font-bold text-[#1C1A17] group-hover:text-terracotta transition-colors leading-[1.25] mb-3 line-clamp-2">
-                      {post.title}
-                    </h3>
+                <div>
+                  {/* Card Cover Image */}
+                  <Link href={`/blog/${post.slug}`} className="block relative aspect-[16/10] overflow-hidden bg-[#EAE2D9]">
+                    <Image
+                      src={post.coverImage}
+                      alt={post.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      unoptimized
+                    />
+                    <div className="absolute top-3.5 left-3.5 bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] font-bold text-terracotta">
+                      {post.category}
+                    </div>
                   </Link>
 
-                  <p className="text-[#666666] text-sm leading-relaxed line-clamp-3 mb-6 flex-1 font-normal">
-                    {post.excerpt}
-                  </p>
-
-                  <div className="pt-4 border-t border-[#E8DFD5] flex items-center justify-between">
-                    <span className="text-xs text-[#8E867E] font-medium">By {post.author}</span>
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-terracotta group-hover:translate-x-0.5 transition-transform"
-                    >
-                      <span>Read Story</span>
-                      <span className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-terracotta group-hover:bg-terracotta group-hover:text-white transition-colors shadow-2xs">
-                        <ArrowUpRight className="w-3.5 h-3.5" />
+                  {/* Card Content */}
+                  <div className="p-6 md:p-7">
+                    <div className="flex items-center gap-2 text-xs text-[#8E867E] mb-3">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" /> {post.readTime}
                       </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+
+                    <Link href={`/blog/${post.slug}`}>
+                      <h3 className="font-heading text-lg md:text-xl font-bold text-[#1C1A17] group-hover:text-terracotta transition-colors leading-[1.3] mb-3 line-clamp-2">
+                        {post.title}
+                      </h3>
                     </Link>
+
+                    <p className="text-xs sm:text-sm text-[#57524C] leading-relaxed line-clamp-3 mb-4 font-normal">
+                      {post.excerpt}
+                    </p>
+
+                    {/* Tags */}
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {post.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2.5 py-0.5 rounded-full bg-white text-[11px] font-medium text-[#8E867E] border border-[#ECE6DE]"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* Card Footer */}
+                <div className="px-6 md:px-7 pb-6 pt-3 border-t border-[#E8DFD5] flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#1C1A17]">
+                    By {post.author}
+                  </span>
+
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-terracotta hover:underline group/link"
+                  >
+                    <span>Read Article</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                  </Link>
                 </div>
               </article>
             ))}
           </div>
         )}
-
-        {/* ── 4. THE JODO SOCIETY NEWSLETTER ── */}
-        <section
-          aria-labelledby="society-heading"
-          className="mt-16 md:mt-24 bg-[#1C1A17] text-white rounded-[28px] md:rounded-[36px] p-8 sm:p-12 md:p-16 relative overflow-hidden shadow-xl"
-        >
-          {/* Terracotta atmospheric glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-terracotta/20 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-2xl mx-auto text-center">
-            <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase mb-2">
-              The Jodo Society • Monthly Dispatch
-            </p>
-            <h2
-              id="society-heading"
-              className="font-heading text-2xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight mb-4"
-            >
-              Bring timeless craft into{' '}
-              <span className="text-terracotta italic font-serif font-light">
-                your inbox.
-              </span>
-            </h2>
-            <p className="text-white/80 text-sm md:text-base mb-8 leading-relaxed font-light">
-              Curated essays on architecture, early notice for seasonal timber collections, and the secrets of tool-free furniture.
-            </p>
-
-            {subscribed ? (
-              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-4 max-w-md mx-auto flex items-center justify-center gap-2 text-sm font-semibold text-white">
-                <CheckCircle2 className="w-5 h-5 text-terracotta" />
-                <span>You are subscribed to The Jodo Journal!</span>
-              </div>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setSubscribed(true);
-                }}
-                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
-              >
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter your email"
-                  className="flex-1 h-13 px-5 bg-white rounded-full text-sm text-[#1C1A17] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-terracotta"
-                />
-                <button
-                  type="submit"
-                  className="h-13 px-8 bg-terracotta hover:bg-[#B54A2D] text-white font-bold text-sm rounded-full transition-all duration-300 shadow-md shrink-0"
-                >
-                  Join Society
-                </button>
-              </form>
-            )}
-          </div>
-        </section>
       </main>
+
+      {/* ── 4. NEWSLETTER DISPATCH (max-w-[1440px] matching Navbar) ── */}
+      <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 mt-12 md:mt-16">
+        <div className="bg-[#FAF7F2] rounded-[28px] md:rounded-[36px] p-8 md:p-14 border border-[#ECE6DE] text-center max-w-4xl mx-auto shadow-sm">
+          <p className="text-terracotta font-bold text-xs tracking-widest uppercase mb-2">
+            The Jodo Dispatch
+          </p>
+          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-[#1C1A17] mb-3">
+            Slow living stories, sent to your inbox.
+          </h2>
+          <p className="text-[#57524C] text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-8 font-normal">
+            A bi-weekly journal of woodworking craftsmanship, intentional interiors, and mindful living. Zero spam.
+          </p>
+
+          {subscribed ? (
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-terracotta/10 text-terracotta font-bold text-sm">
+              <CheckCircle2 className="w-5 h-5" />
+              <span>Thank you for subscribing! Check your inbox soon.</span>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSubscribed(true);
+              }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto"
+            >
+              <input
+                type="email"
+                required
+                placeholder="Enter your email address"
+                className="w-full px-5 py-3 rounded-full bg-white border border-[#ECE6DE] text-sm text-[#1C1A17] placeholder-[#8E867E] focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 transition-all shadow-2xs"
+              />
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-7 py-3 rounded-full bg-[#1C1A17] text-white text-sm font-bold hover:bg-terracotta transition-colors shadow-md shrink-0"
+              >
+                Subscribe
+              </button>
+            </form>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

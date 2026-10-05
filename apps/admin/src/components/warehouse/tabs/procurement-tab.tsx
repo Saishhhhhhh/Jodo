@@ -9,6 +9,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -35,6 +37,11 @@ import {
   XCircle,
   Download,
   Package,
+  ChevronDown,
+  CheckCircle2,
+  Truck,
+  FileText,
+  RotateCcw,
 } from 'lucide-react';
 import { useWarehouseStore, ProcurementItem } from '@/stores/warehouse';
 import { formatCurrency, formatNumber } from '@/lib/utils';
@@ -251,7 +258,94 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ row }) => getStatusBadge(row.original.status),
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="cursor-pointer group inline-flex items-center gap-1 focus:outline-none hover:opacity-85 transition-opacity"
+                title="Click to update order status"
+              >
+                {getStatusBadge(item.status)}
+                <ChevronDown className="h-3 w-3 text-muted-foreground opacity-40 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-52">
+              <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Update Status
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'PO Raised');
+                  toast.success(`PO ${item.id} status changed to "PO Raised"`);
+                }}
+              >
+                <FileText className="mr-2 h-3.5 w-3.5 text-zinc-400" />
+                <span>PO Raised</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'Confirmed');
+                  toast.success(`PO ${item.id} confirmed by supplier`);
+                }}
+              >
+                <CheckCircle2 className="mr-2 h-3.5 w-3.5 text-purple-400" />
+                <span>Confirmed</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'In Transit');
+                  toast.success(`PO ${item.id} marked In Transit`);
+                }}
+              >
+                <Truck className="mr-2 h-3.5 w-3.5 text-amber-400" />
+                <span>In Transit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'Partially Received');
+                  toast.success(`PO ${item.id} marked Partially Received`);
+                }}
+              >
+                <Package className="mr-2 h-3.5 w-3.5 text-blue-400" />
+                <span>Partially Received</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'Received');
+                  toast.success(`PO ${item.id} marked as Received`);
+                }}
+              >
+                <PackageCheck className="mr-2 h-3.5 w-3.5 text-green-400" />
+                <span>Received</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'Delayed');
+                  toast.warning(`PO ${item.id} flagged Delayed`);
+                }}
+              >
+                <AlertTriangle className="mr-2 h-3.5 w-3.5 text-amber-500" />
+                <span>Delayed</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  updateProcurementStatus(item.id, 'Cancelled');
+                  toast.error(`PO ${item.id} cancelled`);
+                }}
+                className="text-destructive"
+              >
+                <XCircle className="mr-2 h-3.5 w-3.5" />
+                <span>Cancelled</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
     {
       id: 'actions',
@@ -265,10 +359,63 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={() => setViewItem(item)}>
                   <Eye className="mr-2 h-4 w-4" /> View Details
                 </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                {/* Quick Status Actions */}
+                {item.status === 'PO Raised' && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      updateProcurementStatus(item.id, 'Confirmed');
+                      toast.success(`PO ${item.id} confirmed`);
+                    }}
+                    className="text-purple-400 font-medium"
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4 text-purple-400" />
+                    <span>Confirm Order</span>
+                  </DropdownMenuItem>
+                )}
+
+                {item.status === 'Confirmed' && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        updateProcurementStatus(item.id, 'In Transit');
+                        toast.success(`PO ${item.id} marked In Transit`);
+                      }}
+                      className="text-amber-400 font-medium"
+                    >
+                      <Truck className="mr-2 h-4 w-4 text-amber-400" />
+                      <span>Mark In Transit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        updateProcurementStatus(item.id, 'PO Raised');
+                        toast.info(`PO ${item.id} reverted to "PO Raised"`);
+                      }}
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4 text-muted-foreground" />
+                      <span>Revert to PO Raised</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+
+                {item.status !== 'PO Raised' && item.status !== 'Confirmed' && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      updateProcurementStatus(item.id, 'PO Raised');
+                      toast.info(`PO ${item.id} set to "PO Raised"`);
+                    }}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Set to PO Raised</span>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuItem onClick={() => handleReceiveStock(item)}>
                   <PackageCheck className="mr-2 h-4 w-4 text-green-600" /> Receive Stock
                 </DropdownMenuItem>
@@ -403,6 +550,39 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 py-2 text-xs">
+              {/* Order Status Update Row */}
+              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-[11px] font-medium">Status:</span>
+                  {getStatusBadge(viewItem.status)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-[11px]">Update:</span>
+                  <Select
+                    value={viewItem.status}
+                    onValueChange={(newStatus: ProcurementItem['status']) => {
+                      updateProcurementStatus(viewItem.id, newStatus);
+                      setViewItem({ ...viewItem, status: newStatus });
+                      toast.success(`PO ${viewItem.id} status changed to "${newStatus}"`);
+                    }}
+                  >
+                    <SelectTrigger className="w-36 h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PO Raised">PO Raised</SelectItem>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                      <SelectItem value="Confirmed">Confirmed</SelectItem>
+                      <SelectItem value="In Transit">In Transit</SelectItem>
+                      <SelectItem value="Partially Received">Partially Received</SelectItem>
+                      <SelectItem value="Received">Received</SelectItem>
+                      <SelectItem value="Delayed">Delayed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2 p-3 bg-muted/40 rounded-lg border">
                 <div>
                   <span className="text-muted-foreground block text-[10px]">Supplier:</span>

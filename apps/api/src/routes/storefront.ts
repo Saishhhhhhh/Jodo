@@ -11,8 +11,11 @@ import { AuditLog } from '../models/AuditLog';
 import { FulfilmentReadiness } from '../models/FulfilmentReadiness';
 import { FAQ } from '../models/FAQ';
 import { BlogPost } from '../models/BlogPost';
+import { PageContent } from '../models/PageContent';
+import { DEFAULT_PAGE_CONTENTS } from './pageContent';
 import { sendSuccess, sendError } from '../utils/response';
 import { RazorpayService } from '../services/razorpay';
+import { InventoryIntelligenceService } from '../services/InventoryIntelligenceService';
 
 const router = Router();
 
@@ -489,13 +492,24 @@ router.post('/checkout', async (req, res, next) => {
 
     await order.save();
 
-    // 1. Deduct Product Inventory in MongoDB
-    if (Array.isArray(items)) {
-      for (const item of items) {
-        if (mongoose.Types.ObjectId.isValid(item.productId)) {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { inventoryQuantity: -Number(item.quantity || 1) },
-          }).catch((err) => console.error('Error decrementing inventory:', err));
+    // 1. Professional Order Reservation: Validate stock and reserve required quantity atomically
+    try {
+      await InventoryIntelligenceService.reserveStockForOrder(
+        store.tenantId,
+        store._id,
+        order._id,
+        order.orderNumber,
+        formattedItems
+      );
+    } catch (invErr: any) {
+      console.error('[Storefront Order] Inventory reservation notice:', invErr?.message || invErr);
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          if (mongoose.Types.ObjectId.isValid(item.productId)) {
+            await Product.findByIdAndUpdate(item.productId, {
+              $inc: { inventoryQuantity: -Number(item.quantity || 1) },
+            }).catch(() => {});
+          }
         }
       }
     }
@@ -607,6 +621,72 @@ router.post('/checkout', async (req, res, next) => {
     }
 
     sendSuccess(res, order, 'Order placed successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// FAQs Storefront Endpoints
+// ============================================================
+router.get('/faqs', async (req, res, next) => {
+  try {
+    const filter: any = { status: 'active' };
+    if (req.query.category && req.query.category !== 'All') {
+      filter.category = req.query.category;
+    }
+    const faqs = await FAQ.find(filter).sort({ order: 1, createdAt: 1 });
+    sendSuccess(res, faqs);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// Blogs Storefront Endpoints
+// ============================================================
+router.get('/blogs', async (req, res, next) => {
+  try {
+    const filter: any = { status: 'published' };
+    if (req.query.category && req.query.category !== 'All Stories') {
+      filter.category = req.query.category;
+    }
+    const blogs = await BlogPost.find(filter).sort({ publishedAt: -1, createdAt: -1 });
+    sendSuccess(res, blogs);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/blogs/:slug', async (req, res, next) => {
+  try {
+    const blog = await BlogPost.findOne({ slug: req.params.slug, status: 'published' });
+    if (!blog) {
+      return sendError(res, 'Blog post not found', 404);
+    }
+    sendSuccess(res, blog);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// Page Content & Sections (Public)
+// ============================================================
+router.get('/page-content/:pageKey', async (req, res, next) => {
+  try {
+    const { pageKey } = req.params;
+    let content = await PageContent.findOne({ pageKey });
+
+    if (!content && DEFAULT_PAGE_CONTENTS[pageKey]) {
+      content = await PageContent.create(DEFAULT_PAGE_CONTENTS[pageKey]);
+    }
+
+    if (!content) {
+      return sendError(res, `Content for ${pageKey} not found`, 404);
+    }
+
+    sendSuccess(res, content);
   } catch (error) {
     next(error);
   }

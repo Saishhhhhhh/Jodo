@@ -32,8 +32,8 @@ export interface Task {
   _id?: string;
   title: string;
   description: string;
-  type: TaskType;
-  department: Department;
+  type?: TaskType;
+  department: Department | string;
   category?: string;
   taskType?: string;
   priority: TaskPriority;
@@ -45,13 +45,29 @@ export interface Task {
   dueDate: string;
   dueTime?: string;
   relatedTo?: string; // e.g. Lead: ABC Pvt Ltd
-  tags: string[];
-  checklist: TaskChecklistItem[];
-  activities: TaskActivity[];
+  tags?: string[];
+  checklist?: TaskChecklistItem[];
+  activities?: TaskActivity[];
   remark?: string;
   remarkUpdatedAt?: string;
   remarkUpdatedBy?: any;
   remarks?: TaskRemark[];
+  completedAt?: string;
+  completedBy?: any;
+  progress?: number;
+
+  // Rich Task Management fields
+  clientName?: string;
+  projectName?: string;
+  clientBrief?: string;
+  projectDeliverable?: string;
+  driveUrl?: string;
+  estimatedHours?: string;
+  isUrgent?: boolean;
+  loggedDuration?: number; // In seconds
+  timerStartedAt?: string;
+  timerRunning?: boolean;
+  team?: string;
 }
 
 interface TasksState {
@@ -59,6 +75,8 @@ interface TasksState {
   fetchTasks: (params?: any) => Promise<void>;
   addTask: (task: any) => Promise<void>;
   updateTask: (id: string, updates: any) => Promise<void>;
+  toggleTimer: (id: string) => Promise<void>;
+  updateDuration: (id: string, durationSeconds: number) => Promise<void>;
   addRemark: (id: string, remark: string, status?: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   addActivity: (taskId: string, activity: any) => Promise<void>;
@@ -96,8 +114,62 @@ export const useTasksStore = create<TasksState>((set, get) => ({
         tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
       }));
       toast.success('Task updated');
-    } catch (error) {
-      toast.error('Failed to update task');
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Failed to update task';
+      toast.error(msg);
+      throw error;
+    }
+  },
+  toggleTimer: async (id) => {
+    const task = get().tasks.find((t: any) => (t._id || t.id) === id);
+    if (!task) return;
+
+    try {
+      if (task.timerRunning) {
+        // Stop timer: calculate additional elapsed seconds
+        let additionalSeconds = 0;
+        if (task.timerStartedAt) {
+          const started = new Date(task.timerStartedAt).getTime();
+          const now = Date.now();
+          additionalSeconds = Math.max(0, Math.floor((now - started) / 1000));
+        }
+        const newDuration = (task.loggedDuration || 0) + additionalSeconds;
+        const res = await tasksApi.update(id, {
+          timerRunning: false,
+          loggedDuration: newDuration,
+        });
+        set((state) => ({
+          tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
+        }));
+        toast.info('Timer paused');
+      } else {
+        // Start timer
+        const res = await tasksApi.update(id, {
+          timerRunning: true,
+          timerStartedAt: new Date().toISOString(),
+        });
+        set((state) => ({
+          tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
+        }));
+        toast.success('Timer started');
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Failed to update timer';
+      toast.error(msg);
+    }
+  },
+  updateDuration: async (id, durationSeconds) => {
+    try {
+      const res = await tasksApi.update(id, {
+        loggedDuration: durationSeconds,
+      });
+      set((state) => ({
+        tasks: state.tasks.map((t: any) => ((t._id || t.id) === id ? res.data.data : t))
+      }));
+      toast.success('Duration updated successfully');
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Failed to update duration';
+      toast.error(msg);
       throw error;
     }
   },

@@ -54,14 +54,32 @@ export function CreateProductionOrderDrawer({
 
     const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
+    const formatDate = (val: string, fallback: string) => {
+      if (!val || !val.trim()) return fallback;
+      try {
+        const parts = val.split('-');
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          return d.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          });
+        }
+        return val;
+      } catch {
+        return val;
+      }
+    };
+
     addProductionOrder({
       product,
       sku,
       manufacturer,
       quantity: parseInt(quantity, 10) || 1,
       rawMaterialRequirement: rawMaterials || 'Standard Bill of Materials (BOM)',
-      plannedStartDate: plannedStart || today,
-      plannedCompletionDate: plannedCompletion || '25 Sep 2026',
+      plannedStartDate: formatDate(plannedStart, today),
+      plannedCompletionDate: formatDate(plannedCompletion, 'Flexible / TBD'),
       priority,
       destinationWarehouse,
       assignedManager,
@@ -197,22 +215,23 @@ export function CreateProductionOrderDrawer({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="prod-start">Planned Start Date</Label>
+              <Label htmlFor="prod-start">Planned Start Date (Optional)</Label>
               <Input
                 id="prod-start"
-                placeholder="e.g. 10 Sep 2026"
+                type="date"
                 value={plannedStart}
                 onChange={(e) => setPlannedStart(e.target.value)}
+                className="w-full text-xs font-mono"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="prod-completion">Planned Completion *</Label>
+              <Label htmlFor="prod-completion">Planned Completion (Optional)</Label>
               <Input
                 id="prod-completion"
-                placeholder="e.g. 28 Sep 2026"
+                type="date"
                 value={plannedCompletion}
                 onChange={(e) => setPlannedCompletion(e.target.value)}
-                required
+                className="w-full text-xs font-mono"
               />
             </div>
           </div>

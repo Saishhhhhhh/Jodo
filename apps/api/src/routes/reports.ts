@@ -114,7 +114,8 @@ router.post('/send-digest', async (req: Request, res: Response, next) => {
     const storeId = req.auth!.storeId;
     
     const tenant = await Tenant.findById(tenantId);
-    if (!tenant?.settings?.interaktApiKey) {
+    const tenantSettings = (tenant as any)?.settings;
+    if (!tenantSettings?.interaktApiKey) {
       return sendError(res, 'Interakt is not configured for this tenant.', 400);
     }
 
@@ -135,7 +136,7 @@ router.post('/send-digest', async (req: Request, res: Response, next) => {
     const lowStockCount = await Product.countDocuments({ tenantId, storeId, status: 'active', inventoryQuantity: { $lte: 15 } });
 
     // Send via Interakt
-    const interakt = new InteraktService(tenant.settings.interaktApiKey);
+    const interakt = new InteraktService(tenantSettings.interaktApiKey);
     
     // Using standard message event since we don't have a specific template name guaranteed for this.
     // In production, we'd use a template: await interakt.sendTemplateMessage(...)

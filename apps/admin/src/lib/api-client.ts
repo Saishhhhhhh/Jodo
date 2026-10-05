@@ -150,6 +150,13 @@ export const customersApi = {
 export const inventoryApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory', { params }),
   update: (id: string, data: any) => apiClient.put(`/admin/inventory/${id}`, data),
+  adjust: (data: {
+    sku: string;
+    action: 'ADD_STOCK' | 'REMOVE_STOCK' | 'SET_STOCK' | 'UPDATE_REORDER_LEVEL';
+    quantity: number;
+    reason?: string;
+  }) => apiClient.post('/admin/inventory/adjust', data),
+  history: (sku: string) => apiClient.get(`/admin/inventory/${encodeURIComponent(sku)}/history`),
   intelligence: () => apiClient.get('/admin/inventory/intelligence'),
 };
 
@@ -162,7 +169,7 @@ export const inventoryIntelligenceApi = {
   attentionRequired: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/attention-required', { params }),
   stockMovements: (params?: Record<string, unknown>) => apiClient.get('/admin/inventory/intelligence/stock-movements', { params }),
   aiAnalysis: () => apiClient.get('/admin/inventory/intelligence/ai-analysis'),
-  generateAiAnalysis: () => apiClient.post('/inventory/ai-analysis'),
+  generateAiAnalysis: () => apiClient.post('/admin/inventory/intelligence/ai-analysis'),
 };
 
 export const inventoryReservationsApi = {
@@ -267,6 +274,7 @@ export const faqsApi = {
   get: (id: string) => apiClient.get(`/admin/faqs/${id}`),
   create: (data: any) => apiClient.post('/admin/faqs', data),
   update: (id: string, data: any) => apiClient.put(`/admin/faqs/${id}`, data),
+  toggleStatus: (id: string) => apiClient.patch(`/admin/faqs/${id}/toggle-status`),
   delete: (id: string) => apiClient.delete(`/admin/faqs/${id}`),
 };
 
@@ -275,6 +283,8 @@ export const blogsApi = {
   get: (id: string) => apiClient.get(`/admin/blogs/${id}`),
   create: (data: any) => apiClient.post('/admin/blogs', data),
   update: (id: string, data: any) => apiClient.put(`/admin/blogs/${id}`, data),
+  toggleFeatured: (id: string) => apiClient.patch(`/admin/blogs/${id}/toggle-featured`),
+  toggleStatus: (id: string) => apiClient.patch(`/admin/blogs/${id}/toggle-status`),
   delete: (id: string) => apiClient.delete(`/admin/blogs/${id}`),
 };
 
@@ -322,5 +332,34 @@ export const aiContentApi = {
   requestChanges: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/request-changes`, data),
   publish: (id: string, data?: any) => apiClient.post(`/admin/ai-content/${id}/publish`, data),
   delete: (id: string) => apiClient.delete(`/admin/ai-content/${id}`),
+};
+
+export const warehouseApi = {
+  kpi: () => apiClient.get('/warehouse/kpi'),
+  pipeline: () => apiClient.get('/warehouse/pipeline'),
+  // Procurement
+  procurements: (params?: Record<string, unknown>) => apiClient.get('/warehouse/procurement', { params }),
+  createProcurement: (data: any) => apiClient.post('/warehouse/procurement', data),
+  // Production
+  productionOrders: (params?: Record<string, unknown>) => apiClient.get('/warehouse/production', { params }),
+  createProductionOrder: (data: any) => apiClient.post('/warehouse/production', data),
+  updateProductionStage: (id: string, data: any) => apiClient.patch(`/warehouse/production/${id}/update-stage`, data),
+  completeProduction: (id: string) => apiClient.patch(`/warehouse/production/${id}/complete`),
+  // Quality Checks
+  qualityChecks: (params?: Record<string, unknown>) => apiClient.get('/warehouse/qc', { params }),
+  recordQC: (data: any) => apiClient.post('/warehouse/qc', data),
+  updateQC: (id: string, data: any) => apiClient.patch(`/warehouse/qc/${id}`, data),
+  // Inventory
+  inventory: (params?: Record<string, unknown>) => apiClient.get('/warehouse/inventory', { params }),
+  adjustStock: (data: any) => apiClient.post('/warehouse/inventory/adjust', data),
+  transferStock: (data: any) => apiClient.post('/warehouse/inventory/transfer', data),
+  // Issues & Delays
+  issues: (params?: Record<string, unknown>) => apiClient.get('/warehouse/issues', { params }),
+  createIssue: (data: any) => apiClient.post('/warehouse/issues', data),
+  updateIssueStatus: (id: string, data: any) => apiClient.patch(`/warehouse/issues/${id}/status`, data),
+  // Fulfilment
+  fulfilment: (params?: Record<string, unknown>) => apiClient.get('/warehouse/fulfilment', { params }),
+  allocateFulfilment: (orderId: string) => apiClient.post(`/warehouse/fulfilment/${orderId}/allocate`),
+  dispatchFulfilment: (orderId: string) => apiClient.post(`/warehouse/fulfilment/${orderId}/dispatch`),
 };
 

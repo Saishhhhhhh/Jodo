@@ -3,6 +3,7 @@ import { env } from '../config/env';
 import { Product } from '../models/Product';
 import { InventoryItem } from '../models/InventoryItem';
 import { Reservation } from '../models/Reservation';
+import { InventoryIntelligenceService } from './InventoryIntelligenceService';
 
 export interface InventoryStockItem {
   _id: string;
@@ -14,6 +15,7 @@ export interface InventoryStockItem {
   availableStock: number;
   reorderLevel: number;
   status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+  priorityTier?: 1 | 2 | 3 | 4;
 }
 
 export interface InventoryStockSummary {
@@ -85,22 +87,32 @@ function getOrderedClients(): OpenAI[] {
 
 export class InventoryIntelligenceAiService {
   /**
-   * Calculates actual stock metrics from CMS/database.
-   * Calculations are strictly done on the backend (NOT by AI):
+   * Section 2 & 10: Calculates actual stock metrics from backend database.
+   * AI must NEVER directly modify stock.
+   * Calculations are strictly done on the backend:
    * Available Stock = Total Stock - Reserved Stock
    * Status rules:
    *   If Available Stock <= 0 -> "Out of Stock"
    *   Else if Available Stock <= Reorder Level -> "Low Stock"
    *   Else -> "In Stock"
+   *
+   * Priority ranking (Section 10):
+   *   PRIORITY 1: Out of Stock + Reserved > 0 (Urgent backorder risk)
+   *   PRIORITY 2: Out of Stock (Available <= 0)
+   *   PRIORITY 3: Low Stock (Available <= Reorder Level)
+   *   PRIORITY 4: High Reserved Stock
    */
-  static async calculateInventoryData(storeId: string): Promise<{ summary: InventoryStockSummary; items: InventoryStockItem[] }> {
+  static async calculateInventoryData(storeId: string): Promise<{
+    summary: InventoryStockSummary;
+    items: InventoryStockItem[];
+    criticalProducts: InventoryStockItem[];
+  }> {
     const [products, inventoryItems, reservations] = await Promise.all([
       Product.find({ storeId }).lean(),
       InventoryItem.find({ storeId }).lean(),
       Reservation.find({ storeId, status: 'active' }).lean(),
     ]);
 
-    const prodMap = new Map(products.map((p) => [p.sku, p]));
     const invMap = new Map(inventoryItems.map((i) => [i.sku, i]));
 
     // Aggregate active reservations per SKU
@@ -117,39 +129,67 @@ export class InventoryIntelligenceAiService {
 
     const items: InventoryStockItem[] = products.map((prod) => {
       const inv = invMap.get(prod.sku as string) || {
-        onHand: 0,
+        onHand: prod.inventoryQuantity || 0,
         reservedStock: 0,
         reorderLevel: 10,
       };
 
-      const totalStock = inv.onHand || 0;
+      const totalStock = Math.max(0, inv.onHand || 0);
       const reservedStock = Math.max(inv.reservedStock || 0, reservationBySku[prod.sku as string] || 0);
-      const availableStock = Math.max(0, totalStock - reservedStock);
       const reorderLevel = inv.reorderLevel || 10;
 
-      let status: 'In Stock' | 'Low Stock' | 'Out of Stock' = 'In Stock';
-      if (availableStock <= 0) {
-        status = 'Out of Stock';
+      // Centralized canonical calculation
+      const calc = InventoryIntelligenceService.calculateStockStatus({
+        onHand: totalStock,
+        reservedStock,
+        reorderLevel,
+      });
+
+      if (calc.status === 'out_of_stock') {
         outOfStockCount++;
-      } else if (availableStock <= reorderLevel) {
-        status = 'Low Stock';
+      } else if (calc.status === 'low_stock') {
         lowStockCount++;
       }
 
       totalReservedSum += reservedStock;
 
+      // Priority ranking assignment (Section 10)
+      let priorityTier: 1 | 2 | 3 | 4 | undefined;
+      if (calc.availableStock <= 0 && reservedStock > 0) {
+        priorityTier = 1;
+      } else if (calc.availableStock <= 0) {
+        priorityTier = 2;
+      } else if (calc.availableStock <= reorderLevel) {
+        priorityTier = 3;
+      } else if (reservedStock > 0) {
+        priorityTier = 4;
+      }
+
       return {
-        _id: String(inv._id || prod._id),
+        _id: String((inv as any)._id || prod._id),
         productName: prod.title || 'Unknown Product',
         sku: prod.sku || 'N/A',
         imageUrl: prod.imageUrl,
-        totalStock,
-        reservedStock,
-        availableStock,
-        reorderLevel,
-        status,
+        totalStock: calc.totalStock,
+        reservedStock: calc.reservedStock,
+        availableStock: calc.availableStock,
+        reorderLevel: calc.reorderLevel,
+        status: calc.statusLabel,
+        priorityTier,
       };
     });
+
+    // Rank critical items (Section 10: top 3–5 items)
+    const priorityItems = items
+      .filter((i) => i.priorityTier !== undefined)
+      .sort((a, b) => {
+        const tierDiff = (a.priorityTier || 99) - (b.priorityTier || 99);
+        if (tierDiff !== 0) return tierDiff;
+        // If same tier, prioritize higher reserved or lower available
+        return b.reservedStock - a.reservedStock || a.availableStock - b.availableStock;
+      });
+
+    const criticalProducts = priorityItems.slice(0, 5);
 
     const summary: InventoryStockSummary = {
       totalSkus: products.length,
@@ -158,7 +198,7 @@ export class InventoryIntelligenceAiService {
       totalReserved: totalReservedSum,
     };
 
-    return { summary, items };
+    return { summary, items, criticalProducts };
   }
 
   /**
@@ -175,51 +215,68 @@ export class InventoryIntelligenceAiService {
   }
 
   /**
-   * Generates AI stock analysis using OpenAI.
-   * Sends only clean calculated inventory data:
-   * [ { productName, sku, totalStock, reservedStock, availableStock, reorderLevel } ]
+   * Section 9 & 12: Generates AI stock analysis using OpenAI.
+   * AI receives ONLY the compact structured summary calculated by the backend:
+   * {
+   *   "totalSKUs": number,
+   *   "outOfStock": number,
+   *   "lowStock": number,
+   *   "reservedStock": number,
+   *   "criticalProducts": [...]
+   * }
    */
   static async generateAiAnalysis(storeId: string): Promise<AiStockInsights> {
-    const { items } = await this.calculateInventoryData(storeId);
+    const { summary, criticalProducts } = await this.calculateInventoryData(storeId);
 
-    // Prepare clean data payload for OpenAI
-    const payloadForAi = items.map((i) => ({
-      productName: i.productName,
-      sku: i.sku,
-      totalStock: i.totalStock,
-      reservedStock: i.reservedStock,
-      availableStock: i.availableStock,
-      reorderLevel: i.reorderLevel,
-      status: i.status,
-    }));
+    // Section 9: Compact structured summary for OpenAI
+    const structuredSummaryPayload = {
+      totalSKUs: summary.totalSkus,
+      outOfStock: summary.outOfStock,
+      lowStock: summary.lowStock,
+      reservedStock: summary.totalReserved,
+      criticalProducts: criticalProducts.map((p) => ({
+        sku: p.sku,
+        productName: p.productName,
+        totalStock: p.totalStock,
+        reservedStock: p.reservedStock,
+        availableStock: p.availableStock,
+        reorderLevel: p.reorderLevel,
+        priorityTier: p.priorityTier,
+      })),
+    };
 
     const clients = getOrderedClients();
     if (clients.length === 0) {
       console.warn('[AI Inventory] No OpenAI API keys configured; generating fallback analysis.');
-      const fallback = this.generateFallbackInsights(items);
+      const fallback = this.generateFallbackInsights(summary, criticalProducts);
       cacheByStore.set(storeId, { data: fallback, timestamp: Date.now() });
       return fallback;
     }
 
-    const systemPrompt = `You are an expert inventory analysis system. Analyze the provided stock data and identify risks (such as low stock and high reservations). Provide concise, clear, and actionable recommendations. Return strictly valid JSON.`;
+    const systemPrompt = `You are a professional e-commerce inventory intelligence assistant. Analyze the pre-calculated inventory metrics and provide:
+1. Overall Stock Assessment (concise summary of catalog health)
+2. Critical Stock Items (rank up to 5 critical SKUs with exact reasons and recommended reorder quantities)
+3. Recommended Actions (3-4 high-impact tactical bullet points for the store operations team)
 
-    const userPrompt = `Here is the current inventory data:
-${JSON.stringify(payloadForAi, null, 2)}
+Return strictly valid JSON matching the requested structure. Keep responses concise, professional, and actionable.`;
 
-Return your analysis strictly as JSON matching this structure:
+    const userPrompt = `Here is the current backend inventory summary:
+${JSON.stringify(structuredSummaryPayload, null, 2)}
+
+Return strictly valid JSON matching this schema:
 {
-  "summary": "Overall inventory is healthy, but several products require attention.",
+  "summary": "Overall inventory assessment...",
   "criticalItems": [
     {
       "sku": "SKU",
       "productName": "Product Name",
-      "reason": "Stock is close to the reorder level",
-      "recommendation": "Reorder inventory"
+      "reason": "Specific issue description (e.g., Out of Stock with active customer orders reserved)",
+      "recommendation": "Concrete action (e.g., Expedite purchase order for 25 units)"
     }
   ],
   "recommendations": [
-    "Reorder low-stock products",
-    "Review products with high reserved quantities"
+    "Action item 1",
+    "Action item 2"
   ]
 }`;
 
@@ -245,7 +302,7 @@ Return your analysis strictly as JSON matching this structure:
         const parsed = JSON.parse(raw);
 
         const result: AiStockInsights = {
-          summary: parsed.summary || 'Inventory analysis complete.',
+          summary: parsed.summary || 'Inventory analysis completed successfully.',
           criticalItems: Array.isArray(parsed.criticalItems)
             ? parsed.criticalItems.map((ci: any) => ({
                 sku: String(ci.sku || ''),
@@ -259,40 +316,76 @@ Return your analysis strictly as JSON matching this structure:
             : [],
         };
 
-        // Cache result
+        // Cache result per store
         cacheByStore.set(storeId, { data: result, timestamp: Date.now() });
         return result;
       } catch (err: any) {
-        console.error(`[AI Inventory] Client #${i + 1} failed:`, err?.message || err);
+        console.error(`[AI Inventory] OpenAI key #${i + 1} attempt failed:`, err?.message || err);
         if (i === clients.length - 1) {
-          throw new Error('Unable to generate inventory insights. Please try again.');
+          // If all keys fail, provide high-quality fallback based on calculated metrics
+          console.warn('[AI Inventory] All OpenAI requests failed; returning fallback insights.');
+          const fallback = this.generateFallbackInsights(summary, criticalProducts);
+          cacheByStore.set(storeId, { data: fallback, timestamp: Date.now() });
+          return fallback;
         }
       }
     }
 
-    throw new Error('Unable to generate inventory insights. Please try again.');
+    const fallback = this.generateFallbackInsights(summary, criticalProducts);
+    cacheByStore.set(storeId, { data: fallback, timestamp: Date.now() });
+    return fallback;
   }
 
   /**
-   * Deterministic fallback if API fails
+   * Section 13: Deterministic fallback if OpenAI service is unavailable.
+   * Ensures inventory management NEVER breaks or depends on third-party uptime.
    */
-  private static generateFallbackInsights(items: InventoryStockItem[]): AiStockInsights {
-    const critical = items
-      .filter((i) => i.status === 'Low Stock' || i.status === 'Out of Stock' || i.reservedStock > 0)
-      .slice(0, 3)
-      .map((i) => ({
-        sku: i.sku,
-        productName: i.productName,
-        reason: i.status === 'Low Stock' ? 'Available stock is below reorder level' : 'Units currently reserved for pending orders',
-        recommendation: `Reorder ${Math.max(20, i.reorderLevel * 2)} units`,
-      }));
+  private static generateFallbackInsights(
+    summary: InventoryStockSummary,
+    criticalProducts: InventoryStockItem[]
+  ): AiStockInsights {
+    const criticalItems = criticalProducts.map((p) => {
+      let reason = 'Stock is below reorder threshold.';
+      let recommendation = `Reorder ${Math.max(20, p.reorderLevel * 2)} units immediately.`;
+
+      if (p.priorityTier === 1) {
+        reason = `CRITICAL: Out of stock with ${p.reservedStock} units reserved for pending orders.`;
+        recommendation = `Expedite purchase order for at least ${p.reservedStock + p.reorderLevel} units to fulfill backorders.`;
+      } else if (p.priorityTier === 2) {
+        reason = 'Product is completely out of stock with zero available inventory.';
+        recommendation = `Restock ${Math.max(25, p.reorderLevel * 2)} units to resume fulfillment.`;
+      } else if (p.priorityTier === 3) {
+        reason = `Available stock (${p.availableStock}) is at or below reorder level (${p.reorderLevel}).`;
+        recommendation = `Replenish ${Math.max(15, p.reorderLevel)} units to prevent stockout.`;
+      } else if (p.priorityTier === 4) {
+        reason = `High reservation volume (${p.reservedStock} units reserved) nearing total stock.`;
+        recommendation = `Monitor fulfillment velocity and queue safety replenishment.`;
+      }
+
+      return {
+        sku: p.sku,
+        productName: p.productName,
+        reason,
+        recommendation,
+      };
+    });
+
+    let overallSummary = 'Inventory health is balanced with adequate safety stock across active SKUs.';
+    if (summary.outOfStock > 0 || summary.lowStock > 0) {
+      overallSummary = `Catalog has ${summary.outOfStock} out-of-stock and ${summary.lowStock} low-stock SKUs requiring operational attention. Total reserved inventory is ${summary.totalReserved} units.`;
+    }
 
     return {
-      summary: 'Inventory is generally healthy. Products running near or below reorder levels should be reviewed for restocking.',
-      criticalItems: critical,
+      summary: overallSummary,
+      criticalItems,
       recommendations: [
-        'Reorder low-stock products to maintain safety buffer',
-        'Review products with high reserved quantities to ensure smooth order fulfillment',
+        summary.outOfStock > 0
+          ? `Prioritize replenishment of ${summary.outOfStock} out-of-stock item(s) to avoid unfulfilled orders.`
+          : 'Maintain current inventory buffer for fast-moving items.',
+        summary.totalReserved > 0
+          ? `Verify fulfillment pipeline for ${summary.totalReserved} currently reserved units.`
+          : 'All inventory is currently unencumbered by pending reservations.',
+        'Review supplier lead times for SKUs approaching reorder thresholds.',
       ],
     };
   }

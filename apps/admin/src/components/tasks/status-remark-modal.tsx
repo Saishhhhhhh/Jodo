@@ -36,14 +36,14 @@ const QUICK_REASONS = [
 
 export function StatusRemarkModal({ task, open, onOpenChange, initialStatus }: StatusRemarkModalProps) {
   const updateTask = useTasksStore(state => state.updateTask);
-  const [status, setStatus] = useState<TaskStatus>(initialStatus || task?.status || 'Pending');
+  const [status, setStatus] = useState<TaskStatus>(initialStatus || (task?.status as TaskStatus) || 'Pending');
   const [remark, setRemark] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     if (task) {
-      setStatus(initialStatus || task.status);
+      setStatus(initialStatus || (task.status as TaskStatus) || 'Pending');
       setRemark('');
       setShowHistory(false);
     }

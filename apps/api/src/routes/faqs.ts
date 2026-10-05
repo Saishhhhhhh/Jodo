@@ -13,6 +13,16 @@ router.get('/', async (req, res, next) => {
     if (req.query.category && req.query.category !== 'All') {
       filter.category = req.query.category;
     }
+    if (req.query.status && req.query.status !== 'All') {
+      filter.status = req.query.status;
+    }
+    if (req.query.q && typeof req.query.q === 'string' && req.query.q.trim()) {
+      filter.$or = [
+        { question: { $regex: req.query.q.trim(), $options: 'i' } },
+        { answer: { $regex: req.query.q.trim(), $options: 'i' } },
+        { category: { $regex: req.query.q.trim(), $options: 'i' } },
+      ];
+    }
     const faqs = await FAQ.find(filter).sort({ order: 1, createdAt: -1 });
     sendSuccess(res, faqs);
   } catch (error) {
@@ -37,9 +47,9 @@ router.post('/', async (req, res, next) => {
       return sendError(res, 'Question and Answer are required', 400);
     }
     const faq = new FAQ({
-      question,
-      answer,
-      category: category || 'Orders & Delivery',
+      question: question.trim(),
+      answer: answer.trim(),
+      category: category ? category.trim() : 'Orders & Delivery',
       order: order !== undefined ? Number(order) : 0,
       status: status || 'active',
     });
@@ -51,6 +61,32 @@ router.post('/', async (req, res, next) => {
 });
 
 router.put('/:id', async (req, res, next) => {
+  try {
+    const faq = await FAQ.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!faq) return sendError(res, 'FAQ not found', 404);
+    sendSuccess(res, faq, 'FAQ updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/:id/toggle-status', async (req, res, next) => {
+  try {
+    const faq = await FAQ.findById(req.params.id);
+    if (!faq) return sendError(res, 'FAQ not found', 404);
+    faq.status = faq.status === 'active' ? 'inactive' : 'active';
+    await faq.save();
+    sendSuccess(res, faq, `FAQ status updated to ${faq.status}`);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/:id', async (req, res, next) => {
   try {
     const faq = await FAQ.findByIdAndUpdate(
       req.params.id,

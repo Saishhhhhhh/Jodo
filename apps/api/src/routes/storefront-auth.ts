@@ -346,6 +346,14 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
       return sendError(res, 'Order not found', 404);
     }
 
+    if (order.fulfillmentStatus !== 'fulfilled') {
+      return sendError(
+        res,
+        'Returns and complaints can only be filed once the product has been delivered and received.',
+        400
+      );
+    }
+
     const { items, issueType, details } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
