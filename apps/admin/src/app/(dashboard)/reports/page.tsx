@@ -122,8 +122,7 @@ export default function ReportsPage() {
           </div>
 
           {aiSummary && (
-            <Card className="border-primary/30 shadow-md bg-gradient-to-br from-primary/5 via-background to-background relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+            <Card className="border-primary/30 shadow-md bg-gradient-to-br from-primary/5 via-background to-background">
               <CardHeader className="pb-3 border-b border-border/50">
                 <CardTitle className="text-xl flex items-center gap-2">
                   {aiSummary.summaryTitle || 'Executive Performance Report'}
