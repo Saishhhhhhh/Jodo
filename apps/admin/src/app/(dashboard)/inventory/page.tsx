@@ -287,76 +287,6 @@ export default function InventoryIntelligencePage() {
         </Button>
       </div>
 
-      {/* 2. STOCK SUMMARY CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total SKUs</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono">{summary.totalSkus}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total managed products</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm border-destructive/20">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-destructive">Out of Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-destructive">{summary.outOfStock}</div>
-            <p className="text-xs text-muted-foreground mt-1">Available stock = 0</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow-sm border-amber-500/20">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-amber-600">Low Stock</CardTitle>
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-amber-600">{summary.lowStock}</div>
-            <p className="text-xs text-muted-foreground mt-1">Below reorder level</p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm border-blue-500/20">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">Reserved Stock</CardTitle>
-            <Package className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-blue-600">{summary.totalReserved}</div>
-            <p className="text-xs text-muted-foreground mt-1">Reserved for pending orders</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 3. SEARCH & CONTROLS ROW */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 w-full sm:w-80 bg-card rounded-md border px-3 py-2 shadow-sm">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search product or SKU..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          Showing {filteredItems.length} of {items.length} products
-        </div>
-      </div>
-
-      {/* 4. SIMPLE STOCK TABLE */}
-      <div className="bg-card rounded-lg border shadow-sm p-4">
-        <DataTable columns={columns} data={filteredItems} isLoading={isLoading} />
-      </div>
-
       {/* 5. AI INVENTORY INSIGHTS SECTION */}
       <div className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
@@ -447,7 +377,7 @@ export default function InventoryIntelligencePage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {aiInsights.criticalItems && aiInsights.criticalItems.length > 0 ? (
-                    aiInsights.criticalItems.map((item, idx) => (
+                    aiInsights.criticalItems.map((item: any, idx: number) => (
                       <div key={idx} className="p-3 rounded-lg border bg-muted/30 space-y-1 text-xs">
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-foreground">
@@ -482,7 +412,7 @@ export default function InventoryIntelligencePage() {
                 </CardHeader>
                 <CardContent className="space-y-2.5">
                   {aiInsights.recommendations && aiInsights.recommendations.length > 0 ? (
-                    aiInsights.recommendations.map((rec, idx) => (
+                    aiInsights.recommendations.map((rec: string, idx: number) => (
                       <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/40 border text-xs">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                         <span className="text-foreground leading-relaxed">{rec}</span>
@@ -496,6 +426,76 @@ export default function InventoryIntelligencePage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* 2. STOCK SUMMARY CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total SKUs</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono">{summary.totalSkus}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total managed products</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-sm border-destructive/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-destructive">Out of Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-destructive">{summary.outOfStock}</div>
+            <p className="text-xs text-muted-foreground mt-1">Available stock = 0</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-sm border-amber-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-amber-600">Low Stock</CardTitle>
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-amber-600">{summary.lowStock}</div>
+            <p className="text-xs text-muted-foreground mt-1">Below reorder level</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-blue-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-blue-600">Reserved Stock</CardTitle>
+            <Package className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-mono text-blue-600">{summary.totalReserved}</div>
+            <p className="text-xs text-muted-foreground mt-1">Reserved for pending orders</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 3. SEARCH & CONTROLS ROW */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 w-full sm:w-80 bg-card rounded-md border px-3 py-2 shadow-sm">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search product or SKU..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          Showing {filteredItems.length} of {items.length} products
+        </div>
+      </div>
+
+      {/* 4. SIMPLE STOCK TABLE */}
+      <div className="bg-card rounded-lg border shadow-sm p-4">
+        <DataTable columns={columns} data={filteredItems} isLoading={isLoading} />
       </div>
 
       {/* Adjust Stock Dialog */}
