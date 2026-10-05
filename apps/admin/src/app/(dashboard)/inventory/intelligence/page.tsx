@@ -227,59 +227,6 @@ export default function InventoryIntelligencePage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card className="bg-muted/30">
-        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-          <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger><SelectValue placeholder="Date Range" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Last 7 Days</SelectItem>
-              <SelectItem value="30">Last 30 Days</SelectItem>
-              <SelectItem value="90">Last 90 Days</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select 
-            value={activeFilters.category} 
-            onValueChange={(val) => { setCategoryFilter(val); setActiveFilters(p => ({...p, category: val})) }}
-          >
-            <SelectTrigger><SelectValue placeholder="Product Category" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categorySummary?.map((cat: any) => (
-                <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select 
-            value={activeFilters.location} 
-            onValueChange={(val) => { setLocationFilter(val); setActiveFilters(p => ({...p, location: val})) }}
-          >
-            <SelectTrigger><SelectValue placeholder="Warehouse/Location" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {summary?.locations?.map((loc: string) => (
-                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select 
-            value={activeFilters.status} 
-            onValueChange={(val) => { setStockStatusFilter(val); setActiveFilters(p => ({...p, status: val})) }}
-          >
-            <SelectTrigger><SelectValue placeholder="Stock Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="in_stock">In Stock</SelectItem>
-              <SelectItem value="low_stock">Low Stock</SelectItem>
-              <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex gap-2">
-            <Button variant="outline" className="w-full text-muted-foreground" onClick={handleClearFilters}>Clear Filters</Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* AI Inventory Insights */}
       <div className="space-y-4">
         <div className="flex justify-between items-center bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
@@ -343,6 +290,59 @@ export default function InventoryIntelligencePage() {
           </Card>
         )}
       </div>
+
+      {/* Filters */}
+      <Card className="bg-muted/30">
+        <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger><SelectValue placeholder="Date Range" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 Days</SelectItem>
+              <SelectItem value="30">Last 30 Days</SelectItem>
+              <SelectItem value="90">Last 90 Days</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select 
+            value={activeFilters.category} 
+            onValueChange={(val) => { setCategoryFilter(val); setActiveFilters(p => ({...p, category: val})) }}
+          >
+            <SelectTrigger><SelectValue placeholder="Product Category" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categorySummary?.map((cat: any) => (
+                <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select 
+            value={activeFilters.location} 
+            onValueChange={(val) => { setLocationFilter(val); setActiveFilters(p => ({...p, location: val})) }}
+          >
+            <SelectTrigger><SelectValue placeholder="Warehouse/Location" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {summary?.locations?.map((loc: string) => (
+                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select 
+            value={activeFilters.status} 
+            onValueChange={(val) => { setStockStatusFilter(val); setActiveFilters(p => ({...p, status: val})) }}
+          >
+            <SelectTrigger><SelectValue placeholder="Stock Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="in_stock">In Stock</SelectItem>
+              <SelectItem value="low_stock">Low Stock</SelectItem>
+              <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex gap-2">
+            <Button variant="outline" className="w-full text-muted-foreground" onClick={handleClearFilters}>Clear Filters</Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
