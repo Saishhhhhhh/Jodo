@@ -151,11 +151,25 @@ export default function ReportsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Daily Summary</p>
-                            <p className="text-sm text-foreground/90 leading-relaxed">{section.dailySummary}</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.dailySummary}</p>
+                            {section.dailyDetails && section.dailyDetails.length > 0 && (
+                              <ul className="list-disc pl-4 space-y-1">
+                                {section.dailyDetails.map((detail: string, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/70">{detail}</li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
                           <div>
                             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Weekly Summary</p>
-                            <p className="text-sm text-foreground/90 leading-relaxed">{section.weeklySummary}</p>
+                            <p className="text-sm text-foreground/90 leading-relaxed mb-2">{section.weeklySummary}</p>
+                            {section.weeklyDetails && section.weeklyDetails.length > 0 && (
+                              <ul className="list-disc pl-4 space-y-1">
+                                {section.weeklyDetails.map((detail: string, i: number) => (
+                                  <li key={i} className="text-xs text-foreground/70">{detail}</li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
                         </div>
                       </div>

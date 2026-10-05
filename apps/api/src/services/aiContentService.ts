@@ -353,7 +353,7 @@ Do NOT use emojis. Tone: ${tone}.
 METRICS DATA:
 ${JSON.stringify(data, null, 2)}
 
-You must provide an explicit Daily Summary and Weekly Summary for EACH of the following exactly 7 areas:
+You must provide an explicit Daily Summary, Weekly Summary, and Detailed Itemized Lists for EACH of the following exactly 7 areas:
 1. Sales (Mention specific recent order details, products sold, and customers if available in daily.recentOrderDetails)
 2. Leads (Mention specific new lead names and notes if available in daily.recentLeadDetails)
 3. Inventory (Daily = Current Status, Weekly = Overall Trend/Status. Mention exact names and stock of lowStockDetails)
@@ -362,20 +362,26 @@ You must provide an explicit Daily Summary and Weekly Summary for EACH of the fo
 6. Support Cases
 7. Pending Follow-ups (Daily = Action needed today, Weekly = Backlog status. Mention names from pendingFollowUpNames if available)
 
-Analyze the numbers provided. If a number is 0, mention that there was no activity or no items require attention in that category.
+Analyze the numbers provided. If a number is 0, mention that there was no activity or no items require attention in that category. Return empty arrays for details if no items exist.
 
 Return ONLY valid JSON in this exact format:
 {
   "summaryTitle": "Executive Performance Report",
   "executiveSummary": "A strong opening paragraph summarizing overall business health and the most critical metric.",
   "metricsBreakdown": [
-    { "metric": "Sales", "dailySummary": "Detailed paragraph about today's sales.", "weeklySummary": "Detailed paragraph about this week's sales." },
-    { "metric": "Leads", "dailySummary": "...", "weeklySummary": "..." },
-    { "metric": "Inventory", "dailySummary": "...", "weeklySummary": "..." },
-    { "metric": "Quotations", "dailySummary": "...", "weeklySummary": "..." },
-    { "metric": "Orders", "dailySummary": "...", "weeklySummary": "..." },
-    { "metric": "Support Cases", "dailySummary": "...", "weeklySummary": "..." },
-    { "metric": "Pending Follow-ups", "dailySummary": "...", "weeklySummary": "..." }
+    { 
+      "metric": "Sales", 
+      "dailySummary": "Detailed paragraph about today's sales.", 
+      "dailyDetails": ["Order #1 (Priya Patel): ₹30,000 - 2x Ergonomic Office Chair"], 
+      "weeklySummary": "Detailed paragraph about this week's sales.",
+      "weeklyDetails": []
+    },
+    { "metric": "Leads", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Inventory", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Quotations", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Orders", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Support Cases", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] },
+    { "metric": "Pending Follow-ups", "dailySummary": "...", "dailyDetails": [], "weeklySummary": "...", "weeklyDetails": [] }
   ],
   "actionItems": [
     "Clear, professional action item 1",
@@ -880,17 +886,17 @@ export class AiContentService {
       summaryTitle: "Executive Performance Report",
       executiveSummary: `Overall business health remains stable. Today generated ${data.daily?.revenue || 0} in revenue from ${data.daily?.orders || 0} orders.`,
       metricsBreakdown: [
-        { metric: "Sales", dailySummary: `Today's revenue is ${data.daily?.revenue || 0}.`, weeklySummary: `This week's revenue is ${data.weekly?.revenue || 0}.` },
-        { metric: "Leads", dailySummary: `Acquired ${data.daily?.newLeads || 0} leads today.`, weeklySummary: `Acquired ${data.weekly?.newLeads || 0} leads this week.` },
-        { metric: "Inventory", dailySummary: `Currently ${data.current?.lowStockItems || 0} items are low on stock.`, weeklySummary: `Stock levels remain stable overall.` },
-        { metric: "Quotations", dailySummary: `Sent ${data.daily?.quotationsSent || 0} quotations today.`, weeklySummary: `Sent ${data.weekly?.quotationsSent || 0} quotations this week.` },
-        { metric: "Orders", dailySummary: `Received ${data.daily?.orders || 0} orders today.`, weeklySummary: `Received ${data.weekly?.orders || 0} orders this week.` },
-        { metric: "Support Cases", dailySummary: `Opened ${data.daily?.supportCasesOpened || 0} cases today.`, weeklySummary: `Opened ${data.weekly?.supportCasesOpened || 0} cases this week.` },
-        { metric: "Pending Follow-ups", dailySummary: `${data.current?.pendingFollowUps || 0} high-priority follow-ups are pending action today.`, weeklySummary: `Follow-up backlog is being managed.` }
+        { metric: "Sales", dailySummary: `Today's revenue is ${data.daily?.revenue || 0}.`, dailyDetails: [], weeklySummary: `This week's revenue is ${data.weekly?.revenue || 0}.`, weeklyDetails: [] },
+        { metric: "Leads", dailySummary: `Acquired ${data.daily?.newLeads || 0} leads today.`, dailyDetails: [], weeklySummary: `Acquired ${data.weekly?.newLeads || 0} leads this week.`, weeklyDetails: [] },
+        { metric: "Inventory", dailySummary: `Currently ${data.current?.lowStockItemsCount || 0} items are low on stock.`, dailyDetails: [], weeklySummary: `Stock levels remain stable overall.`, weeklyDetails: [] },
+        { metric: "Quotations", dailySummary: `Sent ${data.daily?.quotationsSent || 0} quotations today.`, dailyDetails: [], weeklySummary: `Sent ${data.weekly?.quotationsSent || 0} quotations this week.`, weeklyDetails: [] },
+        { metric: "Orders", dailySummary: `Received ${data.daily?.orders || 0} orders today.`, dailyDetails: [], weeklySummary: `Received ${data.weekly?.orders || 0} orders this week.`, weeklyDetails: [] },
+        { metric: "Support Cases", dailySummary: `Opened ${data.daily?.supportCasesOpened || 0} cases today.`, dailyDetails: [], weeklySummary: `Opened ${data.weekly?.supportCasesOpened || 0} cases this week.`, weeklyDetails: [] },
+        { metric: "Pending Follow-ups", dailySummary: `${data.current?.pendingFollowUpsCount || 0} high-priority follow-ups are pending action today.`, dailyDetails: [], weeklySummary: `Follow-up backlog is being managed.`, weeklyDetails: [] }
       ],
       actionItems: [
-        `Follow up with ${data.current?.pendingFollowUps || 0} high-priority leads.`,
-        `Review the ${data.current?.lowStockItems || 0} low stock inventory items.`
+        `Follow up with ${data.current?.pendingFollowUpsCount || 0} high-priority leads.`,
+        `Review the ${data.current?.lowStockItemsCount || 0} low stock inventory items.`
       ]
     };
   }
