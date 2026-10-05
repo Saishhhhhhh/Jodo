@@ -8,7 +8,6 @@ const Lead_1 = require("../models/Lead");
 const Product_1 = require("../models/Product");
 const interakt_1 = require("../services/interakt");
 const Tenant_1 = require("../models/Tenant");
-const aiContentService_1 = require("../services/aiContentService");
 const router = (0, express_1.Router)();
 // Apply auth to all reports routes
 router.use(auth_1.requireAuth, auth_1.requireTenant);
@@ -44,35 +43,20 @@ router.get('/digest', async (req, res, next) => {
         const weeklyOrders = orders.filter(o => new Date(o.createdAt) >= startOfWeek);
         const dailyRevenue = dailyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
         const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
-        const recentOrderDetails = dailyOrders.map(o => ({
-            customer: o.customerName || 'Unknown',
-            revenue: o.totalAmount,
-            items: o.items.map(i => `${i.quantity}x ${i.title}`).join(', ')
-        }));
         // 2. Leads & Follow-ups
         const leads = await Lead_1.Lead.find({ tenantId, storeId });
         const dailyLeads = leads.filter(l => new Date(l.createdAt) >= startOfToday);
         const weeklyLeads = leads.filter(l => new Date(l.createdAt) >= startOfWeek);
         const pendingFollowUps = leads.filter(l => l.followUpPriority === 'High' &&
             l.status !== 'Won' &&
-            l.status !== 'Lost');
-        const recentLeadDetails = dailyLeads.map(l => ({
-            name: l.name,
-            source: l.source,
-            notes: l.notes || 'No notes'
-        }));
+            l.status !== 'Lost').length;
         // 3. Inventory
-        const lowStockProducts = await Product_1.Product.find({
+        const lowStockCount = await Product_1.Product.countDocuments({
             tenantId,
             storeId,
             status: 'active',
             inventoryQuantity: { $lte: 15 } // Using 15 as standard fallback threshold
         });
-        const lowStockDetails = lowStockProducts.map(p => ({
-            name: p.title,
-            quantity: p.inventoryQuantity,
-            sku: p.sku
-        }));
         // 4. Quotations & Support Cases (Stubbed for now as they are not implemented in core schema yet)
         const quotations = { daily: 0, weekly: 0, pending: 0 };
         const supportCases = { daily: 0, weekly: 0, open: 0 };
@@ -82,9 +66,7 @@ router.get('/digest', async (req, res, next) => {
                 orders: dailyOrders.length,
                 newLeads: dailyLeads.length,
                 quotationsSent: quotations.daily,
-                supportCasesOpened: supportCases.daily,
-                recentOrderDetails,
-                recentLeadDetails
+                supportCasesOpened: supportCases.daily
             },
             weekly: {
                 revenue: weeklyRevenue,
@@ -94,37 +76,13 @@ router.get('/digest', async (req, res, next) => {
                 supportCasesOpened: supportCases.weekly
             },
             current: {
-                pendingFollowUpsCount: pendingFollowUps.length,
-                pendingFollowUpNames: pendingFollowUps.map(l => l.name).slice(0, 5),
-                lowStockItemsCount: lowStockProducts.length,
-                lowStockDetails,
+                pendingFollowUps,
+                lowStockItems: lowStockCount,
                 openSupportCases: supportCases.open,
                 pendingQuotations: quotations.pending
             }
         };
         (0, response_1.sendSuccess)(res, payload);
-    }
-    catch (err) {
-        next(err);
-    }
-});
-/**
- * POST /api/admin/reports/generate-ai-summary
- * Generates an AI summary on demand for the current metrics
- */
-router.post('/generate-ai-summary', async (req, res, next) => {
-    try {
-        const { payload } = req.body;
-        if (!payload) {
-            return (0, response_1.sendError)(res, 'Report data payload is required.', 400);
-        }
-        const aiResult = await aiContentService_1.AiContentService.generate({
-            contentType: 'report_digest',
-            reportData: payload,
-            tone: 'Professional and Encouraging',
-            length: 'Short'
-        });
-        (0, response_1.sendSuccess)(res, aiResult.content);
     }
     catch (err) {
         next(err);
@@ -139,7 +97,8 @@ router.post('/send-digest', async (req, res, next) => {
         const tenantId = req.auth.tenantId;
         const storeId = req.auth.storeId;
         const tenant = await Tenant_1.Tenant.findById(tenantId);
-        if (!tenant?.settings?.interaktApiKey) {
+        const tenantSettings = tenant?.settings;
+        if (!tenantSettings?.interaktApiKey) {
             return (0, response_1.sendError)(res, 'Interakt is not configured for this tenant.', 400);
         }
         const { targetPhone } = req.body;
@@ -153,8 +112,23 @@ router.post('/send-digest', async (req, res, next) => {
         const dailyLeads = await Lead_1.Lead.countDocuments({ tenantId, storeId, createdAt: { $gte: startOfToday } });
         const pendingFollowUps = await Lead_1.Lead.countDocuments({ tenantId, storeId, followUpPriority: 'High', status: { $nin: ['Won', 'Lost'] } });
         const lowStockCount = await Product_1.Product.countDocuments({ tenantId, storeId, status: 'active', inventoryQuantity: { $lte: 15 } });
-        // In production, we'd use a template: await InteraktService.sendTemplateMessage(...)
-        await interakt_1.InteraktService.sendTemplateMessage(tenant.settings.interaktApiKey, targetPhone, 'daily_digest_template', 'en', [String(dailyRevenue), String(dailyOrders.length), String(dailyLeads), String(pendingFollowUps), String(lowStockCount)]);
+        // Send via Interakt
+        const interakt = new interakt_1.InteraktService(tenantSettings.interaktApiKey);
+        // Using standard message event since we don't have a specific template name guaranteed for this.
+        // In production, we'd use a template: await interakt.sendTemplateMessage(...)
+        // For MVP demonstration, we will send an event that can trigger a template in Interakt.
+        await interakt.trackEvent({
+            userId: tenantId.toString(),
+            phoneNumber: targetPhone,
+            event: 'Daily_Digest_Generated',
+            traits: {
+                daily_revenue: dailyRevenue,
+                daily_orders: dailyOrders.length,
+                daily_leads: dailyLeads,
+                pending_followups: pendingFollowUps,
+                low_stock_alerts: lowStockCount
+            }
+        });
         (0, response_1.sendSuccess)(res, null, 'Digest sent successfully via WhatsApp event.');
     }
     catch (err) {

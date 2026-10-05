@@ -38,15 +38,22 @@ const mongoose_1 = __importStar(require("mongoose"));
 const stockMovementSchema = new mongoose_1.Schema({
     tenantId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Tenant', required: true, index: true },
     storeId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
+    productId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Product' },
     sku: { type: String, required: true, index: true },
     movementType: {
         type: String,
         enum: ['Stock Added', 'Stock Reduced', 'Stock Reserved', 'Reservation Released', 'Order Confirmed', 'Manual Adjustment'],
         required: true,
     },
+    action: { type: String },
+    previousQuantity: { type: Number },
+    adjustmentQuantity: { type: Number },
+    newQuantity: { type: Number },
+    reason: { type: String },
     quantity: { type: Number, required: true },
     reference: { type: String },
     updatedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    adminName: { type: String },
 }, { timestamps: true });
 // Index for recent stock movements of a store
 stockMovementSchema.index({ storeId: 1, createdAt: -1 });

@@ -63,6 +63,9 @@ router.post('/', async (req, res, next) => {
         if (!order) {
             return (0, response_1.sendError)(res, 'Associated order not found', 404);
         }
+        if (order.fulfillmentStatus !== 'fulfilled') {
+            return (0, response_1.sendError)(res, 'Returns can only be initiated for orders that have been fulfilled and delivered to the customer.', 400);
+        }
         const returnObj = new Return_1.Return({
             tenantId: req.auth.tenantId,
             storeId: req.auth.storeId,

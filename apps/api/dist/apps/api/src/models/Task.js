@@ -118,6 +118,16 @@ const taskSchema = new mongoose_1.Schema({
             createdAt: { type: Date, default: Date.now }
         }
     ],
+    clientName: { type: String },
+    projectName: { type: String },
+    clientBrief: { type: String },
+    projectDeliverable: { type: String },
+    driveUrl: { type: String },
+    estimatedHours: { type: String },
+    isUrgent: { type: Boolean, default: false },
+    loggedDuration: { type: Number, default: 0 },
+    timerStartedAt: { type: Date },
+    timerRunning: { type: Boolean, default: false },
     completedAt: { type: Date },
     completedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
 }, {

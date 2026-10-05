@@ -6,12 +6,52 @@ const InventoryItem_1 = require("../models/InventoryItem");
 const Product_1 = require("../models/Product");
 const Order_1 = require("../models/Order");
 const Reservation_1 = require("../models/Reservation");
+const StockMovement_1 = require("../models/StockMovement");
+const InventoryIntelligenceService_1 = require("../services/InventoryIntelligenceService");
 const response_1 = require("../utils/response");
 const interakt_1 = require("../services/interakt");
 const User_1 = require("../models/User");
 const Tenant_1 = require("../models/Tenant");
 const router = (0, express_1.Router)();
 router.use(auth_1.requireAuth);
+router.post('/adjust', async (req, res, next) => {
+    try {
+        const { sku, action, quantity, reason } = req.body;
+        if (!sku || !action || quantity === undefined) {
+            return (0, response_1.sendError)(res, 'SKU, action, and quantity are required', 400);
+        }
+        const result = await InventoryIntelligenceService_1.InventoryIntelligenceService.adjustStock({
+            tenantId: req.auth.tenantId,
+            storeId: req.auth.storeId,
+            sku: String(sku),
+            action,
+            quantity: Number(quantity),
+            reason: reason ? String(reason) : undefined,
+            userId: req.auth.sub,
+            adminName: req.auth.name || 'Admin',
+        });
+        (0, response_1.sendSuccess)(res, result, 'Stock adjusted successfully');
+    }
+    catch (error) {
+        return (0, response_1.sendError)(res, error?.message || 'Failed to adjust stock', 400);
+    }
+});
+router.get('/:sku/history', async (req, res, next) => {
+    try {
+        const { sku } = req.params;
+        const history = await StockMovement_1.StockMovement.find({
+            storeId: req.auth.storeId,
+            sku: sku.trim(),
+        })
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .lean();
+        (0, response_1.sendSuccess)(res, history);
+    }
+    catch (error) {
+        next(error);
+    }
+});
 router.get('/intelligence', async (req, res, next) => {
     try {
         // 1. Get all inventory items with basic product details

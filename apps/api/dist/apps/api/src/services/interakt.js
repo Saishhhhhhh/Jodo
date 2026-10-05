@@ -7,6 +7,20 @@ exports.InteraktService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const INTERAKT_API_URL = 'https://api.interakt.ai/v1/public';
 class InteraktService {
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+    }
+    async trackEvent(payload) {
+        try {
+            const response = await axios_1.default.post(`${INTERAKT_API_URL}/track/events/`, payload, {
+                headers: this.apiKey ? { Authorization: `Basic ${this.apiKey}` } : {}
+            });
+            return response.data;
+        }
+        catch {
+            return null;
+        }
+    }
     /**
      * Send a template message via Interakt
      *

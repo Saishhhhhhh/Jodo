@@ -1,4 +1,12 @@
 export declare class InteraktService {
+    private apiKey?;
+    constructor(apiKey?: string);
+    trackEvent(payload: {
+        userId: string;
+        phoneNumber: string;
+        event: string;
+        traits?: Record<string, any>;
+    }): Promise<any>;
     /**
      * Send a template message via Interakt
      *

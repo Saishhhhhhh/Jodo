@@ -302,6 +302,9 @@ router.post('/me/orders/:id/returns', async (req, res, next) => {
         if (!order) {
             return (0, response_1.sendError)(res, 'Order not found', 404);
         }
+        if (order.fulfillmentStatus !== 'fulfilled') {
+            return (0, response_1.sendError)(res, 'Returns and complaints can only be filed once the product has been delivered and received.', 400);
+        }
         const { items, issueType, details, images } = req.body;
         if (!items || !Array.isArray(items) || items.length === 0) {
             return (0, response_1.sendError)(res, 'Please select at least one item having issues', 400);

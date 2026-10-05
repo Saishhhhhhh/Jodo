@@ -14,8 +14,13 @@ const Customer_1 = require("../models/Customer");
 const Notification_1 = require("../models/Notification");
 const AuditLog_1 = require("../models/AuditLog");
 const FulfilmentReadiness_1 = require("../models/FulfilmentReadiness");
+const FAQ_1 = require("../models/FAQ");
+const BlogPost_1 = require("../models/BlogPost");
+const PageContent_1 = require("../models/PageContent");
+const pageContent_1 = require("./pageContent");
 const response_1 = require("../utils/response");
 const razorpay_1 = require("../services/razorpay");
+const InventoryIntelligenceService_1 = require("../services/InventoryIntelligenceService");
 const router = (0, express_1.Router)();
 router.get('/products', async (req, res, next) => {
     try {
@@ -188,6 +193,59 @@ router.get('/navigation/:handle', async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Menu not found' });
         }
         (0, response_1.sendSuccess)(res, menu);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/faqs', async (req, res, next) => {
+    try {
+        const { category, q } = req.query;
+        const filter = { status: 'active' };
+        if (category && category !== 'all') {
+            filter.category = category;
+        }
+        if (q && typeof q === 'string' && q.trim()) {
+            filter.$or = [
+                { question: { $regex: q.trim(), $options: 'i' } },
+                { answer: { $regex: q.trim(), $options: 'i' } },
+            ];
+        }
+        const faqs = await FAQ_1.FAQ.find(filter).sort({ order: 1, createdAt: 1 });
+        (0, response_1.sendSuccess)(res, faqs);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/blogs', async (req, res, next) => {
+    try {
+        const { category, q } = req.query;
+        const filter = { status: 'published' };
+        if (category && category !== 'all' && category !== 'All Stories') {
+            filter.category = category;
+        }
+        if (q && typeof q === 'string' && q.trim()) {
+            filter.$or = [
+                { title: { $regex: q.trim(), $options: 'i' } },
+                { excerpt: { $regex: q.trim(), $options: 'i' } },
+                { content: { $regex: q.trim(), $options: 'i' } },
+            ];
+        }
+        const blogs = await BlogPost_1.BlogPost.find(filter).sort({ featured: -1, publishedAt: -1 });
+        (0, response_1.sendSuccess)(res, blogs);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/blogs/:slug', async (req, res, next) => {
+    try {
+        const blog = await BlogPost_1.BlogPost.findOne({ slug: req.params.slug, status: 'published' });
+        if (!blog) {
+            return res.status(404).json({ success: false, message: 'Blog post not found' });
+        }
+        (0, response_1.sendSuccess)(res, blog);
     }
     catch (error) {
         next(error);
@@ -393,13 +451,19 @@ router.post('/checkout', async (req, res, next) => {
             itemsCount: formattedItems.reduce((acc, item) => acc + item.quantity, 0),
         });
         await order.save();
-        // 1. Deduct Product Inventory in MongoDB
-        if (Array.isArray(items)) {
-            for (const item of items) {
-                if (mongoose_1.default.Types.ObjectId.isValid(item.productId)) {
-                    await Product_1.Product.findByIdAndUpdate(item.productId, {
-                        $inc: { inventoryQuantity: -Number(item.quantity || 1) },
-                    }).catch((err) => console.error('Error decrementing inventory:', err));
+        // 1. Professional Order Reservation: Validate stock and reserve required quantity atomically
+        try {
+            await InventoryIntelligenceService_1.InventoryIntelligenceService.reserveStockForOrder(store.tenantId, store._id, order._id, order.orderNumber, formattedItems);
+        }
+        catch (invErr) {
+            console.error('[Storefront Order] Inventory reservation notice:', invErr?.message || invErr);
+            if (Array.isArray(items)) {
+                for (const item of items) {
+                    if (mongoose_1.default.Types.ObjectId.isValid(item.productId)) {
+                        await Product_1.Product.findByIdAndUpdate(item.productId, {
+                            $inc: { inventoryQuantity: -Number(item.quantity || 1) },
+                        }).catch(() => { });
+                    }
                 }
             }
         }
@@ -511,6 +575,69 @@ router.post('/checkout', async (req, res, next) => {
             }
         }
         (0, response_1.sendSuccess)(res, order, 'Order placed successfully');
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// ============================================================
+// FAQs Storefront Endpoints
+// ============================================================
+router.get('/faqs', async (req, res, next) => {
+    try {
+        const filter = { status: 'active' };
+        if (req.query.category && req.query.category !== 'All') {
+            filter.category = req.query.category;
+        }
+        const faqs = await FAQ_1.FAQ.find(filter).sort({ order: 1, createdAt: 1 });
+        (0, response_1.sendSuccess)(res, faqs);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// ============================================================
+// Blogs Storefront Endpoints
+// ============================================================
+router.get('/blogs', async (req, res, next) => {
+    try {
+        const filter = { status: 'published' };
+        if (req.query.category && req.query.category !== 'All Stories') {
+            filter.category = req.query.category;
+        }
+        const blogs = await BlogPost_1.BlogPost.find(filter).sort({ publishedAt: -1, createdAt: -1 });
+        (0, response_1.sendSuccess)(res, blogs);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+router.get('/blogs/:slug', async (req, res, next) => {
+    try {
+        const blog = await BlogPost_1.BlogPost.findOne({ slug: req.params.slug, status: 'published' });
+        if (!blog) {
+            return (0, response_1.sendError)(res, 'Blog post not found', 404);
+        }
+        (0, response_1.sendSuccess)(res, blog);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// ============================================================
+// Page Content & Sections (Public)
+// ============================================================
+router.get('/page-content/:pageKey', async (req, res, next) => {
+    try {
+        const { pageKey } = req.params;
+        let content = await PageContent_1.PageContent.findOne({ pageKey });
+        if (!content && pageContent_1.DEFAULT_PAGE_CONTENTS[pageKey]) {
+            content = await PageContent_1.PageContent.create(pageContent_1.DEFAULT_PAGE_CONTENTS[pageKey]);
+        }
+        if (!content) {
+            return (0, response_1.sendError)(res, `Content for ${pageKey} not found`, 404);
+        }
+        (0, response_1.sendSuccess)(res, content);
     }
     catch (error) {
         next(error);

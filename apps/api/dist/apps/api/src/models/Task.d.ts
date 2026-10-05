@@ -63,6 +63,16 @@ export interface ITask extends Document {
     remarkUpdatedAt?: Date;
     remarkUpdatedBy?: Types.ObjectId;
     remarks: ITaskRemark[];
+    clientName?: string;
+    projectName?: string;
+    clientBrief?: string;
+    projectDeliverable?: string;
+    driveUrl?: string;
+    estimatedHours?: string;
+    isUrgent?: boolean;
+    loggedDuration?: number;
+    timerStartedAt?: Date;
+    timerRunning?: boolean;
     completedAt?: Date;
     completedBy?: Types.ObjectId;
     createdAt: Date;
