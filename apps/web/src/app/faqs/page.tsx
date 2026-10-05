@@ -361,67 +361,67 @@ export default function FAQsPage() {
               })}
             </div>
           )}
+        </div>
 
-          {/* ── 4. CONCIERGE / ASSISTANCE BANNER ── */}
-          <section
-            aria-labelledby="concierge-heading"
-            className="mt-14 md:mt-20 bg-[#1C1A17] text-white rounded-[28px] md:rounded-[36px] p-8 sm:p-12 md:p-14 relative overflow-hidden shadow-xl"
-          >
-            {/* Terracotta atmospheric glow */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-terracotta/20 rounded-full blur-3xl pointer-events-none" />
+        {/* ── 4. CONCIERGE / ASSISTANCE BANNER (Expanded to max-w-[1440px]) ── */}
+        <section
+          aria-labelledby="concierge-heading"
+          className="mt-14 md:mt-20 w-full bg-[#1C1A17] text-white rounded-[28px] md:rounded-[36px] p-8 sm:p-12 md:p-14 relative overflow-hidden shadow-xl"
+        >
+          {/* Terracotta atmospheric glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-terracotta/20 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-              <div className="max-w-xl">
-                <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase mb-2">
-                  Need Personal Assistance?
-                </p>
-                <h2
-                  id="concierge-heading"
-                  className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight tracking-tight"
-                >
-                  Still have a question about your home?
-                </h2>
-                <p className="text-white/80 text-sm md:text-base leading-relaxed font-light">
-                  Our in-house design team is ready to help with custom dimensions, timber swatches, order updates, or assembly assistance.
-                </p>
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="max-w-xl">
+              <p className="text-terracotta font-bold text-xs md:text-sm tracking-widest uppercase mb-2">
+                Need Personal Assistance?
+              </p>
+              <h2
+                id="concierge-heading"
+                className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight tracking-tight"
+              >
+                Still have a question about your home?
+              </h2>
+              <p className="text-white/80 text-sm md:text-base leading-relaxed font-light">
+                Our in-house design team is ready to help with custom dimensions, timber swatches, order updates, or assembly assistance.
+              </p>
 
-                <div className="flex items-center gap-6 mt-6 text-xs text-white/70">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-terracotta" /> 5-Year Warranty
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-terracotta" /> Free Doorstep Delivery
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-                {/* JODO Signature Button */}
-                <Link
-                  href="/contact"
-                  className="group relative inline-flex items-center gap-3 bg-terracotta text-white rounded-full px-6 py-3.5 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 justify-center whitespace-nowrap"
-                >
-                  <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out" />
-                  <span className="relative z-10 font-bold text-sm group-hover:text-[#1C1A17] transition-colors">
-                    Contact Concierge
-                  </span>
-                  <span className="relative z-10 flex items-center justify-center bg-white rounded-full w-7 h-7 group-hover:bg-[#1C1A17] transition-colors duration-500">
-                    <ArrowUpRight className="w-3.5 h-3.5 text-terracotta group-hover:text-white transition-colors duration-500" />
-                  </span>
-                </Link>
-
-                {/* Secondary Call Button */}
-                <a
-                  href="tel:+918001234567"
-                  className="inline-flex items-center justify-center gap-2 border border-white/30 text-white hover:bg-white hover:text-[#1C1A17] rounded-full px-6 py-3 font-semibold text-sm transition-all duration-300 whitespace-nowrap"
-                >
-                  <Phone className="w-4 h-4" />
-                  <span>Call Us</span>
-                </a>
+              <div className="flex items-center gap-6 mt-6 text-xs text-white/70">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-terracotta" /> 5-Year Warranty
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-terracotta" /> Free Doorstep Delivery
+                </span>
               </div>
             </div>
-          </section>
-        </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              {/* JODO Signature Button */}
+              <Link
+                href="/contact"
+                className="group relative inline-flex items-center gap-3 bg-terracotta text-white rounded-full px-6 py-3.5 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30 justify-center whitespace-nowrap"
+              >
+                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out" />
+                <span className="relative z-10 font-bold text-sm group-hover:text-[#1C1A17] transition-colors">
+                  Contact Concierge
+                </span>
+                <span className="relative z-10 flex items-center justify-center bg-white rounded-full w-7 h-7 group-hover:bg-[#1C1A17] transition-colors duration-500">
+                  <ArrowUpRight className="w-3.5 h-3.5 text-terracotta group-hover:text-white transition-colors duration-500" />
+                </span>
+              </Link>
+
+              {/* Secondary Call Button */}
+              <a
+                href="tel:+918001234567"
+                className="inline-flex items-center justify-center gap-2 border border-white/30 text-white hover:bg-white hover:text-[#1C1A17] rounded-full px-6 py-3 font-semibold text-sm transition-all duration-300 whitespace-nowrap"
+              >
+                <Phone className="w-4 h-4" />
+                <span>Call Us</span>
+              </a>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
