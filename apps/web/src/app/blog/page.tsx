@@ -8,7 +8,6 @@ import {
   Calendar,
   ArrowUpRight,
   Sparkles,
-  Search,
   CheckCircle2,
 } from 'lucide-react';
 
@@ -136,7 +135,6 @@ const FALLBACK_BLOGS: BlogPost[] = [
 export default function BlogPage() {
   const [blogs, setBlogs] = useState<BlogPost[]>(FALLBACK_BLOGS);
   const [activeCategory, setActiveCategory] = useState('All Stories');
-  const [searchQuery, setSearchQuery] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
@@ -168,18 +166,9 @@ export default function BlogPage() {
 
   const filteredPosts = useMemo(() => {
     return blogs.filter((post) => {
-      const matchesCategory =
-        activeCategory === 'All Stories' || post.category === activeCategory;
-      const q = searchQuery.toLowerCase().trim();
-      const matchesQuery =
-        !q ||
-        post.title.toLowerCase().includes(q) ||
-        post.excerpt.toLowerCase().includes(q) ||
-        post.category.toLowerCase().includes(q) ||
-        post.author.toLowerCase().includes(q);
-      return matchesCategory && matchesQuery;
+      return activeCategory === 'All Stories' || post.category === activeCategory;
     });
-  }, [blogs, activeCategory, searchQuery]);
+  }, [blogs, activeCategory]);
 
   return (
     <div className="flex flex-col gap-10 md:gap-14 pb-16 font-sans bg-white text-[#1C1A17]">
@@ -197,42 +186,14 @@ export default function BlogPage() {
             </span>
           </h1>
 
-          <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mx-auto mb-8 font-normal">
+          <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mx-auto font-normal">
             Design essays, woodworking secrets, living room inspiration, and the quiet satisfaction of making things together.
           </p>
-
-          {/* Embedded Journal Search Bar */}
-          <div className="max-w-[560px] mx-auto">
-            <div className="relative flex items-center">
-              <Search
-                className="w-5 h-5 text-terracotta absolute left-4 pointer-events-none stroke-[2]"
-                aria-hidden="true"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search articles, timber tips, styling..."
-                aria-label="Search articles"
-                className="w-full h-13 pl-12 pr-16 bg-[#FAF7F2] rounded-full border border-[#DDCFC3] text-[#1C1A17] text-sm md:text-[15px] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 shadow-xs transition-all"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Clear search"
-                  className="absolute right-4 text-xs font-semibold text-gray-500 hover:text-[#1C1A17] bg-white rounded-full px-2.5 py-1 transition-colors shadow-2xs"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
         </div>
       </section>
 
       {/* ── 2. FEATURED STORY (max-w-[1440px] matching Navbar) ── */}
-      {featuredPost && !searchQuery && activeCategory === 'All Stories' && (
+      {featuredPost && activeCategory === 'All Stories' && (
         <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
           <div className="bg-[#FAF9F7] rounded-[28px] md:rounded-[36px] overflow-hidden border border-[#ECE6DE] shadow-sm hover:shadow-xl transition-all duration-500 group">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
@@ -353,17 +314,14 @@ export default function BlogPage() {
               No matching stories found.
             </p>
             <p className="text-sm text-[#666666] mb-6 max-w-md mx-auto">
-              We couldn’t find an article matching &ldquo;{searchQuery}&rdquo;. Try another term or browse all topics.
+              No articles are currently published in this category.
             </p>
             <button
               type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setActiveCategory('All Stories');
-              }}
+              onClick={() => setActiveCategory('All Stories')}
               className="inline-flex items-center gap-2 bg-[#1C1A17] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-terracotta transition-colors"
             >
-              Reset Filters
+              View All Stories
             </button>
           </div>
         ) : (

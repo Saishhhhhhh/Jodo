@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Search,
   ChevronDown,
   ArrowUpRight,
   Phone,
@@ -131,18 +130,9 @@ const TOPIC_CARDS = [
   },
 ];
 
-const QUICK_SEARCH_TAGS = [
-  'Click Assembly',
-  'Delivery Time',
-  'Plywood & Timber',
-  'Warranty',
-  'Returns',
-];
-
 export default function FAQsPage() {
   const [faqs, setFaqs] = useState<FAQItem[]>(DEFAULT_FAQS);
   const [activeCategory, setActiveCategory] = useState<CategoryType>('All');
-  const [searchQuery, setSearchQuery] = useState('');
   const [openId, setOpenId] = useState<string | null>('faq-1');
 
   // Fetch live FAQs from backend if available
@@ -177,16 +167,9 @@ export default function FAQsPage() {
 
   const filteredFAQs = useMemo(() => {
     return faqs.filter((item) => {
-      const matchesCategory =
-        activeCategory === 'All' || item.category === activeCategory;
-      const q = searchQuery.toLowerCase().trim();
-      const matchesQuery =
-        !q ||
-        item.question.toLowerCase().includes(q) ||
-        item.answer.toLowerCase().includes(q);
-      return matchesCategory && matchesQuery;
+      return activeCategory === 'All' || item.category === activeCategory;
     });
-  }, [faqs, activeCategory, searchQuery]);
+  }, [faqs, activeCategory]);
 
   return (
     <div className="flex flex-col gap-10 md:gap-14 pb-16 font-sans bg-white text-[#1C1A17]">
@@ -204,52 +187,9 @@ export default function FAQsPage() {
             </span>
           </h1>
 
-          <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mx-auto mb-8 font-normal">
+          <p className="text-[#57524C] text-sm sm:text-base md:text-lg leading-relaxed max-w-[620px] mx-auto font-normal">
             Everything you need to know about our tool-free click assembly, sustainably crafted hardwoods, flat-pack delivery, and lifetime care.
           </p>
-
-          {/* JODO Search Bar (Centered & Spacious) */}
-          <div className="max-w-[620px] mx-auto">
-            <div className="relative flex items-center">
-              <Search
-                className="w-5 h-5 text-terracotta absolute left-4 pointer-events-none stroke-[2]"
-                aria-hidden="true"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search questions (e.g. assembly, warranty, shipping)..."
-                aria-label="Search FAQs"
-                className="w-full h-13 pl-12 pr-16 bg-[#FAF7F2] rounded-full border border-[#DDCFC3] text-[#1C1A17] text-sm md:text-[15px] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 shadow-xs transition-all"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Clear search"
-                  className="absolute right-4 text-xs font-semibold text-gray-500 hover:text-[#1C1A17] bg-white rounded-full px-2.5 py-1 transition-colors shadow-2xs"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            {/* Quick Search Chips */}
-            <div className="flex items-center justify-center gap-2 flex-wrap mt-3 pt-1">
-              <span className="text-xs text-[#8E867E] font-medium">Popular:</span>
-              {QUICK_SEARCH_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => setSearchQuery(tag)}
-                  className="text-xs font-medium bg-white hover:bg-terracotta hover:text-white text-[#57524C] px-3.5 py-1 rounded-full border border-[#E5DDD2] transition-colors shadow-2xs"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
@@ -348,20 +288,14 @@ export default function FAQsPage() {
           {filteredFAQs.length === 0 ? (
             <div className="text-center py-16 px-6 bg-[#FAF7F2] rounded-[24px] border border-[#E5DDD2]">
               <p className="font-heading text-lg font-bold text-[#1C1A17] mb-2">
-                No matching questions found.
-              </p>
-              <p className="text-sm text-[#666666] mb-6 max-w-md mx-auto">
-                We couldn’t find an answer for &ldquo;{searchQuery}&rdquo;. Try another term or speak directly with our concierge.
+                No questions found in this category.
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setActiveCategory('All');
-                }}
-                className="inline-flex items-center gap-2 bg-[#1C1A17] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-terracotta transition-colors"
+                onClick={() => setActiveCategory('All')}
+                className="inline-flex items-center gap-2 bg-[#1C1A17] text-white px-5 py-2.5 rounded-full text-xs font-semibold hover:bg-terracotta transition-colors mt-2"
               >
-                Reset Filters
+                View All Questions
               </button>
             </div>
           ) : (
