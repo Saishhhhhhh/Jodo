@@ -124,42 +124,39 @@ export default function ReportsPage() {
               disabled={generateMutation.isPending}
               className="bg-primary/90 hover:bg-primary text-primary-foreground"
             >
-              {generateMutation.isPending ? 'Generating...' : '✨ Generate AI Summary'}
+              {generateMutation.isPending ? 'Generating...' : 'Generate AI Summary'}
             </Button>
           </div>
 
           {aiSummary && (
             <Card className="border-primary/30 shadow-md bg-gradient-to-br from-primary/5 via-background to-background relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 border-b border-border/50">
                 <CardTitle className="text-xl flex items-center gap-2">
-                  <span className="text-xl">✨</span>
-                  {aiSummary.summaryTitle || 'AI Executive Summary'}
+                  {aiSummary.summaryTitle || 'Executive Performance Report'}
                 </CardTitle>
-                <CardDescription className="text-base text-foreground/80 mt-2">
-                  {aiSummary.detailedSummary}
+                <CardDescription className="text-base text-foreground/80 mt-2 font-medium">
+                  {aiSummary.executiveSummary}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Daily Highlight</p>
-                    <p className="text-sm font-medium">{aiSummary.dailyHighlight}</p>
+              <CardContent className="space-y-6 pt-6">
+                
+                {aiSummary.detailedBreakdown && aiSummary.detailedBreakdown.map((section: any, idx: number) => (
+                  <div key={idx} className="space-y-1">
+                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">{section.category}</h3>
+                    <p className="text-sm text-foreground/90 leading-relaxed">{section.details}</p>
                   </div>
-                  <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Weekly Insight</p>
-                    <p className="text-sm font-medium">{aiSummary.weeklyInsight}</p>
-                  </div>
-                </div>
+                ))}
+
                 {aiSummary.actionItems && aiSummary.actionItems.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <p className="text-sm font-semibold mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-orange-500" />
+                  <div className="mt-6 pt-6 border-t border-border/50">
+                    <p className="text-sm font-semibold mb-3 flex items-center gap-2 text-orange-500">
+                      <AlertCircle className="w-4 h-4" />
                       Suggested Action Items
                     </p>
-                    <ul className="list-disc pl-5 space-y-1">
+                    <ul className="list-disc pl-5 space-y-2">
                       {aiSummary.actionItems.map((item: string, idx: number) => (
-                        <li key={idx} className="text-sm text-muted-foreground">{item}</li>
+                        <li key={idx} className="text-sm text-foreground/80">{item}</li>
                       ))}
                     </ul>
                   </div>

@@ -347,23 +347,28 @@ Return this exact JSON (fill ALL channels):
 function buildReportPrompt(input: GenerateContentInput, tone: string): string {
   const data = input.reportData || {};
   return `You are a business intelligence assistant for JODO, an Indian furniture manufacturing brand.
-Generate a concise, insightful daily and weekly executive summary based on the following metrics.
-Tone: ${tone}.
+Generate a comprehensive, highly detailed executive summary covering all key business areas.
+Do NOT use emojis. Tone: ${tone}.
 
 METRICS DATA:
 ${JSON.stringify(data, null, 2)}
 
-Identify trends, celebrate wins (e.g. high sales), and flag areas needing attention (e.g. pending follow-ups or low stock). Keep the language professional but encouraging.
+You must provide a detailed paragraph for EACH of the following areas: Sales, Leads, Inventory, Quotations, Orders, Support Cases, and Pending Follow-ups.
+Analyze the numbers provided. If a number is 0, mention that there was no activity or no items require attention in that category.
 
 Return ONLY valid JSON in this exact format:
 {
-  "summaryTitle": "Daily Executive Digest",
-  "dailyHighlight": "One sentence summary of today's performance.",
-  "weeklyInsight": "One sentence summary of the week's trajectory.",
-  "detailedSummary": "A full paragraph (3-5 sentences) summarizing the key metrics, pointing out specific numbers for revenue, orders, leads, and inventory alerts.",
+  "summaryTitle": "Executive Performance Report",
+  "executiveSummary": "A strong opening paragraph summarizing overall business health and the most critical metric.",
+  "detailedBreakdown": [
+    { "category": "Sales & Orders", "details": "Detailed paragraph about revenue, order volume, and daily vs weekly comparison." },
+    { "category": "Leads & Follow-ups", "details": "Detailed paragraph about new leads acquired today vs this week, and the status of pending follow-ups." },
+    { "category": "Inventory", "details": "Detailed paragraph analyzing inventory health and highlighting low stock counts." },
+    { "category": "Quotations & Support", "details": "Detailed paragraph summarizing quotation activity and any open support cases requiring attention." }
+  ],
   "actionItems": [
-    "Follow up on 5 pending leads",
-    "Restock low inventory items"
+    "Clear, professional action item 1",
+    "Clear, professional action item 2"
   ]
 }`;
 }
@@ -861,10 +866,26 @@ export class AiContentService {
   private static templateReportDigest(input: GenerateContentInput, tone: string) {
     const data = input.reportData || { daily: {}, weekly: {}, current: {} };
     return {
-      summaryTitle: "Daily Executive Digest",
-      dailyHighlight: `Today we processed ${data.daily?.orders || 0} orders generating ${data.daily?.revenue || 0} in revenue.`,
-      weeklyInsight: `This week is tracking at ${data.weekly?.orders || 0} orders and ${data.weekly?.revenue || 0} in total sales.`,
-      detailedSummary: `Overall performance remains steady. We have captured ${data.daily?.newLeads || 0} new leads today. Currently there are ${data.current?.pendingFollowUps || 0} high priority leads awaiting follow up, and ${data.current?.lowStockItems || 0} items have fallen below healthy inventory levels.`,
+      summaryTitle: "Executive Performance Report",
+      executiveSummary: `Overall business health remains stable. Today generated ${data.daily?.revenue || 0} in revenue from ${data.daily?.orders || 0} orders.`,
+      detailedBreakdown: [
+        { 
+          category: "Sales & Orders", 
+          details: `Today's revenue is ${data.daily?.revenue || 0} across ${data.daily?.orders || 0} orders. The weekly trajectory shows ${data.weekly?.revenue || 0} from ${data.weekly?.orders || 0} orders.` 
+        },
+        { 
+          category: "Leads & Follow-ups", 
+          details: `We acquired ${data.daily?.newLeads || 0} new leads today (${data.weekly?.newLeads || 0} this week). There are currently ${data.current?.pendingFollowUps || 0} high-priority follow-ups pending.` 
+        },
+        { 
+          category: "Inventory", 
+          details: `Inventory levels require monitoring. Currently, ${data.current?.lowStockItems || 0} items have fallen below healthy stock thresholds.` 
+        },
+        { 
+          category: "Quotations & Support", 
+          details: `Today saw ${data.daily?.quotationsSent || 0} quotations sent. There are currently ${data.current?.openSupportCases || 0} open support cases.` 
+        }
+      ],
       actionItems: [
         `Follow up with ${data.current?.pendingFollowUps || 0} high-priority leads.`,
         `Review the ${data.current?.lowStockItems || 0} low stock inventory items.`
