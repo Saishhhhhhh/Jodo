@@ -99,20 +99,31 @@ router.get('/digest', async (req: Request, res: Response, next) => {
       }
     };
 
-    let aiSummary = null;
-    try {
-      const aiResult = await AiContentService.generate({
-        contentType: 'report_digest',
-        reportData: payload,
-        tone: 'Professional and Encouraging',
-        length: 'Short'
-      });
-      aiSummary = aiResult.content;
-    } catch (aiErr) {
-      console.error('Failed to generate AI report summary:', aiErr);
+    sendSuccess(res, payload);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/admin/reports/generate-ai-summary
+ * Generates an AI summary on demand for the current metrics
+ */
+router.post('/generate-ai-summary', async (req: Request, res: Response, next) => {
+  try {
+    const { payload } = req.body;
+    if (!payload) {
+      return sendError(res, 'Report data payload is required.', 400);
     }
 
-    sendSuccess(res, { ...payload, aiSummary });
+    const aiResult = await AiContentService.generate({
+      contentType: 'report_digest',
+      reportData: payload,
+      tone: 'Professional and Encouraging',
+      length: 'Short'
+    });
+
+    sendSuccess(res, aiResult.content);
   } catch (err) {
     next(err);
   }

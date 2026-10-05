@@ -265,6 +265,7 @@ export const navigationApi = {
 export const reportsApi = {
   getDigest: () => apiClient.get('/admin/reports/digest'),
   sendDigest: (targetPhone: string) => apiClient.post('/admin/reports/send-digest', { targetPhone }),
+  generateAiSummary: (payload: any) => apiClient.post('/admin/reports/generate-ai-summary', { payload }),
   summary: (params?: Record<string, unknown>) => apiClient.get('/admin/reports/summary', { params }),
   history: () => apiClient.get('/admin/reports/history'),
   get: (id: string) => apiClient.get(`/admin/reports/${id}`),

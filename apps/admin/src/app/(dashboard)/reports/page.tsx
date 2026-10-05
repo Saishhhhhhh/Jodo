@@ -20,6 +20,7 @@ import {
 
 export default function ReportsPage() {
   const [phone, setPhone] = useState('');
+  const [aiSummary, setAiSummary] = useState<any>(null);
 
   const { data: digest, isLoading } = useQuery({
     queryKey: ['reports', 'digest'],
@@ -37,6 +38,17 @@ export default function ReportsPage() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to send digest. Check Interakt settings.');
+    }
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: () => reportsApi.generateAiSummary(digest),
+    onSuccess: (res) => {
+      setAiSummary(res.data.data);
+      toast.success('AI Summary generated successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to generate AI summary.');
     }
   });
 
@@ -106,37 +118,47 @@ export default function ReportsPage() {
         
         {/* Left Col: The Data */}
         <div className="md:col-span-2 space-y-6">
-          {digest.aiSummary && (
+          <div className="flex justify-end">
+            <Button 
+              onClick={() => generateMutation.mutate()} 
+              disabled={generateMutation.isPending}
+              className="bg-primary/90 hover:bg-primary text-primary-foreground"
+            >
+              {generateMutation.isPending ? 'Generating...' : '✨ Generate AI Summary'}
+            </Button>
+          </div>
+
+          {aiSummary && (
             <Card className="border-primary/30 shadow-md bg-gradient-to-br from-primary/5 via-background to-background relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
               <CardHeader className="pb-3">
                 <CardTitle className="text-xl flex items-center gap-2">
                   <span className="text-xl">✨</span>
-                  {digest.aiSummary.summaryTitle || 'AI Executive Summary'}
+                  {aiSummary.summaryTitle || 'AI Executive Summary'}
                 </CardTitle>
                 <CardDescription className="text-base text-foreground/80 mt-2">
-                  {digest.aiSummary.detailedSummary}
+                  {aiSummary.detailedSummary}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                     <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Daily Highlight</p>
-                    <p className="text-sm font-medium">{digest.aiSummary.dailyHighlight}</p>
+                    <p className="text-sm font-medium">{aiSummary.dailyHighlight}</p>
                   </div>
                   <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
                     <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Weekly Insight</p>
-                    <p className="text-sm font-medium">{digest.aiSummary.weeklyInsight}</p>
+                    <p className="text-sm font-medium">{aiSummary.weeklyInsight}</p>
                   </div>
                 </div>
-                {digest.aiSummary.actionItems && digest.aiSummary.actionItems.length > 0 && (
+                {aiSummary.actionItems && aiSummary.actionItems.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-border">
                     <p className="text-sm font-semibold mb-2 flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-orange-500" />
                       Suggested Action Items
                     </p>
                     <ul className="list-disc pl-5 space-y-1">
-                      {digest.aiSummary.actionItems.map((item: string, idx: number) => (
+                      {aiSummary.actionItems.map((item: string, idx: number) => (
                         <li key={idx} className="text-sm text-muted-foreground">{item}</li>
                       ))}
                     </ul>
