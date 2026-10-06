@@ -20,6 +20,7 @@ import { Task, useTasksStore } from '@/stores/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DurationModal } from './duration-modal';
+import { useAuthStore } from '@/stores/auth';
 
 interface TaskCardProps {
   task: Task;
@@ -29,6 +30,10 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onEdit, onDelete, isAdminOrManager = true }: TaskCardProps) {
+  const currentUser = useAuthStore((state) => state.user);
+  const isTeamMember = currentUser?.roles?.includes('TEAM_MEMBER');
+  const canDelete = !isTeamMember && isAdminOrManager && !!onDelete;
+
   const toggleTimer = useTasksStore((state) => state.toggleTimer);
   const completeTask = useTasksStore((state) => state.completeTask);
   const reopenTask = useTasksStore((state) => state.reopenTask);
@@ -350,12 +355,16 @@ export function TaskCard({ task, onEdit, onDelete, isAdminOrManager = true }: Ta
             </Button>
 
             {/* Delete Button (STRICTLY ADMIN / MANAGER ONLY) */}
-            {isAdminOrManager && onDelete && (
+            {canDelete && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => onDelete(taskId)}
+                onClick={() => {
+                  if (confirm('Are you sure you want to delete this task?')) {
+                    onDelete(taskId);
+                  }
+                }}
                 className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 title="Delete task (Admin only)"
               >

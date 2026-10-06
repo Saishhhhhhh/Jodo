@@ -80,7 +80,7 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     const tenantId = new mongoose.Types.ObjectId(req.auth!.tenantId);
     const storeId = new mongoose.Types.ObjectId(req.auth!.storeId);
-    const { name, memberId, email, phone, team, password, status } = req.body;
+    const { name, memberId, email, phone, team, password, status, moduleAccess } = req.body;
 
     if (!name || !memberId || !password) {
       return sendError(res, 'Name, Member ID, and Password are required', 400);
@@ -100,6 +100,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const roleId = await getTeamMemberRoleId(tenantId);
+    const assignedModules = Array.isArray(moduleAccess) && moduleAccess.length > 0 ? moduleAccess : ['tasks'];
 
     const newUser = new User({
       tenantId,
@@ -108,7 +109,8 @@ router.post('/', async (req: Request, res: Response) => {
       memberId: memberId.toUpperCase(),
       email: email ? email.toLowerCase() : undefined,
       phone,
-      permissions: [team || ''], // Use permissions array to store the team name for simplicity (or add teamId if we want a separate model)
+      permissions: [team || 'Sales'],
+      moduleAccess: assignedModules,
       passwordHash: password, // Pre-save hook hashes this
       status: status || 'active',
       roleIds: [roleId],
@@ -175,7 +177,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const tenantId = new mongoose.Types.ObjectId(req.auth!.tenantId);
     const userId = new mongoose.Types.ObjectId(req.params.id as string);
-    const { name, email, phone, team, status, password } = req.body;
+    const { name, email, phone, team, status, password, moduleAccess } = req.body;
 
     const user = await User.findOne({ _id: userId, tenantId });
     if (!user) return sendError(res, 'Team member not found', 404);
@@ -185,6 +187,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
     if (phone !== undefined) user.phone = phone;
     if (team) user.permissions = [team];
     if (status) user.status = status;
+    if (Array.isArray(moduleAccess)) user.moduleAccess = moduleAccess;
     
     if (password) {
       user.passwordHash = password; // pre-save will hash
@@ -209,4 +212,41 @@ router.patch('/:id', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * DELETE /api/admin/team-members/:id
+ * Delete a team member
+ */
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const tenantId = new mongoose.Types.ObjectId(req.auth!.tenantId);
+    const userId = new mongoose.Types.ObjectId(req.params.id as string);
+
+    const user = await User.findOneAndDelete({ _id: userId, tenantId });
+    if (!user) return sendError(res, 'Team member not found', 404);
+
+    // Unassign tasks from this user
+    await Task.updateMany(
+      { tenantId, assignedTo: userId },
+      { $unset: { assignedTo: '' } }
+    );
+
+    await AuditLog.create({
+      tenantId,
+      storeId: user.storeId,
+      actorUserId: new mongoose.Types.ObjectId(req.auth!.sub),
+      actorType: 'user',
+      action: 'TEAM_MEMBER_DELETED',
+      resourceType: 'User',
+      resourceId: String(user._id),
+      after: { name: user.name, memberId: user.memberId }
+    });
+
+    sendSuccess(res, null, 'Team Member deleted successfully');
+  } catch (error: any) {
+    console.error('Error deleting team member:', error);
+    sendError(res, 'Failed to delete team member', 500);
+  }
+});
+
 export default router;
+

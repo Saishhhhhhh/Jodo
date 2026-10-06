@@ -15,9 +15,16 @@ import { getInitials } from '@/lib/utils';
 import { StatusRemarkModal } from './status-remark-modal';
 import { EditTaskModal } from './edit-task-modal';
 import { TaskCard } from './task-card';
+import { useAuthStore } from '@/stores/auth';
 
 export function TaskBoard({ tasks }: { tasks: Task[] }) {
   const router = useRouter();
+  const currentUser = useAuthStore((state) => state.user);
+  const isTeamMember = currentUser?.roles?.includes('TEAM_MEMBER');
+  const isAdminOrManager = !isTeamMember && (currentUser?.roles?.some(r =>
+    ['admin', 'owner', 'manager', 'ADMIN', 'OWNER', 'MANAGER', 'superadmin', 'SUPER_ADMIN'].includes(r)
+  ) ?? false);
+
   const deleteTask = useTasksStore(state => state.deleteTask);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [modalTask, setModalTask] = useState<Task | null>(null);
@@ -80,15 +87,16 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
             <TaskCard
               key={task._id || task.id}
               task={task}
+              isAdminOrManager={isAdminOrManager}
               onEdit={(t) => {
                 setEditModalTask(t);
                 setIsEditModalOpen(true);
               }}
-              onDelete={async (id) => {
+              onDelete={isAdminOrManager ? async (id) => {
                 if (confirm('Are you sure you want to delete this task?')) {
                   await deleteTask(id);
                 }
-              }}
+              } : undefined}
             />
           ))}
         </div>
@@ -286,19 +294,21 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-red-500"
-                      title="Delete Task"
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete this task?')) {
-                          useTasksStore.getState().deleteTask(taskId);
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    {isAdminOrManager && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                        title="Delete Task"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this task?')) {
+                            useTasksStore.getState().deleteTask(taskId);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

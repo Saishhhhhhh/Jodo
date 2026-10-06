@@ -9,6 +9,7 @@ interface AuthUser {
   memberId?: string;
   roles?: string[];
   avatarUrl?: string;
+  moduleAccess?: string[];
   tenantId: string;
   storeId: string;
 }
@@ -101,6 +102,14 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await authApi.me();
           const user = response.data.data;
+          if (user) {
+            if (!user.roles && user.roleIds) {
+              user.roles = user.roleIds.map((r: any) => typeof r === 'string' ? r : r.name);
+            }
+            if (!user.id && user._id) {
+              user.id = String(user._id);
+            }
+          }
           set({ user, isAuthenticated: true });
         } catch {
           get().clearAuth();

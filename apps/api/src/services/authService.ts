@@ -31,6 +31,7 @@ export interface LoginResult {
     memberId?: string;
     roles?: string[];
     avatarUrl?: string;
+    moduleAccess?: string[];
     tenantId: string;
     storeId: string;
   };
@@ -114,6 +115,7 @@ export class AuthService {
         email: user.email || user.memberId || '',
         memberId: user.memberId,
         roles: (user.roleIds as any[]).map(r => r.name),
+        moduleAccess: user.moduleAccess || ['tasks'],
         avatarUrl: user.avatarUrl,
         tenantId: String(user.tenantId),
         storeId: String(user.storeId),
@@ -195,8 +197,15 @@ export class AuthService {
   /**
    * Get current user profile.
    */
-  async getMe(userId: string): Promise<IUser | null> {
-    return User.findById(userId).populate('roleIds', 'name permissions').lean() as unknown as IUser | null;
+  async getMe(userId: string): Promise<any> {
+    const user = await User.findById(userId).populate('roleIds', 'name permissions').lean();
+    if (!user) return null;
+    return {
+      ...user,
+      id: String(user._id),
+      roles: ((user.roleIds as any[]) || []).map((r: any) => typeof r === 'string' ? r : r.name),
+      moduleAccess: (user as any).moduleAccess || ['tasks'],
+    };
   }
 }
 

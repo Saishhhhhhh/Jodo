@@ -17,19 +17,29 @@ import {
   ClipboardList,
   Trash2,
   Users,
-  CheckCircle
+  CheckCircle,
+  LayoutGrid,
+  List,
+  Pencil,
+  MessageSquare
 } from 'lucide-react';
+import { format } from 'date-fns';
 import { useTasksStore, Task, TaskPriority, TaskStatus } from '@/stores/tasks';
 import { useAuthStore } from '@/stores/auth';
 import { staffApi, tasksApi } from '@/lib/api-client';
 import { TaskCard } from '@/components/tasks/task-card';
 import { EditTaskModal } from '@/components/tasks/edit-task-modal';
+import { StatusRemarkModal } from '@/components/tasks/status-remark-modal';
+import { TasksHeaderNav } from '@/components/tasks/tasks-header-nav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -48,9 +58,18 @@ export default function TasksPage() {
   const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
 
   // Derive role from actual logged-in user — no simulation toggle
-  const isAdminOrManager = currentUser?.roles?.some(r =>
+  const isTeamMember = currentUser?.roles?.includes('TEAM_MEMBER');
+  const isAdminOrManager = !isTeamMember && (currentUser?.roles?.some(r =>
     ['admin', 'owner', 'manager', 'ADMIN', 'OWNER', 'MANAGER', 'superadmin', 'SUPER_ADMIN'].includes(r)
-  ) ?? true;
+  ) ?? true);
+
+  // View Mode: 'cards' or 'table'
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+
+  // Status and Remark modal
+  const [remarkModalTask, setRemarkModalTask] = useState<Task | null>(null);
+  const [remarkModalOpen, setRemarkModalOpen] = useState(false);
+  const [remarkInitialStatus, setRemarkInitialStatus] = useState<TaskStatus | undefined>(undefined);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -299,6 +318,11 @@ export default function TasksPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 animate-fade-in max-w-[1600px] mx-auto">
+      {/* Top 2 Buttons: Tasks & Team Members */}
+      <div className="flex items-center justify-between border-b pb-4">
+        <TasksHeaderNav />
+      </div>
+
       {/* ============================================================ */}
       {/* Header: Title, Live Badge, Subtitle & Action Controls         */}
       {/* ============================================================ */}
@@ -508,25 +532,183 @@ export default function TasksPage() {
                   My Tasks
                 </button>
               </div>
+
+              {/* View Mode Toggle: Cards vs Table */}
+              <div className="flex items-center bg-background border rounded-lg p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('cards')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                    viewMode === 'cards'
+                      ? 'bg-muted text-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Card View"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Cards</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('table')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                    viewMode === 'table'
+                      ? 'bg-muted text-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Table View"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Table</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Task Cards Grid OR Empty State */}
+          {/* Task Display: Cards or Table */}
           {filteredTasks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredTasks.map((task) => (
-                <TaskCard
-                  key={task._id || task.id}
-                  task={task}
-                  isAdminOrManager={isAdminOrManager}
-                  onEdit={(t) => {
-                    setEditingTask(t);
-                    setEditModalOpen(true);
-                  }}
-                  onDelete={(id) => deleteTask(id)}
-                />
-              ))}
-            </div>
+            viewMode === 'cards' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filteredTasks.map((task) => (
+                  <TaskCard
+                    key={task._id || task.id}
+                    task={task}
+                    isAdminOrManager={isAdminOrManager}
+                    onEdit={(t) => {
+                      setEditingTask(t);
+                      setEditModalOpen(true);
+                    }}
+                    onDelete={(id) => {
+                      if (confirm('Are you sure you want to delete this task?')) {
+                        deleteTask(id);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
+                <Table>
+                  <TableHeader className="bg-muted/30 border-b border-border">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[75px]">Task ID</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 min-w-[140px]">Title</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[130px]">Assigned To</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[85px]">Priority</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[120px]">Status</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 min-w-[160px] max-w-[220px]">Remark</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 w-[110px]">Due Date</TableHead>
+                      <TableHead className="text-xs text-muted-foreground py-3 px-3 text-right w-[115px] sticky right-0 bg-muted/95 backdrop-blur-sm z-20 border-l border-border/40">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTasks.map((t: any) => {
+                      const taskId = t._id || t.id;
+                      const rawAssignee = t.assignedTo?.name || (typeof t.assignedTo === 'string' && !/^[0-9a-fA-F]{24}$/.test(t.assignedTo) ? t.assignedTo : 'Unassigned');
+                      return (
+                        <TableRow
+                          key={taskId}
+                          className="hover:bg-muted/20 border-border/40"
+                        >
+                          <TableCell className="text-xs text-muted-foreground font-mono py-2.5 px-3">
+                            {taskId.toString().slice(-6)}
+                          </TableCell>
+                          <TableCell className="font-medium text-sm py-2.5 px-3 max-w-[200px]">
+                            <span 
+                              onClick={() => {
+                                setEditingTask(t);
+                                setEditModalOpen(true);
+                              }}
+                              className="hover:underline text-foreground block truncate cursor-pointer"
+                            >
+                              {t.title}
+                            </span>
+                            <div className="text-xs text-muted-foreground truncate max-w-[180px] mt-0.5">
+                              {t.description || 'No description'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm py-2.5 px-3">
+                            <div className="flex items-center gap-2 max-w-[130px]">
+                              <Avatar className="h-5 w-5 shrink-0">
+                                <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
+                                  {getInitials(rawAssignee)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium text-foreground truncate">{rawAssignee}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <Badge variant="outline" className="text-[10px] whitespace-nowrap">
+                              {t.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <Badge 
+                              variant={t.status === 'Completed' || t.status === 'Closed' ? 'default' : t.status === 'Blocked' ? 'destructive' : 'secondary'}
+                              className="text-[10px]"
+                            >
+                              {t.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 max-w-[220px]">
+                            <span className="text-xs text-muted-foreground truncate block">
+                              {t.remark ? `"${t.remark}"` : '—'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm py-2.5 px-3 whitespace-nowrap">
+                            {t.dueDate ? format(new Date(t.dueDate), 'MMM d, yyyy') : 'No due date'}
+                          </TableCell>
+                          <TableCell className="text-right py-2.5 px-3 sticky right-0 bg-card z-20 border-l border-border/40">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                title="Edit Task"
+                                onClick={() => {
+                                  setEditingTask(t);
+                                  setEditModalOpen(true);
+                                }}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                                title="Update Status & Remark"
+                                onClick={() => {
+                                  setRemarkModalTask(t);
+                                  setRemarkInitialStatus(t.status);
+                                  setRemarkModalOpen(true);
+                                }}
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                              </Button>
+                              {isAdminOrManager && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                                  title="Delete Task"
+                                  onClick={() => {
+                                    if (confirm('Are you sure you want to delete this task?')) {
+                                      deleteTask(taskId);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )
           ) : (
             <Card className="border-dashed py-12 text-center">
               <CardContent className="flex flex-col items-center justify-center space-y-3">
@@ -856,6 +1038,17 @@ export default function TasksPage() {
           if (!open) setEditingTask(null);
         }}
         onTaskUpdated={() => fetchTasks()}
+      />
+
+      {/* Status & Remark Modal */}
+      <StatusRemarkModal
+        task={remarkModalTask}
+        open={remarkModalOpen}
+        onOpenChange={(open) => {
+          setRemarkModalOpen(open);
+          if (!open) setRemarkModalTask(null);
+        }}
+        initialStatus={remarkInitialStatus}
       />
     </div>
   );
