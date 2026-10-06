@@ -59,6 +59,7 @@ const ai_content_1 = __importDefault(require("./routes/ai-content"));
 const leads_1 = __importDefault(require("./routes/leads"));
 const counts_1 = __importDefault(require("./routes/counts"));
 const messages_1 = __importDefault(require("./routes/messages"));
+const webhooks_1 = __importDefault(require("./routes/webhooks"));
 require("./models/Message");
 const app = (0, express_1.default)();
 // ============================================================
@@ -165,6 +166,7 @@ app.use('/api/ai-content', ai_content_1.default);
 app.use('/api/admin/ai-content', ai_content_1.default);
 app.use('/api/storefront', storefront_1.default);
 app.use('/api/storefront/auth', storefront_auth_1.default);
+app.use('/api/webhooks', webhooks_1.default);
 // ============================================================
 // Error Handling
 // ============================================================

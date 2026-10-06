@@ -1,12 +1,62 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, MapPin, Phone, Mail } from 'lucide-react';
+import { ArrowUpRight, MapPin, Phone, Mail, Loader2, CheckCircle2 } from 'lucide-react';
+import { storefrontApi } from '@/lib/api-client';
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.firstName || !formData.email) {
+      setStatus('error');
+      setErrorMessage('First name and email are required');
+      return;
+    }
+
+    setStatus('loading');
+    setErrorMessage('');
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+      const res = await fetch(`${apiUrl}/storefront/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Failed to submit form');
+      }
+
+      setStatus('success');
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
+      
+      setTimeout(() => setStatus('idle'), 5000);
+    } catch (err: any) {
+      setStatus('error');
+      setErrorMessage(err.message || 'Something went wrong');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white"> {/* White background for the entire page */}
-      {/* Container */}
+    <div className="min-h-screen bg-white">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-0">
         
         {/* Header Section */}
@@ -31,7 +81,6 @@ export default function ContactPage() {
 
         {/* 3-Column Info Cards Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Card 1: Location */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -48,7 +97,6 @@ export default function ContactPage() {
             </p>
           </motion.div>
 
-          {/* Card 2: Email */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -65,7 +113,6 @@ export default function ContactPage() {
             </div>
           </motion.div>
 
-          {/* Card 3: Phone */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -86,33 +133,35 @@ export default function ContactPage() {
         {/* 2-Column Grid: Form & Map */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[700px]">
           
-          {/* Left Side: The Form */}
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
             className="bg-white rounded-[40px] p-6 sm:p-10 md:p-14 lg:p-16 shadow-[0_2px_20px_rgba(0,0,0,0.03)] h-full flex flex-col justify-center relative overflow-hidden"
           >
-            {/* Soft background decor inside form card */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-cream opacity-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
             
             <h2 className="text-3xl md:text-4xl text-jodo-dark mb-8 md:mb-10 font-medium relative z-10">Send a Message</h2>
             
-            <form className="space-y-6 md:space-y-8 flex-1 relative z-10" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6 md:space-y-8 flex-1 relative z-10" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                 <div className="relative group">
                   <input 
                     type="text" 
                     id="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
                     placeholder=" "
                     className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
                   />
-                  <label htmlFor="firstName" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">First Name</label>
+                  <label htmlFor="firstName" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">First Name *</label>
                 </div>
                 <div className="relative group">
                   <input 
                     type="text" 
                     id="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
                     placeholder=" "
                     className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
                   />
@@ -125,15 +174,19 @@ export default function ContactPage() {
                   <input 
                     type="email" 
                     id="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder=" "
                     className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
                   />
-                  <label htmlFor="email" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">Email Address</label>
+                  <label htmlFor="email" className="absolute left-0 top-4 text-taupe-dark text-lg transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs cursor-text">Email Address *</label>
                 </div>
                 <div className="relative group">
                   <input 
                     type="tel" 
                     id="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
                     placeholder=" "
                     className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer"
                   />
@@ -144,6 +197,8 @@ export default function ContactPage() {
               <div className="relative group pt-4">
                 <textarea 
                   id="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   placeholder=" "
                   rows={4}
                   className="block w-full bg-transparent border-b border-taupe-light py-4 text-lg text-jodo-dark focus:outline-none focus:border-terracotta transition-colors peer resize-none"
@@ -151,19 +206,34 @@ export default function ContactPage() {
                 <label htmlFor="message" className="absolute left-0 top-8 text-taupe-dark text-lg transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:text-terracotta peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs cursor-text">How can we help you today?</label>
               </div>
 
-              <button 
-                type="submit"
-                className="mt-6 md:mt-10 bg-terracotta text-white rounded-[14px] md:rounded-[16px] pl-4 md:pl-6 pr-1.5 md:pr-2 py-1.5 md:py-2 text-[15px] md:text-lg font-bold hover:bg-[#C25135] transition-colors duration-300 flex items-center justify-center gap-3 md:gap-4 group w-fit"
-              >
-                <span>Send Message</span>
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-terracotta shrink-0">
-                  <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+              {status === 'error' && (
+                <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
+              )}
+
+              {status === 'success' ? (
+                <div className="flex items-center gap-3 text-green-600 bg-green-50 p-4 rounded-xl border border-green-100">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-medium text-[15px]">Message sent! We'll get back to you shortly.</span>
                 </div>
-              </button>
+              ) : (
+                <button 
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="mt-6 md:mt-10 bg-terracotta text-white rounded-[14px] md:rounded-[16px] pl-4 md:pl-6 pr-1.5 md:pr-2 py-1.5 md:py-2 text-[15px] md:text-lg font-bold hover:bg-[#C25135] disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center gap-3 md:gap-4 group w-fit"
+                >
+                  <span>{status === 'loading' ? 'Sending...' : 'Send Message'}</span>
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center text-terracotta shrink-0">
+                    {status === 'loading' ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-terracotta" />
+                    ) : (
+                      <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 stroke-[2.5] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                    )}
+                  </div>
+                </button>
+              )}
             </form>
           </motion.div>
 
-          {/* Right Side: The Interactive Map */}
           <motion.div 
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -180,7 +250,6 @@ export default function ContactPage() {
               referrerPolicy="no-referrer-when-downgrade"
               className="absolute inset-0 grayscale-[0.6] group-hover:grayscale-0 transition-all duration-1000 object-cover"
             />
-            {/* Subtle overlay pointer event none so map remains interactive */}
             <div className="absolute inset-0 pointer-events-none rounded-[40px] border border-black/5" />
           </motion.div>
           
@@ -198,7 +267,6 @@ export default function ContactPage() {
             alt="Crafting Excellence"
             className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
           />
-          {/* Dark Overlay for Text Readability */}
           <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-500"></div>
           
           <div className="relative z-10 text-center px-4 md:px-6 py-10 md:py-16 max-w-3xl mx-auto flex flex-col items-center">

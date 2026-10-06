@@ -56,6 +56,7 @@ import aiContentRoutes from './routes/ai-content';
 import leadsRoutes from './routes/leads';
 import countsRoutes from './routes/counts';
 import messagesRoutes from './routes/messages';
+import webhooksRoutes from './routes/webhooks';
 import './models/Message';
 
 const app = express();
@@ -177,6 +178,7 @@ app.use('/api/ai-content', aiContentRoutes);
 app.use('/api/admin/ai-content', aiContentRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
+app.use('/api/webhooks', webhooksRoutes);
 // ============================================================
 // Error Handling
 // ============================================================
