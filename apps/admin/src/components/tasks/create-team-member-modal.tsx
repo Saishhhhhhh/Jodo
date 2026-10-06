@@ -11,13 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -138,25 +131,29 @@ export function CreateTeamMemberModal({ children, onCreated }: { children?: Reac
 
             <div className="space-y-2">
               <Label>Team</Label>
-              <Select value={team} onValueChange={setTeam}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {['Sales', 'Operations', 'Content', 'Support', 'Follow-up'].map(t => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors cursor-pointer"
+              >
+                {['Sales', 'Operations', 'Warehouse', 'Content', 'Support', 'Follow-up', 'Finance'].map((t) => (
+                  <option key={t} value={t} className="bg-popover text-popover-foreground">
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors cursor-pointer"
+              >
+                <option value="active" className="bg-popover text-popover-foreground">Active</option>
+                <option value="inactive" className="bg-popover text-popover-foreground">Inactive</option>
+              </select>
             </div>
 
             {/* Module Access Selection */}

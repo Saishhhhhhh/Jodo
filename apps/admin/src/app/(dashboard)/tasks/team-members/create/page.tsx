@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -17,7 +17,6 @@ import {
   MessageSquare,
   Image as ImageIcon,
   BookOpen,
-  HelpCircle,
   BarChart3,
   Settings,
   ShieldCheck,
@@ -28,19 +27,13 @@ import {
   Layers,
   UserPlus,
   RefreshCw,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -60,8 +53,8 @@ const AVAILABLE_MODULES: ModuleDefinition[] = [
     id: 'tasks',
     name: 'Tasks Management',
     category: 'Core Operations',
-    description: 'Assigned tasks, statuses, remarks, proof attachments, and completion tracking.',
-    subfeatures: ['My Tasks', 'Completed Tasks', 'Status Workflow', 'Task Remarks'],
+    description: 'Assigned tasks, statuses, remarks, proof attachments, and completion logs.',
+    subfeatures: ['My Tasks', 'Completed Tasks', 'Remarks', 'Status Flow'],
     icon: CheckSquare,
     isCore: true,
   },
@@ -86,7 +79,7 @@ const AVAILABLE_MODULES: ModuleDefinition[] = [
     name: 'Orders & Fulfilment',
     category: 'Commerce',
     description: 'Process incoming orders, draft orders, returns, and shipping labels.',
-    subfeatures: ['All Orders', 'Draft Orders', 'Returns & Complaints', 'Shipping Labels', 'Fraud Review'],
+    subfeatures: ['All Orders', 'Draft Orders', 'Returns & Complaints', 'Shipping Labels'],
     icon: ShoppingCart,
   },
   {
@@ -217,15 +210,14 @@ export default function CreateTeamMemberPage() {
   // Module Access State (Tasks is enabled by default)
   const [selectedModules, setSelectedModules] = useState<string[]>(['tasks']);
 
-  const toggleModule = (id: string) => {
-    // Tasks is core for team members, keep it enabled
-    if (id === 'tasks') {
-      if (!selectedModules.includes('tasks')) {
-        setSelectedModules((prev) => [...prev, 'tasks']);
-      }
-      return;
-    }
+  // Pre-generate a default Member ID on load
+  useEffect(() => {
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    setMemberId(`TM${randomNum}`);
+  }, []);
 
+  const toggleModule = (id: string) => {
+    if (id === 'tasks') return; // Core module cannot be disabled
     setSelectedModules((prev) =>
       prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
     );
@@ -250,25 +242,26 @@ export default function CreateTeamMemberPage() {
     const randomNum = Math.floor(100 + Math.random() * 900);
     const prefix = team ? team.substring(0, 2).toUpperCase() : 'TM';
     setMemberId(`${prefix}${randomNum}`);
+    toast.info(`Generated Member ID: ${prefix}${randomNum}`);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
     if (!name.trim()) {
-      toast.error('Full name is required');
+      toast.error('Please enter the team member full name');
       return;
     }
     if (!memberId.trim()) {
-      toast.error('Member ID is required');
+      toast.error('Please provide a Member ID');
       return;
     }
     if (!password) {
-      toast.error('Password is required');
+      toast.error('Please enter a login password');
       return;
     }
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error('Password and Confirm Password do not match');
       return;
     }
 
@@ -285,7 +278,7 @@ export default function CreateTeamMemberPage() {
         moduleAccess: selectedModules,
       });
 
-      toast.success(`Team Member ${name} created successfully!`);
+      toast.success(`Team Member "${name}" created successfully!`);
       router.push('/tasks/team-members');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create team member');
@@ -295,15 +288,15 @@ export default function CreateTeamMemberPage() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-muted/20 pb-16">
+    <div className="w-full min-h-full pb-16 bg-muted/10">
       {/* Top Fullwidth Sticky Navigation Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border/80 px-6 py-4">
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-6 py-4">
         <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/tasks/team-members">
               <Button variant="outline" size="sm" className="h-9 px-3 gap-1.5 text-xs font-medium">
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Team Members</span>
+                <span>Back</span>
               </Button>
             </Link>
             <div>
@@ -328,7 +321,8 @@ export default function CreateTeamMemberPage() {
               </Button>
             </Link>
             <Button
-              onClick={handleSubmit}
+              type="button"
+              onClick={() => handleSubmit()}
               disabled={loading}
               size="sm"
               className="text-xs font-semibold px-4 shadow-sm"
@@ -352,129 +346,126 @@ export default function CreateTeamMemberPage() {
       {/* Main Fullwidth Content */}
       <div className="w-full px-6 py-6 space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Account Profile & Credentials (5 cols on lg) */}
-            <div className="lg:col-span-4 space-y-6">
-              {/* Profile Card */}
-              <div className="bg-card rounded-2xl border border-border shadow-xs p-5 space-y-4">
-                <div className="border-b border-border/80 pb-3">
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-primary" />
-                    Member Profile
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Essential personal details and department assignment.
-                  </p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Unified Account Details & Security Card (5 cols on lg) */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="bg-card rounded-2xl border border-border shadow-xs p-5 space-y-5">
+                {/* Header */}
+                <div className="border-b border-border/80 pb-3 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-primary" />
+                      Account & Credentials
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Member profile and login credentials.
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-[10px] font-medium">
+                    Required Fields *
+                  </Badge>
                 </div>
 
-                <div className="space-y-3.5">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">
-                      Full Name <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Rahul Sharma"
-                      required
-                      className="text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
+                <div className="space-y-4">
+                  {/* Full Name & Member ID */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
                       <Label className="text-xs font-semibold">
-                        Member ID <span className="text-destructive">*</span>
+                        Full Name <span className="text-destructive">*</span>
                       </Label>
-                      <button
-                        type="button"
-                        onClick={generateMemberId}
-                        className="text-[11px] text-primary hover:underline font-medium inline-flex items-center gap-1"
-                      >
-                        <Sparkle className="w-3 h-3" /> Auto-generate
-                      </button>
+                      <Input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Rahul Sharma"
+                        required
+                        className="text-xs"
+                      />
                     </div>
-                    <Input
-                      value={memberId}
-                      onChange={(e) => setMemberId(e.target.value.toUpperCase())}
-                      placeholder="e.g. TM001"
-                      required
-                      className="text-xs font-mono font-semibold tracking-wider uppercase"
-                    />
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold">
+                          Member ID <span className="text-destructive">*</span>
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={generateMemberId}
+                          className="text-[11px] text-primary hover:underline font-medium inline-flex items-center gap-1"
+                        >
+                          <Sparkle className="w-3 h-3" /> Auto
+                        </button>
+                      </div>
+                      <Input
+                        value={memberId}
+                        onChange={(e) => setMemberId(e.target.value.toUpperCase())}
+                        placeholder="e.g. TM001"
+                        required
+                        className="text-xs font-mono font-semibold tracking-wider uppercase bg-muted/20"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Email Address (Optional)</Label>
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="rahul@example.com"
-                      className="text-xs"
-                    />
+                  {/* Email & Phone */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Email Address (Optional)</Label>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="rahul@example.com"
+                        className="text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">Phone Number (Optional)</Label>
+                      <Input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+91 9876543210"
+                        className="text-xs"
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">Phone Number (Optional)</Label>
-                    <Input
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+91 9876543210"
-                      className="text-xs"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Team & Status */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-semibold">Department / Team</Label>
-                      <Select value={team} onValueChange={setTeam}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {['Sales', 'Operations', 'Warehouse', 'Content', 'Support', 'Follow-up', 'Finance'].map((t) => (
-                            <SelectItem key={t} value={t} className="text-xs">
-                              {t}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <select
+                        value={team}
+                        onChange={(e) => setTeam(e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors cursor-pointer"
+                      >
+                        {['Sales', 'Operations', 'Warehouse', 'Content', 'Support', 'Follow-up', 'Finance'].map((t) => (
+                          <option key={t} value={t} className="bg-popover text-popover-foreground">
+                            {t}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="space-y-1.5">
                       <Label className="text-xs font-semibold">Account Status</Label>
-                      <Select value={status} onValueChange={setStatus}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active" className="text-xs">Active</SelectItem>
-                          <SelectItem value="inactive" className="text-xs">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors cursor-pointer"
+                      >
+                        <option value="active" className="bg-popover text-popover-foreground">Active</option>
+                        <option value="inactive" className="bg-popover text-popover-foreground">Inactive</option>
+                      </select>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Password Card */}
-              <div className="bg-card rounded-2xl border border-border shadow-xs p-5 space-y-4">
-                <div className="border-b border-border/80 pb-3">
-                  <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-primary" />
-                    Security & Credentials
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Credentials the team member will use to log into the portal.
-                  </p>
-                </div>
-
-                <div className="space-y-3.5">
-                  <div className="space-y-1.5">
+                  {/* Security Credentials Section */}
+                  <div className="pt-3 border-t border-border/80 space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-semibold">
-                        Password <span className="text-destructive">*</span>
-                      </Label>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <KeyRound className="w-3.5 h-3.5 text-primary" />
+                        Login Password
+                      </h3>
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
@@ -484,35 +475,43 @@ export default function CreateTeamMemberPage() {
                         {showPassword ? 'Hide' : 'Show'}
                       </button>
                     </div>
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter a secure password"
-                      required
-                      className="text-xs"
-                    />
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold">
-                      Confirm Password <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Repeat password"
-                      required
-                      className="text-xs"
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">
+                          Password <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Password"
+                          required
+                          className="text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">
+                          Confirm Password <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm"
+                          required
+                          className="text-xs"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Fullwidth Module Access Matrix (8 cols on lg) */}
-            <div className="lg:col-span-8 space-y-6">
+            {/* Right Column: Fullwidth Module Access Matrix (7 cols on lg) */}
+            <div className="lg:col-span-7 space-y-6">
               <div className="bg-card rounded-2xl border border-border shadow-xs p-5 space-y-5">
                 {/* Header & Presets */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
@@ -553,7 +552,7 @@ export default function CreateTeamMemberPage() {
                   </div>
                 </div>
 
-                {/* Quick Presets Carousel / Badges */}
+                {/* Quick Presets */}
                 <div className="bg-muted/40 rounded-xl p-3 border border-border/60">
                   <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Quick Access Presets:
@@ -571,7 +570,7 @@ export default function CreateTeamMemberPage() {
                           onClick={() => applyPreset(p.modules)}
                           title={p.description}
                           className={cn(
-                            'text-xs px-3 py-1.5 rounded-lg border font-medium transition-all duration-150 text-left flex items-center gap-1.5',
+                            'text-xs px-3 py-1.5 rounded-lg border font-medium transition-all duration-150 text-left flex items-center gap-1.5 cursor-pointer',
                             isActive
                               ? 'bg-primary text-primary-foreground border-primary shadow-xs'
                               : 'bg-background hover:bg-muted text-foreground border-border hover:border-border/80'
@@ -596,7 +595,7 @@ export default function CreateTeamMemberPage() {
                         key={module.id}
                         onClick={() => toggleModule(module.id)}
                         className={cn(
-                          'relative rounded-xl border p-4 transition-all duration-200 cursor-pointer select-none flex flex-col justify-between group',
+                          'relative rounded-xl border p-3.5 transition-all duration-200 cursor-pointer select-none flex flex-col justify-between group',
                           isSelected
                             ? 'bg-primary/5 border-primary/60 shadow-xs ring-1 ring-primary/20'
                             : 'bg-card border-border hover:border-border/80 hover:bg-muted/30'
@@ -605,10 +604,10 @@ export default function CreateTeamMemberPage() {
                         <div>
                           {/* Header of Card */}
                           <div className="flex items-start justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2.5">
                               <div
                                 className={cn(
-                                  'w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
+                                  'w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0',
                                   isSelected
                                     ? 'bg-primary text-primary-foreground shadow-xs'
                                     : 'bg-muted text-muted-foreground group-hover:text-foreground'
@@ -617,41 +616,51 @@ export default function CreateTeamMemberPage() {
                                 <Icon className="w-4 h-4" />
                               </div>
                               <div>
-                                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                                   {module.name}
                                   {module.isCore && (
-                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-primary/40 text-primary">
+                                    <Badge variant="outline" className="text-[9px] py-0 px-1 border-primary/40 text-primary">
                                       Core
                                     </Badge>
                                   )}
                                 </h3>
-                                <p className="text-[11px] text-muted-foreground">
+                                <p className="text-[10px] text-muted-foreground">
                                   {module.category}
                                 </p>
                               </div>
                             </div>
 
-                            <Switch
-                              checked={isSelected}
-                              onCheckedChange={() => toggleModule(module.id)}
-                              disabled={module.isCore}
-                              className="data-[state=checked]:bg-primary"
-                            />
+                            {/* Stop propagation so clicking the switch does NOT double-toggle */}
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Switch
+                                checked={isSelected}
+                                onCheckedChange={(checked) => {
+                                  if (module.isCore) return;
+                                  if (checked) {
+                                    setSelectedModules((prev) => Array.from(new Set([...prev, module.id])));
+                                  } else {
+                                    setSelectedModules((prev) => prev.filter((m) => m !== module.id));
+                                  }
+                                }}
+                                disabled={module.isCore}
+                                className="data-[state=checked]:bg-primary cursor-pointer"
+                              />
+                            </div>
                           </div>
 
                           {/* Description */}
-                          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                          <p className="text-[11px] text-muted-foreground line-clamp-2 mt-1">
                             {module.description}
                           </p>
                         </div>
 
                         {/* Subfeatures Tag List */}
-                        <div className="pt-3 mt-3 border-t border-border/40 flex flex-wrap gap-1">
+                        <div className="pt-2.5 mt-2.5 border-t border-border/40 flex flex-wrap gap-1">
                           {module.subfeatures.map((feat) => (
                             <span
                               key={feat}
                               className={cn(
-                                'text-[10px] px-2 py-0.5 rounded-md font-medium',
+                                'text-[9px] px-1.5 py-0.5 rounded font-medium',
                                 isSelected
                                   ? 'bg-primary/10 text-primary'
                                   : 'bg-muted/60 text-muted-foreground'

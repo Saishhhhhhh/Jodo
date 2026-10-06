@@ -126,6 +126,7 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'Task Management', href: '/tasks', icon: CheckSquare },
       { label: 'Team Members', href: '/tasks/team-members', icon: Users2 },
+      { label: 'Task AI Analysis', href: '/tasks/ai-analysis', icon: Sparkles, badge: 'AI' },
     ],
   },
   {
@@ -575,6 +576,11 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                           <div className="flex items-center gap-2">
                             <child.icon className="h-3.5 w-3.5" />
                             <span>{child.label}</span>
+                            {child.badge && (
+                              <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-primary/10 text-primary border border-primary/20 leading-none">
+                                {child.badge}
+                              </span>
+                            )}
                           </div>
                           <NotificationBadge count={getBadgeForLabel(child.label)} />
                         </Link>
@@ -671,6 +677,11 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <child.icon className={cn('h-3.5 w-3.5 shrink-0', childActive && 'text-primary')} />
                               <span className="truncate">{child.label}</span>
+                              {child.badge && (
+                                <span className="text-[9px] px-1 py-0.5 rounded font-bold bg-primary/10 text-primary border border-primary/20 leading-none">
+                                  {child.badge}
+                                </span>
+                              )}
                             </div>
                             <NotificationBadge count={getBadgeForLabel(child.label)} />
                           </Link>
