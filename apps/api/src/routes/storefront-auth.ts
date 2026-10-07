@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { Customer } from '../models/Customer';
+import { User } from '../models/User';
 import { Store } from '../models/Store';
 import { Order } from '../models/Order';
 import { Return } from '../models/Return';
+import { EmailVerification } from '../models/EmailVerification';
+import { emailService } from '../services/emailService';
+import { generateOtp, hashOtp, maskEmail } from '../utils/crypto';
 import { sendSuccess, sendError } from '../utils/response';
 import { signAccessToken } from '../utils/jwt';
 import jwt from 'jsonwebtoken';
@@ -10,7 +14,25 @@ import { env } from '../config/env';
 
 const router = Router();
 
-// Registration Route
+// Helper to sign customer JWT token
+function generateCustomerToken(customer: any) {
+  return jwt.sign(
+    {
+      sub: customer._id.toString(),
+      tenantId: customer.tenantId?.toString() || '',
+      storeId: customer.storeId?.toString() || '',
+      email: customer.email,
+      name: `${customer.firstName} ${customer.lastName}`,
+      type: 'access',
+    },
+    env.JWT_ACCESS_SECRET,
+    { expiresIn: '30d' }
+  );
+}
+
+// ============================================================
+// Registration Route with Email Verification
+// ============================================================
 router.post('/register', async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -19,48 +41,77 @@ router.post('/register', async (req, res, next) => {
       return sendError(res, 'All fields are required', 400);
     }
 
-    // Since this is a storefront, we fetch the default store
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Basic email format validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return sendError(res, 'Please provide a valid email address', 400);
+    }
+
+    if (password.length < 6) {
+      return sendError(res, 'Password must be at least 6 characters long', 400);
+    }
+
+    // Fetch the default store
     const store = await Store.findOne();
     if (!store) {
       return sendError(res, 'Store not configured', 500);
     }
 
-    const existingCustomer = await Customer.findOne({ email, storeId: store._id });
+    const existingCustomer = await Customer.findOne({ email: cleanEmail, storeId: store._id });
     if (existingCustomer) {
       return sendError(res, 'An account with this email already exists', 400);
     }
 
+    // Check if email belongs to a team member or staff
+    const isTeamMemberOrStaff = await User.findOne({ email: cleanEmail });
+    const isExempt = Boolean(isTeamMemberOrStaff);
+
+    // Create customer account (team members & staff are auto-verified)
     const customer = new Customer({
       tenantId: store.tenantId,
       storeId: store._id,
-      firstName,
-      lastName,
-      email,
-      passwordHash: password, // The pre-save hook will hash this!
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: cleanEmail,
+      passwordHash: password, // The pre-save hook will hash this
+      isEmailVerified: isExempt,
+      emailVerifiedAt: isExempt ? new Date() : null,
     });
 
     await customer.save();
 
-    const token = jwt.sign(
-      {
-        sub: customer._id.toString(),
-        tenantId: customer.tenantId?.toString() || '',
-        storeId: customer.storeId?.toString() || '',
-        email: customer.email,
-        name: `${customer.firstName} ${customer.lastName}`,
-        type: 'access',
-      },
-      env.JWT_ACCESS_SECRET,
-      { expiresIn: '30d' }
-    );
+    // If user is a team member or staff, log them in directly without OTP
+    if (isExempt) {
+      const token = generateCustomerToken(customer);
+      customer.passwordHash = undefined;
+      return sendSuccess(res, { token, customer }, 'Registration successful');
+    }
 
-    sendSuccess(res, { token, customer }, 'Registration successful');
+    // Customer account created without immediate OTP verification
+    // Verification will be required when customer logs in with their credentials
+    customer.passwordHash = undefined;
+    sendSuccess(
+      res,
+      {
+        requiresVerification: false,
+        customer: {
+          id: customer._id,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: customer.email,
+        },
+      },
+      'Account created successfully. Please sign in with your credentials.'
+    );
   } catch (error) {
     next(error);
   }
 });
 
-// Login Route
+// ============================================================
+// Login Route with Email Verification Gate
+// ============================================================
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -69,12 +120,15 @@ router.post('/login', async (req, res, next) => {
       return sendError(res, 'Email and password are required', 400);
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     const store = await Store.findOne();
     if (!store) {
       return sendError(res, 'Store not configured', 500);
     }
 
-    const customer = await Customer.findOne({ email, storeId: store._id }).select('+passwordHash');
+    // Authenticate credentials FIRST before revealing any account state
+    const customer = await Customer.findOne({ email: cleanEmail, storeId: store._id }).select('+passwordHash');
     if (!customer) {
       return sendError(res, 'Invalid email or password', 401);
     }
@@ -88,20 +142,56 @@ router.post('/login', async (req, res, next) => {
       return sendError(res, 'Invalid email or password', 401);
     }
 
-    const token = jwt.sign(
-      {
-        sub: customer._id.toString(),
-        tenantId: customer.tenantId?.toString() || '',
-        storeId: customer.storeId?.toString() || '',
-        email: customer.email,
-        name: `${customer.firstName} ${customer.lastName}`,
-        type: 'access',
-      },
-      env.JWT_ACCESS_SECRET,
-      { expiresIn: '30d' }
-    );
+    // Team members & staff created by admins are exempt from email verification
+    const isTeamMemberOrStaff = await User.findOne({ email: cleanEmail });
+    if (isTeamMemberOrStaff) {
+      if (!customer.isEmailVerified) {
+        customer.isEmailVerified = true;
+        customer.emailVerifiedAt = new Date();
+        await customer.save();
+      }
+    } else if (!customer.isEmailVerified) {
+      // Invalidate old OTPs and send a fresh verification OTP
+      await EmailVerification.deleteMany({ email: cleanEmail });
 
-    // Remove passwordHash from response
+      const otp = generateOtp();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      await EmailVerification.create({
+        customerId: customer._id,
+        email: cleanEmail,
+        otpHash: hashOtp(otp),
+        expiresAt,
+        attemptCount: 0,
+        lastSentAt: new Date(),
+        resendCount: 0,
+      });
+
+      try {
+        await emailService.sendVerificationOtp({
+          email: cleanEmail,
+          otp,
+          customerName: customer.firstName,
+          tenantId: customer.tenantId,
+        });
+      } catch (mailErr) {
+        console.error('[StorefrontAuth] Failed to dispatch verification email on login:', mailErr);
+      }
+
+      return res.status(200).json({
+        success: false,
+        requiresVerification: true,
+        message: 'Please verify your email address to continue.',
+        data: {
+          email: customer.email,
+          maskedEmail: maskEmail(customer.email),
+          requiresVerification: true,
+        },
+      });
+    }
+
+    // Account is verified: issue full authenticated session
+    const token = generateCustomerToken(customer);
     customer.passwordHash = undefined;
 
     sendSuccess(res, { token, customer }, 'Login successful');
@@ -109,6 +199,170 @@ router.post('/login', async (req, res, next) => {
     next(error);
   }
 });
+
+// ============================================================
+// Verify Email OTP Route
+// ============================================================
+router.post('/verify-otp', async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return sendError(res, 'Email and 6-digit verification code are required', 400);
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = String(otp).trim();
+
+    if (cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
+      return sendError(res, 'Verification code must be exactly 6 digits', 400);
+    }
+
+    // Find the latest active verification record for this email
+    const record = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
+
+    if (!record) {
+      return sendError(res, 'No active verification code found for this email. Please request a new one.', 400);
+    }
+
+    // Check expiration
+    if (new Date() > new Date(record.expiresAt)) {
+      return sendError(res, 'Verification code has expired. Please request a new one.', 400);
+    }
+
+    // Check attempt limit
+    if (record.attemptCount >= 5) {
+      return sendError(res, 'Too many incorrect attempts. Please request a new verification code.', 429);
+    }
+
+    // Compare hashed OTP
+    const hashedInput = hashOtp(cleanOtp);
+    if (hashedInput !== record.otpHash) {
+      record.attemptCount += 1;
+      await record.save();
+      const attemptsLeft = Math.max(0, 5 - record.attemptCount);
+      return sendError(
+        res,
+        attemptsLeft > 0
+          ? `Invalid verification code. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining.`
+          : 'Too many incorrect attempts. Please request a new code.',
+        400
+      );
+    }
+
+    // OTP is valid! Mark customer as verified
+    const customer = await Customer.findOne({ email: cleanEmail });
+    if (!customer) {
+      return sendError(res, 'Customer account not found', 404);
+    }
+
+    customer.isEmailVerified = true;
+    customer.emailVerifiedAt = new Date();
+    await customer.save();
+
+    // Invalidate and delete verification records for this email
+    await EmailVerification.deleteMany({ email: cleanEmail });
+
+    // Generate normal authenticated JWT token
+    const token = generateCustomerToken(customer);
+    customer.passwordHash = undefined;
+
+    sendSuccess(
+      res,
+      {
+        token,
+        customer,
+        isEmailVerified: true,
+      },
+      'Email verified successfully.'
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// Resend Email OTP Route
+// ============================================================
+async function handleResendOtp(req: any, res: any, next: any) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return sendError(res, 'Email address is required', 400);
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    const customer = await Customer.findOne({ email: cleanEmail });
+    if (!customer) {
+      // Prevent email enumeration: return generic success
+      return sendSuccess(res, null, 'If an account exists with this email, a verification code has been sent.');
+    }
+
+    if (customer.isEmailVerified) {
+      return sendError(res, 'Email is already verified. You can sign in directly.', 400);
+    }
+
+    // Check rate limit and 60-second cooldown
+    const existing = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
+    if (existing) {
+      const now = Date.now();
+      const lastSent = new Date(existing.lastSentAt).getTime();
+      const diffSeconds = Math.floor((now - lastSent) / 1000);
+
+      if (diffSeconds < 60) {
+        const wait = 60 - diffSeconds;
+        return sendError(res, `Please wait ${wait} second${wait === 1 ? '' : 's'} before requesting a new code.`, 429);
+      }
+
+      if (existing.resendCount >= 5) {
+        return sendError(res, 'Maximum resend limit reached for this session. Please try again later.', 429);
+      }
+    }
+
+    // Invalidate old OTP
+    await EmailVerification.deleteMany({ email: cleanEmail });
+
+    // Generate new OTP
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await EmailVerification.create({
+      customerId: customer._id,
+      email: cleanEmail,
+      otpHash: hashOtp(otp),
+      expiresAt,
+      attemptCount: 0,
+      lastSentAt: new Date(),
+      resendCount: (existing?.resendCount || 0) + 1,
+    });
+
+    try {
+      await emailService.sendVerificationOtp({
+        email: cleanEmail,
+        otp,
+        customerName: customer.firstName,
+        tenantId: customer.tenantId,
+      });
+    } catch (mailErr) {
+      console.error('[StorefrontAuth] Failed to resend verification OTP:', mailErr);
+    }
+
+    sendSuccess(
+      res,
+      {
+        maskedEmail: maskEmail(customer.email),
+      },
+      'Verification code sent successfully.'
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+router.post('/resend-otp', handleResendOtp);
+router.post('/send-otp', handleResendOtp);
 
 // Get Current Customer
 router.get('/me', async (req, res, next) => {

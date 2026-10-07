@@ -56,6 +56,7 @@ import aiContentRoutes from './routes/ai-content';
 import leadsRoutes from './routes/leads';
 import countsRoutes from './routes/counts';
 import messagesRoutes from './routes/messages';
+import smtpSettingsRoutes from './routes/smtp-settings';
 import './models/Message';
 
 const app = express();
@@ -175,8 +176,10 @@ app.use('/api/warehouse', warehouseRoutes);
 app.use('/api/admin/warehouse', warehouseRoutes);
 app.use('/api/ai-content', aiContentRoutes);
 app.use('/api/admin/ai-content', aiContentRoutes);
+app.use('/api/admin/settings/smtp', smtpSettingsRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
+app.use('/api/auth/email', storefrontAuthRoutes);
 // ============================================================
 // Error Handling
 // ============================================================

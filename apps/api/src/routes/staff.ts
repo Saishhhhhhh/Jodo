@@ -77,6 +77,8 @@ router.post('/', async (req: Request, res: Response) => {
       passwordHash: password, // The pre-save hook will hash it
       roleIds: roleIds.map((id: string) => new mongoose.Types.ObjectId(id)),
       status: 'active',
+      isEmailVerified: true,
+      emailVerifiedAt: new Date(),
     });
 
     await newUser.save();

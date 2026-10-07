@@ -30,9 +30,17 @@ export default function LoginPage() {
 
       const data = await res.json();
       
-      if (data.success) {
+      if (data.success && data.data?.token) {
         setCustomer(data.data.customer, data.data.token);
         router.push('/account');
+      } else if (data.requiresVerification || data.data?.requiresVerification) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('jodo_verify_email', data.data?.email || email);
+          if (data.data?.maskedEmail) {
+            sessionStorage.setItem('jodo_masked_email', data.data.maskedEmail);
+          }
+        }
+        router.push(`/verify-email?email=${encodeURIComponent(data.data?.email || email)}`);
       } else {
         setError(data.message || 'Login failed');
       }

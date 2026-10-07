@@ -71,4 +71,22 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * PUT /api/admin/auth/change-password
+ * Change current authenticated user's password
+ */
+router.put('/change-password', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return sendError(res, 'Current and new password are required', 400);
+    }
+    await authService.changePassword(req.auth!.sub, currentPassword, newPassword);
+    sendSuccess(res, null, 'Password changed successfully');
+  } catch (err: unknown) {
+    const error = err as { message?: string; statusCode?: number };
+    sendError(res, error.message || 'Failed to change password', error.statusCode || 400);
+  }
+});
+
 export default router;

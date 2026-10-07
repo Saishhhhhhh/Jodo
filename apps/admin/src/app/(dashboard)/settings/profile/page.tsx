@@ -6,12 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
-import { staffApi, mediaApi, getImageUrl } from '@/lib/api-client';
+import { staffApi, mediaApi, getImageUrl, authApi } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Phone, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Image as ImageIcon, Loader2, KeyRound, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
 
@@ -30,6 +30,48 @@ export default function ProfileSettingsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentPassword) {
+        throw new Error('Current password is required');
+      }
+      if (newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters long');
+      }
+      if (newPassword !== confirmPassword) {
+        throw new Error('New passwords do not match');
+      }
+      return authApi.changePassword({ currentPassword, newPassword });
+    },
+    onSuccess: () => {
+      toast.success('Password changed successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message || 'Failed to change password';
+      setPasswordError(msg);
+      toast.error(msg);
+    },
+  });
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    changePasswordMutation.mutate();
+  };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -234,6 +276,130 @@ export default function ProfileSettingsPage() {
           </Button>
         </div>
       </form>
+
+      <Separator className="my-8" />
+
+      {/* Security and Change Password Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1 space-y-2">
+          <h3 className="text-lg font-medium">Security & Password</h3>
+          <p className="text-sm text-muted-foreground">
+            Update your account password to ensure your administrator access remains safe.
+          </p>
+        </div>
+        <div className="md:col-span-2 space-y-4">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-primary" />
+                Change Password
+              </CardTitle>
+              <CardDescription>
+                Passwords must contain at least 6 characters. You will need your current password to proceed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                {passwordError && (
+                  <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium border border-destructive/20">
+                    {passwordError}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showNewPassword ? 'text' : 'password'}
+                        placeholder="Enter new password (min. 6 chars)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="pr-10"
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Re-type new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pr-10"
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
+                    className="gap-2"
+                  >
+                    {changePasswordMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Updating Password...
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="w-4 h-4" />
+                        Update Password
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

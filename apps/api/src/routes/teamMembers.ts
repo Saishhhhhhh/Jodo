@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth, requireTenant } from '../middleware/auth';
 import { User } from '../models/User';
+import { Customer } from '../models/Customer';
 import { Role } from '../models/Role';
 import { Task } from '../models/Task';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response';
@@ -114,9 +115,19 @@ router.post('/', async (req: Request, res: Response) => {
       passwordHash: password, // Pre-save hook hashes this
       status: status || 'active',
       roleIds: [roleId],
+      isEmailVerified: true,
+      emailVerifiedAt: new Date(),
     });
 
     await newUser.save();
+
+    // Team members are pre-verified by admin; ensure matching Customer records are also marked verified
+    if (email) {
+      await Customer.updateMany(
+        { email: email.toLowerCase() },
+        { $set: { isEmailVerified: true, emailVerifiedAt: new Date() } }
+      ).catch(() => {});
+    }
 
     await AuditLog.create({
       tenantId,

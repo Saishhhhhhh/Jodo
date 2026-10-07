@@ -28,6 +28,8 @@ export interface ICustomer extends Document {
   tags?: string[];
   passwordHash?: string;
   defaultShippingAddress?: ICustomerAddress;
+  isEmailVerified: boolean;
+  emailVerifiedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -48,6 +50,8 @@ const customerSchema = new Schema<ICustomer>(
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     tags: { type: [String], default: [] },
     passwordHash: { type: String, select: false },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerifiedAt: { type: Date, default: null },
     defaultShippingAddress: {
       firstName: { type: String },
       lastName: { type: String },

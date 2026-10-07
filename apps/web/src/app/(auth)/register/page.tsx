@@ -25,7 +25,7 @@ export default function RegisterPage() {
     if (!showSuccessModal) return;
 
     if (countdown <= 0) {
-      router.push('/account');
+      router.push('/login');
       return;
     }
 
@@ -51,7 +51,6 @@ export default function RegisterPage() {
       const data = await res.json();
       
       if (data.success) {
-        setCustomer(data.data.customer, data.data.token);
         setShowSuccessModal(true);
       } else {
         setError(data.message || 'Registration failed');
@@ -65,7 +64,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4 font-sans py-12 relative">
-      {/* ── Success Popup Modal ── */}
+      {/* -- Success Popup Modal -- */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl border border-gray-100 transform animate-in zoom-in-95 duration-200">
@@ -78,20 +77,20 @@ export default function RegisterPage() {
             </h2>
             
             <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-              Welcome to Jodo, <span className="font-semibold text-gray-900">{firstName}</span>! Your account has been created.
+              Welcome to Jodo, <span className="font-semibold text-gray-900">{firstName}</span>! Your account has been created. Please sign in with your credentials to verify your email and activate your account.
             </p>
             
             <div className="space-y-3">
               <button
-                onClick={() => router.push('/account')}
+                onClick={() => router.push('/login')}
                 className="w-full py-3.5 bg-[#B65A45] hover:bg-[#a04e3b] text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 group"
               >
-                <span>Go to My Account</span>
+                <span>Proceed to Sign In</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
               
               <p className="text-xs text-gray-400">
-                Redirecting to account in {countdown}s...
+                Redirecting to sign in in {countdown}s...
               </p>
             </div>
           </div>
