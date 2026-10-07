@@ -81,6 +81,7 @@ class AuthService {
                 email: user.email || user.memberId || '',
                 memberId: user.memberId,
                 roles: user.roleIds.map(r => r.name),
+                moduleAccess: user.moduleAccess || ['tasks'],
                 avatarUrl: user.avatarUrl,
                 tenantId: String(user.tenantId),
                 storeId: String(user.storeId),
@@ -150,7 +151,15 @@ class AuthService {
      * Get current user profile.
      */
     async getMe(userId) {
-        return User_1.User.findById(userId).populate('roleIds', 'name permissions').lean();
+        const user = await User_1.User.findById(userId).populate('roleIds', 'name permissions').lean();
+        if (!user)
+            return null;
+        return {
+            ...user,
+            id: String(user._id),
+            roles: (user.roleIds || []).map((r) => typeof r === 'string' ? r : r.name),
+            moduleAccess: user.moduleAccess || ['tasks'],
+        };
     }
 }
 exports.AuthService = AuthService;

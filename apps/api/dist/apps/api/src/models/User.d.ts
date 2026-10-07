@@ -11,6 +11,7 @@ export interface IUser extends Document {
     status: 'active' | 'invited' | 'suspended' | 'deactivated';
     roleIds: mongoose.Types.ObjectId[];
     permissions: string[];
+    moduleAccess?: string[];
     lastLoginAt?: Date;
     twoFactorEnabled: boolean;
     inviteToken?: string;

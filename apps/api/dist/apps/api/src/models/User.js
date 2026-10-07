@@ -55,6 +55,7 @@ const UserSchema = new mongoose_1.Schema({
     },
     roleIds: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Role' }],
     permissions: [{ type: String }],
+    moduleAccess: [{ type: String }],
     lastLoginAt: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
     inviteToken: { type: String, select: false },
