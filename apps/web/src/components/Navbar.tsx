@@ -67,7 +67,7 @@ export default function Navbar() {
                 src="/logo.png"
                 alt="Jodo"
                 width={140}
-                height={45}
+                height={63}
                 className="h-[44px] sm:h-[48px] w-auto object-contain transition-opacity hover:opacity-90"
                 priority
               />
@@ -90,7 +90,7 @@ export default function Navbar() {
                 src="/logo.png"
                 alt="Jodo"
                 width={220}
-                height={65}
+                height={99}
                 className="h-[58px] lg:h-[64px] w-auto object-contain transition-opacity group-hover:opacity-90"
                 priority
               />

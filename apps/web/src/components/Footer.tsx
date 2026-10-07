@@ -109,9 +109,9 @@ export default function Footer() {
                 <Image 
                   src="/logo.png" 
                   alt="Jodo" 
-                  width={150}
-                  height={45}
-                  className="h-[38px] md:h-[42px] w-auto object-contain brightness-0 invert opacity-95 transition-opacity hover:opacity-100" 
+                  width={180}
+                  height={81}
+                  className="h-[46px] md:h-[54px] w-auto object-contain brightness-0 invert opacity-95 transition-opacity hover:opacity-100" 
                 />
               </Link>
               <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">

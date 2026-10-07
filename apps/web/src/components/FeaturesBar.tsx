@@ -1,25 +1,25 @@
-import { Puzzle, PackageCheck, ShieldCheck, Wrench } from 'lucide-react';
+import { Puzzle, PackageCheck, ShieldCheck, Truck } from 'lucide-react';
 
 const features = [
   { 
     Icon: Puzzle,
-    title: 'Tool-Free Assembly',
-    description: 'Clicks together like a jigsaw. No screws, no carpenter — just you and your space.'
+    title: 'Smart Furniture',
+    description: 'Comes together like a perfect puzzle. No screws, no carpenter, no confusing manuals — Slide. Lock. Done.'
   },
   { 
     Icon: PackageCheck,
-    title: 'Flat-Pack Delivered',
-    description: 'Compact packaging, doorstep delivery. Your furniture arrives when you need it.'
+    title: 'Convenience',
+    description: 'Compact flat pack packaging and doorstep delivery. Your furniture arrives when you need it, the way you want it'
   },
   { 
     Icon: ShieldCheck, 
-    title: 'Made In-House',
-    description: 'Every piece crafted with premium plywood — quality we control, not outsource.'
+    title: 'Quality Promise',
+    description: 'Every piece is designed and put together with materials made for Indian homes and the Indian way of living'
   },
   { 
-    Icon: Wrench, 
-    title: 'Help When You Need It',
-    description: 'Prefer a hand? Our team can send a carpenter to assist — fast and hassle-free.'
+    Icon: Truck, 
+    title: 'Made to Move',
+    description: 'From first home to next home, JODO fits right in because your furniture should keep up with your life'
   },
 ];
 

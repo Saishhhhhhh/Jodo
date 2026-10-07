@@ -24,24 +24,24 @@ export default function VideoSection() {
 
           {/* Centered Content */}
           <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 w-full h-[450px] md:h-[600px]">
-            {/* Logo */}
-            <div className="relative w-[280px] sm:w-[380px] md:w-[480px] lg:w-[540px] h-[95px] sm:h-[130px] md:h-[165px] lg:h-[185px] mb-4 md:mb-6">
+            {/* Logo - Centered White Treatment */}
+            <div className="relative w-[240px] sm:w-[320px] md:w-[420px] lg:w-[480px] h-[105px] sm:h-[140px] md:h-[185px] lg:h-[210px]">
               <Image 
                 src="/logo.png"
-                alt="Jodo Logo"
+                alt="Jodo"
                 fill
                 className="object-contain brightness-0 invert drop-shadow-2xl"
                 priority
               />
             </div>
-            
-            {/* Tagline text - properly positioned below the logo with zero overlap */}
-            <h2 
-              className="text-white font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight drop-shadow-lg max-w-[850px]"
+
+            {/* Tagline overlay - Smaller font size, minimal */}
+            <p 
+              className="text-white/95 font-medium text-xs sm:text-sm md:text-base tracking-[0.25em] uppercase mt-3 md:mt-4 drop-shadow-lg"
               style={{ fontFamily: 'Syne, sans-serif' }}
             >
-              The Joy of Together.
-            </h2>
+              The Joy of Together
+            </p>
           </div>
         </div>
       </div>
