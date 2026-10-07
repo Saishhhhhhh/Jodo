@@ -9,7 +9,7 @@ const syne = Syne({ subsets: ['latin'], display: 'swap', variable: '--font-syne'
 
 export const metadata: Metadata = {
   title: "Jodo Home | Crafting Comfort, Shaping Style",
-  description: "Discover premium furniture and home decor. From modern minimalist to timeless classics — transform any space into a place you'll love.",
+  description: "Discover premium furniture and home decor. From modern minimalist to timeless classics to transform any space into a place you'll love.",
   verification: {
     google: "B2BvJ82mzIspAqj6NdRprEyOVcVu41bDFnN8gPsQEQI",
   },
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="google-site-verification" content="B2BvJ82mzIspAqj6NdRprEyOVcVu41bDFnN8gPsQEQI" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wdth,wght@8..144,-10..0,25..151,100..1000&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className={`w-full relative pb-16 md:pb-0 ${dmSans.variable} ${syne.variable} font-sans`} style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
         <Script

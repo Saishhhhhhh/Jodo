@@ -700,7 +700,7 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
           <div className="p-3 border-t border-sidebar-border">
             <div className="rounded-lg bg-primary/10 border border-primary/20 p-3">
               <p className="text-xs font-semibold text-primary">Jodo Commerce OS</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">v0.1.0 — Phase 0</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">v0.1.0 · Phase 0</p>
             </div>
           </div>
         )}

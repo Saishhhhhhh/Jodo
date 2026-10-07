@@ -9,6 +9,29 @@ export default function StoreLayoutWrapper({ children }: { children: React.React
   const pathname = usePathname();
   const isComingSoon = pathname === '/coming-soon';
 
+  // Prevent caret browsing from placing a blinking cursor on static text clicks
+  React.useEffect(() => {
+    const handleMouseUp = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (
+        target.closest('input') ||
+        target.closest('textarea') ||
+        target.closest('[contenteditable="true"]')
+      ) {
+        return;
+      }
+      const selection = window.getSelection();
+      // If the click merely collapsed at a point (caret browsing), remove it
+      if (selection && selection.isCollapsed) {
+        selection.removeAllRanges();
+      }
+    };
+
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, []);
+
   // If on /coming-soon, let ComingSoonPage handle its own full-screen canvas
   if (isComingSoon) {
     return <>{children}</>;

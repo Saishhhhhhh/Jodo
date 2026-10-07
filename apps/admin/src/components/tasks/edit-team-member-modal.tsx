@@ -46,7 +46,7 @@ export function EditTeamMemberModal({
       setEmail(member.email || '');
       setPhone(member.phone || '');
       setTeam(member.permissions?.[0] || 'Sales');
-      setStatus(member.status || 'active');
+      setStatus(member.status === 'deactivated' ? 'inactive' : (member.status || 'active'));
       setModuleAccess(member.moduleAccess && member.moduleAccess.length > 0 ? member.moduleAccess : ['tasks']);
       setNewPassword('');
     }

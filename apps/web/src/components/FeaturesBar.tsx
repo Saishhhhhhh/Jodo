@@ -4,7 +4,7 @@ const features = [
   { 
     Icon: Puzzle,
     title: 'Smart Furniture',
-    description: 'Comes together like a perfect puzzle. No screws, no carpenter, no confusing manuals — Slide. Lock. Done.'
+    description: 'Comes together like a perfect puzzle. No screws, no carpenter, no confusing manuals. Slide. Lock. Done.'
   },
   { 
     Icon: PackageCheck,

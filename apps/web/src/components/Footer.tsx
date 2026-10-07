@@ -11,26 +11,26 @@ type FooterLinks = {
 
 const DEFAULT_FOOTER_LINKS: FooterLinks = {
   shop: [
-    { label: 'Living Room', href: '/products?category=living-room' },
-    { label: 'Bedroom', href: '/products?category=bedroom' },
-    { label: 'Dining Room', href: '/products?category=dining-room' },
-    { label: 'Kitchen', href: '/products?category=kitchen' },
-    { label: 'Office', href: '/products?category=office' },
-    { label: 'Outdoor', href: '/products?category=outdoor' },
+    { label: 'Living Room', href: '/shop?category=living-room' },
+    { label: 'Bedroom', href: '/shop?category=bedroom' },
+    { label: 'Dining Room', href: '/shop?category=dining' },
+    { label: 'Kitchen', href: '/shop?category=kitchen' },
+    { label: 'Office', href: '/shop?category=study-office' },
+    { label: 'Outdoor', href: '/shop?category=outdoor' },
   ],
   company: [
-    { label: 'About Jodo', href: '/about' },
-    { label: 'Our Story', href: '/about' },
+    { label: 'About JODO', href: '/about' },
+    { label: 'Our Story', href: '/our-story' },
     { label: 'Blog', href: '/blog' },
     { label: 'Careers', href: '#' },
     { label: 'Press', href: '#' },
   ],
   support: [
-    { label: 'FAQs & Help', href: '/faqs' },
-    { label: 'Track Order', href: '#' },
-    { label: 'Returns & Refunds', href: '#' },
-    { label: 'Shipping Policy', href: '#' },
-    { label: 'Privacy Policy', href: '#' },
+    { label: 'Help Centre', href: '/faqs' },
+    { label: 'Track Order', href: '/account/orders' },
+    { label: 'Warranty & Returns', href: '/faqs' },
+    { label: 'Shipping Policy', href: '/faqs' },
+    { label: 'Privacy Policy', href: '/faqs' },
   ],
 };
 
@@ -76,12 +76,12 @@ export default function Footer() {
   return (
     <div className="px-5 md:px-10 pb-5 md:pb-10 pt-[50px]">
       <footer className="bg-terracotta text-white rounded-[32px] overflow-hidden shadow-2xl">
-        {/* CTA Banner */}
+        {/* 6.1 CTA Newsletter Banner */}
         <div className="bg-black/10">
           <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <p className="text-white/80 text-xs font-medium uppercase tracking-widest mb-1">Be Part of the JODO Story</p>
-              <h3 className="text-white text-xl lg:text-2xl font-bold">New drops, assembly tips & early access — delivered to you.</h3>
+              <h3 className="text-white text-xl lg:text-2xl font-bold">New drops, assembly tips, and early access delivered to you.</h3>
             </div>
             <form className="flex flex-col sm:flex-row gap-3 sm:gap-2 w-full md:w-auto mt-2 md:mt-0" onSubmit={(e) => e.preventDefault()}>
               <input
@@ -103,32 +103,32 @@ export default function Footer() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-10">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-x-8 gap-y-10">
 
-            {/* Brand column */}
+            {/* 6.2 Brand column */}
             <div className="col-span-2 lg:col-span-2 space-y-3.5">
               <Link href="/" className="inline-block pb-1">
                 <Image 
                   src="/logo.png" 
-                  alt="Jodo" 
+                  alt="JODO" 
                   width={180}
                   height={81}
                   className="h-[46px] md:h-[54px] w-auto object-contain brightness-0 invert opacity-95 transition-opacity hover:opacity-100" 
                 />
               </Link>
               <p className="text-white/80 text-sm leading-relaxed max-w-xs font-medium">
-                A new furniture experience. Tool-free assembly, flat-packed delivery, made in-house — bringing people and spaces together, one piece at a time.
+                A new furniture experience. Tool-free assembly, flat-pack delivery, and in-house manufacturing bringing people and spaces together, one piece at a time.
               </p>
               <div className="space-y-2.5 text-sm text-white/80 font-medium">
                 <div className="flex items-center gap-2.5">
                   <MapPin className="w-4 h-4 text-white shrink-0 opacity-80" />
-                  <span>123 Design Street, Mumbai, India</span>
+                  <span>JODO HQ, Andheri West, Mumbai, Maharashtra 400053</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Phone className="w-4 h-4 text-white shrink-0 opacity-80" />
-                  <span>+91 98765 43210</span>
+                  <span>+91 9004380874</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-white shrink-0 opacity-80" />
-                  <span>hello@jodo.in</span>
+                  <span>hello@jodoshop.com</span>
                 </div>
               </div>
               <div className="flex gap-2.5 pt-2">
@@ -145,10 +145,10 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Link columns */}
+            {/* 6.3 Link columns */}
             {Object.entries(dynamicFooterLinks).map(([section, links]) => (
               <div key={section}>
-                <h4 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-white/50 mb-4 capitalize">
                   {section}
                 </h4>
                 <ul className="space-y-2.5">
@@ -168,8 +168,9 @@ export default function Footer() {
             ))}
           </div>
 
+          {/* 6.4 Copyright */}
           <div className="mt-10 pt-6 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/60 font-medium">
-            <p>© {new Date().getFullYear()} Jodo Home. All rights reserved.</p>
+            <p>© 2026 JODO. All rights reserved.</p>
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
               <p>
                 Designed & Developed by{' '}
@@ -189,3 +190,4 @@ export default function Footer() {
     </div>
   );
 }
+

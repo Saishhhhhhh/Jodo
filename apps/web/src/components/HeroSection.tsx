@@ -85,7 +85,7 @@ export default function HeroSection() {
         {/* Dark overlay to ensure text remains readable against bright images */}
         <div className="absolute inset-0 bg-black/10 z-0"></div>
 
-        {/* ── TEXT CONTENT — left side ── */}
+        {/* -- TEXT CONTENT: left side -- */}
         <div className="relative z-10 flex flex-1 flex-col justify-center px-6 md:px-10 lg:px-16 max-w-[800px]">
           
           <div className="relative w-full">
@@ -167,7 +167,7 @@ export default function HeroSection() {
           </button>
         </div>
 
-        {/* ── FLOATING BLOG CARD — Bottom Right ── */}
+        {/* -- FLOATING BLOG CARD: Bottom Right -- */}
         <div className="absolute bottom-0 right-0 z-20 hidden lg:flex">
           
           {/* Inverted corner - Left side */}

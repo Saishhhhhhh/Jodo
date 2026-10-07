@@ -90,7 +90,7 @@ async function resolveFont(font: string, fontUrl?: string): Promise<string> {
   // font, otherwise honor the explicit `fontUrl`.
   const effectiveUrl = fontUrl || (font === DEFAULT_FONT ? DEFAULT_FONT_URL : null);
   if (!effectiveUrl) {
-    // A custom family was supplied without a URL – make sure it is ready (in
+    // A custom family was supplied without a URL - make sure it is ready (in
     // case the host page declares it) before we draw it to the canvas,
     // otherwise the first paint silently falls back to a system font.
     if (document.fonts && document.fonts.load) {
@@ -98,7 +98,7 @@ async function resolveFont(font: string, fontUrl?: string): Promise<string> {
         await document.fonts.load(font);
         await document.fonts.ready;
       } catch {
-        // Ignore – fall back to whatever the browser provides.
+        // Ignore - fall back to whatever the browser provides.
       }
     }
     return font;
@@ -112,7 +112,7 @@ async function resolveFont(font: string, fontUrl?: string): Promise<string> {
       try {
         await document.fonts.load(resolved);
       } catch {
-        // Ignore – we still attempt to render with the requested font.
+        // Ignore - we still attempt to render with the requested font.
       }
     }
     return resolved;

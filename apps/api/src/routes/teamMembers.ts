@@ -195,20 +195,26 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
     await user.save();
 
-    await AuditLog.create({
-      tenantId,
-      storeId: user.storeId,
-      actorUserId: new mongoose.Types.ObjectId(req.auth!.sub),
-      actorType: 'user',
-      action: 'TEAM_MEMBER_UPDATED',
-      resourceType: 'User',
-      resourceId: String(user._id),
-    });
+    try {
+      if (req.auth?.sub) {
+        await AuditLog.create({
+          tenantId,
+          storeId: user.storeId,
+          actorUserId: new mongoose.Types.ObjectId(req.auth.sub),
+          actorType: 'user',
+          action: 'TEAM_MEMBER_UPDATED',
+          resourceType: 'User',
+          resourceId: String(user._id),
+        });
+      }
+    } catch (auditErr) {
+      console.warn('Failed to record audit log for team member update:', auditErr);
+    }
 
-    sendSuccess(res, { id: user._id }, 'Team Member updated successfully');
+    sendSuccess(res, { id: user._id, status: user.status }, 'Team Member updated successfully');
   } catch (error: any) {
     console.error('Error updating team member:', error);
-    sendError(res, 'Failed to update team member', 500);
+    sendError(res, error.message || 'Failed to update team member', 400);
   }
 });
 

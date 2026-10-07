@@ -64,7 +64,7 @@ export default function PuzzleSection() {
             Furniture that comes <span className="text-terracotta italic font-serif font-light">together</span> just like the people around it.
           </h2>
           <p className="text-gray-600 text-base md:text-xl max-w-[550px]">
-            Keep scrolling to see how JODO clicks into place. – Scroll for some JODO fun
+            Keep scrolling to see how JODO clicks into place. Scroll for some JODO fun
           </p>
         </motion.div>
 

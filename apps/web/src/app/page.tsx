@@ -9,7 +9,7 @@ import VideoSection from "@/components/VideoSection";
 
 export const metadata = {
   title: "Jodo Home | Crafting Comfort, Shaping Style",
-  description: "Discover premium furniture and home decor. From modern minimalist to timeless classics — transform any space into a place you'll love.",
+  description: "Discover premium furniture and home decor. From modern minimalist to timeless classics to transform any space into a place you'll love.",
   verification: {
     google: "B2BvJ82mzIspAqj6NdRprEyOVcVu41bDFnN8gPsQEQI",
   },
@@ -24,7 +24,7 @@ export default function HomePage() {
       {/* About / Mission */}
       <AboutSection />
 
-      {/* Features Bar — Free Shipping, Custom Design, Refund */}
+      {/* Features Bar: Free Shipping, Custom Design, Refund */}
       <FeaturesBar />
 
       {/* Featured Products */}

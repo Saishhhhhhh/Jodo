@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 export const metadata: Metadata = {
   title: {
     default: 'Jodo Admin',
-    template: '%s — Jodo Admin',
+    template: '%s | Jodo Admin',
   },
   description: 'Jodo Admin',
   robots: { index: false, follow: false },

@@ -12,7 +12,7 @@ export default function AboutSection() {
 
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-24">
 
-        {/* ── LEFT SIDE — Text ── */}
+        {/* -- LEFT SIDE: Text -- */}
         <div className="flex-1 max-w-[600px]">
           
           <div className="mb-6">
@@ -25,7 +25,7 @@ export default function AboutSection() {
           <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-6 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
             Furniture that feels different from the moment you <span className="text-terracotta italic font-serif font-light">open the box.</span>
             <span className="block mt-2 md:mt-3 text-lg md:text-2xl text-gray-700 font-normal leading-snug">
-              — JODO means join, coming together – of pieces, of homes and lives
+              JODO means join, coming together of pieces, homes and lives
             </span>
           </h2>
           
@@ -57,7 +57,7 @@ export default function AboutSection() {
           </div>
         </div>
 
-        {/* ── RIGHT SIDE — Images ── */}
+        {/* -- RIGHT SIDE: Images -- */}
         <div className="flex-1 w-full relative">
           
           <div className="relative w-full aspect-square md:aspect-[10/9]">

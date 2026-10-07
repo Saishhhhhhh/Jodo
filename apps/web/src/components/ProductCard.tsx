@@ -11,10 +11,12 @@ export interface Product {
   id: string;
   brand: string;
   title: string;
-  rating: number;
-  reviews: number;
+  rating?: number;
+  reviews?: number;
   price: number;
   imageUrl: string;
+  inventoryQuantity?: number;
+  isOutOfStock?: boolean;
 }
 
 interface ProductCardProps {
@@ -32,10 +34,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   }, []);
 
   const isWishlisted = mounted ? isInWishlist(product.id) : false;
+  const isOutOfStock = Boolean(
+    product.isOutOfStock || 
+    (typeof product.inventoryQuantity === 'number' && product.inventoryQuantity <= 0)
+  );
 
-  const handleQuickAdd = (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isOutOfStock) return;
     addItem({
       id: product.id,
       title: product.title,
@@ -58,11 +65,18 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-700 group-hover:scale-110"
             unoptimized
           />
-          {/* Subtle gradient overlay to ensure the quick add button is legible */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          {/* Subtle gradient overlay to ensure card action buttons are legible */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </Link>
 
-        {/* Favorite Button */}
+        {/* Out-of-Stock Label */}
+        {isOutOfStock && (
+          <div className="absolute top-3.5 left-3.5 z-10 bg-black/80 backdrop-blur-md text-white text-[10px] md:text-[11px] font-bold tracking-wider uppercase px-3 py-1 rounded-full shadow-md">
+            Out of Stock
+          </div>
+        )}
+
+        {/* Wishlist Button: Heart icon saves product to customer's wishlist */}
         <button 
           onClick={(e) => {
             e.preventDefault();
@@ -75,21 +89,34 @@ export default function ProductCard({ product }: ProductCardProps) {
               brand: product.brand,
             });
           }}
-          className={`absolute top-4 right-4 z-10 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${isWishlisted ? 'text-terracotta bg-white' : 'text-gray-600 hover:bg-terracotta hover:text-white hover:scale-110'}`}
-          aria-label="Add to favorites"
+          className={`absolute top-3.5 right-3.5 z-10 w-9 h-9 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${isWishlisted ? 'text-terracotta bg-white' : 'text-gray-600 hover:bg-terracotta hover:text-white hover:scale-110'}`}
+          aria-label={isWishlisted ? "Remove from wishlist" : "Save to wishlist"}
+          title={isWishlisted ? "In Wishlist" : "Add to Wishlist"}
         >
           <Heart className="w-4 h-4" strokeWidth={1.5} fill={isWishlisted ? 'currentColor' : 'none'} />
         </button>
 
-        {/* Hover "Quick Add" Button */}
-        <div className="absolute inset-x-0 bottom-0 p-3 md:p-3 translate-y-[120%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-20">
+        {/* Card Actions: Add to Cart / View Details */}
+        <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-3 flex items-center gap-2 translate-y-[120%] group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-20">
           <button 
-            onClick={handleQuickAdd}
-            className="w-full bg-white/90 backdrop-blur-md text-[#1C1A17] hover:bg-[#1C1A17] hover:text-white flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-[14px] transition-colors shadow-lg"
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            className={`flex-1 py-2.5 px-3 rounded-xl font-semibold text-[13px] flex items-center justify-center gap-1.5 transition-all shadow-md ${
+              isOutOfStock 
+                ? 'bg-gray-200/90 text-gray-500 cursor-not-allowed'
+                : 'bg-white text-[#1C1A17] hover:bg-terracotta hover:text-white active:scale-95'
+            }`}
           >
-            <ShoppingBag className="w-4 h-4" strokeWidth={2} />
-            Quick Add
+            <ShoppingBag className="w-3.5 h-3.5" strokeWidth={2} />
+            <span className="truncate">{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
           </button>
+          
+          <Link
+            href={`/products/${product.id}`}
+            className="py-2.5 px-3 rounded-xl font-semibold text-[13px] bg-[#1C1A17]/90 hover:bg-[#1C1A17] text-white transition-all shadow-md flex items-center justify-center whitespace-nowrap active:scale-95"
+          >
+            View Details
+          </Link>
         </div>
       </div>
 
