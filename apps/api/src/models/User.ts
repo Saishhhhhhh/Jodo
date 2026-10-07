@@ -10,7 +10,7 @@ export interface IUser extends Document {
   phone?: string;
   passwordHash: string;
   avatarUrl?: string;
-  status: 'active' | 'invited' | 'suspended' | 'deactivated';
+  status: 'active' | 'invited' | 'suspended' | 'deactivated' | 'inactive';
   roleIds: mongoose.Types.ObjectId[];
   permissions: string[];
   moduleAccess?: string[];
@@ -36,7 +36,7 @@ const UserSchema = new Schema<IUser>(
     avatarUrl: { type: String },
     status: {
       type: String,
-      enum: ['active', 'invited', 'suspended', 'deactivated'],
+      enum: ['active', 'invited', 'suspended', 'deactivated', 'inactive'],
       default: 'active',
     },
     roleIds: [{ type: Schema.Types.ObjectId, ref: 'Role' }],

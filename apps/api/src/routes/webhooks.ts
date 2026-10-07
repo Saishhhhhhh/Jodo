@@ -26,7 +26,7 @@ router.post('/meta', async (req, res, next) => {
   try {
     const body = req.body;
 
-    if (body.object === 'instagram') {
+    if (body.object === 'instagram' || body.object === 'page') {
       const store = await Store.findOne();
       if (!store) return sendError(res, 'Store not found', 404);
 
@@ -36,10 +36,11 @@ router.post('/meta', async (req, res, next) => {
         for (const webhook_event of entry.messaging) {
           const senderId = webhook_event.sender.id;
           const message = webhook_event.message?.text;
+          const source = body.object === 'instagram' ? 'Instagram' : 'Facebook';
 
           if (message) {
             // AI intent detection
-            const aiPrompt = `Analyze the following message from an Instagram user and determine if they show purchasing intent for furniture/home decor. 
+            const aiPrompt = `Analyze the following message from a ${source} user and determine if they show purchasing intent for furniture/home decor. 
             Message: "${message}"
             Reply with a JSON object { "isLead": true/false, "interestLevel": "High" | "Medium" | "Low", "productRequirement": "brief summary of what they want if applicable" }`;
             
@@ -78,8 +79,8 @@ router.post('/meta', async (req, res, next) => {
               await Lead.create({
                 tenantId: store.tenantId,
                 storeId: store._id,
-                name: `IG User (${senderId})`,
-                source: 'Instagram',
+                name: `${source} User (${senderId})`,
+                source: source,
                 status: 'New',
                 interestLevel: interestLevel,
                 followUpPriority: interestLevel === 'High' ? 'High' : 'Medium',
