@@ -491,7 +491,7 @@ function AiContentHubInner() {
                   <SelectContent className="max-h-[280px]">
                     {productList.map((p) => (
                       <SelectItem key={p.id} value={p.id} className="text-xs">
-                        {p.title} ({p.sku}) — ₹{p.price.toLocaleString('en-IN')}
+                        {p.title} ({p.sku}) - ₹{p.price.toLocaleString('en-IN')}
                       </SelectItem>
                     ))}
                   </SelectContent>

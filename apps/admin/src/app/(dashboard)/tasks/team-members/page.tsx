@@ -47,10 +47,11 @@ export default function TeamMembersPage() {
   }, []);
 
   const handleToggleStatus = async (member: any) => {
-    const newStatus = member.status === 'active' ? 'inactive' : 'active';
+    const isCurrentlyActive = member.status === 'active';
+    const newStatus = isCurrentlyActive ? 'inactive' : 'active';
     try {
       await apiClient.patch(`/admin/team-members/${member._id || member.id}`, { status: newStatus });
-      toast.success(`Member marked as ${newStatus}`);
+      toast.success(newStatus === 'active' ? `Team member "${member.name}" activated` : `Team member "${member.name}" deactivated`);
       fetchMembers();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update member status');
@@ -165,8 +166,15 @@ export default function TeamMembersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={m.status === 'active' ? 'default' : 'secondary'} className="text-[10px] capitalize">
-                        {m.status || 'active'}
+                      <Badge 
+                        variant={m.status === 'active' ? 'default' : 'secondary'} 
+                        className={`text-[10px] capitalize font-medium ${
+                          m.status === 'active' 
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                            : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                        }`}
+                      >
+                        {m.status === 'inactive' || m.status === 'deactivated' ? 'Inactive' : (m.status || 'Active')}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center font-medium font-mono text-xs">

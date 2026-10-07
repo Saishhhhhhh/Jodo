@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const IMAGE_URL = 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=85';
 
@@ -59,11 +60,11 @@ export default function PuzzleSection() {
           style={{ opacity: textOpacity, y: textY }}
           className="absolute z-0 flex flex-col items-center text-center px-4"
         >
-          <h2 className="text-3xl md:text-6xl font-bold text-[#1C1A17] mb-4 md:mb-6 tracking-tight max-w-[800px]">
-            Furniture that comes <span className="text-terracotta italic font-serif font-light">together</span> — just like the people around it.
+          <h2 className="text-3xl md:text-6xl font-bold text-[#1C1A17] mb-4 md:mb-6 tracking-tight max-w-[850px]">
+            Furniture that comes <span className="text-terracotta italic font-serif font-light">together</span> just like the people around it.
           </h2>
-          <p className="text-gray-600 text-base md:text-xl max-w-[500px]">
-            Keep scrolling to see how JODO clicks into place.
+          <p className="text-gray-600 text-base md:text-xl max-w-[550px]">
+            Keep scrolling to see how JODO clicks into place. Scroll for some JODO fun
           </p>
         </motion.div>
 
@@ -119,11 +120,14 @@ export default function PuzzleSection() {
               The Joy of Together.
             </h3>
             <p className="text-white/80 text-sm md:text-base mb-6 text-center max-w-sm">
-              Every piece. Every room. Every moment shared.
+              Every piece. Every room. Every moment
             </p>
-            <button className="bg-white text-[#1C1A17] font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:bg-terracotta hover:text-white transition-colors duration-300">
-              Explore JODO Furniture
-            </button>
+            <Link 
+              href="/shop"
+              className="inline-flex items-center gap-2 bg-white text-[#1C1A17] font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full hover:bg-terracotta hover:text-white transition-colors duration-300"
+            >
+              Explore JODO Furniture →
+            </Link>
           </motion.div>
 
         </div>

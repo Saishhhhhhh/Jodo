@@ -32,7 +32,33 @@ export const ChairScene: React.FC = () => {
   const [progress, setProgress] = useState<number>(0);
   const [isFullyAssembled, setIsFullyAssembled] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>('');
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const finish: FinishType = 'teak';
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) return;
+    setEmailStatus('submitting');
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      await fetch(`${apiUrl}/api/webhooks/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          name: email.split('@')[0],
+          source: 'Coming Soon 3D Page',
+          notes: 'Signed up via 3D Coming Soon interactive page.',
+        }),
+      });
+    } catch (err) {
+      // Local fallback
+    }
+    setTimeout(() => {
+      setEmailStatus('success');
+    }, 400);
+  };
 
   const soundTriggersRef = useRef<{ [key: string]: boolean }>({
     legs: false,
@@ -747,12 +773,13 @@ export const ChairScene: React.FC = () => {
         <div
           style={{
             position: 'absolute',
-            top: '14%',
+            top: '7%',
             left: '50%',
             transform: `translate(-50%, ${comingSoonY}px)`,
-            width: '100%',
+            width: '94%',
+            maxWidth: '900px',
             textAlign: 'center',
-            padding: '0 20px',
+            padding: '0 16px',
             pointerEvents: 'none',
             zIndex: 40,
             opacity: comingSoonOpacity,
@@ -765,16 +792,27 @@ export const ChairScene: React.FC = () => {
               color: '#C65F45',
               fontFamily: "'Syne', sans-serif",
               fontWeight: 800,
-              fontSize: 'clamp(2.4rem, 8.5vw, 6.5rem)',
-              letterSpacing: '0.08em',
-              lineHeight: 1.0,
-              textTransform: 'uppercase',
+              fontSize: 'clamp(1.75rem, 5vw, 3.8rem)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.15,
               textShadow: '0 4px 24px rgba(198, 95, 69, 0.15)',
+              margin: '0 0 8px 0',
+            }}
+          >
+            Something new is coming together.
+          </h1>
+          <p
+            style={{
+              color: '#57524C',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: 'clamp(0.95rem, 1.8vw, 1.25rem)',
+              fontWeight: 600,
+              letterSpacing: '0.01em',
               margin: 0,
             }}
           >
-            COMING SOON
-          </h1>
+            JODO - The Joy of Together. Coming soon.
+          </p>
         </div>
 
         {/* 
@@ -914,7 +952,8 @@ export const ChairScene: React.FC = () => {
 
           {/* 360 drag cue or scroll indicator */}
           {isFullyAssembled ? (
-            <div
+            <>
+              <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -937,6 +976,100 @@ export const ChairScene: React.FC = () => {
               <Rotate3d style={{ width: '15px', height: '15px', color: '#C65F45' }} />
               <span>DRAG 360° TO INSPECT</span>
             </div>
+
+            {/* Email Capture: Be the first to know → [Email input] → Notify Me */}
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '460px',
+                marginTop: '4px',
+                pointerEvents: 'auto',
+              }}
+            >
+              {emailStatus === 'success' ? (
+                <div
+                  style={{
+                    backgroundColor: '#FAF6F0',
+                    border: '1px solid #C65F45',
+                    padding: '8px 18px',
+                    borderRadius: '999px',
+                    color: '#C65F45',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                  }}
+                >
+                  ✓ You&apos;re on the list! We will notify you soon.
+                </div>
+              ) : (
+                <form
+                  onSubmit={handleEmailSubmit}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: '100%',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#8E867E',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Be the first to know →
+                  </span>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                    }}
+                  >
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      required
+                      style={{
+                        flex: 1,
+                        padding: '10px 16px',
+                        backgroundColor: '#FAF6F0',
+                        border: '1px solid rgba(36, 33, 30, 0.2)',
+                        borderRadius: '999px',
+                        fontSize: '13px',
+                        color: '#24211E',
+                        outline: 'none',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={emailStatus === 'submitting'}
+                      style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#C65F45',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '999px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 4px 12px rgba(198, 95, 69, 0.25)',
+                      }}
+                    >
+                      {emailStatus === 'submitting' ? '...' : 'Notify Me'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </>
           ) : (
             <div
               style={{

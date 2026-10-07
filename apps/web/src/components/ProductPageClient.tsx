@@ -746,17 +746,19 @@ export default function ProductPageClient({ product, localIp }: ProductPageClien
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                         {bullets.map((bullet: string, bIdx: number) => {
                           const clean = bullet.replace(/^[•\-\*]\s*/, '');
-                          const [featureTitle, ...featureDesc] = clean.split('—');
+                          const dashIdx = clean.search(/[\u2014\u2013:-]/);
+                          const featureTitle = dashIdx !== -1 ? clean.slice(0, dashIdx).trim() : clean;
+                          const featureDesc = dashIdx !== -1 ? clean.slice(dashIdx + 1).replace(/^[\u2014\u2013:-]\s*/, '').trim() : '';
                           return (
                             <div key={bIdx} className="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-amber-900/5 shadow-xs">
                               <div className="w-4 h-4 rounded-full bg-terracotta/10 text-terracotta flex items-center justify-center shrink-0 mt-0.5">
                                 <Check className="w-2.5 h-2.5" />
                               </div>
                               <div className="flex flex-col">
-                                {featureDesc.length > 0 ? (
+                                {featureDesc ? (
                                   <>
-                                    <span className="text-xs md:text-[13px] font-semibold text-gray-900 leading-snug">{featureTitle.trim()}</span>
-                                    <span className="text-[11px] md:text-xs text-gray-500 leading-relaxed mt-0.5">{featureDesc.join('—').trim()}</span>
+                                    <span className="text-xs md:text-[13px] font-semibold text-gray-900 leading-snug">{featureTitle}</span>
+                                    <span className="text-[11px] md:text-xs text-gray-500 leading-relaxed mt-0.5">{featureDesc}</span>
                                   </>
                                 ) : (
                                   <span className="text-xs md:text-[13px] font-medium text-gray-800 leading-snug">{clean}</span>

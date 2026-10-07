@@ -16,7 +16,7 @@ const DEFAULT_FAQS: FAQItem[] = [
   {
     id: 'faq-1',
     question: 'What is tool-free flat-pack furniture? How is it different from the IKEA flat-pack I already know?',
-    answer: 'Regular flat-pack needs screws, Allen key, some basic tools and 60 minutes of DIY, loose hardware you can lose. JODO panels slide into a connector system entirely by hand — nothing to screw in, nothing to misplace — and disassembly is just as easy unlike conventional flat-pack',
+    answer: 'Regular flat-pack needs screws, Allen key, some basic tools and 60 minutes of DIY, loose hardware you can lose. JODO panels slide into a connector system entirely by hand: nothing to screw in, nothing to misplace, and disassembly is just as easy unlike conventional flat-pack',
     category: 'New to Tool-Free Furniture?',
   },
   {
@@ -34,19 +34,19 @@ const DEFAULT_FAQS: FAQItem[] = [
   {
     id: 'faq-4',
     question: "Can I see or try the product before I buy, since I can't quite picture how 'tool-free' works?",
-    answer: 'We currently sell JODO products only via our e-commerce website – www.jodoshop.com. We are in the process of getting ourselves into retail stores by 2027 first quarter',
+    answer: 'We currently sell JODO products only via our e-commerce website at www.jodoshop.com. We are in the process of getting ourselves into retail stores by 2027 first quarter',
     category: 'New to Tool-Free Furniture?',
   },
   {
     id: 'faq-5',
-    question: 'Is tool free joinery as safe as screwed-together furniture — could it loosen or come apart on its own?',
+    question: 'Is tool free joinery as safe as screwed-together furniture? Could it loosen or come apart on its own?',
     answer: "The connectors are engineered to slide and lock into place, not just hold by friction, so normal use and moderate load don't make them loose or cause them to come apart. Load-bearing, drop tests, multiple disassembly-assembly cycles, quality performances are tested to BIS structural safety standards",
     category: 'New to Tool-Free Furniture?',
   },
   {
     id: 'faq-6',
     question: 'Does tool-free mean toy-like, shabby looking pieces compared to traditional screwed-on carpentry furniture?',
-    answer: 'No — the connector sits within the panel instead of a visible add-on fitting, so finished pieces look like standard furniture. Once assembled, a JODO piece looks and functions like any other regular furniture',
+    answer: 'No, the connector sits within the panel instead of a visible add-on fitting, so finished pieces look like standard furniture. Once assembled, a JODO piece looks and functions like any other regular furniture',
     category: 'New to Tool-Free Furniture?',
   },
   {
@@ -57,14 +57,14 @@ const DEFAULT_FAQS: FAQItem[] = [
   },
   {
     id: 'faq-8',
-    question: "What if I assemble it and don't like it — can I return it?",
+    question: "What if I assemble it and don't like it? Can I return it?",
     answer: 'Return and trial period window is mentioned in our Returns and Warranty guidelines',
     category: 'New to Tool-Free Furniture?',
   },
   {
     id: 'faq-9',
     question: 'Can I really ditch the tool box to assemble this?',
-    answer: 'Yes. Every JODO piece uses our proprietary connector system — no screwdriver, no Allen key, no drilling into walls or floors. Most pieces slide together by hand in under 30 minutes approximately',
+    answer: 'Yes. Every JODO piece uses our proprietary connector system: no screwdriver, no Allen key, no drilling into walls or floors. Most pieces slide together by hand in under 30 minutes approximately',
     category: 'Assembly & Ease of Use',
   },
   {
@@ -87,7 +87,7 @@ const DEFAULT_FAQS: FAQItem[] = [
   },
   {
     id: 'faq-13',
-    question: 'I move apartments often — will this survive multiple moves?',
+    question: 'I move apartments often: will this survive multiple moves?',
     answer: 'Our core design foundation is to make JODO for people on the go. Furniture disassembles back into flat-pack form just as easily as it assembles, so you can take it apart, move it, and reassemble it without damage and carpenter intervention.',
     category: 'Moving & Renting',
   },
@@ -118,7 +118,7 @@ const DEFAULT_FAQS: FAQItem[] = [
   {
     id: 'faq-18',
     question: 'Will it hold up in Indian weather and humidity?',
-    answer: 'Yes. Materials are selected and climate-tested specifically for Indian conditions — humidity and heat cycles — not adapted from a foreign spec sheet. We use solid wood and plywood in premium laminate finish and high density foam for our upholstered SKUs',
+    answer: 'Yes. Materials are selected and climate-tested specifically for Indian conditions (humidity and heat cycles) rather than adapted from a foreign spec sheet. We use solid wood and plywood in premium laminate finish and high density foam for our upholstered SKUs',
     category: 'Quality & Durability',
   },
   {
@@ -136,24 +136,24 @@ const DEFAULT_FAQS: FAQItem[] = [
   {
     id: 'faq-21',
     question: 'Is JODO furniture made in India?',
-    answer: 'Yes — JODO is designed and manufactured in India, built around Indian homes, climate, and usage rather than adapted from a foreign product line',
+    answer: 'Yes, JODO is designed and manufactured in India, built around Indian homes, climate, and usage rather than adapted from a foreign product line',
     category: 'Materials & Origin',
   },
   {
     id: 'faq-22',
     question: "How do I care for JODO furniture, especially in India's climate?",
-    answer: 'Wipe with a soft, lightly damp cloth and dry after — avoid abrasive cleaners, harsh chemicals, and standing water. Keep pieces out of prolonged direct sunlight to prevent discolouration, and away from continuous high humidity or constant dampness where possible. Materials are chosen with Indian conditions in mind, normal care still extends the life of any furniture',
+    answer: 'Wipe with a soft, lightly damp cloth and dry after: avoid abrasive cleaners, harsh chemicals, and standing water. Keep pieces out of prolonged direct sunlight to prevent discolouration, and away from continuous high humidity or constant dampness where possible. Materials are chosen with Indian conditions in mind, normal care still extends the life of any furniture',
     category: 'Care & Maintenance',
   },
   {
     id: 'faq-23',
-    question: 'How is it delivered — do I need to arrange movers or a carpenter?',
-    answer: "It arrives flat-packed at your door, and you assemble it yourself, by hand — no carpenter or installer needed by default. If you'd rather have help anyway, optional Assisted Setup is available as a paid add-on.",
+    question: 'How is it delivered? Do I need to arrange movers or a carpenter?',
+    answer: "It arrives flat-packed at your door, and you assemble it yourself, by hand: no carpenter or installer needed by default. If you'd rather have help anyway, optional Assisted Setup is available as a paid add-on.",
     category: 'Delivery & Logistics',
   },
   {
     id: 'faq-24',
-    question: "I'd rather not assemble it myself — can I pay someone to do it for me?",
+    question: "I'd rather not assemble it myself: can I pay someone to do it for me?",
     answer: 'All JODO pieces can be self assembled but if you’d rather have help, optional Assisted Setup is available as a paid add-on. Technicians are trained specifically to work with our connector systems so the piece is assembled the same way you would do it yourself',
     category: 'Delivery & Logistics',
   },
@@ -196,7 +196,7 @@ const DEFAULT_FAQS: FAQItem[] = [
   {
     id: 'faq-31',
     question: 'What if a part is missing, or a connector breaks later on?',
-    answer: "Because the connector system is modular, replacement connectors and panels can be ordered individually from JODO's website — you don't need to wait on a warranty claim or replace the whole piece",
+    answer: "Because the connector system is modular, replacement connectors and panels can be ordered individually from JODO's website so you don't need to wait on a warranty claim or replace the whole piece",
     category: 'Returns & Warranty',
   },
   {
@@ -227,10 +227,21 @@ export default function FAQsPage() {
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            const sanitize = (text: string) => {
+              if (!text) return '';
+              return text
+                .replace(/\s*[—–]\s*could it loosen/gi, '? Could it loosen')
+                .replace(/\s*[—–]\s*can I return/gi, '? Can I return')
+                .replace(/\s*[—–]\s*will this survive/gi, '. Will this survive')
+                .replace(/\s*[—–]\s*do I need/gi, '? Do I need')
+                .replace(/\s*[—–]\s*can I pay/gi, ': can I pay')
+                .replace(/[—–]/g, ':');
+            };
+
             const formatted: FAQItem[] = json.data.map((item: any) => ({
               id: item._id || item.id,
-              question: item.question,
-              answer: item.answer,
+              question: sanitize(item.question),
+              answer: sanitize(item.answer),
               category: item.category || 'General',
             }));
             setFaqs(formatted);
@@ -280,7 +291,7 @@ export default function FAQsPage() {
 
       {/* ── 2. COMPACT, SLEEK CATEGORIES (Category name only, small size, best look) ── */}
       <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
-        <div className="max-w-[1100px] mx-auto">
+        <div className="w-full">
           <div className="flex items-center justify-start md:justify-center flex-wrap gap-2 sm:gap-2.5 overflow-x-auto hide-scrollbar pb-1">
             {categories.map((category) => {
               const isSelected = activeCategory === category;
@@ -323,7 +334,7 @@ export default function FAQsPage() {
 
       {/* ── 3. MAIN FAQ ACCORDION SECTION (max-w-[1440px] matching Navbar) ── */}
       <main id="faqs-list" className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 pt-2">
-        <div className="max-w-[1040px] mx-auto">
+        <div className="w-full">
           {/* Active Category Header / Question count */}
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#ECE6DE]/80">
             <h2 className="text-sm sm:text-base font-bold text-[#1C1A17]">

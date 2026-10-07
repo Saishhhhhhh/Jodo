@@ -38,7 +38,7 @@ export interface Store extends BaseDocument {
 }
 
 // --- User / Staff ---
-export type UserStatus = 'active' | 'invited' | 'suspended' | 'deactivated';
+export type UserStatus = 'active' | 'invited' | 'suspended' | 'deactivated' | 'inactive';
 
 export interface User extends BaseDocument {
   tenantId: string;

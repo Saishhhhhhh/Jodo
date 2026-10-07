@@ -10,7 +10,7 @@ This document lists all frontend application pages across the **Admin Portal** (
 | :--- | :--- | :--- | :--- | :--- |
 | **Admin Portal** | Next.js 14+ (App Router), Tailwind/CSS | [`apps/admin/src/app`](file:///c:/Users/Admin/Documents/jodo/Jodo/apps/admin/src/app) | **104 Pages** | Admins, Store Owners, Project Managers, Team Members |
 | **Customer Storefront** | Next.js 14+ (App Router), Tailwind/CSS | [`apps/web/src/app`](file:///c:/Users/Admin/Documents/jodo/Jodo/apps/web/src/app) | **22 Pages** | End Consumers, Shoppers, Registered Accounts |
-| **Total Frontend Pages** | — | — | **126 Pages** | Full Omnichannel Commerce & ERP OS |
+| **Total Frontend Pages** | - | - | **126 Pages** | Full Omnichannel Commerce & ERP OS |
 
 ---
 

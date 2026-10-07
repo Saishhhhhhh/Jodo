@@ -32,7 +32,7 @@ export default function MobileMenuOverlay({ isOpen, onClose, menuItems }: Mobile
                   src="/logo.png"
                   alt="Jodo"
                   width={120}
-                  height={38}
+                  height={54}
                   className="h-[36px] w-auto object-contain"
                   priority
                 />

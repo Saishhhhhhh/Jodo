@@ -70,7 +70,7 @@ export default function CampaignContentPage() {
   const [emailSubject, setEmailSubject] = useState(content.email?.subject || '✨ Exclusive: Diwali Festive Curation');
   const [emailPreheader, setEmailPreheader] = useState(content.email?.preheader || 'Curated architectural pieces for illuminated celebrations.');
   const [emailHeadline, setEmailHeadline] = useState(content.email?.headline || 'Welcome Prosperity with Timeless Architectural Living');
-  const [emailBody, setEmailBody] = useState(content.email?.body || 'Dear Patron,\n\nAs the festival of illumination approaches, home becomes the sacred canvas for warmth, celebration, and cherished hospitality.\n\nIntroducing the JODO Diwali Curation — a bespoke portfolio of solid teak dining ensembles, sculptured accent seating, and ambient brass illumination.\n\nEnjoy an exclusive 15% Festive Privilege.');
+  const [emailBody, setEmailBody] = useState(content.email?.body || 'Dear Patron,\n\nAs the festival of illumination approaches, home becomes the sacred canvas for warmth, celebration, and cherished hospitality.\n\nIntroducing the JODO Diwali Curation: a bespoke portfolio of solid teak dining ensembles, sculptured accent seating, and ambient brass illumination.\n\nEnjoy an exclusive 15% Festive Privilege.');
   const [emailCta, setEmailCta] = useState(content.email?.cta || 'Explore The Festive Atelier');
 
   const [whatsappMsg, setWhatsappMsg] = useState(content.whatsapp?.message || 'Shubh Deepavali from JODO! 🪔✨\n\nCelebrate refined living with our handcrafted festive collection. From artisanal solid wood dining tables to statement lounge armchairs, each piece brings warmth and heirloom grace.\n\n🎁 Special Privilege: Flat 15% Festive Privilege.');

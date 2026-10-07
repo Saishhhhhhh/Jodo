@@ -67,7 +67,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex dark bg-background">
-      {/* Left Panel — Branding */}
+      {/* Left Panel: Branding */}
       <div className="hidden lg:flex flex-col w-[480px] shrink-0 bg-card border-r border-border relative overflow-hidden p-12">
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-primary/10 pointer-events-none" />
@@ -91,7 +91,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel — Login Form */}
+      {/* Right Panel: Login Form */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}

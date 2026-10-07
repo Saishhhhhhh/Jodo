@@ -32,6 +32,15 @@ const PRICE_RANGES = [
   { label: 'Over ₹50,000', min: 50000, max: Infinity },
 ];
 
+const CATEGORY_TABS = [
+  { label: 'All', value: 'all' },
+  { label: 'Living Room', value: 'Living Room' },
+  { label: 'Bedroom', value: 'Bedroom' },
+  { label: 'Dining', value: 'Dining' },
+  { label: 'Study / Office', value: 'Study / Office' },
+  { label: 'Storage', value: 'Storage' },
+];
+
 export default function ShopClient({ initialProducts, initialCategory }: ShopClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -379,6 +388,18 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
             return false;
           }
 
+          // Study / Office specific semantic matching
+          if (sCat.includes('study') || sCat.includes('office')) {
+            if (pCat.includes('office') || pCat.includes('study') || roomType.includes('office') || title.includes('desk') || title.includes('office') || title.includes('chair')) return true;
+            return false;
+          }
+
+          // Storage specific semantic matching
+          if (sCat.includes('storage')) {
+            if (pCat.includes('storage') || title.includes('shelf') || title.includes('book') || title.includes('stand') || title.includes('cabinet') || title.includes('nightstand')) return true;
+            return false;
+          }
+
           // Lamps & Lighting specific semantic matching
           if (sCat.includes('light') || sCat.includes('lamp')) {
             if (pCat.includes('light') || pCat.includes('lamp') || title.includes('lamp') || title.includes('light')) return true;
@@ -551,7 +572,38 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
   );
 
   return (
-    <div className="flex flex-col md:flex-row relative w-full gap-8 lg:gap-12 items-start mt-8 md:mt-12">
+    <div className="w-full flex flex-col">
+      {/* 3.2 Filter / category bar: All · Living Room · Bedroom · Dining · Study / Office · Storage */}
+      <div className="w-full flex items-center justify-start md:justify-center overflow-x-auto hide-scrollbar gap-2 sm:gap-3 py-3 mb-4 md:mb-8 border-b border-gray-100">
+        {CATEGORY_TABS.map((tab) => {
+          const isAll = tab.value === 'all';
+          const isActive = isAll
+            ? selectedCategories.length === 0
+            : selectedCategories.includes(tab.value);
+
+          return (
+            <button
+              key={tab.value}
+              onClick={() => {
+                if (isAll) {
+                  clearAllFilters();
+                } else {
+                  toggleCategory(tab.value);
+                }
+              }}
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all whitespace-nowrap active:scale-95 ${
+                isActive
+                  ? 'bg-terracotta text-white shadow-sm shadow-terracotta/20'
+                  : 'bg-[#F6F2EE] text-gray-700 hover:bg-[#ECE5DE] hover:text-[#1C1A17]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-col md:flex-row relative w-full gap-8 lg:gap-12 items-start mt-2 md:mt-4">
 
       {/* Desktop Inline Sidebar (Left) */}
       <aside className="hidden md:flex flex-col w-[240px] lg:w-[260px] flex-shrink-0 sticky top-40">
@@ -786,7 +838,8 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
                   rating: parseFloat((product.productDetails as Record<string, string>)?.['Product Rating'] || '4.5'),
                   reviews: 120,
                   price: product.price,
-                  imageUrl: product.imageUrl || `https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80`
+                  imageUrl: product.imageUrl || `https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&auto=format&fit=crop&q=80`,
+                  inventoryQuantity: product.inventoryQuantity
                 };
 
                 return <ProductCard key={mappedProduct.id} product={mappedProduct} />;
@@ -795,6 +848,7 @@ export default function ShopClient({ initialProducts, initialCategory }: ShopCli
           )}
         </main>
       </div>
+    </div>
     </div>
   );
 }

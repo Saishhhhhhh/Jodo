@@ -57,7 +57,7 @@ export default function TasksPage() {
   // Active tab: 'list' or 'new'
   const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
 
-  // Derive role from actual logged-in user — no simulation toggle
+  // Derive role from actual logged-in user (no simulation toggle)
   const isTeamMember = currentUser?.roles?.includes('TEAM_MEMBER');
   const isAdminOrManager = !isTeamMember && (currentUser?.roles?.some(r =>
     ['admin', 'owner', 'manager', 'ADMIN', 'OWNER', 'MANAGER', 'superadmin', 'SUPER_ADMIN'].includes(r)
