@@ -141,7 +141,7 @@ router.get('/:id', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
   try {
-    const { paymentStatus, fulfillmentStatus, notes, fraudStatus, status } = req.body;
+    const { paymentStatus, fulfillmentStatus, notes, fraudStatus, status, customerName, customerEmail, shippingAddress } = req.body;
 
     const order = await Order.findOne({
       _id: req.params.id,
@@ -162,6 +162,15 @@ router.put('/:id', async (req, res, next) => {
     if (notes !== undefined) order.notes = notes;
     if (fraudStatus) order.fraudStatus = fraudStatus;
     if (status) order.status = status;
+    
+    if (customerName) order.customerName = customerName;
+    if (customerEmail) order.customerEmail = customerEmail;
+    if (shippingAddress) {
+      order.shippingAddress = {
+        ...order.shippingAddress,
+        ...shippingAddress
+      };
+    }
 
     await order.save();
 

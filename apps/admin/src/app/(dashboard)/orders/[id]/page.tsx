@@ -9,6 +9,7 @@ import { ArrowLeft, Package, CreditCard, Truck, User, MapPin, CheckCircle, FileT
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { FulfillOrderDialog } from './fulfill-order-dialog';
 import { CreateReturnSheet } from './create-return-sheet';
@@ -22,6 +23,15 @@ export default function OrderDetailsPage() {
   const [notesValue, setNotesValue] = useState('');
   const [isFulfillDialogOpen, setIsFulfillDialogOpen] = useState(false);
   const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  
+  // New edit states
+  const [editingCustomer, setEditingCustomer] = useState(false);
+  const [customerData, setCustomerData] = useState({ name: '', email: '', phone: '' });
+  
+  const [editingShipping, setEditingShipping] = useState(false);
+  const [shippingData, setShippingData] = useState({
+    firstName: '', lastName: '', address1: '', address2: '', city: '', state: '', zip: '', country: '', phone: ''
+  });
 
   const { data: order, isLoading } = useQuery({
     queryKey: ['orders', id],
@@ -37,6 +47,8 @@ export default function OrderDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['orders', id] });
       toast.success('Order updated successfully');
       setEditingNotes(false);
+      setEditingCustomer(false);
+      setEditingShipping(false);
     },
     onError: () => toast.error('Failed to update order'),
   });
@@ -73,6 +85,20 @@ export default function OrderDetailsPage() {
 
   const handleSaveNotes = () => {
     updateMutation.mutate({ notes: notesValue });
+  };
+  
+  const handleSaveCustomer = () => {
+    updateMutation.mutate({ 
+      customerName: customerData.name, 
+      customerEmail: customerData.email,
+      shippingAddress: { ...order.shippingAddress, phone: customerData.phone }
+    });
+  };
+  
+  const handleSaveShipping = () => {
+    updateMutation.mutate({ 
+      shippingAddress: shippingData
+    });
   };
 
   const formatCurrency = (val: number) => {
@@ -481,9 +507,18 @@ export default function OrderDetailsPage() {
                 {order.customerName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <Link href="/customers" className="font-medium text-sm text-primary hover:underline block">
-                  {order.customerName}
-                </Link>
+                {editingCustomer ? (
+                  <Input 
+                    value={customerData.name}
+                    onChange={(e) => setCustomerData({...customerData, name: e.target.value})}
+                    className="h-7 text-sm mb-1 font-medium"
+                    placeholder="Full Name"
+                  />
+                ) : (
+                  <Link href="/customers" className="font-medium text-sm text-primary hover:underline block">
+                    {order.customerName}
+                  </Link>
+                )}
                 <p className="text-xs text-muted-foreground mt-0.5 whitespace-nowrap">0 orders</p>
               </div>
             </div>
@@ -491,20 +526,57 @@ export default function OrderDetailsPage() {
             <div className="pt-4 border-t flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contact Information</h4>
-                <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground">Edit</Button>
-              </div>
-              <div className="text-sm space-y-1 text-primary">
-                <a href={`mailto:${order.customerEmail}`} className="hover:underline flex items-center gap-2">
-                   {order.customerEmail}
-                </a>
-                {order.shippingAddress?.phone ? (
-                  <a href={`tel:${order.shippingAddress.phone}`} className="hover:underline flex items-center gap-2 mt-2">
-                     {order.shippingAddress.phone}
-                  </a>
-                ) : (
-                  <p className="text-muted-foreground italic">No phone number</p>
+                {!editingCustomer && (
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    className="h-auto p-0 text-muted-foreground"
+                    onClick={() => {
+                      setCustomerData({
+                        name: order.customerName || '',
+                        email: order.customerEmail || '',
+                        phone: order.shippingAddress?.phone || ''
+                      });
+                      setEditingCustomer(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
                 )}
               </div>
+              {editingCustomer ? (
+                <div className="space-y-2 text-sm">
+                  <Input 
+                    value={customerData.email}
+                    onChange={(e) => setCustomerData({...customerData, email: e.target.value})}
+                    className="h-8"
+                    placeholder="Email Address"
+                  />
+                  <Input 
+                    value={customerData.phone}
+                    onChange={(e) => setCustomerData({...customerData, phone: e.target.value})}
+                    className="h-8"
+                    placeholder="Phone Number"
+                  />
+                  <div className="flex justify-end gap-2 mt-2">
+                    <Button variant="ghost" size="sm" onClick={() => setEditingCustomer(false)}>Cancel</Button>
+                    <Button size="sm" onClick={handleSaveCustomer} disabled={updateMutation.isPending}>Save</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm space-y-1 text-primary">
+                  <a href={`mailto:${order.customerEmail}`} className="hover:underline flex items-center gap-2">
+                     {order.customerEmail}
+                  </a>
+                  {order.shippingAddress?.phone ? (
+                    <a href={`tel:${order.shippingAddress.phone}`} className="hover:underline flex items-center gap-2 mt-2">
+                       {order.shippingAddress.phone}
+                    </a>
+                  ) : (
+                    <p className="text-muted-foreground italic">No phone number</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -512,9 +584,53 @@ export default function OrderDetailsPage() {
           <div className="border rounded-xl bg-card shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-base">Shipping Address</h3>
-              <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground">Edit</Button>
+              {!editingShipping && (
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="h-auto p-0 text-muted-foreground"
+                  onClick={() => {
+                    setShippingData({
+                      firstName: order.shippingAddress?.firstName || '',
+                      lastName: order.shippingAddress?.lastName || '',
+                      address1: order.shippingAddress?.address1 || '',
+                      address2: order.shippingAddress?.address2 || '',
+                      city: order.shippingAddress?.city || '',
+                      state: order.shippingAddress?.state || '',
+                      zip: order.shippingAddress?.zip || '',
+                      country: order.shippingAddress?.country || '',
+                      phone: order.shippingAddress?.phone || ''
+                    });
+                    setEditingShipping(true);
+                  }}
+                >
+                  Edit
+                </Button>
+              )}
             </div>
-            {order.shippingAddress ? (
+            {editingShipping ? (
+              <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input value={shippingData.firstName} onChange={e => setShippingData({...shippingData, firstName: e.target.value})} placeholder="First Name" className="h-8" />
+                  <Input value={shippingData.lastName} onChange={e => setShippingData({...shippingData, lastName: e.target.value})} placeholder="Last Name" className="h-8" />
+                </div>
+                <Input value={shippingData.address1} onChange={e => setShippingData({...shippingData, address1: e.target.value})} placeholder="Address 1" className="h-8" />
+                <Input value={shippingData.address2} onChange={e => setShippingData({...shippingData, address2: e.target.value})} placeholder="Address 2 (Optional)" className="h-8" />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input value={shippingData.city} onChange={e => setShippingData({...shippingData, city: e.target.value})} placeholder="City" className="h-8" />
+                  <Input value={shippingData.zip} onChange={e => setShippingData({...shippingData, zip: e.target.value})} placeholder="ZIP Code" className="h-8" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input value={shippingData.state} onChange={e => setShippingData({...shippingData, state: e.target.value})} placeholder="State" className="h-8" />
+                  <Input value={shippingData.country} onChange={e => setShippingData({...shippingData, country: e.target.value})} placeholder="Country" className="h-8" />
+                </div>
+                <Input value={shippingData.phone} onChange={e => setShippingData({...shippingData, phone: e.target.value})} placeholder="Phone" className="h-8" />
+                <div className="flex justify-end gap-2 mt-3">
+                  <Button variant="ghost" size="sm" onClick={() => setEditingShipping(false)}>Cancel</Button>
+                  <Button size="sm" onClick={handleSaveShipping} disabled={updateMutation.isPending}>Save</Button>
+                </div>
+              </div>
+            ) : order.shippingAddress ? (
               <address className="text-sm text-muted-foreground not-italic space-y-0.5">
                 <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
                 <p>{order.shippingAddress.address1}</p>
@@ -532,7 +648,6 @@ export default function OrderDetailsPage() {
           <div className="border rounded-xl bg-card shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-base">Billing Address</h3>
-              <Button variant="link" size="sm" className="h-auto p-0 text-muted-foreground">Edit</Button>
             </div>
             <p className="text-sm text-muted-foreground italic">Same as shipping address</p>
           </div>
