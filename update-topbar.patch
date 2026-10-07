@@ -1,0 +1,100 @@
+--- apps/admin/src/components/layout/topbar.tsx
++++ apps/admin/src/components/layout/topbar.tsx
+@@ -1,7 +1,7 @@
+ 'use client';
+ 
+-import React, { useMemo } from 'react';
++import React, { useMemo, useEffect, useState } from 'react';
+ import { useRouter } from 'next/navigation';
+ import {
+   Search,
+@@ -35,6 +35,14 @@
+ } from '@/components/ui/dropdown-menu';
+ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
++import {
++  CommandDialog,
++  CommandEmpty,
++  CommandGroup,
++  CommandInput,
++  CommandItem,
++  CommandList,
++} from '@/components/ui/command';
+ import { useAuthStore } from '@/stores/auth';
+ import { useWarehouseStore } from '@/stores/warehouse';
+ import { getInitials } from '@/lib/utils';
+@@ -49,6 +57,20 @@
+   const { theme, setTheme } = useTheme();
+   const queryClient = useQueryClient();
++  const [openCommand, setOpenCommand] = useState(false);
++
++  useEffect(() => {
++    const down = (e: KeyboardEvent) => {
++      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
++        e.preventDefault();
++        setOpenCommand((open) => !open);
++      }
++    };
++
++    document.addEventListener('keydown', down);
++    return () => document.removeEventListener('keydown', down);
++  }, []);
++
++  const runCommand = (command: () => void) => {
++    setOpenCommand(false);
++    command();
++  };
+ 
+   const { data: notifications } = useQuery({
+@@ -134,13 +156,58 @@
+ 
+         {/* Search (decorative in Phase 0) */}
+-        <button className="flex items-center gap-2.5 flex-1 max-w-sm h-8 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground hover:bg-accent/40 transition-colors text-left">
++        <button 
++          onClick={() => setOpenCommand(true)}
++          className="flex items-center gap-2.5 flex-1 max-w-sm h-8 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground hover:bg-accent/40 transition-colors text-left"
++        >
+           <Search className="h-3.5 w-3.5 shrink-0" />
+           <span className="flex-1">Search...</span>
+           <kbd className="hidden sm:flex items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-mono">
+             <span>⌘</span>K
+           </kbd>
+         </button>
++
++        <CommandDialog open={openCommand} onOpenChange={setOpenCommand}>
++          <CommandInput placeholder="Type a command or search..." />
++          <CommandList>
++            <CommandEmpty>No results found.</CommandEmpty>
++            <CommandGroup heading="Quick Links">
++              <CommandItem onSelect={() => runCommand(() => router.push('/'))}>
++                Dashboard
++              </CommandItem>
++              <CommandItem onSelect={() => runCommand(() => router.push('/orders'))}>
++                Orders
++              </CommandItem>
++              <CommandItem onSelect={() => runCommand(() => router.push('/products'))}>
++                Products
++              </CommandItem>
++              <CommandItem onSelect={() => runCommand(() => router.push('/customers'))}>
++                Customers
++              </CommandItem>
++              <CommandItem onSelect={() => runCommand(() => router.push('/tasks/all-tasks'))}>
++                Tasks
++              </CommandItem>
++            </CommandGroup>
++            <CommandGroup heading="Settings">
++              <CommandItem onSelect={() => runCommand(() => router.push('/settings/profile'))}>
++                Profile Settings
++              </CommandItem>
++              <CommandItem onSelect={() => runCommand(() => setTheme(theme === 'dark' ? 'light' : 'dark'))}>
++                Toggle Theme
++              </CommandItem>
++              <CommandItem 
++                onSelect={() => runCommand(() => handleLogout())}
++              >
++                Log out
++              </CommandItem>
++            </CommandGroup>
++          </CommandList>
++        </CommandDialog>
+ 
+         <div className="flex items-center gap-1 ml-auto">
