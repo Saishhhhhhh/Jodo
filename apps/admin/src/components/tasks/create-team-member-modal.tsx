@@ -11,13 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
@@ -34,6 +27,7 @@ export function CreateTeamMemberModal({ children, onCreated }: { children?: Reac
   const [status, setStatus] = useState('active');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [moduleAccess, setModuleAccess] = useState<string[]>(['tasks']);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +48,7 @@ export function CreateTeamMemberModal({ children, onCreated }: { children?: Reac
         team,
         status,
         password,
+        moduleAccess,
       });
       
       toast.success('Team Member created successfully');
@@ -136,25 +131,119 @@ export function CreateTeamMemberModal({ children, onCreated }: { children?: Reac
 
             <div className="space-y-2">
               <Label>Team</Label>
-              <Select value={team} onValueChange={setTeam}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {['Sales', 'Operations', 'Content', 'Support', 'Follow-up'].map(t => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors cursor-pointer"
+              >
+                {['Sales', 'Operations', 'Warehouse', 'Content', 'Support', 'Follow-up', 'Finance'].map((t) => (
+                  <option key={t} value={t} className="bg-popover text-popover-foreground">
+                    {t}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors cursor-pointer"
+              >
+                <option value="active" className="bg-popover text-popover-foreground">Active</option>
+                <option value="inactive" className="bg-popover text-popover-foreground">Inactive</option>
+              </select>
+            </div>
+
+            {/* Module Access Selection */}
+            <div className="space-y-2 pt-3 border-t border-border">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold">
+                  Module Access ({moduleAccess.length} Selected)
+                </Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModuleAccess([
+                        'tasks',
+                        'dashboard',
+                        'store',
+                        'orders',
+                        'customers',
+                        'leads',
+                        'warehouse',
+                        'ai-content',
+                        'marketing',
+                        'whatsapp',
+                        'content',
+                        'blog',
+                        'analytics',
+                        'settings',
+                      ])
+                    }
+                    className="text-[11px] text-primary hover:underline font-medium"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-muted-foreground">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setModuleAccess(['tasks'])}
+                    className="text-[11px] text-muted-foreground hover:underline"
+                  >
+                    Tasks Only
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto p-1.5 border rounded-lg bg-muted/20">
+                {[
+                  { id: 'tasks', label: 'Tasks' },
+                  { id: 'dashboard', label: 'Dashboard' },
+                  { id: 'store', label: 'Store & Products' },
+                  { id: 'orders', label: 'Orders' },
+                  { id: 'customers', label: 'Customers' },
+                  { id: 'leads', label: 'CRM / Leads' },
+                  { id: 'warehouse', label: 'Warehouse' },
+                  { id: 'ai-content', label: 'AI Content' },
+                  { id: 'marketing', label: 'Marketing' },
+                  { id: 'whatsapp', label: 'WhatsApp' },
+                  { id: 'content', label: 'Site Content' },
+                  { id: 'blog', label: 'Blog & FAQs' },
+                  { id: 'analytics', label: 'Analytics' },
+                  { id: 'settings', label: 'Settings' },
+                ].map((mod) => {
+                  const isChecked = moduleAccess.includes(mod.id);
+                  return (
+                    <button
+                      key={mod.id}
+                      type="button"
+                      onClick={() => {
+                        if (mod.id === 'tasks') return;
+                        setModuleAccess((prev) =>
+                          prev.includes(mod.id)
+                            ? prev.filter((m) => m !== mod.id)
+                            : [...prev, mod.id]
+                        );
+                      }}
+                      className={`flex items-center justify-between px-2 py-1 rounded text-[11px] border text-left transition-colors ${
+                        isChecked
+                          ? 'bg-primary/10 border-primary/50 text-foreground font-medium'
+                          : 'bg-background border-border text-muted-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{mod.label}</span>
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ml-1.5 ${
+                          isChecked ? 'bg-primary' : 'bg-muted-foreground/30'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="space-y-2 pt-4 border-t border-border">

@@ -122,8 +122,12 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Tasks',
-    href: '/tasks',
     icon: CheckSquare,
+    children: [
+      { label: 'Task Management', href: '/tasks', icon: CheckSquare },
+      { label: 'Team Members', href: '/tasks/team-members', icon: Users2 },
+      { label: 'Task AI Analysis', href: '/tasks/ai-analysis', icon: Sparkles, badge: 'AI' },
+    ],
   },
   {
     label: 'CRM / Leads',
@@ -239,7 +243,7 @@ interface SidebarProps {
 export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuthStore();
-  const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders', 'Warehouse', 'AI Content', 'Content']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['Store', 'Orders', 'Warehouse', 'AI Content', 'Content', 'Tasks']);
   const [counts, setCounts] = useState<any>({});
 
   useEffect(() => {
@@ -271,16 +275,83 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
     );
   }
 
+  const isTeamMember = user?.roles?.includes('TEAM_MEMBER');
+
+  const visibleNavItems = React.useMemo<NavItem[]>(() => {
+    if (!isTeamMember) {
+      return NAV_ITEMS;
+    }
+
+    const access = user?.moduleAccess && user.moduleAccess.length > 0 ? user.moduleAccess : ['tasks'];
+    if (access.includes('all')) {
+      return NAV_ITEMS;
+    }
+
+    const filtered: NavItem[] = [];
+
+    NAV_ITEMS.forEach((item) => {
+      let allowed = false;
+
+      if (item.label === 'Dashboard' && access.includes('dashboard')) allowed = true;
+      else if (item.label === 'Notifications') allowed = true;
+      else if (item.label === 'Store' && (access.includes('store') || access.includes('products'))) allowed = true;
+      else if (item.label === 'Orders' && access.includes('orders')) allowed = true;
+      else if (item.label === 'Customers' && access.includes('customers')) allowed = true;
+      else if (item.label === 'Tasks' && access.includes('tasks')) {
+        filtered.push({
+          label: 'Tasks',
+          icon: CheckSquare,
+          children: [
+            { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
+            { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
+          ],
+        });
+        return;
+      }
+      else if (item.label === 'CRM / Leads' && access.includes('leads')) allowed = true;
+      else if (item.label === 'Reports & Digest' && (access.includes('reports') || access.includes('analytics'))) allowed = true;
+      else if (item.label === 'Warehouse' && access.includes('warehouse')) allowed = true;
+      else if (item.label === 'AI Content' && access.includes('ai-content')) allowed = true;
+      else if (item.label === 'Marketing' && access.includes('marketing')) allowed = true;
+      else if (item.label === 'WhatsApp' && access.includes('whatsapp')) allowed = true;
+      else if (item.label === 'Blog Posts' && access.includes('blog')) allowed = true;
+      else if (item.label === 'FAQs' && access.includes('faqs')) allowed = true;
+      else if (item.label === 'Content' && access.includes('content')) allowed = true;
+      else if (item.label === 'Analytics' && access.includes('analytics')) allowed = true;
+      else if (item.label === 'Settings' && access.includes('settings')) allowed = true;
+      else if (item.label === 'Help & Docs') allowed = true;
+
+      if (allowed) {
+        filtered.push(item);
+      }
+    });
+
+    if (filtered.length === 0) {
+      return [
+        {
+          label: 'Tasks',
+          icon: CheckSquare,
+          children: [
+            { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
+            { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
+          ],
+        }
+      ];
+    }
+
+    return filtered;
+  }, [isTeamMember, user?.moduleAccess]);
+
   const allHrefs = React.useMemo(() => {
     const hrefs: string[] = [];
-    NAV_ITEMS.forEach((item) => {
+    visibleNavItems.forEach((item) => {
       if (item.href) hrefs.push(item.href);
       item.children?.forEach((child) => {
         if (child.href) hrefs.push(child.href);
       });
     });
     return hrefs;
-  }, []);
+  }, [visibleNavItems]);
 
   const bestMatch = React.useMemo(() => {
     return allHrefs.reduce((best, href) => {
@@ -297,39 +368,6 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
     if (href === '/') return pathname === '/';
     return href === bestMatch;
   }
-
-  const isTeamMember = user?.roles?.includes('TEAM_MEMBER');
-
-  const visibleNavItems = React.useMemo<NavItem[]>(() => {
-    if (!isTeamMember) {
-      // Super Admin / Regular Admin: Add 'Team Members' to the Tasks children
-      const nav = [...NAV_ITEMS];
-      const tasksIndex = nav.findIndex(n => n.label === 'Tasks');
-      if (tasksIndex !== -1) {
-        // Clone the tasks section to modify it
-        const tasksSection = { ...nav[tasksIndex], children: [...(nav[tasksIndex].children || [])] };
-        
-        // Add Team Members if it doesn't exist
-        if (!tasksSection.children.some(c => c.label === 'Team Members')) {
-          tasksSection.children.splice(4, 0, { label: 'Team Members', href: '/tasks/team-members', icon: Users2 });
-        }
-        nav[tasksIndex] = tasksSection;
-      }
-      return nav;
-    }
-
-    // Team Member: Only show a subset of Tasks
-    return [
-      {
-        label: 'Tasks',
-        icon: CheckSquare,
-        children: [
-          { label: 'Tasks', href: '/tasks/my-tasks', icon: User },
-          { label: 'Completed', href: '/tasks/completed', icon: CheckCircle },
-        ],
-      }
-    ];
-  }, [isTeamMember]);
 
   function isGroupActive(item: NavItem) {
     return item.children?.some((child) => child.href && isActive(child.href));
@@ -538,6 +576,11 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                           <div className="flex items-center gap-2">
                             <child.icon className="h-3.5 w-3.5" />
                             <span>{child.label}</span>
+                            {child.badge && (
+                              <span className="text-[9px] px-1 py-0.2 rounded font-bold bg-primary/10 text-primary border border-primary/20 leading-none">
+                                {child.badge}
+                              </span>
+                            )}
                           </div>
                           <NotificationBadge count={getBadgeForLabel(child.label)} />
                         </Link>
@@ -634,6 +677,11 @@ export function AppSidebar({ collapsed, isMobile = false }: SidebarProps) {
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                               <child.icon className={cn('h-3.5 w-3.5 shrink-0', childActive && 'text-primary')} />
                               <span className="truncate">{child.label}</span>
+                              {child.badge && (
+                                <span className="text-[9px] px-1 py-0.5 rounded font-bold bg-primary/10 text-primary border border-primary/20 leading-none">
+                                  {child.badge}
+                                </span>
+                              )}
                             </div>
                             <NotificationBadge count={getBadgeForLabel(child.label)} />
                           </Link>

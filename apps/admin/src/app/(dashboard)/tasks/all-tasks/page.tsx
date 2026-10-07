@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 
+import { TasksHeaderNav } from '@/components/tasks/tasks-header-nav';
+
 export default function AllTasksPage() {
   const { tasks: allTasks, fetchTasks } = useTasksStore();
   
@@ -29,6 +31,11 @@ export default function AllTasksPage() {
 
   return (
     <div className="p-6 space-y-6 animate-fade-in flex flex-col h-[calc(100vh-theme(spacing.16))]">
+      {/* Top 2 Buttons: Tasks & Team Members */}
+      <div className="shrink-0 flex items-center justify-between border-b pb-4">
+        <TasksHeaderNav />
+      </div>
+
       <div className="flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">All Tasks</h1>

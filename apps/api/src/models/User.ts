@@ -13,6 +13,7 @@ export interface IUser extends Document {
   status: 'active' | 'invited' | 'suspended' | 'deactivated';
   roleIds: mongoose.Types.ObjectId[];
   permissions: string[];
+  moduleAccess?: string[];
   lastLoginAt?: Date;
   twoFactorEnabled: boolean;
   inviteToken?: string;
@@ -40,6 +41,7 @@ const UserSchema = new Schema<IUser>(
     },
     roleIds: [{ type: Schema.Types.ObjectId, ref: 'Role' }],
     permissions: [{ type: String }],
+    moduleAccess: [{ type: String }],
     lastLoginAt: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
     inviteToken: { type: String, select: false },
