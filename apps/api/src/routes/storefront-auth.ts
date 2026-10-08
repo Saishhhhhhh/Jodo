@@ -430,6 +430,217 @@ router.put('/me', async (req, res, next) => {
   }
 });
 
+// ============================================================
+// Forgot Password: Send 6-Digit OTP to Registered Email
+// ============================================================
+router.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return sendError(res, 'Email address is required', 400);
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const customer = await Customer.findOne({
+      email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+    });
+
+    if (!customer) {
+      return sendError(res, 'No account found with this email address.', 404);
+    }
+
+    // Rate limit check: 60s cooldown
+    const existing = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
+    if (existing && Date.now() - new Date(existing.lastSentAt).getTime() < 60 * 1000) {
+      const waitSeconds = Math.ceil((60 * 1000 - (Date.now() - new Date(existing.lastSentAt).getTime())) / 1000);
+      return sendError(res, `Please wait ${waitSeconds} seconds before requesting a new code.`, 429);
+    }
+
+    // Invalidate stale records
+    await EmailVerification.deleteMany({ email: cleanEmail });
+
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await EmailVerification.create({
+      customerId: customer._id,
+      email: cleanEmail,
+      otpHash: hashOtp(otp),
+      expiresAt,
+      attemptCount: 0,
+      lastSentAt: new Date(),
+      resendCount: (existing?.resendCount || 0) + 1,
+    });
+
+    try {
+      await emailService.sendPasswordResetOtp({
+        email: cleanEmail,
+        otp,
+        customerName: customer.firstName,
+        tenantId: customer.tenantId,
+      });
+    } catch (mailErr) {
+      console.error('[StorefrontAuth] Failed to send password reset email:', mailErr);
+    }
+
+    sendSuccess(
+      res,
+      {
+        email: customer.email,
+        maskedEmail: maskEmail(customer.email),
+      },
+      'A 6-digit verification code has been sent to your registered email.'
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// Reset Password with 6-Digit OTP
+// ============================================================
+router.post('/reset-password', async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return sendError(res, 'Email, verification code, and new password are required', 400);
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanOtp = String(otp).trim();
+
+    if (cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
+      return sendError(res, 'Verification code must be exactly 6 digits', 400);
+    }
+
+    if (newPassword.length < 6) {
+      return sendError(res, 'New password must be at least 6 characters long', 400);
+    }
+
+    const record = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
+    if (!record) {
+      return sendError(res, 'No active verification code found for this email. Please request a new one.', 400);
+    }
+
+    if (new Date() > new Date(record.expiresAt)) {
+      return sendError(res, 'Verification code has expired. Please request a new one.', 400);
+    }
+
+    if (record.attemptCount >= 5) {
+      return sendError(res, 'Too many incorrect attempts. Please request a new code.', 429);
+    }
+
+    const hashedInput = hashOtp(cleanOtp);
+    if (hashedInput !== record.otpHash) {
+      record.attemptCount += 1;
+      await record.save();
+      const attemptsLeft = Math.max(0, 5 - record.attemptCount);
+      return sendError(
+        res,
+        attemptsLeft > 0
+          ? `Invalid verification code. ${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining.`
+          : 'Too many incorrect attempts. Please request a new code.',
+        400
+      );
+    }
+
+    const customer = await Customer.findOne({
+      email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+    });
+    if (!customer) {
+      return sendError(res, 'Customer account not found', 404);
+    }
+
+    customer.passwordHash = newPassword;
+    customer.isEmailVerified = true;
+    customer.emailVerifiedAt = new Date();
+    await customer.save();
+
+    await EmailVerification.deleteMany({ email: cleanEmail });
+
+    // Send confirmation email
+    try {
+      await emailService.sendPasswordChangedNotification({
+        email: cleanEmail,
+        customerName: customer.firstName,
+        tenantId: customer.tenantId,
+      });
+    } catch (mailErr) {
+      console.error('[StorefrontAuth] Failed to send password changed notification:', mailErr);
+    }
+
+    sendSuccess(res, null, 'Password reset successfully. You can now sign in with your new password.');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// Send OTP to Confirm Password Change (Logged in customer)
+// ============================================================
+router.post('/me/send-password-otp', async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    } catch {
+      return sendError(res, 'Invalid or expired token', 401);
+    }
+
+    const customer = await Customer.findById(decoded.sub);
+    if (!customer) {
+      return sendError(res, 'Customer not found', 404);
+    }
+
+    const cleanEmail = customer.email;
+    const existing = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
+    if (existing && Date.now() - new Date(existing.lastSentAt).getTime() < 60 * 1000) {
+      const waitSeconds = Math.ceil((60 * 1000 - (Date.now() - new Date(existing.lastSentAt).getTime())) / 1000);
+      return sendError(res, `Please wait ${waitSeconds} seconds before requesting another code.`, 429);
+    }
+
+    await EmailVerification.deleteMany({ email: cleanEmail });
+
+    const otp = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await EmailVerification.create({
+      customerId: customer._id,
+      email: cleanEmail,
+      otpHash: hashOtp(otp),
+      expiresAt,
+      attemptCount: 0,
+      lastSentAt: new Date(),
+      resendCount: (existing?.resendCount || 0) + 1,
+    });
+
+    try {
+      await emailService.sendPasswordChangeOtp({
+        email: cleanEmail,
+        otp,
+        customerName: customer.firstName,
+        tenantId: customer.tenantId,
+      });
+    } catch (mailErr) {
+      console.error('[StorefrontAuth] Failed to send password change OTP:', mailErr);
+    }
+
+    sendSuccess(
+      res,
+      { maskedEmail: maskEmail(cleanEmail) },
+      'Verification code sent to your registered email.'
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Change Password
 router.put('/me/password', async (req, res, next) => {
   try {
@@ -446,7 +657,7 @@ router.put('/me/password', async (req, res, next) => {
       return sendError(res, 'Invalid or expired token', 401);
     }
 
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, otp } = req.body;
     if (!currentPassword || !newPassword) {
       return sendError(res, 'Current and new password are required', 400);
     }
@@ -465,9 +676,43 @@ router.put('/me/password', async (req, res, next) => {
       return sendError(res, 'Incorrect current password', 400);
     }
 
+    // Verify OTP
+    if (!otp) {
+      return sendError(res, 'Verification code is required. Please click Send Code to receive a code on your registered email.', 400);
+    }
+
+    const cleanOtp = String(otp).trim();
+    const record = await EmailVerification.findOne({ email: customer.email }).sort({ createdAt: -1 });
+      if (!record) {
+        return sendError(res, 'No active verification code found. Please click Send Code first.', 400);
+      }
+      if (new Date() > new Date(record.expiresAt)) {
+        return sendError(res, 'Verification code has expired. Please request a new one.', 400);
+      }
+      if (record.attemptCount >= 5) {
+        return sendError(res, 'Too many incorrect attempts. Please request a new code.', 429);
+      }
+      if (hashOtp(cleanOtp) !== record.otpHash) {
+        record.attemptCount += 1;
+        await record.save();
+        return sendError(res, 'Invalid verification code. Please check your email and try again.', 400);
+      }
+      await EmailVerification.deleteMany({ email: customer.email });
+
     // Assign new password, pre-save hook will hash it
     customer.passwordHash = newPassword;
     await customer.save();
+
+    // Send confirmation email
+    try {
+      await emailService.sendPasswordChangedNotification({
+        email: customer.email,
+        customerName: customer.firstName,
+        tenantId: customer.tenantId,
+      });
+    } catch (mailErr) {
+      console.error('[StorefrontAuth] Failed to send password changed notification:', mailErr);
+    }
 
     sendSuccess(res, null, 'Password updated successfully');
   } catch (error) {

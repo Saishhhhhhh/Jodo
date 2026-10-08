@@ -2,15 +2,15 @@ import mongoose from 'mongoose';
 export declare const Media: mongoose.Model<{
     tenantId: string;
     storeId: mongoose.Types.ObjectId;
-    filename: string;
     url: string;
+    filename: string;
     mimeType: string;
     size: number;
 } & mongoose.DefaultTimestampProps, {}, {}, {}, mongoose.Document<unknown, {}, {
     tenantId: string;
     storeId: mongoose.Types.ObjectId;
-    filename: string;
     url: string;
+    filename: string;
     mimeType: string;
     size: number;
 } & mongoose.DefaultTimestampProps, {}, {
@@ -18,8 +18,8 @@ export declare const Media: mongoose.Model<{
 }> & {
     tenantId: string;
     storeId: mongoose.Types.ObjectId;
-    filename: string;
     url: string;
+    filename: string;
     mimeType: string;
     size: number;
 } & mongoose.DefaultTimestampProps & {
@@ -31,15 +31,15 @@ export declare const Media: mongoose.Model<{
 }, {
     tenantId: string;
     storeId: mongoose.Types.ObjectId;
-    filename: string;
     url: string;
+    filename: string;
     mimeType: string;
     size: number;
 } & mongoose.DefaultTimestampProps, mongoose.Document<unknown, {}, mongoose.FlatRecord<{
     tenantId: string;
     storeId: mongoose.Types.ObjectId;
-    filename: string;
     url: string;
+    filename: string;
     mimeType: string;
     size: number;
 } & mongoose.DefaultTimestampProps>, {}, mongoose.MergeType<mongoose.DefaultSchemaOptions, {
@@ -47,8 +47,8 @@ export declare const Media: mongoose.Model<{
 }>> & mongoose.FlatRecord<{
     tenantId: string;
     storeId: mongoose.Types.ObjectId;
-    filename: string;
     url: string;
+    filename: string;
     mimeType: string;
     size: number;
 } & mongoose.DefaultTimestampProps> & {

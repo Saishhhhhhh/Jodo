@@ -106,8 +106,14 @@ export const authApi = {
   logout: (refreshToken: string) =>
     apiClient.post('/admin/auth/logout', { refreshToken }),
   me: () => apiClient.get('/admin/auth/me'),
-  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+  changePassword: (data: { currentPassword: string; newPassword: string; otp?: string }) =>
     apiClient.put('/admin/auth/change-password', data),
+  sendChangePasswordOtp: () =>
+    apiClient.post('/admin/auth/send-change-password-otp'),
+  forgotPassword: (email: string) =>
+    apiClient.post('/admin/auth/forgot-password', { email }),
+  resetPassword: (data: { email: string; otp: string; newPassword: string }) =>
+    apiClient.post('/admin/auth/reset-password', data),
 };
 
 export const dashboardApi = {

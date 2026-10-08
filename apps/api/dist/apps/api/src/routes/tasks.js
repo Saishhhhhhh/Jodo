@@ -270,6 +270,9 @@ router.patch('/:id', async (req, res) => {
         const task = await Task_1.Task.findOne({ _id: req.params.id, tenantId, storeId });
         if (!task)
             return (0, response_1.sendError)(res, 'Task not found', 404);
+        if (updates.priority === 'Critical') {
+            updates.priority = 'Urgent';
+        }
         const user = await User_1.User.findById(userId).populate('roleIds', 'name');
         const isTeamMember = user?.roleIds?.some((r) => r.name === 'TEAM_MEMBER');
         if (isTeamMember && task.assignedTo && String(task.assignedTo) !== String(userId)) {
@@ -445,8 +448,13 @@ router.patch('/:id', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
     try {
-        const { tenantId, storeId } = req.auth;
-        const task = await Task_1.Task.findOneAndDelete({ _id: req.params.id, tenantId, storeId });
+        const { tenantId, sub: userId } = req.auth;
+        const user = await User_1.User.findById(userId).populate('roleIds', 'name');
+        const isTeamMember = user?.roleIds?.some((r) => r.name === 'TEAM_MEMBER');
+        if (isTeamMember) {
+            return (0, response_1.sendError)(res, 'Team members are not allowed to delete tasks', 403);
+        }
+        const task = await Task_1.Task.findOneAndDelete({ _id: req.params.id, tenantId: new mongoose_1.default.Types.ObjectId(tenantId) });
         if (!task)
             return (0, response_1.sendError)(res, 'Task not found', 404);
         (0, response_1.sendSuccess)(res, null, 'Task deleted successfully');

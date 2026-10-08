@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_1 = require("../middleware/auth");
 const User_1 = require("../models/User");
+const Customer_1 = require("../models/Customer");
 const Role_1 = require("../models/Role");
 const Task_1 = require("../models/Task");
 const response_1 = require("../utils/response");
@@ -75,7 +76,7 @@ router.post('/', async (req, res) => {
     try {
         const tenantId = new mongoose_1.default.Types.ObjectId(req.auth.tenantId);
         const storeId = new mongoose_1.default.Types.ObjectId(req.auth.storeId);
-        const { name, memberId, email, phone, team, password, status } = req.body;
+        const { name, memberId, email, phone, team, password, status, moduleAccess } = req.body;
         if (!name || !memberId || !password) {
             return (0, response_1.sendError)(res, 'Name, Member ID, and Password are required', 400);
         }
@@ -91,6 +92,7 @@ router.post('/', async (req, res) => {
             }
         }
         const roleId = await getTeamMemberRoleId(tenantId);
+        const assignedModules = Array.isArray(moduleAccess) && moduleAccess.length > 0 ? moduleAccess : ['tasks'];
         const newUser = new User_1.User({
             tenantId,
             storeId,
@@ -98,12 +100,19 @@ router.post('/', async (req, res) => {
             memberId: memberId.toUpperCase(),
             email: email ? email.toLowerCase() : undefined,
             phone,
-            permissions: [team || ''], // Use permissions array to store the team name for simplicity (or add teamId if we want a separate model)
+            permissions: [team || 'Sales'],
+            moduleAccess: assignedModules,
             passwordHash: password, // Pre-save hook hashes this
             status: status || 'active',
             roleIds: [roleId],
+            isEmailVerified: true,
+            emailVerifiedAt: new Date(),
         });
         await newUser.save();
+        // Team members are pre-verified by admin; ensure matching Customer records are also marked verified
+        if (email) {
+            await Customer_1.Customer.updateMany({ email: email.toLowerCase() }, { $set: { isEmailVerified: true, emailVerifiedAt: new Date() } }).catch(() => { });
+        }
         await AuditLog_1.AuditLog.create({
             tenantId,
             storeId,
@@ -158,7 +167,7 @@ router.patch('/:id', async (req, res) => {
     try {
         const tenantId = new mongoose_1.default.Types.ObjectId(req.auth.tenantId);
         const userId = new mongoose_1.default.Types.ObjectId(req.params.id);
-        const { name, email, phone, team, status, password } = req.body;
+        const { name, email, phone, team, status, password, moduleAccess } = req.body;
         const user = await User_1.User.findOne({ _id: userId, tenantId });
         if (!user)
             return (0, response_1.sendError)(res, 'Team member not found', 404);
@@ -172,24 +181,63 @@ router.patch('/:id', async (req, res) => {
             user.permissions = [team];
         if (status)
             user.status = status;
+        if (Array.isArray(moduleAccess))
+            user.moduleAccess = moduleAccess;
         if (password) {
             user.passwordHash = password; // pre-save will hash
         }
         await user.save();
+        try {
+            if (req.auth?.sub) {
+                await AuditLog_1.AuditLog.create({
+                    tenantId,
+                    storeId: user.storeId,
+                    actorUserId: new mongoose_1.default.Types.ObjectId(req.auth.sub),
+                    actorType: 'user',
+                    action: 'TEAM_MEMBER_UPDATED',
+                    resourceType: 'User',
+                    resourceId: String(user._id),
+                });
+            }
+        }
+        catch (auditErr) {
+            console.warn('Failed to record audit log for team member update:', auditErr);
+        }
+        (0, response_1.sendSuccess)(res, { id: user._id, status: user.status }, 'Team Member updated successfully');
+    }
+    catch (error) {
+        console.error('Error updating team member:', error);
+        (0, response_1.sendError)(res, error.message || 'Failed to update team member', 400);
+    }
+});
+/**
+ * DELETE /api/admin/team-members/:id
+ * Delete a team member
+ */
+router.delete('/:id', async (req, res) => {
+    try {
+        const tenantId = new mongoose_1.default.Types.ObjectId(req.auth.tenantId);
+        const userId = new mongoose_1.default.Types.ObjectId(req.params.id);
+        const user = await User_1.User.findOneAndDelete({ _id: userId, tenantId });
+        if (!user)
+            return (0, response_1.sendError)(res, 'Team member not found', 404);
+        // Unassign tasks from this user
+        await Task_1.Task.updateMany({ tenantId, assignedTo: userId }, { $unset: { assignedTo: '' } });
         await AuditLog_1.AuditLog.create({
             tenantId,
             storeId: user.storeId,
             actorUserId: new mongoose_1.default.Types.ObjectId(req.auth.sub),
             actorType: 'user',
-            action: 'TEAM_MEMBER_UPDATED',
+            action: 'TEAM_MEMBER_DELETED',
             resourceType: 'User',
             resourceId: String(user._id),
+            after: { name: user.name, memberId: user.memberId }
         });
-        (0, response_1.sendSuccess)(res, { id: user._id }, 'Team Member updated successfully');
+        (0, response_1.sendSuccess)(res, null, 'Team Member deleted successfully');
     }
     catch (error) {
-        console.error('Error updating team member:', error);
-        (0, response_1.sendError)(res, 'Failed to update team member', 500);
+        console.error('Error deleting team member:', error);
+        (0, response_1.sendError)(res, 'Failed to delete team member', 500);
     }
 });
 exports.default = router;

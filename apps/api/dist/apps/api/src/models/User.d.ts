@@ -8,11 +8,14 @@ export interface IUser extends Document {
     phone?: string;
     passwordHash: string;
     avatarUrl?: string;
-    status: 'active' | 'invited' | 'suspended' | 'deactivated';
+    status: 'active' | 'invited' | 'suspended' | 'deactivated' | 'inactive';
     roleIds: mongoose.Types.ObjectId[];
     permissions: string[];
+    moduleAccess?: string[];
     lastLoginAt?: Date;
     twoFactorEnabled: boolean;
+    isEmailVerified: boolean;
+    emailVerifiedAt?: Date | null;
     inviteToken?: string;
     inviteTokenExpiresAt?: Date;
     createdAt: Date;

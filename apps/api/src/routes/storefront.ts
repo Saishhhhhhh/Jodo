@@ -16,6 +16,8 @@ import { DEFAULT_PAGE_CONTENTS } from './pageContent';
 import { sendSuccess, sendError } from '../utils/response';
 import { RazorpayService } from '../services/razorpay';
 import { InventoryIntelligenceService } from '../services/InventoryIntelligenceService';
+import { emailService } from '../services/emailService';
+import { Lead } from '../models/Lead';
 
 const router = Router();
 
@@ -687,6 +689,58 @@ router.get('/page-content/:pageKey', async (req, res, next) => {
     }
 
     sendSuccess(res, content);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================================
+// Contact Us Form Submission
+// ============================================================
+router.post('/contact', async (req, res, next) => {
+  try {
+    const { firstName, lastName, email, phone, message } = req.body;
+    if (!firstName || !email || !message) {
+      return sendError(res, 'First name, email, and message are required', 400);
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+
+    // 1. Dispatch notification & confirmation emails with Jodo branding & logo
+    try {
+      await emailService.sendContactFormEmails({
+        firstName: String(firstName).trim(),
+        lastName: String(lastName || '').trim(),
+        email: cleanEmail,
+        phone: phone ? String(phone).trim() : undefined,
+        message: String(message).trim(),
+      });
+    } catch (mailErr) {
+      console.error('[Storefront] Error sending contact form emails:', mailErr);
+    }
+
+    // 2. Persist inquiry as a Lead in database
+    try {
+      const store = await Store.findOne({}).lean();
+      if (store) {
+        await Lead.create({
+          tenantId: store.tenantId,
+          storeId: store._id,
+          name: `${firstName} ${lastName || ''}`.trim(),
+          email: cleanEmail,
+          phone: phone ? String(phone).trim() : undefined,
+          source: 'Website',
+          status: 'New',
+          notes: message,
+          interestLevel: 'High',
+          followUpPriority: 'High',
+        });
+      }
+    } catch (leadErr) {
+      console.warn('[Storefront] Could not save lead record:', leadErr);
+    }
+
+    sendSuccess(res, null, 'Your message has been sent successfully. We will get back to you shortly.');
   } catch (error) {
     next(error);
   }

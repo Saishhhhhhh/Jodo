@@ -1,4 +1,3 @@
-import { IUser } from '../models/User';
 import { LoginSchema } from '@jodo/shared';
 import { z } from 'zod';
 type LoginInput = z.infer<typeof LoginSchema>;
@@ -12,6 +11,7 @@ export interface LoginResult {
         memberId?: string;
         roles?: string[];
         avatarUrl?: string;
+        moduleAccess?: string[];
         tenantId: string;
         storeId: string;
     };
@@ -36,7 +36,11 @@ export declare class AuthService {
     /**
      * Get current user profile.
      */
-    getMe(userId: string): Promise<IUser | null>;
+    getMe(userId: string): Promise<any>;
+    /**
+     * Change user password.
+     */
+    changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void>;
 }
 export declare const authService: AuthService;
 export {};

@@ -25,6 +25,8 @@ export interface ICustomer extends Document {
     tags?: string[];
     passwordHash?: string;
     defaultShippingAddress?: ICustomerAddress;
+    isEmailVerified: boolean;
+    emailVerifiedAt?: Date | null;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(password: string): Promise<boolean>;

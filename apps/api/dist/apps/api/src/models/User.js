@@ -50,13 +50,16 @@ const UserSchema = new mongoose_1.Schema({
     avatarUrl: { type: String },
     status: {
         type: String,
-        enum: ['active', 'invited', 'suspended', 'deactivated'],
+        enum: ['active', 'invited', 'suspended', 'deactivated', 'inactive'],
         default: 'active',
     },
     roleIds: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Role' }],
     permissions: [{ type: String }],
+    moduleAccess: [{ type: String }],
     lastLoginAt: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: true },
+    emailVerifiedAt: { type: Date, default: Date.now },
     inviteToken: { type: String, select: false },
     inviteTokenExpiresAt: { type: Date, select: false },
 }, { timestamps: true });

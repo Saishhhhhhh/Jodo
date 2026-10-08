@@ -7,7 +7,7 @@ const BlogPost_1 = require("../models/BlogPost");
 const INITIAL_FAQS = [
     {
         "question": "What is tool-free flat-pack furniture? How is it different from the IKEA flat-pack I already know?",
-        "answer": "Regular flat-pack needs screws, Allen key, some basic tools and 60 minutes of DIY, loose hardware you can lose. JODO panels slide into a connector system entirely by hand — nothing to screw in, nothing to misplace — and disassembly is just as easy unlike conventional flat-pack",
+        "answer": "Regular flat-pack needs screws, Allen key, some basic tools and 60 minutes of DIY, loose hardware you can lose. JODO panels slide into a connector system entirely by hand : nothing to screw in, nothing to misplace : and disassembly is just as easy unlike conventional flat-pack",
         "category": "New to Tool-Free Furniture?",
         "order": 1,
         "status": "active"
@@ -28,13 +28,13 @@ const INITIAL_FAQS = [
     },
     {
         "question": "Can I see or try the product before I buy, since I can't quite picture how 'tool-free' works?",
-        "answer": "We currently sell JODO products only via our e-commerce website – www.jodoshop.com. We are in the process of getting ourselves into retail stores by 2027 first quarter",
+        "answer": "We currently sell JODO products only via our e-commerce website - www.jodoshop.com. We are in the process of getting ourselves into retail stores by 2027 first quarter",
         "category": "New to Tool-Free Furniture?",
         "order": 4,
         "status": "active"
     },
     {
-        "question": "Is tool free joinery as safe as screwed-together furniture — could it loosen or come apart on its own?",
+        "question": "Is tool free joinery as safe as screwed-together furniture ? Could it loosen or come apart on its own?",
         "answer": "The connectors are engineered to slide and lock into place, not just hold by friction, so normal use and moderate load don't make them loose or cause them to come apart. Load-bearing, drop tests, multiple disassembly-assembly cycles, quality performances are tested to BIS structural safety standards",
         "category": "New to Tool-Free Furniture?",
         "order": 5,
@@ -42,7 +42,7 @@ const INITIAL_FAQS = [
     },
     {
         "question": "Does tool-free mean toy-like, shabby looking pieces compared to traditional screwed-on carpentry furniture?",
-        "answer": "No — the connector sits within the panel instead of a visible add-on fitting, so finished pieces look like standard furniture. Once assembled, a JODO piece looks and functions like any other regular furniture",
+        "answer": "No : the connector sits within the panel instead of a visible add-on fitting, so finished pieces look like standard furniture. Once assembled, a JODO piece looks and functions like any other regular furniture",
         "category": "New to Tool-Free Furniture?",
         "order": 6,
         "status": "active"
@@ -55,7 +55,7 @@ const INITIAL_FAQS = [
         "status": "active"
     },
     {
-        "question": "What if I assemble it and don't like it — can I return it?",
+        "question": "What if I assemble it and don't like it ? Can I return it?",
         "answer": "Return and trial period window is mentioned in our Returns and Warranty guidelines",
         "category": "New to Tool-Free Furniture?",
         "order": 8,
@@ -63,7 +63,7 @@ const INITIAL_FAQS = [
     },
     {
         "question": "Can I really ditch the tool box to assemble this?",
-        "answer": "Yes. Every JODO piece uses our proprietary connector system — no screwdriver, no Allen key, no drilling into walls or floors. Most pieces slide together by hand in under 30 minutes approximately",
+        "answer": "Yes. Every JODO piece uses our proprietary connector system : no screwdriver, no Allen key, no drilling into walls or floors. Most pieces slide together by hand in under 30 minutes approximately",
         "category": "Assembly & Ease of Use",
         "order": 9,
         "status": "active"
@@ -90,7 +90,7 @@ const INITIAL_FAQS = [
         "status": "active"
     },
     {
-        "question": "I move apartments often — will this survive multiple moves?",
+        "question": "I move apartments often . Will this survive multiple moves?",
         "answer": "Our core design foundation is to make JODO for people on the go. Furniture disassembles back into flat-pack form just as easily as it assembles, so you can take it apart, move it, and reassemble it without damage and carpenter intervention.",
         "category": "Moving & Renting",
         "order": 13,
@@ -126,7 +126,7 @@ const INITIAL_FAQS = [
     },
     {
         "question": "Will it hold up in Indian weather and humidity?",
-        "answer": "Yes. Materials are selected and climate-tested specifically for Indian conditions — humidity and heat cycles — not adapted from a foreign spec sheet. We use solid wood and plywood in premium laminate finish and high density foam for our upholstered SKUs",
+        "answer": "Yes. Materials are selected and climate-tested specifically for Indian conditions : humidity and heat cycles : not adapted from a foreign spec sheet. We use solid wood and plywood in premium laminate finish and high density foam for our upholstered SKUs",
         "category": "Quality & Durability",
         "order": 18,
         "status": "active"
@@ -147,27 +147,27 @@ const INITIAL_FAQS = [
     },
     {
         "question": "Is JODO furniture made in India?",
-        "answer": "Yes — JODO is designed and manufactured in India, built around Indian homes, climate, and usage rather than adapted from a foreign product line",
+        "answer": "Yes : JODO is designed and manufactured in India, built around Indian homes, climate, and usage rather than adapted from a foreign product line",
         "category": "Materials & Origin",
         "order": 21,
         "status": "active"
     },
     {
         "question": "How do I care for JODO furniture, especially in India's climate?",
-        "answer": "Wipe with a soft, lightly damp cloth and dry after — avoid abrasive cleaners, harsh chemicals, and standing water. Keep pieces out of prolonged direct sunlight to prevent discolouration, and away from continuous high humidity or constant dampness where possible. Materials are chosen with Indian conditions in mind, normal care still extends the life of any furniture",
+        "answer": "Wipe with a soft, lightly damp cloth and dry after : avoid abrasive cleaners, harsh chemicals, and standing water. Keep pieces out of prolonged direct sunlight to prevent discolouration, and away from continuous high humidity or constant dampness where possible. Materials are chosen with Indian conditions in mind, normal care still extends the life of any furniture",
         "category": "Care & Maintenance",
         "order": 22,
         "status": "active"
     },
     {
-        "question": "How is it delivered — do I need to arrange movers or a carpenter?",
-        "answer": "It arrives flat-packed at your door, and you assemble it yourself, by hand — no carpenter or installer needed by default. If you'd rather have help anyway, optional Assisted Setup is available as a paid add-on.",
+        "question": "How is it delivered ? Do I need to arrange movers or a carpenter?",
+        "answer": "It arrives flat-packed at your door, and you assemble it yourself, by hand : no carpenter or installer needed by default. If you'd rather have help anyway, optional Assisted Setup is available as a paid add-on.",
         "category": "Delivery & Logistics",
         "order": 23,
         "status": "active"
     },
     {
-        "question": "I'd rather not assemble it myself — can I pay someone to do it for me?",
+        "question": "I'd rather not assemble it myself : can I pay someone to do it for me?",
         "answer": "All JODO pieces can be self assembled but if you’d rather have help, optional Assisted Setup is available as a paid add-on. Technicians are trained specifically to work with our connector systems so the piece is assembled the same way you would do it yourself",
         "category": "Delivery & Logistics",
         "order": 24,
@@ -217,7 +217,7 @@ const INITIAL_FAQS = [
     },
     {
         "question": "What if a part is missing, or a connector breaks later on?",
-        "answer": "Because the connector system is modular, replacement connectors and panels can be ordered individually from JODO's website (share link) — you don't need to wait on a warranty claim or replace the whole piece",
+        "answer": "Because the connector system is modular, replacement connectors and panels can be ordered individually from JODO's website (share link) : you don't need to wait on a warranty claim or replace the whole piece",
         "category": "Returns & Warranty",
         "order": 31,
         "status": "active"
@@ -248,7 +248,7 @@ const INITIAL_BLOGS = [
 Mass-produced furniture relies heavily on compressed particle boards, toxic adhesives, and plastic veneers that begin to degrade within months. Beyond the environmental strain of landfill-bound goods, such pieces lack the tactile warmth and emotional permanence that a well-crafted home deserves.
 
 ### The Philosophy of Slow Making
-Slow furniture begins with intentional material selection. We source our European White Oak and Teak from responsibly managed forests, allowing the wood to properly kiln-dry and acclimate before shaping. Traditional joinery—like mortise-and-tenon and dovetail joints—allows timber to expand and contract naturally through changing climates without losing structural rigidity.
+Slow furniture begins with intentional material selection. We source our European White Oak and Teak from responsibly managed forests, allowing the wood to properly kiln-dry and acclimate before shaping. Traditional joinery:like mortise-and-tenon and dovetail joints:allows timber to expand and contract naturally through changing climates without losing structural rigidity.
 
 ### Aging with Dignity
 Unlike synthetic laminates that chip irreversibly, solid hardwoods develop a rich patina over the years. A ding or scratch isn't a flaw; it becomes part of the family narrative, easily refinished with a swipe of beeswax. Investing in slow furniture is an investment in peace of mind.`,
@@ -272,7 +272,7 @@ Unlike synthetic laminates that chip irreversibly, solid hardwoods develop a ric
 Start with gentle neutral backdrops: warm off-whites, limestone taupe, and soft sand. Layer in accents of raw terracotta and brass hardware to mirror Indian architectural heritage while keeping the visual silhouette clean and uncluttered.
 
 ### Embracing Natural Imperfection
-Incorporate furniture pieces that celebrate raw grain patterns and hand-loomed linens. Instead of cluttered shelving, curate single focal objects—a hand-turned wooden vase or a sculpted stoneware lamp—that allow negative space to breathe.`,
+Incorporate furniture pieces that celebrate raw grain patterns and hand-loomed linens. Instead of cluttered shelving, curate single focal objects:a hand-turned wooden vase or a sculpted stoneware lamp:that allow negative space to breathe.`,
         category: 'Design & Interiors',
         author: 'Sunaina Rao',
         authorRole: 'Interior Stylist',
@@ -332,7 +332,7 @@ Resist the urge to push every seating piece flush against the wall. Floating a s
         content: `One of the most persistent anxieties when purchasing furniture online is spatial uncertainty: "Will this dining table overpower my nook?" or "Will this armchair block the balcony entrance?"
 
 ### 100% True-to-Scale Projection
-Jodo's WebAR engine uses your mobile camera and lidar/depth sensors to measure real floor planes. The 3D model appears in true dimensions—accurate down to millimeters—so you can physically walk around it, check clearance around corners, and ensure natural light isn't obstructed.`,
+Jodo's WebAR engine uses your mobile camera and lidar/depth sensors to measure real floor planes. The 3D model appears in true dimensions:accurate down to millimeters:so you can physically walk around it, check clearance around corners, and ensure natural light isn't obstructed.`,
         category: 'Design & Interiors',
         author: 'Sunaina Rao',
         authorRole: 'Interior Stylist',

@@ -39,6 +39,36 @@ export default function ProfileSettingsPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpCooldown]);
+
+  const handleSendOtp = async () => {
+    if (otpCooldown > 0 || otpSending) return;
+    setOtpSending(true);
+    setPasswordError('');
+    try {
+      await authApi.sendChangePasswordOtp();
+      setOtpSent(true);
+      setOtpCooldown(60);
+      toast.success('Verification code sent to your registered email');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Failed to send verification code';
+      setPasswordError(msg);
+      toast.error(msg);
+    } finally {
+      setOtpSending(false);
+    }
+  };
 
   const changePasswordMutation = useMutation({
     mutationFn: async () => {
@@ -51,7 +81,10 @@ export default function ProfileSettingsPage() {
       if (newPassword !== confirmPassword) {
         throw new Error('New passwords do not match');
       }
-      return authApi.changePassword({ currentPassword, newPassword });
+      if (user?.email && !otp) {
+        throw new Error('Please click "Send Code" and enter the 6-digit verification code sent to your email');
+      }
+      return authApi.changePassword({ currentPassword, newPassword, otp: otp || undefined });
     },
     onSuccess: () => {
       toast.success('Password changed successfully');
@@ -59,6 +92,8 @@ export default function ProfileSettingsPage() {
       setNewPassword('');
       setConfirmPassword('');
       setPasswordError('');
+      setOtp('');
+      setOtpSent(false);
     },
     onError: (err: any) => {
       const msg = err.response?.data?.message || err.message || 'Failed to change password';
@@ -376,10 +411,60 @@ export default function ProfileSettingsPage() {
                   </div>
                 </div>
 
+                {/* Email Verification OTP */}
+                {user?.email && (
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="adminPasswordOtp" className="flex items-center gap-1.5 font-medium">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        Email Verification Code
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={otpSending || otpCooldown > 0}
+                        onClick={handleSendOtp}
+                        className="text-xs h-8"
+                      >
+                        {otpSending ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Sending...
+                          </>
+                        ) : otpCooldown > 0 ? (
+                          `Resend code in ${otpCooldown}s`
+                        ) : otpSent ? (
+                          'Resend Code'
+                        ) : (
+                          'Send Code to Email'
+                        )}
+                      </Button>
+                    </div>
+                    <Input
+                      id="adminPasswordOtp"
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter 6-digit code"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="font-mono tracking-widest text-center text-lg"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {otpSent ? (
+                        <span className="text-emerald-500 font-medium">A 6-digit code was sent to {user.email}. Code expires in 10 minutes.</span>
+                      ) : (
+                        `Click "Send Code to Email" to receive a 6-digit OTP at ${user.email}.`
+                      )}
+                    </p>
+                  </div>
+                )}
+
                 <div className="pt-3 flex justify-end">
                   <Button
                     type="submit"
-                    disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
+                    disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword || Boolean(user?.email && otp.length !== 6)}
                     className="gap-2"
                   >
                     {changePasswordMutation.isPending ? (
