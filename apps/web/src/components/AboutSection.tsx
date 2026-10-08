@@ -23,7 +23,7 @@ export default function AboutSection() {
 
           {/* Main Headline */}
           <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-8 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
-            Furniture that feels different from the moment you <span className="text-terracotta italic font-serif font-light">open the box.</span>
+            Furniture that feels different from the moment you <span className="text-terracotta italic font-light" style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}>open the box.</span>
           </h2>
           
           <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-5 md:mb-10 max-w-[500px]">

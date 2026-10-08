@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { DM_Sans, Syne } from 'next/font/google';
+import { DM_Sans, Syne, Plus_Jakarta_Sans } from 'next/font/google';
 import "./globals.css";
 import StoreLayoutWrapper from "@/components/StoreLayoutWrapper";
 
 const dmSans = DM_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-dm-sans' });
 const syne = Syne({ subsets: ['latin'], display: 'swap', variable: '--font-syne' });
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-plus-jakarta-sans' });
 
 export const metadata: Metadata = {
   title: "Jodo Home | Crafting Comfort, Shaping Style",
@@ -24,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className={`w-full relative pb-16 md:pb-0 ${dmSans.variable} ${syne.variable} font-sans`} style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
+      <body className={`w-full relative pb-16 md:pb-0 ${dmSans.variable} ${syne.variable} ${plusJakartaSans.variable} font-sans`} style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
         <Script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"

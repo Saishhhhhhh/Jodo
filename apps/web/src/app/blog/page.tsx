@@ -181,7 +181,7 @@ export default function BlogPage() {
 
           <h1 className="font-heading text-[#1C1A17] font-bold text-3xl sm:text-5xl lg:text-[56px] tracking-tight leading-[1.12] mb-4">
             Furniture, rituals &amp;{' '}
-            <span className="text-terracotta italic font-serif font-light">
+            <span className="text-terracotta italic font-light" style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}>
               the joy of home.
             </span>
           </h1>

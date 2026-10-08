@@ -19,8 +19,9 @@
   --color-wood-teak: #8B4A2F;
 
   --font-syne: 'Syne', sans-serif;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-serif: var(--font-dm-sans), 'DM Sans', sans-serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-menu: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Space Grotesk', monospace;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

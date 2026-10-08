@@ -61,8 +61,8 @@ export default function MobileMenuOverlay({ isOpen, onClose, menuItems }: Mobile
                       className="flex items-center justify-between py-2.5 group"
                     >
                       <span 
-                        className="font-sans text-[16px] font-medium text-gray-900 group-hover:text-terracotta transition-colors"
-                        style={{ fontFamily: "'DM Sans', var(--font-dm-sans), sans-serif" }}
+                        className="font-menu text-[16px] font-semibold text-gray-900 group-hover:text-terracotta transition-colors"
+                        style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}
                       >
                         {item.label}
                       </span>

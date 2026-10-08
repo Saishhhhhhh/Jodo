@@ -61,7 +61,7 @@ export default function PuzzleSection() {
           className="absolute z-0 flex flex-col items-center text-center px-4"
         >
           <h2 className="text-3xl md:text-6xl font-bold text-[#1C1A17] mb-4 md:mb-6 tracking-tight max-w-[850px]">
-            Furniture that comes <span className="text-terracotta italic font-serif font-light">together</span> just like the people around it.
+            Furniture that comes <span className="text-terracotta italic font-light" style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}>together</span> just like the people around it.
           </h2>
           <p className="text-gray-600 text-base md:text-xl max-w-[550px]">
             Keep scrolling to see how JODO clicks into place. Scroll for some JODO fun

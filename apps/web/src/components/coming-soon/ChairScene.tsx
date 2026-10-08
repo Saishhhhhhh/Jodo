@@ -902,7 +902,7 @@ export const ChairScene: React.FC = () => {
               <span>The Joy of</span>
               <span
                 style={{
-                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
                   fontStyle: 'italic',
                   fontWeight: 600,
                   color: '#C65F45',
