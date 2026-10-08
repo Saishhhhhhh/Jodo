@@ -21,8 +21,8 @@ const config: Config = {
         cream: "#FAF6F1",
       },
       fontFamily: {
-        sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
-        heading: ["var(--font-syne)", "system-ui", "sans-serif"],
+        sans: ["var(--font-dm-sans)", "'DM Sans'", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
+        heading: ["var(--font-syne)", "'Syne'", "system-ui", "sans-serif"],
         serif: ["'Cormorant Garamond'", "Georgia", "serif"],
         mono: ["'Space Grotesk'", "monospace"],
       },

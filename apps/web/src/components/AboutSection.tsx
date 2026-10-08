@@ -22,15 +22,12 @@ export default function AboutSection() {
           </div>
 
           {/* Main Headline */}
-          <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-6 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
+          <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-8 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
             Furniture that feels different from the moment you <span className="text-terracotta italic font-serif font-light">open the box.</span>
-            <span className="block mt-2 md:mt-3 text-lg md:text-2xl text-gray-700 font-normal leading-snug">
-              JODO means join, coming together of pieces, homes and lives
-            </span>
           </h2>
           
-          <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-5 md:mb-10 max-w-[580px]">
-            In India, furniture has traditionally come with a carpenter or more recently with a long manual of never ending instructions, 11pm YouTube tutorials and some missing screws or tools! We at JODO said “Screw you” quite literally and engineered custom connectors to make furniture that slides together just as easily as it comes apart. Pack it, move it, rebuild it, repeat! The carpenter can enjoy a little tea break here because our pieces assemble in minutes. We have designed it and built it for Indians, Indian homes and the Indian way of living.
+          <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-5 md:mb-10 max-w-[500px]">
+            In India, furniture has always come with a carpenter. JODO changes that. Our pieces click together without tools — like a puzzle you solve with someone you love. No waiting. No stress. Just the quiet satisfaction of making something yours, together.
           </p>
 
           <div className="flex flex-row items-center gap-2 md:gap-6 w-full sm:w-auto">
@@ -52,7 +49,7 @@ export default function AboutSection() {
               className="group relative inline-flex items-center gap-2 md:gap-4 bg-transparent border-2 border-[#1C1A17] text-[#1C1A17] overflow-hidden rounded-full px-3 py-2.5 md:px-8 md:py-4 transition-transform hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 justify-center flex-1 sm:flex-none whitespace-nowrap"
             >
               <div className="absolute inset-0 bg-[#1C1A17] translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-              <span className="relative z-10 font-semibold text-[12px] md:text-[15px] group-hover:text-white transition-colors duration-500">Shop JODO →</span>
+              <span className="relative z-10 font-semibold text-[12px] md:text-[15px] group-hover:text-white transition-colors duration-500">Shop JODO</span>
             </Link>
           </div>
         </div>

@@ -10,7 +10,7 @@ const HERO_SLIDES = [
     image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=2000&q=85",
     tagline: "The Joy of Together",
     heading: "Furniture That Brings You Closer",
-    subtext: "No tools. No confusion. Just you, your people, and furniture that slides into place like a good moment.",
+    subtext: "No tools. No waiting. No confusion. Just you, your people, and furniture that clicks into place — the way a good moment does.",
     buttonText: "Discover Now",
     buttonUrl: "/shop"
   },
@@ -18,7 +18,7 @@ const HERO_SLIDES = [
     image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85",
     tagline: "A New Way to Experience Furniture",
     heading: "Put It Together. Make It Yours.",
-    subtext: "JODO furniture assembles like a jigsaw puzzle: less fuss, more fun. Enjoy the quiet satisfaction of building with your hands.",
+    subtext: "JODO furniture assembles like a jigsaw puzzle — no screws, no carpenter, no stress. Just the quiet satisfaction of building something together.",
     buttonText: "Discover Now",
     buttonUrl: "/shop"
   },
@@ -26,7 +26,7 @@ const HERO_SLIDES = [
     image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85",
     tagline: "Built Different. Felt Together.",
     heading: "Convenience Without Compromise",
-    subtext: "Great design, serious quality. JODO builds pieces to deliver, endure and last without compromise",
+    subtext: "Flat-packed. Tool-free. Made in-house with premium plywood. JODO delivers furniture that is ready when you are — and stays ready for life.",
     buttonText: "Discover Now",
     buttonUrl: "/shop"
   }
@@ -195,7 +195,9 @@ export default function HeroSection() {
                   What Is JODO? A New Kind of Furniture Experience
                 </h3>
                 <p className="text-gray-500 text-[14px] leading-relaxed line-clamp-3 mb-5">
-                  Assembles in minutes, comes apart just as easily when you move again and again and again
+                  No carpenter required. No confusing manuals. JODO furniture
+                  clicks together like a puzzle — designed for the moments
+                  you build together, not just the rooms you live in.
                 </p>
               </div>
               <Link
