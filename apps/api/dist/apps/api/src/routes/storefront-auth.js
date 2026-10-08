@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const Customer_1 = require("../models/Customer");
-const User_1 = require("../models/User");
 const Store_1 = require("../models/Store");
 const Order_1 = require("../models/Order");
 const Return_1 = require("../models/Return");
@@ -53,10 +52,7 @@ router.post('/register', async (req, res, next) => {
         if (existingCustomer) {
             return (0, response_1.sendError)(res, 'An account with this email already exists', 400);
         }
-        // Check if email belongs to a team member or staff
-        const isTeamMemberOrStaff = await User_1.User.findOne({ email: cleanEmail });
-        const isExempt = Boolean(isTeamMemberOrStaff);
-        // Create customer account (team members & staff are auto-verified)
+        // Create customer account (all customers must verify their email address)
         const customer = new Customer_1.Customer({
             tenantId: store.tenantId,
             storeId: store._id,
@@ -64,28 +60,47 @@ router.post('/register', async (req, res, next) => {
             lastName: lastName.trim(),
             email: cleanEmail,
             passwordHash: password, // The pre-save hook will hash this
-            isEmailVerified: isExempt,
-            emailVerifiedAt: isExempt ? new Date() : null,
+            isEmailVerified: false,
+            emailVerifiedAt: null,
         });
         await customer.save();
-        // If user is a team member or staff, log them in directly without OTP
-        if (isExempt) {
-            const token = generateCustomerToken(customer);
-            customer.passwordHash = undefined;
-            return (0, response_1.sendSuccess)(res, { token, customer }, 'Registration successful');
+        // Invalidate old OTPs for this email if any
+        await EmailVerification_1.EmailVerification.deleteMany({ email: cleanEmail });
+        // Generate fresh 6-digit OTP
+        const otp = (0, crypto_1.generateOtp)();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        await EmailVerification_1.EmailVerification.create({
+            customerId: customer._id,
+            email: cleanEmail,
+            otpHash: (0, crypto_1.hashOtp)(otp),
+            expiresAt,
+            attemptCount: 0,
+            lastSentAt: new Date(),
+            resendCount: 0,
+        });
+        try {
+            await emailService_1.emailService.sendVerificationOtp({
+                email: cleanEmail,
+                otp,
+                customerName: customer.firstName,
+                tenantId: customer.tenantId,
+            });
         }
-        // Customer account created without immediate OTP verification
-        // Verification will be required when customer logs in with their credentials
+        catch (mailErr) {
+            console.error('[StorefrontAuth] Failed to dispatch verification email on registration:', mailErr);
+        }
         customer.passwordHash = undefined;
         (0, response_1.sendSuccess)(res, {
-            requiresVerification: false,
+            requiresVerification: true,
+            email: customer.email,
+            maskedEmail: (0, crypto_1.maskEmail)(customer.email),
             customer: {
                 id: customer._id,
                 firstName: customer.firstName,
                 lastName: customer.lastName,
                 email: customer.email,
             },
-        }, 'Account created successfully. Please sign in with your credentials.');
+        }, 'Account created successfully. A verification code has been sent to your email.');
     }
     catch (error) {
         next(error);
@@ -117,16 +132,8 @@ router.post('/login', async (req, res, next) => {
         if (!isMatch) {
             return (0, response_1.sendError)(res, 'Invalid email or password', 401);
         }
-        // Team members & staff created by admins are exempt from email verification
-        const isTeamMemberOrStaff = await User_1.User.findOne({ email: cleanEmail });
-        if (isTeamMemberOrStaff) {
-            if (!customer.isEmailVerified) {
-                customer.isEmailVerified = true;
-                customer.emailVerifiedAt = new Date();
-                await customer.save();
-            }
-        }
-        else if (!customer.isEmailVerified) {
+        // Check email verification gate
+        if (!customer.isEmailVerified) {
             // Invalidate old OTPs and send a fresh verification OTP
             await EmailVerification_1.EmailVerification.deleteMany({ email: cleanEmail });
             const otp = (0, crypto_1.generateOtp)();
