@@ -32,8 +32,8 @@ function VerifyEmailContent() {
   const [successMessage, setSuccessMessage] = useState('');
   const [isVerified, setIsVerified] = useState(false);
 
-  // 60-second resend cooldown timer
-  const [resendCooldown, setResendCooldown] = useState(60);
+  // 30-second resend cooldown timer
+  const [resendCooldown, setResendCooldown] = useState(30);
   const [isResending, setIsResending] = useState(false);
 
   // Resolve email on load
@@ -203,7 +203,7 @@ function VerifyEmailContent() {
       const data = await res.json();
 
       if (data.success) {
-        setResendCooldown(60);
+        setResendCooldown(30);
         setSuccessMessage('A fresh verification code has been dispatched to your email.');
         // Clear entered digits and focus first
         setOtpDigits(['', '', '', '', '', '']);

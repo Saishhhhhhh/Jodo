@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
       if (data.success) {
         setMaskedEmail(data.data?.maskedEmail || email);
         setStep('reset');
-        setResendCooldown(60);
+        setResendCooldown(30);
         setTimeout(() => {
           inputRefs.current[0]?.focus();
         }, 150);
@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
 
       const data = await res.json();
       if (data.success) {
-        setResendCooldown(60);
+        setResendCooldown(30);
         setSuccessMessage('A fresh verification code has been dispatched to your email.');
         setOtpDigits(['', '', '', '', '', '']);
         setTimeout(() => inputRefs.current[0]?.focus(), 100);

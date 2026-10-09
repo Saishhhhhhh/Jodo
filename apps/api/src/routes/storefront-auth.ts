@@ -321,8 +321,8 @@ async function handleResendOtp(req: any, res: any, next: any) {
       const lastSent = new Date(existing.lastSentAt).getTime();
       const diffSeconds = Math.floor((now - lastSent) / 1000);
 
-      if (diffSeconds < 60) {
-        const wait = 60 - diffSeconds;
+      if (diffSeconds < 30) {
+        const wait = 30 - diffSeconds;
         return sendError(res, `Please wait ${wait} second${wait === 1 ? '' : 's'} before requesting a new code.`, 429);
       }
 
@@ -459,13 +459,7 @@ router.post('/forgot-password', async (req, res, next) => {
       return sendError(res, 'No account found with this email address.', 404);
     }
 
-    // Rate limit check: 60s cooldown
     const existing = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
-    if (existing && Date.now() - new Date(existing.lastSentAt).getTime() < 60 * 1000) {
-      const waitSeconds = Math.ceil((60 * 1000 - (Date.now() - new Date(existing.lastSentAt).getTime())) / 1000);
-      return sendError(res, `Please wait ${waitSeconds} seconds before requesting a new code.`, 429);
-    }
-
     // Invalidate stale records
     await EmailVerification.deleteMany({ email: cleanEmail });
 
@@ -610,11 +604,6 @@ router.post('/me/send-password-otp', async (req, res, next) => {
 
     const cleanEmail = customer.email;
     const existing = await EmailVerification.findOne({ email: cleanEmail }).sort({ createdAt: -1 });
-    if (existing && Date.now() - new Date(existing.lastSentAt).getTime() < 60 * 1000) {
-      const waitSeconds = Math.ceil((60 * 1000 - (Date.now() - new Date(existing.lastSentAt).getTime())) / 1000);
-      return sendError(res, `Please wait ${waitSeconds} seconds before requesting another code.`, 429);
-    }
-
     await EmailVerification.deleteMany({ email: cleanEmail });
 
     const otp = generateOtp();
