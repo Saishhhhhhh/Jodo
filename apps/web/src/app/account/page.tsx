@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCustomerStore } from '../../store/useCustomerStore';
-import { Eye, EyeOff, ShieldCheck, Loader2, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
 
 export default function AccountProfilePage() {
-  const { customer, token, setCustomer } = useCustomerStore();
+  const { customer, token, setCustomer, logout } = useCustomerStore();
+  const router = useRouter();
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -17,7 +19,6 @@ export default function AccountProfilePage() {
   const [profileMessage, setProfileMessage] = useState('');
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [isForgotMode, setIsForgotMode] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -33,30 +34,47 @@ export default function AccountProfilePage() {
 
   const handleSendPasswordOtp = async () => {
     if (!customer?.email || otpSending) return;
-    setOtpSending(true);
     setPasswordMessage({ type: '', text: '' });
+
+    // Validate password before sending verification code
+    if (!passwordForm.currentPassword) {
+      return setPasswordMessage({
+        type: 'error',
+        text: 'Please enter your current password before requesting a verification code.',
+      });
+    }
+
+    if (!passwordForm.newPassword) {
+      return setPasswordMessage({
+        type: 'error',
+        text: 'Please enter your new password before requesting a verification code.',
+      });
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      return setPasswordMessage({
+        type: 'error',
+        text: 'New password must be at least 6 characters before requesting a verification code.',
+      });
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      return setPasswordMessage({
+        type: 'error',
+        text: 'New passwords do not match. Please confirm your password before requesting a code.',
+      });
+    }
+
+    setOtpSending(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      let res: Response;
-      if (isForgotMode) {
-        // Send OTP using forgot-password endpoint (requires only email)
-        res = await fetch(`${apiUrl}/api/storefront/auth/forgot-password`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: customer.email }),
-        });
-      } else {
-        // Authenticated customer password change OTP
-        res = await fetch(`${apiUrl}/api/storefront/auth/me/send-password-otp`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
+      const res = await fetch(`${apiUrl}/api/storefront/auth/me/send-password-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       if (data.success) {
         setOtpSent(true);
@@ -105,7 +123,7 @@ export default function AccountProfilePage() {
 
   const handlePasswordSave = async () => {
     setPasswordMessage({ type: '', text: '' });
-    if (!isForgotMode && !passwordForm.currentPassword) {
+    if (!passwordForm.currentPassword) {
       return setPasswordMessage({ type: 'error', text: 'Please enter your current password.' });
     }
     if (passwordForm.newPassword.length < 6) {
@@ -121,50 +139,36 @@ export default function AccountProfilePage() {
     setPasswordLoading(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      let res: Response;
-
-      if (isForgotMode) {
-        // Reset password via OTP (does not require current password)
-        res = await fetch(`${apiUrl}/api/storefront/auth/reset-password`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: customer.email,
-            otp: passwordOtp.trim(),
-            newPassword: passwordForm.newPassword,
-          }),
-        });
-      } else {
-        // Change password using current password + OTP
-        res = await fetch(`${apiUrl}/api/storefront/auth/me/password`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            currentPassword: passwordForm.currentPassword,
-            newPassword: passwordForm.newPassword,
-            otp: passwordOtp.trim(),
-          }),
-        });
-      }
+      const res = await fetch(`${apiUrl}/api/storefront/auth/me/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+          otp: passwordOtp.trim(),
+        }),
+      });
 
       const data = await res.json();
       if (data.success) {
+        const userEmail = customer.email;
         setPasswordMessage({
           type: 'success',
-          text: isForgotMode
-            ? 'Password reset successfully! Your new password is now active.'
-            : 'Password changed successfully.',
+          text: 'Password changed successfully! Signing you out to sign in again...',
         });
         setIsChangingPassword(false);
-        setIsForgotMode(false);
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         setPasswordOtp('');
         setOtpSent(false);
+
+        // Sign out user and redirect to login page so they must sign in with their new password
+        setTimeout(() => {
+          logout();
+          router.push(`/login?email=${encodeURIComponent(userEmail)}&reset=success`);
+        }, 1200);
       } else {
         setPasswordMessage({ type: 'error', text: data.message || 'Failed to update password.' });
       }
@@ -291,7 +295,7 @@ export default function AccountProfilePage() {
               <h3 className="font-semibold text-gray-900">Security</h3>
               {isChangingPassword && (
                 <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#B65A45]/10 text-[#B65A45]">
-                  {isForgotMode ? 'Reset via Email OTP' : 'Change Password'}
+                  Change Password
                 </span>
               )}
             </div>
@@ -312,7 +316,6 @@ export default function AccountProfilePage() {
                   <button 
                     onClick={() => {
                       setIsChangingPassword(true);
-                      setIsForgotMode(false);
                       setPasswordMessage({ type: '', text: '' });
                     }}
                     className="text-[#B65A45] text-sm font-semibold hover:underline"
@@ -323,51 +326,25 @@ export default function AccountProfilePage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {isForgotMode ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
-                    <KeyRound className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                    <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">Forgot your current password?</p>
-                      <p className="text-gray-600">
-                        Reset your password directly using the 6-digit verification code sent to <strong className="text-gray-900">{customer.email}</strong>. No current password required.
-                      </p>
-                    </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                  <div className="relative">
+                    <input 
+                      type={showCurrentPassword ? 'text' : 'password'} 
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      placeholder="Enter current password"
+                      className="w-full px-3 py-2 pr-10 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B65A45]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
-                ) : (
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm font-medium text-gray-700">Current Password</label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsForgotMode(true);
-                          setPasswordMessage({ type: '', text: '' });
-                          setPasswordOtp('');
-                          setOtpSent(false);
-                        }}
-                        className="text-xs font-semibold text-[#B65A45] hover:underline"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <input 
-                        type={showCurrentPassword ? 'text' : 'password'} 
-                        value={passwordForm.currentPassword}
-                        onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                        placeholder="Enter current password"
-                        className="w-full px-3 py-2 pr-10 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B65A45]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
-                      >
-                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
@@ -441,7 +418,7 @@ export default function AccountProfilePage() {
                         ✓ 6-digit verification code sent to {customer.email}. Valid for 10 minutes.
                       </span>
                     ) : (
-                      <span>Click &quot;Send Code to Email&quot; to receive an OTP at {customer.email}. Valid for 10 minutes.</span>
+                      <span>Enter your password details above, then click &quot;Send Code to Email&quot;.</span>
                     )}
                   </p>
                 </div>
@@ -449,18 +426,15 @@ export default function AccountProfilePage() {
                 <div className="flex items-center gap-3 pt-2">
                   <button 
                     onClick={handlePasswordSave}
-                    disabled={passwordLoading || (!isForgotMode && !passwordForm.currentPassword) || !passwordForm.newPassword || !passwordForm.confirmPassword || passwordOtp.length !== 6}
+                    disabled={passwordLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword || passwordOtp.length !== 6}
                     className="px-4 py-2 bg-[#B65A45] text-white text-sm font-bold rounded-lg hover:bg-[#a04e3b] transition-colors disabled:opacity-50 inline-flex items-center gap-2"
                   >
                     {passwordLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {passwordLoading 
-                      ? (isForgotMode ? 'Resetting...' : 'Updating...') 
-                      : (isForgotMode ? 'Reset Password' : 'Update Password')}
+                    {passwordLoading ? 'Updating...' : 'Update Password'}
                   </button>
                   <button 
                     onClick={() => {
                       setIsChangingPassword(false);
-                      setIsForgotMode(false);
                       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
                       setPasswordOtp('');
                       setPasswordMessage({ type: '', text: '' });

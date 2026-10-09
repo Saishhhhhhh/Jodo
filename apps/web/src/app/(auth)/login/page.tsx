@@ -1,12 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomerStore } from '../../../store/useCustomerStore';
-import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const resetSuccess = searchParams.get('reset') === 'success';
+  const emailParam = searchParams.get('email');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -14,7 +19,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   const setCustomer = useCustomerStore((state) => state.setCustomer);
-  const router = useRouter();
+
+  useEffect(() => {
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, [emailParam]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +66,16 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
         <p className="text-gray-500 text-sm mb-8">Sign in to your Jodo account to access your orders, saved items, and more.</p>
+
+        {resetSuccess && (
+          <div className="bg-emerald-50 text-emerald-800 text-sm p-3.5 rounded-lg mb-6 border border-emerald-200 flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-emerald-900">Password updated successfully!</p>
+              <p className="text-xs text-emerald-700 mt-0.5">Please sign in with your new password.</p>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-6 border border-red-100">
@@ -118,5 +138,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#B65A45] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
