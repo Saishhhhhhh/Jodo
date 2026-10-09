@@ -62,6 +62,13 @@ export class AuthService {
       throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
     }
 
+    // Team members and staff never undergo email verification
+    if (!user.isEmailVerified) {
+      user.isEmailVerified = true;
+      user.emailVerifiedAt = new Date();
+      await user.save();
+    }
+
     // Generate token family for rotation tracking
     const family = generateTokenFamily();
 
@@ -206,6 +213,28 @@ export class AuthService {
       roles: ((user.roleIds as any[]) || []).map((r: any) => typeof r === 'string' ? r : r.name),
       moduleAccess: (user as any).moduleAccess || ['tasks'],
     };
+  }
+
+  /**
+   * Change user password.
+   */
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await User.findById(userId).select('+passwordHash');
+    if (!user) {
+      throw Object.assign(new Error('User not found'), { statusCode: 404 });
+    }
+
+    const isValid = await user.comparePassword(currentPassword);
+    if (!isValid) {
+      throw Object.assign(new Error('Current password is incorrect'), { statusCode: 400 });
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      throw Object.assign(new Error('New password must be at least 6 characters long'), { statusCode: 400 });
+    }
+
+    user.passwordHash = newPassword;
+    await user.save();
   }
 }
 

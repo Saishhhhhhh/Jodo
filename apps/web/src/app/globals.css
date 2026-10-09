@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
 
 :root {
   --color-terracotta: #C65F45;
@@ -19,8 +19,9 @@
   --color-wood-teak: #8B4A2F;
 
   --font-syne: 'Syne', sans-serif;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-serif: var(--font-dm-sans), 'DM Sans', sans-serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-menu: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Space Grotesk', monospace;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -45,14 +46,14 @@ html {
 }
 
 body {
-  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-family: var(--font-dm-sans), 'DM Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
   background: #ffffff;
   color: #1C1A17;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-syne), system-ui, sans-serif;
+  font-family: var(--font-syne), 'Syne', system-ui, sans-serif;
 }
 
 /* Film Grain Texture */

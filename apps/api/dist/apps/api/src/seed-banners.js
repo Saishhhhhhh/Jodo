@@ -6,21 +6,21 @@ const Banner_1 = require("./models/Banner");
 const HERO_SLIDES = [
     {
         image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=2000&q=85",
-        tagline: "Crafting Comfort, Shaping Style",
-        heading: "Elevating Everyday Living With Timeless Design",
-        subtext: "From modern minimalist to timeless classics, our collection offers something for every taste, transforming any space into a place you'll love."
+        tagline: "The Joy of Together",
+        heading: "Furniture That Brings You Closer",
+        subtext: "No tools. No confusion. Just you, your people, and furniture that slides into place like a good moment."
     },
     {
         image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85",
-        tagline: "Minimalist Masterpieces",
-        heading: "Discover the Beauty of Simple Living",
-        subtext: "Embrace clean lines and uncluttered spaces. Our minimalist collection brings a sense of calm and clarity to your daily environment."
+        tagline: "A New Way to Experience Furniture",
+        heading: "Put It Together. Make It Yours.",
+        subtext: "JODO furniture assembles like a jigsaw puzzle: less fuss, more fun. Enjoy the quiet satisfaction of building with your hands."
     },
     {
         image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85",
-        tagline: "Bold & Contemporary",
-        heading: "Statement Pieces For Modern Homes",
-        subtext: "Make a lasting impression with our contemporary designs. Unique shapes and premium materials that define the modern aesthetic."
+        tagline: "Built Different. Felt Together.",
+        heading: "Convenience Without Compromise",
+        subtext: "Great design, serious quality. JODO builds pieces to deliver, endure and last without compromise"
     }
 ];
 async function seed() {

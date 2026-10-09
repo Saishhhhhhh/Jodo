@@ -53,6 +53,8 @@ const customerSchema = new mongoose_1.Schema({
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     tags: { type: [String], default: [] },
     passwordHash: { type: String, select: false },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerifiedAt: { type: Date, default: null },
     defaultShippingAddress: {
         firstName: { type: String },
         lastName: { type: String },

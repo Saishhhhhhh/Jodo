@@ -16,6 +16,8 @@ export interface IUser extends Document {
   moduleAccess?: string[];
   lastLoginAt?: Date;
   twoFactorEnabled: boolean;
+  isEmailVerified: boolean;
+  emailVerifiedAt?: Date | null;
   inviteToken?: string;
   inviteTokenExpiresAt?: Date;
   createdAt: Date;
@@ -44,6 +46,8 @@ const UserSchema = new Schema<IUser>(
     moduleAccess: [{ type: String }],
     lastLoginAt: { type: Date },
     twoFactorEnabled: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: true },
+    emailVerifiedAt: { type: Date, default: Date.now },
     inviteToken: { type: String, select: false },
     inviteTokenExpiresAt: { type: Date, select: false },
   },

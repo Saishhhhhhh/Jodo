@@ -19,6 +19,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -42,17 +43,25 @@ import {
   Truck,
   FileText,
   RotateCcw,
+  History,
+  User,
+  Clock,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { useWarehouseStore, ProcurementItem } from '@/stores/warehouse';
+import { warehouseApi } from '@/lib/api-client';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ReceiveStockDialog } from '../modals/receive-stock-dialog';
+import { EditProcurementDrawer } from '../modals/edit-procurement-drawer';
 
 interface ProcurementTabProps {
   onOpenCreate: () => void;
 }
 
 export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
-  const { procurements, receiveProcurementStock, updateProcurementStatus } = useWarehouseStore();
+  const { procurements, receiveProcurementStock, updateProcurementStatus, deleteProcurement } = useWarehouseStore();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -62,25 +71,31 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
   // Detail Modal state
   const [viewItem, setViewItem] = useState<ProcurementItem | null>(null);
 
-  // Receive stock action
+  // Edit PO Drawer state
+  const [editItem, setEditItem] = useState<ProcurementItem | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  // Delete Confirm Dialog state
+  const [deleteItem, setDeleteItem] = useState<ProcurementItem | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+
+  // Receive Stock Dialog state
+  const [receiveItemId, setReceiveItemId] = useState<string | null>(null);
+  const [isReceiveOpen, setIsReceiveOpen] = useState(false);
+
+  // Cancel Confirm Dialog state
+  const [cancelItem, setCancelItem] = useState<ProcurementItem | null>(null);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+
+  // Dynamically resolved from store so updates immediately reflect
+  const activeReceiveItem = procurements.find((p) => p.id === receiveItemId) || null;
+  const activeViewItem = viewItem ? (procurements.find((p) => p.id === viewItem.id) || viewItem) : null;
+  const activeEditItem = editItem ? (procurements.find((p) => p.id === editItem.id) || editItem) : null;
+
+  // Receive stock action — opens theme-matched Jodo dialog
   const handleReceiveStock = (item: ProcurementItem) => {
-    const pending = item.quantityOrdered - item.quantityReceived;
-    if (pending <= 0) {
-      toast.info('All units have already been received for this PO');
-      return;
-    }
-    const input = window.prompt(
-      `Receive stock for ${item.product} (${item.id})\nPending units: ${pending}\nEnter quantity to receive:`,
-      (pending ?? 0).toString()
-    );
-    if (!input) return;
-    const qty = parseInt(input, 10);
-    if (isNaN(qty) || qty <= 0) {
-      toast.error('Please enter a valid positive quantity');
-      return;
-    }
-    receiveProcurementStock(item.id, qty);
-    toast.success(`Received ${qty} units of ${item.sku} at ${item.destinationWarehouse}`);
+    setReceiveItemId(item.id);
+    setIsReceiveOpen(true);
   };
 
   const handleMarkDelayed = (item: ProcurementItem) => {
@@ -89,9 +104,29 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
   };
 
   const handleCancel = (item: ProcurementItem) => {
-    if (window.confirm(`Are you sure you want to cancel procurement order ${item.id}?`)) {
-      updateProcurementStatus(item.id, 'Cancelled');
-      toast.error(`PO ${item.id} cancelled`);
+    setCancelItem(item);
+    setIsCancelConfirmOpen(true);
+  };
+
+  const confirmCancel = () => {
+    if (cancelItem) {
+      updateProcurementStatus(cancelItem.id, 'Cancelled');
+      toast.error(`PO ${cancelItem.id} cancelled`);
+      setIsCancelConfirmOpen(false);
+      setCancelItem(null);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (deleteItem) {
+      const poLabel = deleteItem.purchaseOrderNumber || deleteItem.id;
+      deleteProcurement(deleteItem.id);
+      try {
+        await warehouseApi.deleteProcurement(deleteItem.id);
+      } catch {}
+      toast.success(`Purchase Order ${poLabel} has been permanently deleted`);
+      setIsDeleteConfirmOpen(false);
+      setDeleteItem(null);
     }
   };
 
@@ -164,8 +199,6 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
     switch (status) {
       case 'Received':
         return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/15 border-none">Received</Badge>;
-      case 'Partially Received':
-        return <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/15 border-none">Partially Received</Badge>;
       case 'In Transit':
         return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/15 border-none">In Transit</Badge>;
       case 'Confirmed':
@@ -306,15 +339,6 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  updateProcurementStatus(item.id, 'Partially Received');
-                  toast.success(`PO ${item.id} marked Partially Received`);
-                }}
-              >
-                <Package className="mr-2 h-3.5 w-3.5 text-blue-400" />
-                <span>Partially Received</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
                   updateProcurementStatus(item.id, 'Received');
                   toast.success(`PO ${item.id} marked as Received`);
                 }}
@@ -362,6 +386,15 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onClick={() => setViewItem(item)}>
                   <Eye className="mr-2 h-4 w-4" /> View Details
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditItem(item);
+                    setIsEditOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4 text-primary" /> Edit PO
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
@@ -425,10 +458,22 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
                   </DropdownMenuItem>
                 )}
                 {item.status !== 'Cancelled' && item.status !== 'Received' && (
-                  <DropdownMenuItem onClick={() => handleCancel(item)} className="text-destructive">
+                  <DropdownMenuItem onClick={() => handleCancel(item)} className="text-amber-500">
                     <XCircle className="mr-2 h-4 w-4" /> Cancel Order
                   </DropdownMenuItem>
                 )}
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    setDeleteItem(item);
+                    setIsDeleteConfirmOpen(true);
+                  }}
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete PO
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -446,7 +491,6 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
           { id: 'PO Raised', label: 'PO Raised' },
           { id: 'Confirmed', label: 'Confirmed' },
           { id: 'In Transit', label: 'In Transit' },
-          { id: 'Partially Received', label: 'Partially Received' },
           { id: 'Received', label: 'Received' },
           { id: 'Delayed', label: 'Delayed' },
         ].map((t) => (
@@ -540,110 +584,336 @@ export function ProcurementTab({ onOpenCreate }: ProcurementTabProps) {
       </div>
 
       {/* Procurement Details Dialog */}
-      {viewItem && (
-        <Dialog open={Boolean(viewItem)} onOpenChange={() => setViewItem(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Procurement Order: {viewItem.id}</DialogTitle>
-              <DialogDescription>
-                PO: {viewItem.purchaseOrderNumber} • Ordered on {viewItem.orderDate}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3 py-2 text-xs">
-              {/* Order Status Update Row */}
-              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-[11px] font-medium">Status:</span>
-                  {getStatusBadge(viewItem.status)}
+      {/* Procurement Details Dialog */}
+      {(() => {
+        const selectedItem = viewItem ? procurements.find((p) => p.id === viewItem.id) || viewItem : null;
+        if (!selectedItem) return null;
+
+        return (
+          <Dialog open={Boolean(viewItem)} onOpenChange={() => setViewItem(null)}>
+            <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Procurement Order: {selectedItem.id}</DialogTitle>
+                <DialogDescription>
+                  PO: {selectedItem.purchaseOrderNumber} • Ordered on {selectedItem.orderDate}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2 text-xs">
+                {/* Order Status Update Row */}
+                <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-[11px] font-medium">Status:</span>
+                    {getStatusBadge(selectedItem.status)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-[11px]">Update:</span>
+                    <Select
+                      value={selectedItem.status}
+                      onValueChange={(newStatus: ProcurementItem['status']) => {
+                        updateProcurementStatus(selectedItem.id, newStatus);
+                        setViewItem({ ...selectedItem, status: newStatus });
+                        toast.success(`PO ${selectedItem.id} status changed to "${newStatus}"`);
+                      }}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PO Raised">PO Raised</SelectItem>
+                        <SelectItem value="Draft">Draft</SelectItem>
+                        <SelectItem value="Confirmed">Confirmed</SelectItem>
+                        <SelectItem value="In Transit">In Transit</SelectItem>
+                        <SelectItem value="Received">Received</SelectItem>
+                        <SelectItem value="Delayed">Delayed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-[11px]">Update:</span>
-                  <Select
-                    value={viewItem.status}
-                    onValueChange={(newStatus: ProcurementItem['status']) => {
-                      updateProcurementStatus(viewItem.id, newStatus);
-                      setViewItem({ ...viewItem, status: newStatus });
-                      toast.success(`PO ${viewItem.id} status changed to "${newStatus}"`);
+
+                <div className="grid grid-cols-2 gap-2 p-3 bg-muted/40 rounded-lg border">
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Supplier:</span>
+                    <span className="font-semibold text-foreground">{selectedItem.supplier}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Category:</span>
+                    <span>{selectedItem.category}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Product / Material:</span>
+                    <span className="font-semibold">{selectedItem.product}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">SKU:</span>
+                    <span className="font-mono">{selectedItem.sku}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 p-3 bg-muted/20 rounded-lg border text-center font-mono">
+                  <div>
+                    <span className="text-muted-foreground text-[10px] block uppercase">Ordered</span>
+                    <span className="font-bold text-sm text-foreground">{formatNumber(selectedItem.quantityOrdered)}</span>
+                  </div>
+                  <div>
+                    <span className="text-green-600 dark:text-green-400 text-[10px] block uppercase">Received</span>
+                    <span className="font-bold text-sm text-green-600 dark:text-green-400">
+                      {formatNumber(selectedItem.quantityReceived)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-[10px] block uppercase">Unit Cost</span>
+                    <span className="font-bold text-sm text-foreground">{formatCurrency(selectedItem.unitCost, 'INR')}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 p-3 rounded-lg border text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Destination Warehouse:</span>
+                    <span className="font-medium text-foreground">{selectedItem.destinationWarehouse}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Expected Delivery:</span>
+                    <span className="font-medium text-foreground">{selectedItem.expectedDeliveryDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Procurement Owner:</span>
+                    <span className="font-medium text-foreground">{selectedItem.procurementOwner}</span>
+                  </div>
+                  <div className="flex justify-between font-bold pt-1 border-t text-foreground">
+                    <span>Total PO Cost:</span>
+                    <span className="font-mono">{formatCurrency(selectedItem.totalCost, 'INR')}</span>
+                  </div>
+                </div>
+
+                {selectedItem.notes && (
+                  <div className="p-3 bg-muted/30 rounded-lg border text-muted-foreground italic">
+                    &ldquo;{selectedItem.notes}&rdquo;
+                  </div>
+                )}
+
+                {/* Receipt History & Batch Records Section in View Details */}
+                <div className="space-y-2.5 pt-3 border-t">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-foreground text-xs">
+                      <History className="h-3.5 w-3.5 text-primary" />
+                      <span>Receipt History & Batches ({selectedItem.receiptHistory?.length || 0})</span>
+                    </div>
+                    {selectedItem.quantityOrdered > selectedItem.quantityReceived && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                        onClick={() => {
+                          handleReceiveStock(selectedItem);
+                        }}
+                      >
+                        <PackageCheck className="h-3.5 w-3.5" />
+                        <span>Receive Stock</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {selectedItem.receiptHistory && selectedItem.receiptHistory.length > 0 ? (
+                    <div className="rounded-lg border overflow-hidden bg-card divide-y">
+                      {selectedItem.receiptHistory.map((rec) => (
+                        <div key={rec.id} className="p-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 hover:bg-muted/30 transition-colors">
+                          <div>
+                            <div className="font-semibold text-foreground flex items-center gap-2">
+                              <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-none text-[10px] font-mono">
+                                +{formatNumber(rec.receivedQty)} units
+                              </Badge>
+                              <span className="text-[11px] text-muted-foreground font-mono">{rec.id}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{rec.notes}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1 sm:justify-end">
+                              <Clock className="h-3 w-3" />
+                              <span>{rec.receivedAt}</span>
+                            </div>
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-1 sm:justify-end mt-0.5">
+                              <User className="h-2.5 w-2.5" />
+                              <span>{rec.receivedBy}</span>
+                              <span>•</span>
+                              <span className="font-mono font-semibold text-amber-500">
+                                {formatNumber(rec.remainingQty)} pending
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-3 text-center text-[11px] text-muted-foreground rounded-lg border bg-muted/20">
+                      No delivery receipts recorded yet for this order.
+                    </div>
+                  )}
+                </div>
+
+                {/* View Details Footer Actions */}
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-8 text-xs gap-1.5"
+                    onClick={() => {
+                      setDeleteItem(selectedItem);
+                      setIsDeleteConfirmOpen(true);
+                      setViewItem(null);
                     }}
                   >
-                    <SelectTrigger className="w-36 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PO Raised">PO Raised</SelectItem>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                      <SelectItem value="Confirmed">Confirmed</SelectItem>
-                      <SelectItem value="In Transit">In Transit</SelectItem>
-                      <SelectItem value="Partially Received">Partially Received</SelectItem>
-                      <SelectItem value="Received">Received</SelectItem>
-                      <SelectItem value="Delayed">Delayed</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Delete PO</span>
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs gap-1.5"
+                      onClick={() => {
+                        setEditItem(selectedItem);
+                        setIsEditOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5 text-primary" />
+                      <span>Edit PO</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => setViewItem(null)}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 </div>
               </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
 
-              <div className="grid grid-cols-2 gap-2 p-3 bg-muted/40 rounded-lg border">
-                <div>
-                  <span className="text-muted-foreground block text-[10px]">Supplier:</span>
-                  <span className="font-semibold text-foreground">{viewItem.supplier}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[10px]">Category:</span>
-                  <span>{viewItem.category}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[10px]">Product / Material:</span>
-                  <span className="font-semibold">{viewItem.product}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[10px]">SKU:</span>
-                  <span className="font-mono">{viewItem.sku}</span>
-                </div>
-              </div>
+      {/* Themed Edit Procurement Drawer */}
+      <EditProcurementDrawer
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        item={activeEditItem}
+      />
 
-              <div className="grid grid-cols-3 gap-2 p-3 bg-muted/20 rounded-lg border text-center font-mono">
-                <div>
-                  <span className="text-muted-foreground text-[10px] block uppercase">Ordered</span>
-                  <span className="font-bold text-sm text-foreground">{formatNumber(viewItem.quantityOrdered)}</span>
-                </div>
-                <div>
-                  <span className="text-green-600 dark:text-green-400 text-[10px] block uppercase">Received</span>
-                  <span className="font-bold text-sm text-green-600 dark:text-green-400">
-                    {formatNumber(viewItem.quantityReceived)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground text-[10px] block uppercase">Unit Cost</span>
-                  <span className="font-bold text-sm text-foreground">{formatCurrency(viewItem.unitCost, 'INR')}</span>
-                </div>
-              </div>
+      {/* Themed Receive Stock Dialog */}
+      <ReceiveStockDialog
+        open={isReceiveOpen}
+        onOpenChange={setIsReceiveOpen}
+        item={activeReceiveItem}
+      />
 
-              <div className="space-y-1 p-3 rounded-lg border text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Destination Warehouse:</span>
-                  <span className="font-medium text-foreground">{viewItem.destinationWarehouse}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Expected Delivery:</span>
-                  <span className="font-medium text-foreground">{viewItem.expectedDeliveryDate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Procurement Owner:</span>
-                  <span className="font-medium text-foreground">{viewItem.procurementOwner}</span>
-                </div>
-                <div className="flex justify-between font-bold pt-1 border-t text-foreground">
-                  <span>Total PO Cost:</span>
-                  <span className="font-mono">{formatCurrency(viewItem.totalCost, 'INR')}</span>
-                </div>
-              </div>
-
-              {viewItem.notes && (
-                <div className="p-3 bg-muted/30 rounded-lg border text-muted-foreground italic">
-                  &ldquo;{viewItem.notes}&rdquo;
-                </div>
-              )}
+      {/* Themed Cancel Order Confirmation Dialog */}
+      {cancelItem && (
+        <Dialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
+          <DialogContent className="max-w-md border bg-card">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-destructive flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                <span>Cancel Purchase Order</span>
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-1">
+                Are you sure you want to cancel order <strong className="text-foreground font-mono">{cancelItem.purchaseOrderNumber || cancelItem.id}</strong> ({cancelItem.product})?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive">
+              This action will mark the purchase order as Cancelled and remove pending delivery tracking.
             </div>
+            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsCancelConfirmOpen(false)}
+                className="text-xs"
+              >
+                Keep Order
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={confirmCancel}
+                className="text-xs"
+              >
+                Confirm Cancellation
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Themed Delete PO Confirmation Dialog */}
+      {deleteItem && (
+        <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+          <DialogContent className="max-w-md border bg-card">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-destructive flex items-center gap-2">
+                <Trash2 className="h-5 w-5" />
+                <span>Delete Purchase Order</span>
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-1">
+                Are you sure you want to permanently delete purchase order{' '}
+                <strong className="text-foreground font-mono">
+                  {deleteItem.purchaseOrderNumber || deleteItem.id}
+                </strong>{' '}
+                for <strong className="text-foreground">{deleteItem.product}</strong>?
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-2 p-3 bg-muted/40 rounded-lg border text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Supplier:</span>
+                <span className="font-medium text-foreground">{deleteItem.supplier}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">SKU & Ordered:</span>
+                <span className="font-medium font-mono text-foreground">
+                  {deleteItem.sku} • {formatNumber(deleteItem.quantityOrdered)} units
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total PO Value:</span>
+                <span className="font-semibold font-mono text-foreground">
+                  {formatCurrency(deleteItem.totalCost, 'INR')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Current Status:</span>
+                <span className="font-medium text-foreground">{deleteItem.status}</span>
+              </div>
+            </div>
+
+            <div className="p-2.5 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive">
+              ⚠️ This action cannot be undone. This will permanently remove the purchase order, any linked incoming stock tracking, and associated alerts.
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsDeleteConfirmOpen(false);
+                  setDeleteItem(null);
+                }}
+                className="text-xs"
+              >
+                Keep Order
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={confirmDelete}
+                className="text-xs gap-1.5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete Permanently
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

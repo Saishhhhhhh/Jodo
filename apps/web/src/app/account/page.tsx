@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCustomerStore } from '../../store/useCustomerStore';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
 
 export default function AccountProfilePage() {
   const { customer, token, setCustomer } = useCustomerStore();
@@ -26,6 +26,45 @@ export default function AccountProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+  const [passwordOtp, setPasswordOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpCooldown]);
+
+  const handleSendPasswordOtp = async () => {
+    if (otpCooldown > 0 || otpSending) return;
+    setOtpSending(true);
+    setPasswordMessage({ type: '', text: '' });
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/storefront/auth/me/send-password-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOtpSent(true);
+        setOtpCooldown(60);
+        setPasswordMessage({ type: 'success', text: 'Verification code sent to your registered email.' });
+      } else {
+        setPasswordMessage({ type: 'error', text: data.message || 'Failed to send verification code.' });
+      }
+    } catch {
+      setPasswordMessage({ type: 'error', text: 'Failed to send verification code. Please check your connection.' });
+    } finally {
+      setOtpSending(false);
+    }
+  };
 
   if (!customer) return null;
 
@@ -58,8 +97,17 @@ export default function AccountProfilePage() {
 
   const handlePasswordSave = async () => {
     setPasswordMessage({ type: '', text: '' });
+    if (!passwordForm.currentPassword) {
+      return setPasswordMessage({ type: 'error', text: 'Please enter your current password.' });
+    }
+    if (passwordForm.newPassword.length < 6) {
+      return setPasswordMessage({ type: 'error', text: 'New password must be at least 6 characters.' });
+    }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       return setPasswordMessage({ type: 'error', text: 'New passwords do not match.' });
+    }
+    if (!passwordOtp || passwordOtp.trim().length !== 6) {
+      return setPasswordMessage({ type: 'error', text: 'Please click "Send Code" and enter the 6-digit verification code.' });
     }
 
     setPasswordLoading(true);
@@ -73,6 +121,7 @@ export default function AccountProfilePage() {
         body: JSON.stringify({
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
+          otp: passwordOtp.trim(),
         }),
       });
       const data = await res.json();
@@ -80,6 +129,8 @@ export default function AccountProfilePage() {
         setPasswordMessage({ type: 'success', text: 'Password changed successfully.' });
         setIsChangingPassword(false);
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setPasswordOtp('');
+        setOtpSent(false);
       } else {
         setPasswordMessage({ type: 'error', text: data.message || 'Failed to change password.' });
       }
@@ -270,11 +321,56 @@ export default function AccountProfilePage() {
                     className="w-full px-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B65A45]"
                   />
                 </div>
+
+                {/* Email OTP Verification */}
+                <div className="pt-3 border-t border-gray-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-[#B65A45]" />
+                      Verification Code
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleSendPasswordOtp}
+                      disabled={otpSending || otpCooldown > 0}
+                      className="text-xs font-semibold text-[#B65A45] hover:underline disabled:opacity-50 inline-flex items-center gap-1"
+                    >
+                      {otpSending ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Sending...
+                        </>
+                      ) : otpCooldown > 0 ? (
+                        `Resend code in ${otpCooldown}s`
+                      ) : otpSent ? (
+                        'Resend Code'
+                      ) : (
+                        'Send Code to Email'
+                      )}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="Enter 6-digit code"
+                    value={passwordOtp}
+                    onChange={(e) => setPasswordOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full px-3 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B65A45] font-mono tracking-widest text-center text-lg"
+                  />
+                  <p className="text-xs text-gray-500">
+                    {otpSent ? (
+                      <span className="text-green-600 font-medium">A 6-digit code was sent to {customer.email}. Valid for 10 minutes.</span>
+                    ) : (
+                      `Click "Send Code to Email" to receive an OTP at ${customer.email}.`
+                    )}
+                  </p>
+                </div>
+
                 <div className="flex gap-3 pt-2">
                   <button 
                     onClick={handlePasswordSave}
-                    disabled={passwordLoading}
-                    className="px-4 py-2 bg-[#B65A45] text-white text-sm font-bold rounded-lg hover:bg-[#a04e3b] transition-colors disabled:opacity-70"
+                    disabled={passwordLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword || passwordOtp.length !== 6}
+                    className="px-4 py-2 bg-[#B65A45] text-white text-sm font-bold rounded-lg hover:bg-[#a04e3b] transition-colors disabled:opacity-50"
                   >
                     {passwordLoading ? 'Updating...' : 'Update Password'}
                   </button>
@@ -282,6 +378,7 @@ export default function AccountProfilePage() {
                     onClick={() => {
                       setIsChangingPassword(false);
                       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                      setPasswordOtp('');
                       setPasswordMessage({ type: '', text: '' });
                     }}
                     disabled={passwordLoading}

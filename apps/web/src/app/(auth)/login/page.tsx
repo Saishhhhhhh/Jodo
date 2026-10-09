@@ -30,9 +30,17 @@ export default function LoginPage() {
 
       const data = await res.json();
       
-      if (data.success) {
+      if (data.success && data.data?.token) {
         setCustomer(data.data.customer, data.data.token);
         router.push('/account');
+      } else if (data.requiresVerification || data.data?.requiresVerification) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('jodo_verify_email', data.data?.email || email);
+          if (data.data?.maskedEmail) {
+            sessionStorage.setItem('jodo_masked_email', data.data.maskedEmail);
+          }
+        }
+        router.push(`/verify-email?email=${encodeURIComponent(data.data?.email || email)}`);
       } else {
         setError(data.message || 'Login failed');
       }
@@ -71,7 +79,7 @@ export default function LoginPage() {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-sm font-medium text-gray-700">Password</label>
-              <a href="#" className="text-xs text-[#B65A45] hover:underline font-medium">Forgot Password?</a>
+              <Link href="/forgot-password" className="text-xs text-[#B65A45] hover:underline font-medium">Forgot Password?</Link>
             </div>
             <div className="relative">
               <input 

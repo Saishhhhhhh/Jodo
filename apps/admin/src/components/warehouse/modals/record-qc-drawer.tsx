@@ -234,7 +234,7 @@ export function RecordQCDrawer({ open, onOpenChange, selectedQC }: RecordQCDrawe
               <SelectContent>
                 {qualityChecks.map((q) => (
                   <SelectItem key={q.id} value={q.id}>
-                    {q.id} — {q.product} ({q.batchNumber})
+                    {q.batchNumber} — {q.product} ({q.id})
                   </SelectItem>
                 ))}
               </SelectContent>

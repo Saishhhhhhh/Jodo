@@ -21,6 +21,8 @@ const pageContent_1 = require("./pageContent");
 const response_1 = require("../utils/response");
 const razorpay_1 = require("../services/razorpay");
 const InventoryIntelligenceService_1 = require("../services/InventoryIntelligenceService");
+const emailService_1 = require("../services/emailService");
+const Lead_1 = require("../models/Lead");
 const router = (0, express_1.Router)();
 router.get('/products', async (req, res, next) => {
     try {
@@ -670,6 +672,56 @@ router.get('/page-content/:pageKey', async (req, res, next) => {
             return (0, response_1.sendError)(res, `Content for ${pageKey} not found`, 404);
         }
         (0, response_1.sendSuccess)(res, content);
+    }
+    catch (error) {
+        next(error);
+    }
+});
+// ============================================================
+// Contact Us Form Submission
+// ============================================================
+router.post('/contact', async (req, res, next) => {
+    try {
+        const { firstName, lastName, email, phone, message } = req.body;
+        if (!firstName || !email || !message) {
+            return (0, response_1.sendError)(res, 'First name, email, and message are required', 400);
+        }
+        const cleanEmail = String(email).trim().toLowerCase();
+        // 1. Dispatch notification & confirmation emails with Jodo branding & logo
+        try {
+            await emailService_1.emailService.sendContactFormEmails({
+                firstName: String(firstName).trim(),
+                lastName: String(lastName || '').trim(),
+                email: cleanEmail,
+                phone: phone ? String(phone).trim() : undefined,
+                message: String(message).trim(),
+            });
+        }
+        catch (mailErr) {
+            console.error('[Storefront] Error sending contact form emails:', mailErr);
+        }
+        // 2. Persist inquiry as a Lead in database
+        try {
+            const store = await Store_1.Store.findOne({}).lean();
+            if (store) {
+                await Lead_1.Lead.create({
+                    tenantId: store.tenantId,
+                    storeId: store._id,
+                    name: `${firstName} ${lastName || ''}`.trim(),
+                    email: cleanEmail,
+                    phone: phone ? String(phone).trim() : undefined,
+                    source: 'Website',
+                    status: 'New',
+                    notes: message,
+                    interestLevel: 'High',
+                    followUpPriority: 'High',
+                });
+            }
+        }
+        catch (leadErr) {
+            console.warn('[Storefront] Could not save lead record:', leadErr);
+        }
+        (0, response_1.sendSuccess)(res, null, 'Your message has been sent successfully. We will get back to you shortly.');
     }
     catch (error) {
         next(error);

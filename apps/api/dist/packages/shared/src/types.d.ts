@@ -25,7 +25,7 @@ export interface Store extends BaseDocument {
     status: StoreStatus;
     settings: Record<string, unknown>;
 }
-export type UserStatus = 'active' | 'invited' | 'suspended' | 'deactivated';
+export type UserStatus = 'active' | 'invited' | 'suspended' | 'deactivated' | 'inactive';
 export interface User extends BaseDocument {
     tenantId: string;
     name: string;

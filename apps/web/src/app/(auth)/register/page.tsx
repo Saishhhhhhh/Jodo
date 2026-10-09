@@ -17,6 +17,8 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [targetDestination, setTargetDestination] = useState('/verify-email');
+  const [registeredMaskedEmail, setRegisteredMaskedEmail] = useState('');
   
   const setCustomer = useCustomerStore((state) => state.setCustomer);
   const router = useRouter();
@@ -25,7 +27,7 @@ export default function RegisterPage() {
     if (!showSuccessModal) return;
 
     if (countdown <= 0) {
-      router.push('/account');
+      router.push(targetDestination);
       return;
     }
 
@@ -34,7 +36,7 @@ export default function RegisterPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [showSuccessModal, countdown, router]);
+  }, [showSuccessModal, countdown, router, targetDestination]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +53,25 @@ export default function RegisterPage() {
       const data = await res.json();
       
       if (data.success) {
-        setCustomer(data.data.customer, data.data.token);
+        if (data.data?.token && data.data?.customer) {
+          // Exempt user: auto-logged in
+          setCustomer(data.data.customer, data.data.token);
+          router.push('/account');
+          return;
+        }
+
+        const verifyEmail = data.data?.email || email;
+        const masked = data.data?.maskedEmail || '';
+        setRegisteredMaskedEmail(masked);
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('jodo_verify_email', verifyEmail);
+          if (masked) {
+            sessionStorage.setItem('jodo_masked_email', masked);
+          }
+        }
+
+        setTargetDestination(`/verify-email?email=${encodeURIComponent(verifyEmail)}`);
         setShowSuccessModal(true);
       } else {
         setError(data.message || 'Registration failed');
@@ -65,7 +85,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4 font-sans py-12 relative">
-      {/* ── Success Popup Modal ── */}
+      {/* -- Success Popup Modal -- */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl border border-gray-100 transform animate-in zoom-in-95 duration-200">
@@ -74,24 +94,24 @@ export default function RegisterPage() {
             </div>
             
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Account Created Successfully!
+              Account Created!
             </h2>
             
             <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-              Welcome to Jodo, <span className="font-semibold text-gray-900">{firstName}</span>! Your account has been created.
+              Welcome to Jodo, <span className="font-semibold text-gray-900">{firstName}</span>! We have sent a 6-digit verification code to <span className="font-semibold text-gray-900">{registeredMaskedEmail || email}</span>. Please verify your email to activate your account.
             </p>
             
             <div className="space-y-3">
               <button
-                onClick={() => router.push('/account')}
+                onClick={() => router.push(targetDestination)}
                 className="w-full py-3.5 bg-[#B65A45] hover:bg-[#a04e3b] text-white font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 group"
               >
-                <span>Go to My Account</span>
+                <span>Proceed to Verify Email</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
               
               <p className="text-xs text-gray-400">
-                Redirecting to account in {countdown}s...
+                Redirecting to verification in {countdown}s...
               </p>
             </div>
           </div>

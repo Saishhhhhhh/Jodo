@@ -64,13 +64,15 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
               );
             })}
             
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors mt-4"
-            >
-              <LogOut className="w-5 h-5 text-red-500" />
-              Sign Out
-            </button>
+            <div className="pt-3 mt-2 border-t border-gray-100">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors group"
+              >
+                <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                Sign Out
+              </button>
+            </div>
           </nav>
         </aside>
 

@@ -219,6 +219,8 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Settings,
     children: [
       { label: 'Store Details', href: '/settings', icon: Store },
+      { label: 'Email / SMTP', href: '/settings/smtp', icon: Mail },
+      { label: 'Profile & Password', href: '/settings/profile', icon: User },
       { label: 'Staff & Permissions', href: '/settings/staff', icon: Users },
       { label: 'Payments', href: '/settings/payments', icon: CreditCard },
       { label: 'Shipping', href: '/settings/shipping', icon: Truck },

@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { Store, Save } from 'lucide-react';
+import { Store, Save, Mail, KeyRound, User, ChevronRight, ShieldCheck } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -141,11 +142,70 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 w-full space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Store Details</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Manage your store's profile, contact information, and formatting.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Store Details</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Manage your store's profile, contact information, and formatting.
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Link href="/settings/smtp">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
+              <Mail className="w-3.5 h-3.5 text-primary" />
+              Email / SMTP Settings
+            </Button>
+          </Link>
+          <Link href="/settings/profile">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
+              <KeyRound className="w-3.5 h-3.5 text-primary" />
+              Change Password & Profile
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Quick Access Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl border bg-gradient-to-br from-card to-muted/20 hover:border-primary/40 transition-all flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                <Mail className="w-4 h-4" />
+              </div>
+              <h4 className="text-sm font-semibold text-foreground">Email / SMTP Settings</h4>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              Configure SMTP credentials (Gmail, Outlook, SES) to enable customer email verification and OTP delivery.
+            </p>
+          </div>
+          <Link href="/settings/smtp" className="shrink-0 self-center">
+            <Button size="sm" variant="secondary" className="text-xs font-medium gap-1">
+              Configure
+              <ChevronRight className="w-3 h-3" />
+            </Button>
+          </Link>
+        </div>
+
+        <div className="p-4 rounded-xl border bg-gradient-to-br from-card to-muted/20 hover:border-primary/40 transition-all flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                <KeyRound className="w-4 h-4" />
+              </div>
+              <h4 className="text-sm font-semibold text-foreground">Profile & Change Password</h4>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              Update your account password, manage login security credentials, and customize personal staff profile.
+            </p>
+          </div>
+          <Link href="/settings/profile" className="shrink-0 self-center">
+            <Button size="sm" variant="secondary" className="text-xs font-medium gap-1">
+              Manage
+              <ChevronRight className="w-3 h-3" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Form {...form}>

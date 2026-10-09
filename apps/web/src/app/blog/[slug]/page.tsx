@@ -234,7 +234,8 @@ export default function BlogPostPage() {
               return (
                 <blockquote
                   key={i}
-                  className="pl-5 border-l-4 border-terracotta my-6 italic font-serif text-lg sm:text-xl text-[#1C1A17] bg-[#FAF7F2] py-4 px-5 rounded-r-[16px]"
+                  className="pl-5 border-l-4 border-terracotta my-6 italic text-lg sm:text-xl text-[#1C1A17] bg-[#FAF7F2] py-4 px-5 rounded-r-[16px]"
+                  style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}
                 >
                   {renderInlineMarkdown(p.replace('> ', ''))}
                 </blockquote>

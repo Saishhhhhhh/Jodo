@@ -20,6 +20,7 @@ import {
   Calendar,
   Building,
   Filter,
+  BookOpen,
 } from 'lucide-react';
 import { useWarehouseStore, QualityCheckItem, StockItem } from '@/stores/warehouse';
 import { OverviewTab } from '@/components/warehouse/tabs/overview-tab';
@@ -33,6 +34,7 @@ import { AdjustStockDialog } from '@/components/warehouse/modals/adjust-stock-di
 import { CreateTransferDrawer } from '@/components/warehouse/modals/create-transfer-drawer';
 import { WarehouseNotificationsDrawer } from '@/components/warehouse/modals/warehouse-notifications-drawer';
 import { WarehouseSearchDialog } from '@/components/warehouse/modals/warehouse-search-dialog';
+import { WarehouseProcessGuideDialog } from '@/components/warehouse/warehouse-process-guide-dialog';
 import { toast } from 'sonner';
 
 function WarehouseDashboardContent() {
@@ -57,6 +59,7 @@ function WarehouseDashboardContent() {
   const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isProcessGuideOpen, setIsProcessGuideOpen] = useState(false);
 
   // Selected item context
   const [selectedStockItem, setSelectedStockItem] = useState<StockItem | null>(null);
@@ -111,8 +114,19 @@ function WarehouseDashboardContent() {
             </p>
           </div>
 
-          {/* Search, Notifications & Quick Actions */}
+          {/* Search, Notifications, Guide & Quick Actions */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 text-xs border-primary/40 text-primary hover:bg-primary/10"
+              onClick={() => setIsProcessGuideOpen(true)}
+              title="Learn how the warehouse operations work"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Process Guide</span>
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -243,6 +257,7 @@ function WarehouseDashboardContent() {
         onOpenProduction={() => setIsProductionOpen(true)}
         onOpenQC={() => setIsQCOpen(true)}
         onOpenAdjust={handleOpenAdjust}
+        onOpenProcessGuide={() => setIsProcessGuideOpen(true)}
       />
 
       {/* Global Modals & Drawers */}
@@ -278,6 +293,11 @@ function WarehouseDashboardContent() {
       <WarehouseSearchDialog
         open={isSearchOpen}
         onOpenChange={setIsSearchOpen}
+      />
+      <WarehouseProcessGuideDialog
+        open={isProcessGuideOpen}
+        onOpenChange={setIsProcessGuideOpen}
+        onNavigateTo={(route) => router.push(route)}
       />
     </div>
   );

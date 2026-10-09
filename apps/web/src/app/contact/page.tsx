@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, MapPin, Phone, Mail, Loader2, CheckCircle2 } from 'lucide-react';
-import { storefrontApi } from '@/lib/api-client';
+import { ArrowUpRight, MapPin, Phone, Mail, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -11,52 +10,47 @@ export default function ContactPage() {
     lastName: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
   });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.email) {
-      setStatus('error');
-      setErrorMessage('First name and email are required');
+    setSubmitResult(null);
+
+    if (!formData.firstName.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setSubmitResult({ type: 'error', message: 'Please fill in your first name, email, and message.' });
       return;
     }
 
-    setStatus('loading');
-    setErrorMessage('');
-
+    setIsSubmitting(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-      const res = await fetch(`${apiUrl}/storefront/contact`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${apiUrl}/api/storefront/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      
       const data = await res.json();
-      
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to submit form');
+      if (data.success) {
+        setSubmitResult({
+          type: 'success',
+          message: 'Thank you! Your message has been sent. A confirmation email has been dispatched to your inbox.',
+        });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
+      } else {
+        setSubmitResult({ type: 'error', message: data.message || 'Failed to send message. Please try again.' });
       }
-
-      setStatus('success');
-      setFormData({ firstName: '', lastName: '', email: '', phone: '', message: '' });
-      
-      setTimeout(() => setStatus('idle'), 5000);
-    } catch (err: any) {
-      setStatus('error');
-      setErrorMessage(err.message || 'Something went wrong');
+    } catch {
+      setSubmitResult({ type: 'error', message: 'A network error occurred. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white"> {/* White background for the entire page */}
+      {/* Container */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-0">
         
         {/* Header Section */}
@@ -112,14 +106,14 @@ export default function ContactPage() {
             <div className="flex flex-col gap-1.5 text-[15px] md:text-base">
               <p className="text-gray-600">
                 <span className="font-semibold text-[#1C1A17]">General:</span>{' '}
-                <a href="mailto:hello@jodoshop.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
-                  hello@jodoshop.com
+                <a href="mailto:kaverivalve51@gmail.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
+                  kaverivalve51@gmail.com
                 </a>
               </p>
               <p className="text-gray-600">
                 <span className="font-semibold text-[#1C1A17]">Support:</span>{' '}
-                <a href="mailto:support@jodoshop.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
-                  support@jodoshop.com
+                <a href="mailto:kaverivalve51@gmail.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
+                  kaverivalve51@gmail.com
                 </a>
               </p>
             </div>
@@ -150,19 +144,35 @@ export default function ContactPage() {
         {/* 4.3 Contact Form & Interactive Map */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[700px]">
           
+          {/* Left Side: The Form */}
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
             className="bg-white rounded-[40px] p-6 sm:p-10 md:p-14 lg:p-16 shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100 h-full flex flex-col justify-center relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cream opacity-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-            
             <h2 className="text-2xl md:text-3xl text-[#1C1A17] mb-8 font-bold relative z-10 tracking-tight">
               Send a Message
             </h2>
             
             <form className="space-y-6 md:space-y-7 flex-1 relative z-10" onSubmit={handleSubmit}>
+              {submitResult && (
+                <div
+                  className={`p-4 rounded-xl text-sm flex items-start gap-2.5 ${
+                    submitResult.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+                >
+                  {submitResult.type === 'success' ? (
+                    <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 shrink-0 text-red-600 mt-0.5" />
+                  )}
+                  <span>{submitResult.message}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="firstName" className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
@@ -171,9 +181,10 @@ export default function ContactPage() {
                   <input 
                     type="text" 
                     id="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
+                    required
                     placeholder="First Name"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     className="w-full bg-[#FCF6F4] border border-transparent rounded-xl px-4 py-3.5 text-base text-[#1C1A17] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
                   />
                 </div>
@@ -184,9 +195,9 @@ export default function ContactPage() {
                   <input 
                     type="text" 
                     id="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
                     placeholder="Last Name"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     className="w-full bg-[#FCF6F4] border border-transparent rounded-xl px-4 py-3.5 text-base text-[#1C1A17] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
                   />
                 </div>
@@ -200,9 +211,10 @@ export default function ContactPage() {
                   <input 
                     type="email" 
                     id="email"
-                    value={formData.email}
-                    onChange={handleChange}
+                    required
                     placeholder="Email Address"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full bg-[#FCF6F4] border border-transparent rounded-xl px-4 py-3.5 text-base text-[#1C1A17] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
                   />
                 </div>
@@ -213,9 +225,9 @@ export default function ContactPage() {
                   <input 
                     type="tel" 
                     id="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
                     placeholder="Phone Number"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full bg-[#FCF6F4] border border-transparent rounded-xl px-4 py-3.5 text-base text-[#1C1A17] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:bg-white transition-all"
                   />
                 </div>
@@ -223,39 +235,37 @@ export default function ContactPage() {
 
               <div>
                 <label htmlFor="message" className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                  Message
+                  Message *
                 </label>
                 <textarea 
                   id="message"
-                  value={formData.message}
-                  onChange={handleChange}
+                  required
                   placeholder="Your space, your way, where do we start?"
                   rows={4}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   className="w-full bg-[#FCF6F4] border border-transparent rounded-xl p-4 text-base text-[#1C1A17] placeholder-gray-400 focus:outline-none focus:border-terracotta focus:bg-white transition-all resize-none"
                 />
               </div>
 
-              {status === 'error' && (
-                <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
-              )}
-
-              {status === 'success' ? (
-                <div className="flex items-center gap-3 text-green-600 bg-green-50 p-4 rounded-xl border border-green-100">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-medium text-[15px]">Message sent! We'll get back to you shortly.</span>
-                </div>
-              ) : (
-                <button 
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="mt-4 bg-terracotta text-white rounded-full px-8 py-4 text-base font-bold hover:bg-[#b0482c] transition-all duration-300 flex items-center justify-center gap-3 group shadow-md hover:shadow-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  <span>{status === 'loading' ? 'Sending...' : 'Send Message →'}</span>
-                </button>
-              )}
+              <button 
+                type="submit"
+                disabled={isSubmitting}
+                className="mt-4 bg-terracotta text-white rounded-full px-8 py-4 text-base font-bold hover:bg-[#b0482c] transition-all duration-300 flex items-center justify-center gap-3 group shadow-md hover:shadow-lg active:scale-95 disabled:opacity-60"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Sending Message...</span>
+                  </>
+                ) : (
+                  <span>Send Message →</span>
+                )}
+              </button>
             </form>
           </motion.div>
 
+          {/* Right Side: The Interactive Map */}
           <motion.div 
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}

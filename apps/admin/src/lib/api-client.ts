@@ -98,7 +98,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// ── API functions ──
+// -- API functions --
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -106,6 +106,14 @@ export const authApi = {
   logout: (refreshToken: string) =>
     apiClient.post('/admin/auth/logout', { refreshToken }),
   me: () => apiClient.get('/admin/auth/me'),
+  changePassword: (data: { currentPassword: string; newPassword: string; otp?: string }) =>
+    apiClient.put('/admin/auth/change-password', data),
+  sendChangePasswordOtp: () =>
+    apiClient.post('/admin/auth/send-change-password-otp'),
+  forgotPassword: (email: string) =>
+    apiClient.post('/admin/auth/forgot-password', { email }),
+  resetPassword: (data: { email: string; otp: string; newPassword: string }) =>
+    apiClient.post('/admin/auth/reset-password', data),
 };
 
 export const dashboardApi = {
@@ -341,6 +349,8 @@ export const warehouseApi = {
   // Procurement
   procurements: (params?: Record<string, unknown>) => apiClient.get('/warehouse/procurement', { params }),
   createProcurement: (data: any) => apiClient.post('/warehouse/procurement', data),
+  updateProcurement: (id: string, data: any) => apiClient.put(`/warehouse/procurement/${id}`, data),
+  deleteProcurement: (id: string) => apiClient.delete(`/warehouse/procurement/${id}`),
   // Production
   productionOrders: (params?: Record<string, unknown>) => apiClient.get('/warehouse/production', { params }),
   createProductionOrder: (data: any) => apiClient.post('/warehouse/production', data),
@@ -362,5 +372,12 @@ export const warehouseApi = {
   fulfilment: (params?: Record<string, unknown>) => apiClient.get('/warehouse/fulfilment', { params }),
   allocateFulfilment: (orderId: string) => apiClient.post(`/warehouse/fulfilment/${orderId}/allocate`),
   dispatchFulfilment: (orderId: string) => apiClient.post(`/warehouse/fulfilment/${orderId}/dispatch`),
+};
+
+export const smtpApi = {
+  get: () => apiClient.get('/admin/settings/smtp'),
+  update: (data: any) => apiClient.put('/admin/settings/smtp', data),
+  test: (data?: any) => apiClient.post('/admin/settings/smtp/test', data || {}),
+  sendTest: (toEmail: string) => apiClient.post('/admin/settings/smtp/send-test', { toEmail }),
 };
 

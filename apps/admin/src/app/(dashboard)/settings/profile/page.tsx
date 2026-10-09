@@ -6,12 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth';
-import { staffApi, mediaApi, getImageUrl } from '@/lib/api-client';
+import { staffApi, mediaApi, getImageUrl, authApi } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Phone, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, Image as ImageIcon, Loader2, KeyRound, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { Separator } from '@/components/ui/separator';
 
@@ -30,6 +30,83 @@ export default function ProfileSettingsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpCooldown]);
+
+  const handleSendOtp = async () => {
+    if (otpCooldown > 0 || otpSending) return;
+    setOtpSending(true);
+    setPasswordError('');
+    try {
+      await authApi.sendChangePasswordOtp();
+      setOtpSent(true);
+      setOtpCooldown(60);
+      toast.success('Verification code sent to your registered email');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Failed to send verification code';
+      setPasswordError(msg);
+      toast.error(msg);
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentPassword) {
+        throw new Error('Current password is required');
+      }
+      if (newPassword.length < 6) {
+        throw new Error('New password must be at least 6 characters long');
+      }
+      if (newPassword !== confirmPassword) {
+        throw new Error('New passwords do not match');
+      }
+      if (user?.email && !otp) {
+        throw new Error('Please click "Send Code" and enter the 6-digit verification code sent to your email');
+      }
+      return authApi.changePassword({ currentPassword, newPassword, otp: otp || undefined });
+    },
+    onSuccess: () => {
+      toast.success('Password changed successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
+      setOtp('');
+      setOtpSent(false);
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || err.message || 'Failed to change password';
+      setPasswordError(msg);
+      toast.error(msg);
+    },
+  });
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    changePasswordMutation.mutate();
+  };
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -234,6 +311,180 @@ export default function ProfileSettingsPage() {
           </Button>
         </div>
       </form>
+
+      <Separator className="my-8" />
+
+      {/* Security and Change Password Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1 space-y-2">
+          <h3 className="text-lg font-medium">Security & Password</h3>
+          <p className="text-sm text-muted-foreground">
+            Update your account password to ensure your administrator access remains safe.
+          </p>
+        </div>
+        <div className="md:col-span-2 space-y-4">
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-primary" />
+                Change Password
+              </CardTitle>
+              <CardDescription>
+                Passwords must contain at least 6 characters. You will need your current password to proceed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                {passwordError && (
+                  <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-medium border border-destructive/20">
+                    {passwordError}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      placeholder="Enter current password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showNewPassword ? 'text' : 'password'}
+                        placeholder="Enter new password (min. 6 chars)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="pr-10"
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Re-type new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pr-10"
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email Verification OTP */}
+                {user?.email && (
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="adminPasswordOtp" className="flex items-center gap-1.5 font-medium">
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        Email Verification Code
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={otpSending || otpCooldown > 0}
+                        onClick={handleSendOtp}
+                        className="text-xs h-8"
+                      >
+                        {otpSending ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Sending...
+                          </>
+                        ) : otpCooldown > 0 ? (
+                          `Resend code in ${otpCooldown}s`
+                        ) : otpSent ? (
+                          'Resend Code'
+                        ) : (
+                          'Send Code to Email'
+                        )}
+                      </Button>
+                    </div>
+                    <Input
+                      id="adminPasswordOtp"
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter 6-digit code"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="font-mono tracking-widest text-center text-lg"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {otpSent ? (
+                        <span className="text-emerald-500 font-medium">A 6-digit code was sent to {user.email}. Code expires in 10 minutes.</span>
+                      ) : (
+                        `Click "Send Code to Email" to receive a 6-digit OTP at ${user.email}.`
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                <div className="pt-3 flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword || Boolean(user?.email && otp.length !== 6)}
+                    className="gap-2"
+                  >
+                    {changePasswordMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Updating Password...
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="w-4 h-4" />
+                        Update Password
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
