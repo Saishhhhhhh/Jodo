@@ -37,10 +37,6 @@ export declare class AuthService {
      * Get current user profile.
      */
     getMe(userId: string): Promise<any>;
-    /**
-     * Change user password.
-     */
-    changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void>;
 }
 export declare const authService: AuthService;
 export {};

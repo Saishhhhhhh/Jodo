@@ -240,5 +240,35 @@ router.delete('/:id', async (req, res) => {
         (0, response_1.sendError)(res, 'Failed to delete team member', 500);
     }
 });
+/**
+ * DELETE /api/admin/team-members/:id
+ * Delete a team member
+ */
+router.delete('/:id', async (req, res) => {
+    try {
+        const tenantId = new mongoose_1.default.Types.ObjectId(req.auth.tenantId);
+        const userId = new mongoose_1.default.Types.ObjectId(req.params.id);
+        const user = await User_1.User.findOneAndDelete({ _id: userId, tenantId });
+        if (!user)
+            return (0, response_1.sendError)(res, 'Team member not found', 404);
+        // Unassign tasks from this user
+        await Task_1.Task.updateMany({ tenantId, assignedTo: userId }, { $unset: { assignedTo: '' } });
+        await AuditLog_1.AuditLog.create({
+            tenantId,
+            storeId: user.storeId,
+            actorUserId: new mongoose_1.default.Types.ObjectId(req.auth.sub),
+            actorType: 'user',
+            action: 'TEAM_MEMBER_DELETED',
+            resourceType: 'User',
+            resourceId: String(user._id),
+            after: { name: user.name, memberId: user.memberId }
+        });
+        (0, response_1.sendSuccess)(res, null, 'Team Member deleted successfully');
+    }
+    catch (error) {
+        console.error('Error deleting team member:', error);
+        (0, response_1.sendError)(res, 'Failed to delete team member', 500);
+    }
+});
 exports.default = router;
 //# sourceMappingURL=teamMembers.js.map

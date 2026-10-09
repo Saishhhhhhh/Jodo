@@ -1,63 +1,93 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const Order_1 = require("../models/Order");
+const Store_1 = require("../models/Store");
 const Lead_1 = require("../models/Lead");
 const Tenant_1 = require("../models/Tenant");
-const Store_1 = require("../models/Store");
 const response_1 = require("../utils/response");
 const router = (0, express_1.Router)();
-/**
- * POST /api/webhooks/shiprocket
- * Receive tracking updates from Shiprocket
- */
-router.post('/shiprocket', async (req, res, next) => {
+// Meta Webhook Verification
+router.get('/meta', (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+    if (mode === 'subscribe' && token) {
+        console.log('WEBHOOK_VERIFIED');
+        return res.status(200).send(challenge);
+    }
+    else {
+        return res.sendStatus(403);
+    }
+});
+// Meta Webhook Receiving Messages (Instagram DMs)
+router.post('/meta', async (req, res, next) => {
     try {
-        // Shiprocket sends a JSON payload with tracking status
-        const { current_status, current_status_id, awb, order_id } = req.body;
-        // Validate payload
-        if (!awb) {
-            return (0, response_1.sendError)(res, 'AWB is required', 400);
-        }
-        // Find the order that has this AWB
-        // Since we appended the Shiprocket Order ID or AWB to trackingNumber, we can query it.
-        const order = await Order_1.Order.findOne({
-            'fulfillments.trackingNumber': { $regex: new RegExp(awb, 'i') }
-        });
-        if (!order) {
-            // It might be using SR-PENDING-{order_id} if AWB wasn't generated immediately
-            const pendingOrder = await Order_1.Order.findOne({
-                'fulfillments.trackingNumber': `SR-PENDING-${order_id}`
-            });
-            if (!pendingOrder) {
-                return (0, response_1.sendError)(res, 'Order with this AWB/OrderID not found', 404);
+        const body = req.body;
+        if (body.object === 'instagram') {
+            const store = await Store_1.Store.findOne();
+            if (!store)
+                return (0, response_1.sendError)(res, 'Store not found', 404);
+            for (const entry of body.entry) {
+                if (!entry.messaging)
+                    continue;
+                for (const webhook_event of entry.messaging) {
+                    const senderId = webhook_event.sender.id;
+                    const message = webhook_event.message?.text;
+                    if (message) {
+                        // AI intent detection
+                        const aiPrompt = `Analyze the following message from an Instagram user and determine if they show purchasing intent for furniture/home decor. 
+            Message: "${message}"
+            Reply with a JSON object { "isLead": true/false, "interestLevel": "High" | "Medium" | "Low", "productRequirement": "brief summary of what they want if applicable" }`;
+                        let isLead = true;
+                        let interestLevel = 'Medium';
+                        let productRequirement = '';
+                        try {
+                            const { env } = require('../config/env');
+                            const { default: OpenAI } = require('openai');
+                            const aiKey = process.env.OPENAI_API_KEY || env.OPENAI_API_KEY_1;
+                            if (aiKey) {
+                                const openai = new OpenAI({ apiKey: aiKey });
+                                const completion = await openai.chat.completions.create({
+                                    model: env.OPENAI_MODEL || 'gpt-4o-mini',
+                                    messages: [
+                                        { role: 'system', content: 'You are an intent detection bot for Jodo Furniture. You return JSON.' },
+                                        { role: 'user', content: aiPrompt }
+                                    ],
+                                    temperature: 0.2,
+                                    response_format: { type: 'json_object' }
+                                });
+                                const raw = completion.choices[0]?.message?.content || '{}';
+                                const parsed = JSON.parse(raw);
+                                isLead = parsed.isLead ?? true;
+                                interestLevel = parsed.interestLevel || 'Medium';
+                                productRequirement = parsed.productRequirement || '';
+                            }
+                        }
+                        catch (aiErr) {
+                            console.error('AI Intent analysis failed, defaulting to lead capture', aiErr);
+                        }
+                        if (isLead) {
+                            await Lead_1.Lead.create({
+                                tenantId: store.tenantId,
+                                storeId: store._id,
+                                name: `IG User (${senderId})`,
+                                source: 'Instagram',
+                                status: 'New',
+                                interestLevel: interestLevel,
+                                followUpPriority: interestLevel === 'High' ? 'High' : 'Medium',
+                                productRequirement: productRequirement,
+                                notes: `Original Message: "${message}"`,
+                            });
+                        }
+                    }
+                }
             }
-            // Update the pending tracking number to the real AWB
-            const fulfillment = pendingOrder.fulfillments?.find((f) => f.trackingNumber.includes(`SR-PENDING-${order_id}`));
-            if (fulfillment) {
-                fulfillment.trackingNumber = awb;
-                fulfillment.trackingUrl = `https://shiprocket.co/tracking/${awb}`;
-            }
-            await pendingOrder.save();
-            return (0, response_1.sendSuccess)(res, null, 'Webhook processed and AWB updated');
+            return (0, response_1.sendSuccess)(res, null, 'EVENT_RECEIVED');
         }
-        // Update status based on current_status_id
-        // Shiprocket Status IDs (partial list):
-        // 6: Shipped, 7: Delivered, 8: Cancelled, 9: RTO Initiated, 10: RTO Delivered, 18: In Transit
-        if (current_status_id === 7) {
-            // Delivered
-            // In Jodo, fulfillmentStatus 'fulfilled' means shipped. We might not have 'delivered' explicitly in fulfillmentStatus,
-            // but we could append a note or update a timeline array if we had one.
-            order.notes = (order.notes ? order.notes + '\n' : '') + `[Shiprocket Webhook] Order delivered on ${new Date().toLocaleString()}`;
-        }
-        else if (current_status_id === 18) {
-            // In Transit
-            order.notes = (order.notes ? order.notes + '\n' : '') + `[Shiprocket Webhook] Order in transit on ${new Date().toLocaleString()}`;
-        }
-        await order.save();
-        (0, response_1.sendSuccess)(res, null, 'Webhook processed successfully');
+        return res.sendStatus(404);
     }
     catch (error) {
+        console.error('Meta webhook error:', error);
         next(error);
     }
 });
@@ -67,7 +97,6 @@ router.post('/shiprocket', async (req, res, next) => {
  */
 router.post('/leads', async (req, res, next) => {
     try {
-        // For single-tenant MVP, grab the default tenant/store if not provided in query
         let tenantId = req.query.tenantId;
         let storeId = req.query.storeId;
         if (!tenantId || !storeId) {
@@ -86,8 +115,6 @@ router.post('/leads', async (req, res, next) => {
             followUpPriority: 'Medium',
             interestLevel: 'Medium',
         };
-        // 1. Check if it's an Interakt WhatsApp Webhook
-        // Interakt sends a specific payload for incoming messages
         if (payload.type === 'message' && payload.data && payload.data.message) {
             const waData = payload.data.message;
             const customer = waData.customer;
@@ -96,7 +123,6 @@ router.post('/leads', async (req, res, next) => {
             leadData.phone = customer?.phone_number;
             leadData.notes = `[Auto-captured from WhatsApp]\nInitial Message: ${waData.message?.text || 'Media Message'}`;
         }
-        // 2. Generic Website Form Webhook
         else {
             leadData.source = payload.source || 'Website';
             leadData.name = payload.name;
@@ -110,8 +136,6 @@ router.post('/leads', async (req, res, next) => {
                 return (0, response_1.sendError)(res, 'Name is required for generic lead capture', 400);
             }
         }
-        // Check if lead already exists by phone or email to prevent pure duplicates (optional logic)
-        // For now, just create a new lead
         const lead = new Lead_1.Lead(leadData);
         await lead.save();
         (0, response_1.sendSuccess)(res, null, 'Lead captured successfully', 201);

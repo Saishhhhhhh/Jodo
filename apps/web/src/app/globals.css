@@ -46,7 +46,6 @@ html {
 }
 
 body {
-  font-family: var(--font-dm-sans), 'DM Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
   background: #ffffff;
   color: #1C1A17;
   -webkit-font-smoothing: antialiased;

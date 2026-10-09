@@ -56,6 +56,7 @@ import aiContentRoutes from './routes/ai-content';
 import leadsRoutes from './routes/leads';
 import countsRoutes from './routes/counts';
 import messagesRoutes from './routes/messages';
+import webhooksRoutes from './routes/webhooks';
 import smtpSettingsRoutes from './routes/smtp-settings';
 import './models/Message';
 
@@ -179,6 +180,7 @@ app.use('/api/admin/ai-content', aiContentRoutes);
 app.use('/api/admin/settings/smtp', smtpSettingsRoutes);
 app.use('/api/storefront', storefrontRoutes);
 app.use('/api/storefront/auth', storefrontAuthRoutes);
+app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/auth/email', storefrontAuthRoutes);
 // ============================================================
 // Error Handling

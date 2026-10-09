@@ -34,12 +34,6 @@ class AuthService {
         if (!isValid) {
             throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
         }
-        // Team members and staff never undergo email verification
-        if (!user.isEmailVerified) {
-            user.isEmailVerified = true;
-            user.emailVerifiedAt = new Date();
-            await user.save();
-        }
         // Generate token family for rotation tracking
         const family = (0, jwt_1.generateTokenFamily)();
         // Sign tokens
@@ -166,24 +160,6 @@ class AuthService {
             roles: (user.roleIds || []).map((r) => typeof r === 'string' ? r : r.name),
             moduleAccess: user.moduleAccess || ['tasks'],
         };
-    }
-    /**
-     * Change user password.
-     */
-    async changePassword(userId, currentPassword, newPassword) {
-        const user = await User_1.User.findById(userId).select('+passwordHash');
-        if (!user) {
-            throw Object.assign(new Error('User not found'), { statusCode: 404 });
-        }
-        const isValid = await user.comparePassword(currentPassword);
-        if (!isValid) {
-            throw Object.assign(new Error('Current password is incorrect'), { statusCode: 400 });
-        }
-        if (!newPassword || newPassword.length < 6) {
-            throw Object.assign(new Error('New password must be at least 6 characters long'), { statusCode: 400 });
-        }
-        user.passwordHash = newPassword;
-        await user.save();
     }
 }
 exports.AuthService = AuthService;
