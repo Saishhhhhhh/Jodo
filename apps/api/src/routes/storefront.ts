@@ -644,41 +644,7 @@ router.get('/faqs', async (req, res, next) => {
   }
 });
 
-// ============================================================
-// Contact Form Storefront Endpoint
-// ============================================================
-router.post('/contact', async (req, res, next) => {
-  try {
-    const store = await Store.findOne();
-    if (!store) {
-      return sendError(res, 'Store not found', 404);
-    }
 
-    const { firstName, lastName, email, phone, message } = req.body;
-
-    if (!firstName || !email) {
-      return sendError(res, 'First name and email are required', 400);
-    }
-
-    const { Lead } = require('../models/Lead');
-    const lead = await Lead.create({
-      tenantId: store.tenantId,
-      storeId: store._id,
-      name: `${firstName} ${lastName || ''}`.trim(),
-      email,
-      phone,
-      source: 'Website',
-      status: 'New',
-      interestLevel: 'Medium',
-      followUpPriority: 'High',
-      notes: message ? `[Auto-captured from Website Contact Form]\nMessage: ${message}` : '',
-    });
-
-    sendSuccess(res, lead, 'Contact form submitted successfully', 201);
-  } catch (error) {
-    next(error);
-  }
-});
 
 // ============================================================
 // Blogs Storefront Endpoints
