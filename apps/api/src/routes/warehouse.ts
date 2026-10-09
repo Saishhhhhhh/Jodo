@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { PurchaseOrder } from '../models/PurchaseOrder';
 import { Manufacturer } from '../models/Manufacturer';
 import { ProductionOrder } from '../models/ProductionOrder';
@@ -8,6 +9,11 @@ import { WarehouseStockMovement } from '../models/WarehouseStockMovement';
 import { WarehouseIssue } from '../models/WarehouseIssue';
 import { FulfilmentReadiness } from '../models/FulfilmentReadiness';
 import { sendSuccess, sendCreated, sendError } from '../utils/response';
+import {
+  generateInspectionBatchNumber,
+  generateQCInspectionId,
+  getFinancialYear,
+} from '../utils/warehouse-batch';
 
 const router = Router();
 
@@ -169,6 +175,38 @@ router.patch('/procurement/:id/receive', async (req: Request, res: Response, nex
   }
 });
 
+// PUT /api/warehouse/procurement/:id - Update PO
+router.put('/procurement/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const isObjId = mongoose.isValidObjectId(id);
+    const po = await PurchaseOrder.findOneAndUpdate(
+      isObjId ? { $or: [{ _id: id }, { poNumber: id }] } : { poNumber: id },
+      { $set: req.body },
+      { new: true }
+    );
+    if (!po) return sendError(res, 'Purchase Order not found', 404);
+    sendSuccess(res, po, 'Purchase Order updated successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/warehouse/procurement/:id - Delete PO
+router.delete('/procurement/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const isObjId = mongoose.isValidObjectId(id);
+    const po = await PurchaseOrder.findOneAndDelete(
+      isObjId ? { $or: [{ _id: id }, { poNumber: id }] } : { poNumber: id }
+    );
+    if (!po) return sendError(res, 'Purchase Order not found', 404);
+    sendSuccess(res, null, 'Purchase Order deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ============================================================
 // 3. CONTRACT MANUFACTURERS ENDPOINTS
 // ============================================================
@@ -270,7 +308,11 @@ router.post('/production', async (req: Request, res: Response, next: NextFunctio
       targetDate: new Date(targetDate),
       status: 'Planned',
       stage: 'Pattern Making',
-      batchNumber: `BATCH-${Math.floor(1000 + Math.random() * 9000)}`,
+      batchNumber:
+        req.body.batchNumber ||
+        generateInspectionBatchNumber(
+          (await ProductionOrder.find({}).select('batchNumber').lean()).map((o: any) => o.batchNumber).filter(Boolean)
+        ),
       destinationWarehouse: destinationWarehouse || 'Central Hub - BLR',
     });
 
@@ -328,8 +370,16 @@ router.patch('/production/:id/complete', async (req: Request, res: Response, nex
     order.progressPercentage = 100;
     await order.save();
 
-    // Auto-create Quality Check batch record
-    const batchNumber = order.batchNumber || `BATCH-${Math.floor(1000 + Math.random() * 9000)}`;
+    // Auto-create Quality Check batch record with FY sequence starting from 01
+    let batchNumber = order.batchNumber;
+    if (!batchNumber) {
+      const existing = await QualityCheck.find({}).select('batchId').lean();
+      const existingBatches = existing.map((q: any) => q.batchId).filter(Boolean) as string[];
+      batchNumber = generateInspectionBatchNumber(existingBatches);
+      order.batchNumber = batchNumber;
+      await order.save();
+    }
+
     const qc = await QualityCheck.create({
       batchId: batchNumber,
       productionOrderId: order.orderNumber,

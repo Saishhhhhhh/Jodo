@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { warehouseApi } from '@/lib/api-client';
+import {
+  generateInspectionBatchNumber,
+  generateQCInspectionId,
+  getFinancialYear,
+} from '@/lib/warehouse-utils';
+
+export {
+  generateInspectionBatchNumber,
+  generateQCInspectionId,
+  getFinancialYear,
+};
 
 export interface ProcurementItem {
   id: string; // e.g. PRC-2026-089
@@ -23,10 +34,19 @@ export interface ProcurementItem {
     | 'PO Raised'
     | 'Confirmed'
     | 'In Transit'
-    | 'Partially Received'
     | 'Received'
     | 'Delayed'
     | 'Cancelled';
+  notes?: string;
+  receiptHistory?: ProcurementReceiptLog[];
+}
+
+export interface ProcurementReceiptLog {
+  id: string;
+  receivedQty: number;
+  remainingQty: number;
+  receivedAt: string;
+  receivedBy: string;
   notes?: string;
 }
 
@@ -358,8 +378,10 @@ export interface WarehouseState {
 
   // Actions
   addProcurement: (data: Omit<ProcurementItem, 'id' | 'quantityReceived' | 'status'> & { status?: ProcurementItem['status'] }) => void;
+  updateProcurement: (id: string, data: Partial<Omit<ProcurementItem, 'id'>>) => void;
+  deleteProcurement: (id: string) => void;
   updateProcurementStatus: (id: string, status: ProcurementItem['status']) => void;
-  receiveProcurementStock: (id: string, qty: number) => void;
+  receiveProcurementStock: (id: string, qty: number, options?: { notes?: string; receivedBy?: string }) => void;
   receiveIncomingAtDock: (incomingId: string) => void;
   addManufacturer: (data: Omit<ManufacturerItem, 'id' | 'activeProductionOrders' | 'completedOrdersCount' | 'delayedOrdersCount'>) => void;
   addProductionOrder: (data: Omit<ProductionOrderItem, 'id' | 'completedQuantity' | 'qcPassed' | 'progress' | 'status'>) => void;
@@ -389,6 +411,8 @@ export interface WarehouseState {
   dismissNotification: (id: string) => void;
   markAllNotificationsRead: () => void;
   addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'dateTime'>) => void;
+  generateNextBatchNumber: (prefix?: string) => string;
+  generateNextQCId: () => string;
   isLoadingFromDb: boolean;
   syncFromDatabase: () => Promise<void>;
 }
@@ -410,8 +434,18 @@ const initialProcurements: ProcurementItem[] = [
     expectedDeliveryDate: '01 Sep 2026',
     destinationWarehouse: 'Central Hub - BLR',
     procurementOwner: 'Vikram Sethi',
-    status: 'Partially Received',
+    status: 'In Transit',
     notes: 'Initial lot of 1,500m received. Remaining 1,000m dispatched via road freight.',
+    receiptHistory: [
+      {
+        id: 'REC-2026-001',
+        receivedQty: 1500,
+        remainingQty: 1000,
+        receivedAt: '24 Aug 2026, 11:30 AM',
+        receivedBy: 'Vikram Sethi',
+        notes: 'Initial lot of 1,500m received at Dock 2.',
+      },
+    ],
   },
   {
     id: 'PRC-2026-090',
@@ -757,12 +791,12 @@ const initialProductionTracking: ProductionTrackingItem[] = [
 
 const initialQualityChecks: QualityCheckItem[] = [
   {
-    id: 'QC-2026-112',
+    id: 'QC-FY26-27-01',
     productionOrder: 'PRD-2026-001',
     product: 'Classic Denim Jacket',
     sku: 'JKT-DNM-003',
     manufacturer: 'Sterling Garments Ltd',
-    batchNumber: 'BATCH-26A-01',
+    batchNumber: 'BATCH-FY26-27-01',
     quantityInspected: 750,
     passedQuantity: 710,
     failedQuantity: 40,
@@ -773,12 +807,12 @@ const initialQualityChecks: QualityCheckItem[] = [
     qcStatus: 'Passed',
   },
   {
-    id: 'QC-2026-113',
+    id: 'QC-FY26-27-02',
     productionOrder: 'PRD-2026-002',
     product: 'Organic Cotton T-Shirt',
     sku: 'TSH-ORG-001',
     manufacturer: 'Sterling Garments Ltd',
-    batchNumber: 'BATCH-26B-04',
+    batchNumber: 'BATCH-FY26-27-02',
     quantityInspected: 2500,
     passedQuantity: 0,
     failedQuantity: 0,
@@ -789,12 +823,12 @@ const initialQualityChecks: QualityCheckItem[] = [
     qcStatus: 'Pending',
   },
   {
-    id: 'QC-2026-114',
+    id: 'QC-FY26-27-03',
     productionOrder: 'PRD-2026-003',
     product: 'Slim Fit Chino Trouser',
     sku: 'CHN-SLM-002',
     manufacturer: 'Vanguard Textiles Corp',
-    batchNumber: 'BATCH-26C-02',
+    batchNumber: 'BATCH-FY26-27-03',
     quantityInspected: 1100,
     passedQuantity: 1050,
     failedQuantity: 50,
@@ -805,12 +839,12 @@ const initialQualityChecks: QualityCheckItem[] = [
     qcStatus: 'Partially Passed',
   },
   {
-    id: 'QC-2026-115',
+    id: 'QC-FY26-27-04',
     productionOrder: 'PRD-2026-004',
     product: 'Merino Wool Sweater',
     sku: 'SWT-MRN-005',
     manufacturer: 'Himalayan Woolcrafts',
-    batchNumber: 'BATCH-26D-01',
+    batchNumber: 'BATCH-FY26-27-04',
     quantityInspected: 300,
     passedQuantity: 180,
     failedQuantity: 120,
@@ -1793,6 +1827,96 @@ export const useWarehouseStore = create<WarehouseState>()(
         }));
       },
 
+      updateProcurement: (id, data) => {
+        const item = get().procurements.find((p) => p.id === id);
+        if (!item) return;
+
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Procurement Order Updated',
+          referenceId: id,
+          previousValue: `${item.product} (${item.quantityOrdered} units, ₹${item.totalCost.toLocaleString()})`,
+          newValue: `${data.product ?? item.product} (${data.quantityOrdered ?? item.quantityOrdered} units, ₹${((data.quantityOrdered ?? item.quantityOrdered) * (data.unitCost ?? item.unitCost)).toLocaleString()})`,
+          user: data.procurementOwner || item.procurementOwner || 'Admin',
+          dateTime: now,
+        };
+
+        set((state) => {
+          const updatedProcurements = state.procurements.map((p) => {
+            if (p.id !== id) return p;
+            const quantityOrdered = data.quantityOrdered !== undefined ? data.quantityOrdered : p.quantityOrdered;
+            const unitCost = data.unitCost !== undefined ? data.unitCost : p.unitCost;
+            const totalCost = data.totalCost !== undefined ? data.totalCost : quantityOrdered * unitCost;
+
+            return {
+              ...p,
+              ...data,
+              quantityOrdered,
+              unitCost,
+              totalCost,
+            };
+          });
+
+          // Sync incomingStock
+          const updatedIncoming = state.incomingStock.map((inc) => {
+            if (inc.referenceId !== id) return inc;
+            return {
+              ...inc,
+              supplierManufacturer: data.supplier ?? inc.supplierManufacturer,
+              product: data.product ?? inc.product,
+              sku: data.sku ?? inc.sku,
+              quantity: data.quantityOrdered ?? inc.quantity,
+              expectedArrival: data.expectedDeliveryDate ?? inc.expectedArrival,
+              warehouse: data.destinationWarehouse ?? inc.warehouse,
+            };
+          });
+
+          return {
+            procurements: updatedProcurements,
+            incomingStock: updatedIncoming,
+            auditLog: [audit, ...state.auditLog],
+          };
+        });
+      },
+
+      deleteProcurement: (id) => {
+        const item = get().procurements.find((p) => p.id === id);
+        if (!item) return;
+
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        const audit: AuditLogEntry = {
+          id: `AUD-0${get().auditLog.length + 1}`,
+          action: 'Procurement Order Deleted',
+          referenceId: id,
+          previousValue: `${item.purchaseOrderNumber || id} - ${item.product} (${item.supplier})`,
+          newValue: 'Deleted',
+          user: 'Admin',
+          dateTime: now,
+        };
+
+        set((state) => ({
+          procurements: state.procurements.filter((p) => p.id !== id),
+          incomingStock: state.incomingStock.filter((inc) => inc.referenceId !== id),
+          alerts: state.alerts.filter((a) => a.entityId !== id),
+          auditLog: [audit, ...state.auditLog],
+        }));
+      },
+
       updateProcurementStatus: (id, status) => {
         const item = get().procurements.find((p) => p.id === id);
         if (!item) return;
@@ -1836,15 +1960,31 @@ export const useWarehouseStore = create<WarehouseState>()(
         }));
       },
 
-      receiveProcurementStock: (id, qty) => {
+      receiveProcurementStock: (id, qty, options) => {
         const item = get().procurements.find((p) => p.id === id);
         if (!item) return;
 
         const newReceived = Math.min(item.quantityOrdered, item.quantityReceived + qty);
         const status: ProcurementItem['status'] =
-          newReceived >= item.quantityOrdered ? 'Received' : 'Partially Received';
+          newReceived >= item.quantityOrdered ? 'Received' : 'In Transit';
 
-        const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const now = new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        const remainingAfter = Math.max(0, item.quantityOrdered - newReceived);
+        const receiptLog: ProcurementReceiptLog = {
+          id: `REC-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+          receivedQty: qty,
+          remainingQty: remainingAfter,
+          receivedAt: now,
+          receivedBy: options?.receivedBy || 'Operations Admin',
+          notes: options?.notes || `Received ${qty} units at ${item.destinationWarehouse}`,
+        };
 
         // Update Stock-in-Hand & Available
         const updatedStock = get().stock.map((stk) => {
@@ -1885,7 +2025,7 @@ export const useWarehouseStore = create<WarehouseState>()(
           previousStock: prevOnHand,
           newStock: prevOnHand + qty,
           referenceId: item.id,
-          performedBy: 'Operations Admin',
+          performedBy: options?.receivedBy || 'Operations Admin',
         };
 
         const audit: AuditLogEntry = {
@@ -1894,13 +2034,20 @@ export const useWarehouseStore = create<WarehouseState>()(
           referenceId: item.id,
           previousValue: `Received: ${item.quantityReceived}`,
           newValue: `Received: ${newReceived}`,
-          user: 'Operations Admin',
+          user: options?.receivedBy || 'Operations Admin',
           dateTime: now,
         };
 
         set((state) => ({
           procurements: state.procurements.map((p) =>
-            p.id === id ? { ...p, quantityReceived: newReceived, status } : p
+            p.id === id
+              ? {
+                  ...p,
+                  quantityReceived: newReceived,
+                  status,
+                  receiptHistory: [receiptLog, ...(p.receiptHistory || [])],
+                }
+              : p
           ),
           stock: updatedStock,
           stockMovements: [movement, ...state.stockMovements],
@@ -2061,18 +2208,23 @@ export const useWarehouseStore = create<WarehouseState>()(
             pStatus = 'In Production';
           }
 
-          // If stage moved to QC Pending, auto-generate QC record if none exists
+          // If stage moved to QC Pending, auto-generate QC record with FY sequence starting from 01
           let newQCs = state.qualityChecks;
           if (stage === 'Quality Check' || stage === 'Production Completed') {
             if (!newQCs.some((q) => q.productionOrder === orderId)) {
+              const existingQcIds = newQCs.map((q) => q.id);
+              const existingBatches = newQCs.map((q) => q.batchNumber);
+              const newQcId = generateQCInspectionId(existingQcIds);
+              const newBatchNumber = generateInspectionBatchNumber(existingBatches);
+
               newQCs = [
                 {
-                  id: `QC-2026-${120 + newQCs.length}`,
+                  id: newQcId,
                   productionOrder: orderId,
                   product: order.product,
                   sku: order.sku,
                   manufacturer: order.manufacturer,
-                  batchNumber: `BATCH-26-${Math.floor(10 + Math.random() * 90)}`,
+                  batchNumber: newBatchNumber,
                   quantityInspected: order.quantity,
                   passedQuantity: 0,
                   failedQuantity: 0,
@@ -2747,6 +2899,16 @@ export const useWarehouseStore = create<WarehouseState>()(
         set((state) => ({
           auditLog: [newEntry, ...state.auditLog],
         }));
+      },
+
+      generateNextBatchNumber: (prefix = 'BATCH') => {
+        const existingBatches = get().qualityChecks.map((q) => q.batchNumber);
+        return generateInspectionBatchNumber(existingBatches, new Date(), prefix);
+      },
+
+      generateNextQCId: () => {
+        const existingIds = get().qualityChecks.map((q) => q.id);
+        return generateQCInspectionId(existingIds, new Date());
       },
     }),
     {

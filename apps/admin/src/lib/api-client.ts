@@ -349,6 +349,8 @@ export const warehouseApi = {
   // Procurement
   procurements: (params?: Record<string, unknown>) => apiClient.get('/warehouse/procurement', { params }),
   createProcurement: (data: any) => apiClient.post('/warehouse/procurement', data),
+  updateProcurement: (id: string, data: any) => apiClient.put(`/warehouse/procurement/${id}`, data),
+  deleteProcurement: (id: string) => apiClient.delete(`/warehouse/procurement/${id}`),
   // Production
   productionOrders: (params?: Record<string, unknown>) => apiClient.get('/warehouse/production', { params }),
   createProductionOrder: (data: any) => apiClient.post('/warehouse/production', data),

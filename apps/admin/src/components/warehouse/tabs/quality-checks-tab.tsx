@@ -30,7 +30,7 @@ import { formatNumber } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface QualityChecksTabProps {
-  onOpenRecordQC: (item?: QualityCheckItem) => void;
+  onOpenRecordQC?: (item?: QualityCheckItem) => void;
 }
 
 export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
@@ -221,15 +221,6 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
             {isLoadingFromDb ? 'Syncing...' : 'Sync DB'}
           </Button>
         </div>
-
-        <Button
-          size="sm"
-          onClick={() => onOpenRecordQC()}
-          className="h-9 text-xs gap-1.5 shrink-0"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Record Quality Inspection
-        </Button>
       </div>
 
       {/* Table */}
@@ -296,7 +287,7 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
                         variant="outline"
                         size="sm"
                         className="h-7 text-xs gap-1 px-2"
-                        onClick={() => onOpenRecordQC(item)}
+                        onClick={() => onOpenRecordQC?.(item)}
                       >
                         <ClipboardCheck className="h-3.5 w-3.5 text-primary" />
                         <span>Inspect</span>
@@ -308,7 +299,7 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onOpenRecordQC(item)}>
+                          <DropdownMenuItem onClick={() => onOpenRecordQC?.(item)}>
                             <ClipboardCheck className="mr-2 h-4 w-4" /> Detailed Inspection
                           </DropdownMenuItem>
                           {item.qcStatus === 'Pending' && (

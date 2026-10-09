@@ -29,7 +29,7 @@ import { Search, Plus, Star, MapPin, Eye, Factory, CheckCircle2, AlertTriangle, 
 import { useWarehouseStore, ManufacturerItem } from '@/stores/warehouse';
 
 interface ManufacturersTabProps {
-  onOpenCreate: () => void;
+  onOpenCreate?: () => void;
 }
 
 export function ManufacturersTab({ onOpenCreate }: ManufacturersTabProps) {
@@ -104,10 +104,6 @@ export function ManufacturersTab({ onOpenCreate }: ManufacturersTabProps) {
             </SelectContent>
           </Select>
         </div>
-
-        <Button onClick={onOpenCreate} className="gap-2 shrink-0">
-          <Plus className="h-4 w-4" /> Add Manufacturer
-        </Button>
       </div>
 
       {/* Table */}

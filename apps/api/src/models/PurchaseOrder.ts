@@ -21,7 +21,6 @@ export interface IPurchaseOrder extends Document {
     | 'In Production'
     | 'In Transit'
     | 'Received'
-    | 'Partially Received'
     | 'Delayed'
     | 'Cancelled';
   expectedDate: Date;
@@ -60,7 +59,6 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
         'In Production',
         'In Transit',
         'Received',
-        'Partially Received',
         'Delayed',
         'Cancelled',
       ],

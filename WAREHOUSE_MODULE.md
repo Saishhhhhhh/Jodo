@@ -72,7 +72,6 @@ export interface ProcurementItem {
     | 'PO Raised'
     | 'Confirmed'
     | 'In Transit'
-    | 'Partially Received'
     | 'Received'
     | 'Delayed'
     | 'Cancelled';
