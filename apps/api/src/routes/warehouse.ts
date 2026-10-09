@@ -12,7 +12,7 @@ import { sendSuccess, sendCreated, sendError } from '../utils/response';
 import {
   generateInspectionBatchNumber,
   generateQCInspectionId,
-  getFinancialYear,
+  getBatchYear,
 } from '../utils/warehouse-batch';
 
 const router = Router();

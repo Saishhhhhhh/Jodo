@@ -1,22 +1,22 @@
 /**
- * Financial Year & Inspection Batch ID Generation Utilities
+ * Warehouse Year-Wise Batch & QC Inspection Generation Utilities (API)
  *
- * Financial Year (April 1 to March 31):
- * - Example: October 2026 -> FY26-27
- * - Sequential number resets to '01' on April 1 of each new FY.
+ * Year-wise Generation:
+ * - Generates batch numbers based on calendar year (e.g. 2026).
+ * - Sequence starts from '01' for the first batch of the year (e.g. BATCH-2026-01).
+ * - Resets to '01' on January 1st of each new year.
  */
 
-export function getFinancialYear(date: Date = new Date(), prefix: string = 'FY'): string {
-  const month = date.getMonth(); // 0 = Jan, 3 = Apr
-  const year = date.getFullYear();
+export function getBatchYear(date: Date = new Date()): string {
+  return String(date.getFullYear());
+}
 
+export function getFinancialYear(date: Date = new Date(), prefix: string = 'FY'): string {
+  const month = date.getMonth();
+  const year = date.getFullYear();
   const startYear = month >= 3 ? year : year - 1;
   const endYear = startYear + 1;
-
-  const startYY = String(startYear).slice(-2);
-  const endYY = String(endYear).slice(-2);
-
-  return `${prefix}${startYY}-${endYY}`;
+  return `${prefix}${String(startYear).slice(-2)}-${String(endYear).slice(-2)}`;
 }
 
 export function generateInspectionBatchNumber(
@@ -24,8 +24,9 @@ export function generateInspectionBatchNumber(
   date: Date = new Date(),
   prefix: string = 'BATCH'
 ): string {
-  const fy = getFinancialYear(date, 'FY');
-  const regex = new RegExp(`^${prefix}-${fy}-(\\d+)`, 'i');
+  const yearFull = String(date.getFullYear());
+  const yearShort = yearFull.slice(-2);
+  const regex = new RegExp(`^${prefix}-(?:${yearFull}|${yearShort}|FY\\d{2}-\\d{2})-(\\d+)`, 'i');
 
   let maxSeq = 0;
   for (const b of existingBatches) {
@@ -40,15 +41,16 @@ export function generateInspectionBatchNumber(
   }
 
   const nextSeq = String(maxSeq + 1).padStart(2, '0');
-  return `${prefix}-${fy}-${nextSeq}`;
+  return `${prefix}-${yearFull}-${nextSeq}`;
 }
 
 export function generateQCInspectionId(
   existingQcIds: string[],
   date: Date = new Date()
 ): string {
-  const fy = getFinancialYear(date, 'FY');
-  const regex = new RegExp(`^QC-${fy}-(\\d+)`, 'i');
+  const yearFull = String(date.getFullYear());
+  const yearShort = yearFull.slice(-2);
+  const regex = new RegExp(`^QC-(?:${yearFull}|${yearShort}|FY\\d{2}-\\d{2})-(\\d+)`, 'i');
 
   let maxSeq = 0;
   for (const id of existingQcIds) {
@@ -63,5 +65,5 @@ export function generateQCInspectionId(
   }
 
   const nextSeq = String(maxSeq + 1).padStart(2, '0');
-  return `QC-${fy}-${nextSeq}`;
+  return `QC-${yearFull}-${nextSeq}`;
 }

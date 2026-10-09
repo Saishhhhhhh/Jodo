@@ -4,12 +4,14 @@ import { warehouseApi } from '@/lib/api-client';
 import {
   generateInspectionBatchNumber,
   generateQCInspectionId,
+  getBatchYear,
   getFinancialYear,
 } from '@/lib/warehouse-utils';
 
 export {
   generateInspectionBatchNumber,
   generateQCInspectionId,
+  getBatchYear,
   getFinancialYear,
 };
 
@@ -791,12 +793,12 @@ const initialProductionTracking: ProductionTrackingItem[] = [
 
 const initialQualityChecks: QualityCheckItem[] = [
   {
-    id: 'QC-FY26-27-01',
+    id: 'QC-2026-01',
     productionOrder: 'PRD-2026-001',
     product: 'Classic Denim Jacket',
     sku: 'JKT-DNM-003',
     manufacturer: 'Sterling Garments Ltd',
-    batchNumber: 'BATCH-FY26-27-01',
+    batchNumber: 'BATCH-2026-01',
     quantityInspected: 750,
     passedQuantity: 710,
     failedQuantity: 40,
@@ -807,12 +809,12 @@ const initialQualityChecks: QualityCheckItem[] = [
     qcStatus: 'Passed',
   },
   {
-    id: 'QC-FY26-27-02',
+    id: 'QC-2026-02',
     productionOrder: 'PRD-2026-002',
     product: 'Organic Cotton T-Shirt',
     sku: 'TSH-ORG-001',
     manufacturer: 'Sterling Garments Ltd',
-    batchNumber: 'BATCH-FY26-27-02',
+    batchNumber: 'BATCH-2026-02',
     quantityInspected: 2500,
     passedQuantity: 0,
     failedQuantity: 0,
@@ -823,12 +825,12 @@ const initialQualityChecks: QualityCheckItem[] = [
     qcStatus: 'Pending',
   },
   {
-    id: 'QC-FY26-27-03',
+    id: 'QC-2026-03',
     productionOrder: 'PRD-2026-003',
     product: 'Slim Fit Chino Trouser',
     sku: 'CHN-SLM-002',
     manufacturer: 'Vanguard Textiles Corp',
-    batchNumber: 'BATCH-FY26-27-03',
+    batchNumber: 'BATCH-2026-03',
     quantityInspected: 1100,
     passedQuantity: 1050,
     failedQuantity: 50,
@@ -839,12 +841,12 @@ const initialQualityChecks: QualityCheckItem[] = [
     qcStatus: 'Partially Passed',
   },
   {
-    id: 'QC-FY26-27-04',
+    id: 'QC-2026-04',
     productionOrder: 'PRD-2026-004',
     product: 'Merino Wool Sweater',
     sku: 'SWT-MRN-005',
     manufacturer: 'Himalayan Woolcrafts',
-    batchNumber: 'BATCH-FY26-27-04',
+    batchNumber: 'BATCH-2026-04',
     quantityInspected: 300,
     passedQuantity: 180,
     failedQuantity: 120,
@@ -1695,24 +1697,36 @@ export const useWarehouseStore = create<WarehouseState>()(
           const updates: Partial<WarehouseState> = {};
 
           if (qcRes.status === 'fulfilled' && Array.isArray(qcRes.value?.data?.data) && qcRes.value.data.data.length > 0) {
-            const dbQcs: QualityCheckItem[] = qcRes.value.data.data.map((item: any) => ({
-              id: item.batchId || item._id,
-              productionOrder: item.productionOrderId || 'PRD-2026-001',
-              product: item.product,
-              sku: item.sku,
-              manufacturer: item.manufacturer || 'Sterling Garments Ltd',
-              batchNumber: item.batchId || 'BATCH-26A-01',
-              quantityInspected: item.inspectedQty ?? ((item.passedQty || 0) + (item.failedQty || 0)),
-              passedQuantity: item.passedQty ?? 0,
-              failedQuantity: item.failedQty ?? 0,
-              inspectionDate: item.date ? new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
-              inspector: item.inspector || 'Senior QC Inspector',
-              defectType: item.defectType || 'None',
-              defectNotes: item.defectNotes,
-              checkpoints: item.checkpoints || {},
-              images: item.images || [],
-              qcStatus: item.status || 'Pending',
-            }));
+            const dbQcs: QualityCheckItem[] = qcRes.value.data.data.map((item: any, idx: number) => {
+              let batchNum = item.batchId || `BATCH-2026-${String(idx + 1).padStart(2, '0')}`;
+              if (batchNum.startsWith('BATCH-26') || batchNum.startsWith('BATCH-FY')) {
+                const matchNum = batchNum.match(/(\d+)$/);
+                const seq = matchNum ? matchNum[1].padStart(2, '0') : String(idx + 1).padStart(2, '0');
+                batchNum = `BATCH-2026-${seq}`;
+              }
+              const qcId = item.id && !item.id.startsWith('BATCH-')
+                ? item.id
+                : `QC-2026-${String(idx + 1).padStart(2, '0')}`;
+
+              return {
+                id: qcId,
+                productionOrder: item.productionOrderId || 'PRD-2026-001',
+                product: item.product,
+                sku: item.sku,
+                manufacturer: item.manufacturer || 'Sterling Garments Ltd',
+                batchNumber: batchNum,
+                quantityInspected: item.inspectedQty ?? ((item.passedQty || 0) + (item.failedQty || 0)),
+                passedQuantity: item.passedQty ?? 0,
+                failedQuantity: item.failedQty ?? 0,
+                inspectionDate: item.date ? new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+                inspector: item.inspector || 'Senior QC Inspector',
+                defectType: item.defectType || 'None',
+                defectNotes: item.defectNotes,
+                checkpoints: item.checkpoints || {},
+                images: item.images || [],
+                qcStatus: item.status || 'Pending',
+              };
+            });
             updates.qualityChecks = dbQcs;
           }
 

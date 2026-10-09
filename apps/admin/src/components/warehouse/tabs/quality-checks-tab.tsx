@@ -247,8 +247,10 @@ export function QualityChecksTab({ onOpenRecordQC }: QualityChecksTabProps) {
               filteredData.map((item) => (
                 <TableRow key={item.id} className="hover:bg-muted/40 transition-colors">
                   <TableCell>
-                    <div className="font-mono font-semibold text-xs text-foreground">{item.id}</div>
-                    <div className="text-[10px] font-mono text-muted-foreground">{item.batchNumber}</div>
+                    <div className="font-mono font-semibold text-xs text-foreground">{item.batchNumber}</div>
+                    {item.id !== item.batchNumber && (
+                      <div className="text-[10px] font-mono text-muted-foreground">{item.id}</div>
+                    )}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {item.productionOrder}
