@@ -171,7 +171,7 @@ export default function ReportsPage() {
               disabled={generateMutation.isPending}
               className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-md"
             >
-              {generateMutation.isPending ? 'Generating...' : 'Generate AI Summary'}
+              {generateMutation.isPending ? 'Generating...' : aiSummary ? 'Re-generate AI Summary' : 'Generate AI Summary'}
             </Button>
           </div>
 
