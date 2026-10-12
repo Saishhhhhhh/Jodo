@@ -92,7 +92,7 @@ export default function AboutPage() {
               stroke={false}
               width
               weight
-              italic
+              italic={false}
               textColor="#c85a3c"
               strokeColor="#c85a3c"
               minFontSize={48}
