@@ -58,6 +58,7 @@ import countsRoutes from './routes/counts';
 import messagesRoutes from './routes/messages';
 import webhooksRoutes from './routes/webhooks';
 import smtpSettingsRoutes from './routes/smtp-settings';
+import analyticsRoutes from './routes/analytics';
 import './models/Message';
 
 const app = express();
@@ -153,6 +154,7 @@ app.use('/api/admin/discounts', discountsRoutes);
 app.use('/api/admin/apps', appsRoutes);
 app.use('/api/admin/audit-logs', auditLogsRoutes);
 app.use('/api/admin/reports', reportsRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/admin/collections', collectionsRoutes);
 app.use('/api/admin/gift-cards', giftCardsRoutes);

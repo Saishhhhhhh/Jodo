@@ -139,6 +139,12 @@ export const productsApi = {
   bulkImport: (products: any[]) => apiClient.post('/admin/products/bulk-import', { products }),
 };
 
+export const analyticsApi = {
+  sales: (params?: { dateRange?: string }) => apiClient.get('/admin/analytics/sales', { params }),
+  overview: () => apiClient.get('/admin/analytics/overview'),
+  funnel: () => apiClient.get('/admin/analytics/funnel'),
+};
+
 export const ordersApi = {
   list: (params?: Record<string, unknown>) => apiClient.get('/admin/orders', { params }),
   get: (id: string) => apiClient.get(`/admin/orders/${id}`),
