@@ -44,9 +44,28 @@ router.get('/', async (req, res, next) => {
     const products = await Product.find({
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }).lean();
 
-    sendSuccess(res, products);
+    const inventoryItems = await InventoryItem.find({
+      storeId: req.auth!.storeId,
+    }).lean();
+
+    const invMap = new Map(inventoryItems.map((i: any) => [i.sku, i]));
+
+    const syncedProducts = products.map((p: any) => {
+      const inv = invMap.get(p.sku);
+      if (inv) {
+        const reserved = inv.reservedStock || inv.committed || 0;
+        const available = typeof inv.available === 'number' ? inv.available : Math.max(0, (inv.onHand || 0) - reserved);
+        return {
+          ...p,
+          inventoryQuantity: available,
+        };
+      }
+      return p;
+    });
+
+    sendSuccess(res, syncedProducts);
   } catch (error) {
     next(error);
   }
@@ -120,6 +139,34 @@ router.post('/bulk-import', async (req, res, next) => {
     });
 
     await Product.insertMany(formattedProducts, { ordered: false });
+
+    // Sync InventoryItem records for all imported products
+    for (const p of formattedProducts) {
+      if (p.sku) {
+        InventoryItem.findOneAndUpdate(
+          { storeId, sku: p.sku },
+          {
+            $set: {
+              tenantId,
+              onHand: p.inventoryQuantity || 0,
+              available: p.inventoryQuantity || 0,
+              status: (p.inventoryQuantity || 0) <= 0 ? 'out_of_stock' : (p.inventoryQuantity || 0) <= 10 ? 'low_stock' : 'in_stock',
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              locationName: 'Main Warehouse',
+              reservedStock: 0,
+              committed: 0,
+              reorderLevel: 10,
+              lowStockThreshold: 10,
+              reorderQuantity: 50,
+              createdAt: new Date(),
+            },
+          },
+          { upsert: true }
+        ).catch((err) => console.error('[Products] Bulk import inventory sync error:', err));
+      }
+    }
 
     sendSuccess(res, null, 'Products imported successfully');
   } catch (error) {
@@ -447,6 +494,33 @@ router.post('/', async (req, res, next) => {
       addons: Array.isArray(addons) ? addons : [],
     });
 
+    // Automatically upsert and sync corresponding InventoryItem
+    if (newProduct.sku) {
+      const qty = newProduct.inventoryQuantity || 0;
+      await InventoryItem.findOneAndUpdate(
+        { storeId: req.auth!.storeId, sku: newProduct.sku },
+        {
+          $set: {
+            tenantId: req.auth!.tenantId,
+            onHand: qty,
+            available: qty,
+            status: qty <= 0 ? 'out_of_stock' : qty <= 10 ? 'low_stock' : 'in_stock',
+            updatedAt: new Date(),
+          },
+          $setOnInsert: {
+            locationName: 'Main Warehouse',
+            reservedStock: 0,
+            committed: 0,
+            reorderLevel: 10,
+            lowStockThreshold: 10,
+            reorderQuantity: 50,
+            createdAt: new Date(),
+          },
+        },
+        { upsert: true }
+      ).catch((err) => console.error('[Products] Create inventory sync error:', err));
+    }
+
     sendSuccess(res, newProduct, 'Product created successfully', 201);
   } catch (error) {
     next(error);
@@ -525,6 +599,37 @@ router.put('/:id', async (req, res, next) => {
 
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // Automatically update and sync corresponding InventoryItem
+    if (product.sku && inventoryQuantity !== undefined) {
+      const parsedQty = parseInt(inventoryQuantity, 10);
+      let existingInv = await InventoryItem.findOne({ storeId: req.auth!.storeId, sku: product.sku });
+      const reserved = existingInv?.reservedStock || existingInv?.committed || 0;
+      const onHand = parsedQty + reserved;
+
+      await InventoryItem.findOneAndUpdate(
+        { storeId: req.auth!.storeId, sku: product.sku },
+        {
+          $set: {
+            tenantId: req.auth!.tenantId,
+            onHand,
+            available: parsedQty,
+            status: parsedQty <= 0 ? 'out_of_stock' : parsedQty <= (existingInv?.reorderLevel || 10) ? 'low_stock' : 'in_stock',
+            updatedAt: new Date(),
+          },
+          $setOnInsert: {
+            locationName: 'Main Warehouse',
+            reservedStock: 0,
+            committed: 0,
+            reorderLevel: 10,
+            lowStockThreshold: 10,
+            reorderQuantity: 50,
+            createdAt: new Date(),
+          },
+        },
+        { upsert: true }
+      ).catch((err) => console.error('[Products] Update inventory sync error:', err));
     }
 
     sendSuccess(res, product, 'Product updated successfully');
