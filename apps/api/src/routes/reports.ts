@@ -44,7 +44,7 @@ router.get('/digest', async (req: Request, res: Response, next) => {
     const startOfWeek = getStartOfWeek();
 
     // 1. Sales & Orders
-    const orders = await Order.find({ tenantId, storeId });
+    const orders = await Order.find({ tenantId, storeId }).sort({ createdAt: -1 });
     
     const dailyOrders = orders.filter(o => new Date(o.createdAt) >= startOfToday);
     const weeklyOrders = orders.filter(o => new Date(o.createdAt) >= startOfWeek);
@@ -52,14 +52,15 @@ router.get('/digest', async (req: Request, res: Response, next) => {
     const dailyRevenue = dailyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
     const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
-    const recentOrderDetails = dailyOrders.map(o => ({
-      customer: o.customerName || 'Unknown',
+    const ordersToDetail = dailyOrders.length > 0 ? dailyOrders : orders.slice(0, 5);
+    const recentOrderDetails = ordersToDetail.map(o => ({
+      customer: o.customerName || 'Customer',
       revenue: o.totalAmount,
       items: o.items.map((i: any) => `${i.quantity}x ${i.title}`).join(', ')
     }));
 
     // 2. Leads & Follow-ups
-    const leads = await Lead.find({ tenantId, storeId });
+    const leads = await Lead.find({ tenantId, storeId }).sort({ createdAt: -1 });
     
     const dailyLeads = leads.filter(l => new Date(l.createdAt) >= startOfToday);
     const weeklyLeads = leads.filter(l => new Date(l.createdAt) >= startOfWeek);
@@ -70,10 +71,11 @@ router.get('/digest', async (req: Request, res: Response, next) => {
       l.status !== 'Lost'
     );
 
-    const recentLeadDetails = dailyLeads.map(l => ({
+    const leadsToDetail = dailyLeads.length > 0 ? dailyLeads : leads.slice(0, 5);
+    const recentLeadDetails = leadsToDetail.map(l => ({
       name: l.name,
       source: l.source,
-      notes: l.notes || 'No notes'
+      notes: l.notes || 'In-pipeline customer lead'
     }));
 
     // 3. Inventory
