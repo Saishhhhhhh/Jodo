@@ -57,10 +57,10 @@ export const ComingSoonSection: React.FC = () => {
         </div>
 
         {/* Wordmark & Heading */}
-        <h2 className="font-serif text-5xl sm:text-7xl md:text-8xl font-normal tracking-[0.16em] uppercase text-[#24211E] mb-3">
+        <h2 className="font-heading text-5xl sm:text-7xl md:text-8xl font-normal tracking-[0.16em] uppercase text-[#24211E] mb-3">
           JODO
         </h2>
-        <div className="font-serif italic text-2xl sm:text-4xl text-[#C65F45] font-normal tracking-wide mb-6">
+        <div className="font-sans italic text-2xl sm:text-4xl text-[#C65F45] font-normal tracking-wide mb-6">
           COMING SOON
         </div>
 
@@ -75,7 +75,7 @@ export const ComingSoonSection: React.FC = () => {
             <div className="w-12 h-12 rounded-full bg-[#C65F45]/15 flex items-center justify-center text-[#C65F45] mb-4">
               <Check className="w-6 h-6 stroke-[2.5]" />
             </div>
-            <h3 className="font-serif text-2xl md:text-3xl font-normal text-[#24211E] uppercase tracking-wide mb-1">
+            <h3 className="font-heading text-2xl md:text-3xl font-normal text-[#24211E] uppercase tracking-wide mb-1">
               You are on the list.
             </h3>
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#C65F45] mb-4">

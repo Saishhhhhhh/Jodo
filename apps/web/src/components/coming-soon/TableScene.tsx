@@ -505,11 +505,11 @@ export const TableScene: React.FC<TableSceneProps> = ({ finish, onAssemblyProgre
 
         {/* Minimal Central Title */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 text-center w-full px-4 select-none">
-          <div className="font-serif text-base md:text-xl tracking-[0.3em] text-[#24211E] uppercase mb-1 opacity-80">
+          <div className="font-heading text-base md:text-xl tracking-[0.3em] text-[#24211E] uppercase mb-1 opacity-80">
             JODO · OBJECT 02
           </div>
           <h2
-            className="font-serif font-light uppercase tracking-[0.14em] leading-[0.92] text-[#C65F45]"
+            className="font-heading font-light uppercase tracking-[0.14em] leading-[0.92] text-[#C65F45]"
             style={{ fontSize: 'clamp(2.5rem, 8vw, 6.5rem)' }}
           >
             THE MESA

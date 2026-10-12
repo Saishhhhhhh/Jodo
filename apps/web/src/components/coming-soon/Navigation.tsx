@@ -56,7 +56,7 @@ export const Navigation: React.FC<NavigationProps> = () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
-          <span className="font-serif text-2xl md:text-3xl tracking-[0.22em] font-normal uppercase transition-transform group-hover:scale-105">
+          <span className="font-heading text-2xl md:text-3xl tracking-[0.22em] font-normal uppercase transition-transform group-hover:scale-105">
             JODO
           </span>
           <span className={`hidden sm:inline-block font-mono text-[9px] tracking-[0.25em] uppercase ${mutedColorClass}`}>

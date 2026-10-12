@@ -21,13 +21,13 @@ export const PhilosophySection: React.FC = () => {
         </div>
 
         {/* Large Editorial Headline */}
-        <h2 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-[#24211E] tracking-tight uppercase leading-[0.95] mb-12">
+        <h2 className="font-heading text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-[#24211E] tracking-tight uppercase leading-[0.95] mb-12">
           MADE TO COME <br />
           <span className="italic font-normal text-[#C65F45]">TOGETHER.</span>
         </h2>
 
         {/* Supporting Editorial Statement */}
-        <p className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#24211E] font-light leading-relaxed max-w-3xl mb-20">
+        <p className="font-sans text-2xl sm:text-3xl md:text-4xl text-[#24211E] font-light leading-relaxed max-w-3xl mb-20">
           Thoughtful forms. Honest materials. Furniture designed for the way life actually happens.
         </p>
 
@@ -38,7 +38,7 @@ export const PhilosophySection: React.FC = () => {
               <Hammer className="w-3.5 h-3.5 text-[#C65F45]" />
               <span>01 / FRICTION JOINERY</span>
             </div>
-            <h3 className="font-serif text-2xl text-[#24211E] font-normal">
+            <h3 className="font-sans font-medium text-2xl text-[#24211E]">
               No Glue. No Disposability.
             </h3>
             <p className="font-sans text-xs sm:text-sm text-[#57524C] leading-relaxed">
@@ -52,7 +52,7 @@ export const PhilosophySection: React.FC = () => {
               <Compass className="w-3.5 h-3.5 text-[#C65F45]" />
               <span>02 / CONTEMPORARY INDIAN</span>
             </div>
-            <h3 className="font-serif text-2xl text-[#24211E] font-normal">
+            <h3 className="font-sans font-medium text-2xl text-[#24211E]">
               Rooted in Subcontinental Modernism
             </h3>
             <p className="font-sans text-xs sm:text-sm text-[#57524C] leading-relaxed">
@@ -66,7 +66,7 @@ export const PhilosophySection: React.FC = () => {
               <Feather className="w-3.5 h-3.5 text-[#C65F45]" />
               <span>03 / TACTILE PATINA</span>
             </div>
-            <h3 className="font-serif text-2xl text-[#24211E] font-normal">
+            <h3 className="font-sans font-medium text-2xl text-[#24211E]">
               Materials that Age With Grace
             </h3>
             <p className="font-sans text-xs sm:text-sm text-[#57524C] leading-relaxed">

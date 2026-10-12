@@ -10,7 +10,7 @@ const ChairScene = dynamic(
     ssr: false,
     loading: () => (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-[#F4EBDD] text-[#24211E]">
-        <div className="font-serif text-3xl md:text-5xl uppercase tracking-[0.25em] text-[#C65F45] animate-pulse mb-4">
+        <div className="font-heading text-3xl md:text-5xl uppercase tracking-[0.25em] text-[#C65F45] animate-pulse mb-4">
           JODO
         </div>
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-[#8E867E]">

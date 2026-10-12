@@ -22,11 +22,11 @@ export const BrandStatementSection: React.FC = () => {
 
       {/* Center Statement with Massive Editorial Typography */}
       <div className="relative z-10 max-w-5xl my-auto py-12">
-        <h2 className="font-serif text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-light leading-[1.05] tracking-tight mb-8 text-[#FAF6F0]">
+        <h2 className="font-sans text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-light leading-[1.05] tracking-tight mb-8 text-[#FAF6F0]">
           Furniture is more than what fills a room.
         </h2>
 
-        <p className="font-serif italic text-2xl sm:text-4xl md:text-6xl text-[#F4EBDD]/90 font-normal leading-[1.1] tracking-tight">
+        <p className="font-sans italic text-2xl sm:text-4xl md:text-6xl text-[#F4EBDD]/90 font-normal leading-[1.1] tracking-tight">
           It shapes how we live in it.
         </p>
       </div>

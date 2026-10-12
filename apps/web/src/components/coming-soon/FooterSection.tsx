@@ -25,15 +25,15 @@ export const FooterSection: React.FC = () => {
 
       {/* Main Calm Centered Statement */}
       <div className="max-w-4xl mx-auto text-center my-auto py-12">
-        <h2 className="font-serif text-4xl sm:text-6xl md:text-8xl font-light text-[#24211E] uppercase tracking-tight mb-4">
+        <h2 className="font-heading text-4xl sm:text-6xl md:text-8xl font-light text-[#24211E] uppercase tracking-tight mb-4">
           SEE YOU SOON.
         </h2>
 
-        <div className="font-serif text-3xl sm:text-5xl font-normal text-[#C65F45] tracking-[0.2em] uppercase mb-4">
+        <div className="font-heading text-3xl sm:text-5xl font-normal text-[#C65F45] tracking-[0.2em] uppercase mb-4">
           JODO
         </div>
 
-        <p className="font-serif italic text-xl sm:text-2xl md:text-3xl text-[#57524C] font-light mb-8">
+        <p className="font-sans italic text-xl sm:text-2xl md:text-3xl text-[#57524C] font-light mb-8">
           Furniture for the spaces between life.
         </p>
 
