@@ -653,6 +653,13 @@ router.delete('/:id', async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
+    if (product.sku) {
+      await InventoryItem.deleteMany({
+        storeId: req.auth!.storeId,
+        sku: product.sku,
+      }).catch((err) => console.error('[Products] Inventory delete sync error:', err));
+    }
+
     sendSuccess(res, null, 'Product deleted successfully');
   } catch (error) {
     next(error);
