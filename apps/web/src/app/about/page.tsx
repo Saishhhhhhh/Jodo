@@ -80,11 +80,11 @@ export default function AboutPage() {
     <div className="bg-white min-h-screen font-sans">
       
       {/* 2.1 Hero Section */}
-      <section className="h-[60vh] md:h-screen w-full relative bg-white overflow-hidden flex items-center justify-center mt-16 md:mt-0">
+      <section className="min-h-[70vh] sm:min-h-[80vh] md:min-h-screen w-full relative bg-white overflow-hidden flex items-center justify-center pt-20 md:pt-0">
         
         {/* TextPressure Layer */}
-        <div className="relative z-10 w-full max-w-[85vw] sm:max-w-[75vw] md:max-w-[60vw] h-[160px] sm:h-[240px] md:h-[400px] pointer-events-none">
-          <div className="w-full h-full pointer-events-auto">
+        <div className="relative z-10 w-full max-w-[94vw] sm:max-w-[90vw] md:max-w-[86vw] lg:max-w-[82vw] 2xl:max-w-[1440px] h-[260px] sm:h-[380px] md:h-[520px] lg:h-[640px] xl:h-[720px] pointer-events-none flex items-center justify-center">
+          <div className="w-full h-full pointer-events-auto flex items-center justify-center">
             <TextPressure
               text="JODO"
               flex
@@ -95,7 +95,7 @@ export default function AboutPage() {
               italic
               textColor="#c85a3c"
               strokeColor="#c85a3c"
-              minFontSize={36}
+              minFontSize={48}
             />
           </div>
         </div>
