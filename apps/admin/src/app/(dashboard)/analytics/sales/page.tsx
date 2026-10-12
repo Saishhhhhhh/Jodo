@@ -57,61 +57,31 @@ const tooltipItemStyle = {
   fontWeight: 600,
 };
 
+import { useQuery } from '@tanstack/react-query';
+import { analyticsApi } from '@/lib/api-client';
+import { Skeleton } from '@/components/ui/skeleton';
+
 export default function AnalyticsSalesPage() {
   const [dateRange, setDateRange] = React.useState('30d');
 
-  const { salesData, channelData, topProducts, kpiData } = React.useMemo(() => {
-    const m = dateRange === '7d' ? 0.25 : dateRange === '90d' ? 3 : dateRange === '12m' ? 12 : dateRange === 'ytd' ? 6 : 1;
-    return {
-      kpiData: {
-        sales: 45231.89 * m,
-        orders: Math.floor(2350 * m),
-        aov: dateRange === '7d' ? 82.10 : dateRange === '90d' ? 86.20 : 84.50,
-        conversion: dateRange === '7d' ? 3.1 : dateRange === '90d' ? 3.4 : 3.24
-      },
-      salesData: dateRange === '7d' ? [
-        { date: 'Mon', sales: 4000, orders: 24 },
-        { date: 'Tue', sales: 3000, orders: 13 },
-        { date: 'Wed', sales: 5000, orders: 38 },
-        { date: 'Thu', sales: 2780, orders: 39 },
-        { date: 'Fri', sales: 6890, orders: 48 },
-        { date: 'Sat', sales: 4390, orders: 38 },
-        { date: 'Sun', sales: 8490, orders: 63 },
-      ] : dateRange === '90d' ? [
-        { date: 'Apr', sales: 120000, orders: 1200 },
-        { date: 'May', sales: 180000, orders: 1450 },
-        { date: 'Jun', sales: 150000, orders: 1300 },
-      ] : dateRange === '12m' || dateRange === 'ytd' ? [
-        { date: 'Jan', sales: 110000, orders: 1100 },
-        { date: 'Feb', sales: 95000, orders: 950 },
-        { date: 'Mar', sales: 125000, orders: 1250 },
-        { date: 'Apr', sales: 140000, orders: 1400 },
-        { date: 'May', sales: 180000, orders: 1800 },
-        { date: 'Jun', sales: 160000, orders: 1600 },
-      ] : [
-        { date: 'Jun 1', sales: 12000, orders: 120 },
-        { date: 'Jun 5', sales: 18000, orders: 145 },
-        { date: 'Jun 10', sales: 15000, orders: 130 },
-        { date: 'Jun 15', sales: 22000, orders: 180 },
-        { date: 'Jun 20', sales: 31000, orders: 250 },
-        { date: 'Jun 25', sales: 28000, orders: 220 },
-        { date: 'Jun 30', sales: 42000, orders: 310 },
-      ],
-      channelData: [
-        { name: 'Online Store', value: Math.floor(45000 * m) },
-        { name: 'Shop App', value: Math.floor(15000 * m) },
-        { name: 'POS', value: Math.floor(8000 * m) },
-        { name: 'Social', value: Math.floor(5000 * m) },
-      ],
-      topProducts: [
-        { id: 1, name: 'Premium Cotton T-Shirt', variant: 'Black / M', sales: Math.floor(12450 * m), orders: Math.floor(342 * m) },
-        { id: 2, name: 'Wireless Headphones', variant: 'Silver', sales: Math.floor(8930 * m), orders: Math.floor(124 * m) },
-        { id: 3, name: 'Ergonomic Office Chair', variant: 'Charcoal', sales: Math.floor(6500 * m), orders: Math.floor(45 * m) },
-        { id: 4, name: 'Smart Fitness Watch', variant: 'Midnight', sales: Math.floor(5400 * m), orders: Math.floor(89 * m) },
-        { id: 5, name: 'Organic Coffee Beans', variant: '1kg / Whole', sales: Math.floor(4200 * m), orders: Math.floor(210 * m) },
-      ]
-    };
-  }, [dateRange]);
+  const { data: salesRes, isLoading } = useQuery({
+    queryKey: ['analytics', 'sales', dateRange],
+    queryFn: async () => {
+      const res = await analyticsApi.sales({ dateRange });
+      return res.data?.data;
+    },
+  });
+
+  const kpiData = salesRes?.kpiData || {
+    sales: 0,
+    orders: 0,
+    aov: 0,
+    conversion: 0,
+  };
+
+  const salesData = salesRes?.salesData || [];
+  const channelData = salesRes?.channelData || [];
+  const topProducts = salesRes?.topProducts || [];
 
   return (
     <div className="flex-1 space-y-6 p-6 md:p-8 pt-6">
@@ -328,7 +298,7 @@ export default function AnalyticsSalesPage() {
                     formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']}
                   />
                   <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
-                    {channelData.map((entry, index) => (
+                    {channelData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={['hsl(var(--primary))', '#8b5cf6', '#10b981', '#f59e0b'][index % 4]} />
                     ))}
                   </Bar>
@@ -358,7 +328,7 @@ export default function AnalyticsSalesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {topProducts.map((product) => (
+              {topProducts.map((product: any) => (
                 <TableRow key={product.id}>
                   <TableCell>
                     <div className="font-medium">{product.name}</div>

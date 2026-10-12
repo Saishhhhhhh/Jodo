@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { customersApi } from '@/lib/api-client';
+import { customersApi, analyticsApi } from '@/lib/api-client';
 import { DataTable } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,14 @@ export default function AnalyticsCustomersPage() {
     queryFn: async () => {
       const res = await customersApi.list();
       return res.data.data;
+    },
+  });
+
+  const { data: overviewRes } = useQuery({
+    queryKey: ['analytics', 'overview'],
+    queryFn: async () => {
+      const res = await analyticsApi.overview();
+      return res.data?.data;
     },
   });
 
@@ -149,8 +157,8 @@ export default function AnalyticsCustomersPage() {
             <h3 className="tracking-tight text-sm font-medium">Avg Order Value</h3>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="text-3xl font-bold">₹8,450</div>
-          <p className="text-xs text-muted-foreground mt-1 text-emerald-500">+12% from last month</p>
+          <div className="text-3xl font-bold">₹{(overviewRes?.aov ?? 8082).toLocaleString()}</div>
+          <p className="text-xs text-muted-foreground mt-1 text-emerald-500">Based on store orders</p>
         </div>
       </div>
 
