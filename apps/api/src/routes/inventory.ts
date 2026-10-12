@@ -224,11 +224,37 @@ router.put('/:id', async (req, res, next) => {
     const { id } = req.params;
     const { available, committed, lowStockThreshold } = req.body;
 
-    const item = await InventoryItem.findOne({
+    let item = await InventoryItem.findOne({
       _id: id,
       tenantId: req.auth!.tenantId,
       storeId: req.auth!.storeId,
     });
+
+    if (!item) {
+      const prod = await Product.findOne({
+        _id: id,
+        tenantId: req.auth!.tenantId,
+        storeId: req.auth!.storeId,
+      });
+      if (prod && prod.sku) {
+        item = await InventoryItem.findOne({
+          storeId: req.auth!.storeId,
+          sku: prod.sku,
+        });
+        if (!item) {
+          item = new InventoryItem({
+            tenantId: req.auth!.tenantId,
+            storeId: req.auth!.storeId,
+            sku: prod.sku,
+            locationName: 'Main Warehouse',
+            onHand: prod.inventoryQuantity || 0,
+            available: prod.inventoryQuantity || 0,
+            reservedStock: 0,
+            reorderLevel: 10,
+          });
+        }
+      }
+    }
 
     if (!item) {
       return sendError(res, 'Inventory item not found', 404);
@@ -238,22 +264,35 @@ router.put('/:id', async (req, res, next) => {
     const previousThreshold = item.lowStockThreshold;
 
     if (available !== undefined) item.available = parseInt(available, 10);
-    if (committed !== undefined) item.committed = parseInt(committed, 10);
-    if (lowStockThreshold !== undefined) item.lowStockThreshold = parseInt(lowStockThreshold, 10);
+    if (committed !== undefined) {
+      item.committed = parseInt(committed, 10);
+      item.reservedStock = item.committed;
+    }
+    if (lowStockThreshold !== undefined) {
+      item.lowStockThreshold = parseInt(lowStockThreshold, 10);
+      item.reorderLevel = item.lowStockThreshold;
+    }
 
     // Recalculate totals
-    item.onHand = item.available + item.committed;
+    const reserved = item.reservedStock || item.committed || 0;
+    item.onHand = item.available + reserved;
 
     // Transition stock status
     if (item.available === 0) {
       item.status = 'out_of_stock';
-    } else if (item.available < item.lowStockThreshold) {
+    } else if (item.available <= (item.reorderLevel || item.lowStockThreshold)) {
       item.status = 'low_stock';
     } else {
       item.status = 'in_stock';
     }
 
     await item.save();
+
+    // Keep Product inventoryQuantity 100% synchronized
+    await Product.updateOne(
+      { storeId: req.auth!.storeId, sku: item.sku },
+      { $set: { inventoryQuantity: item.available } }
+    ).catch(err => console.error('[InventoryRoute] Product sync error:', err));
 
     // Trigger alert if it just crossed the threshold downwards
     if (previousAvailable >= previousThreshold && item.available < item.lowStockThreshold) {

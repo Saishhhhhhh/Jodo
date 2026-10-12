@@ -116,16 +116,17 @@ export class InventoryIntelligenceAiService {
     let totalReservedSum = 0;
 
     const items: InventoryStockItem[] = products.map((prod) => {
-      const inv = invMap.get(prod.sku as string) || {
-        onHand: 0,
-        reservedStock: 0,
-        reorderLevel: 10,
-      };
+      const inv = invMap.get(prod.sku as string);
+      const reservedStock = Math.max(inv?.reservedStock || 0, reservationBySku[prod.sku as string] || 0);
 
-      const totalStock = inv.onHand || 0;
-      const reservedStock = Math.max(inv.reservedStock || 0, reservationBySku[prod.sku as string] || 0);
+      // Use inv.onHand if present. If missing or 0 while product has stock, fallback to prod.inventoryQuantity + reservedStock
+      let totalStock = inv?.onHand ?? 0;
+      if (!inv || (inv.onHand === 0 && (prod.inventoryQuantity || 0) > 0)) {
+        totalStock = (prod.inventoryQuantity || 0) + reservedStock;
+      }
+
       const availableStock = Math.max(0, totalStock - reservedStock);
-      const reorderLevel = inv.reorderLevel || 10;
+      const reorderLevel = inv?.reorderLevel || 10;
 
       let status: 'In Stock' | 'Low Stock' | 'Out of Stock' = 'In Stock';
       if (availableStock <= 0) {
@@ -138,8 +139,36 @@ export class InventoryIntelligenceAiService {
 
       totalReservedSum += reservedStock;
 
+      // Self-heal: If InventoryItem was missing or out of sync, update/upsert in background
+      if (!inv || inv.onHand !== totalStock || inv.available !== availableStock) {
+        InventoryItem.findOneAndUpdate(
+          { storeId, sku: prod.sku },
+          {
+            $set: {
+              tenantId: prod.tenantId,
+              storeId: prod.storeId,
+              sku: prod.sku,
+              locationName: inv?.locationName || 'Main Warehouse',
+              onHand: totalStock,
+              available: availableStock,
+              reservedStock,
+              committed: reservedStock,
+              reorderLevel,
+              lowStockThreshold: reorderLevel,
+              status: status === 'Out of Stock' ? 'out_of_stock' : status === 'Low Stock' ? 'low_stock' : 'in_stock',
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              createdAt: new Date(),
+              reorderQuantity: 50,
+            },
+          },
+          { upsert: true }
+        ).catch((err) => console.error('[InventoryService] Auto-heal sync failed:', err));
+      }
+
       return {
-        _id: String((inv as any)._id || prod._id),
+        _id: String((inv as any)?._id || prod._id),
         productName: prod.title || 'Unknown Product',
         sku: prod.sku || 'N/A',
         imageUrl: prod.imageUrl,
