@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Search, Plus, User, Phone, Mail, Globe, MessageCircle, Instagram, MousePointerClick, Target, Save, Trash, Download, LayoutList, KanbanSquare } from 'lucide-react';
+import { Search, Plus, User, Phone, Mail, Globe, MessageCircle, Instagram, Facebook, MousePointerClick, Target, Save, Trash, Download, LayoutList, KanbanSquare } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -38,7 +38,7 @@ type Lead = {
   name: string;
   email?: string;
   phone?: string;
-  source: 'Website' | 'Instagram' | 'WhatsApp' | 'Manual' | 'Other';
+  source: 'Website' | 'Instagram' | 'Facebook' | 'WhatsApp' | 'Manual' | 'Other';
   status: LeadStatus;
   interestLevel: 'High' | 'Medium' | 'Low';
   followUpPriority: 'High' | 'Medium' | 'Low';
@@ -298,11 +298,12 @@ export default function LeadsPage() {
         header: 'Source',
         cell: ({ row }) => {
           const s = row.original.source;
-          let icon = <MousePointerClick className="w-3 h-3 mr-1" />;
-          if (s === 'WhatsApp') icon = <MessageCircle className="w-3 h-3 mr-1" />;
-          if (s === 'Instagram') icon = <Instagram className="w-3 h-3 mr-1" />;
-          if (s === 'Website') icon = <Globe className="w-3 h-3 mr-1" />;
-          return <div className="flex items-center text-xs text-muted-foreground">{icon} {s}</div>;
+          let icon = <MousePointerClick className="w-3 h-3 mr-1 text-muted-foreground" />;
+          if (s === 'WhatsApp') icon = <MessageCircle className="w-3 h-3 mr-1 text-emerald-500" />;
+          if (s === 'Instagram') icon = <Instagram className="w-3 h-3 mr-1 text-pink-500" />;
+          if (s === 'Facebook') icon = <Facebook className="w-3 h-3 mr-1 text-blue-600" />;
+          if (s === 'Website') icon = <Globe className="w-3 h-3 mr-1 text-indigo-500" />;
+          return <div className="flex items-center text-xs font-medium">{icon} {s}</div>;
         }
       },
       {
@@ -487,9 +488,14 @@ export default function LeadsPage() {
                                     </div>
 
                                     <div className="flex items-center justify-between mt-1">
-                                      <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                                        {lead.source}
-                                      </span>
+                                      <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                                        {lead.source === 'Instagram' && <Instagram className="w-3 h-3 text-pink-500" />}
+                                        {lead.source === 'Facebook' && <Facebook className="w-3 h-3 text-blue-600" />}
+                                        {lead.source === 'WhatsApp' && <MessageCircle className="w-3 h-3 text-emerald-500" />}
+                                        {lead.source === 'Website' && <Globe className="w-3 h-3 text-indigo-500" />}
+                                        {lead.source === 'Manual' && <MousePointerClick className="w-3 h-3 text-muted-foreground" />}
+                                        <span>{lead.source}</span>
+                                      </div>
                                       {lead.interestLevel === 'High' && <Badge variant="secondary" className="text-[10px] py-0 h-4 bg-orange-500/10 text-orange-500">HOT</Badge>}
                                     </div>
                                   </div>
@@ -549,7 +555,9 @@ export default function LeadsPage() {
                         <SelectItem value="Manual">Manual</SelectItem>
                         <SelectItem value="WhatsApp">WhatsApp</SelectItem>
                         <SelectItem value="Instagram">Instagram</SelectItem>
+                        <SelectItem value="Facebook">Facebook</SelectItem>
                         <SelectItem value="Website">Website</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

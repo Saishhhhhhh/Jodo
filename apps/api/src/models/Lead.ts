@@ -6,7 +6,7 @@ export interface ILead extends Document {
   name: string;
   email?: string;
   phone?: string;
-  source: 'Website' | 'Instagram' | 'WhatsApp' | 'Manual' | 'Other';
+  source: 'Website' | 'Instagram' | 'Facebook' | 'WhatsApp' | 'Manual' | 'Other';
   status: 'New' | 'Contacted' | 'Qualified' | 'Proposal' | 'Won' | 'Lost';
   interestLevel: 'High' | 'Medium' | 'Low';
   followUpPriority: 'High' | 'Medium' | 'Low';
@@ -28,7 +28,7 @@ const leadSchema = new Schema<ILead>(
     phone: { type: String },
     source: {
       type: String,
-      enum: ['Website', 'Instagram', 'WhatsApp', 'Manual', 'Other'],
+      enum: ['Website', 'Instagram', 'Facebook', 'WhatsApp', 'Manual', 'Other'],
       default: 'Manual',
     },
     status: {
