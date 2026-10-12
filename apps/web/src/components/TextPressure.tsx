@@ -122,10 +122,10 @@ const TextPressure: React.FC<TextPressureProps> = ({
 
     // Ensure font fits both width and height constraints on mobile & desktop
     // Avg uppercase char width in wide state is ~0.65-0.75 of font size
-    const approxCharWidthRatio = 0.68;
+    const approxCharWidthRatio = 0.65;
     let targetFontSize = Math.min(
       containerW / (chars.length * approxCharWidthRatio),
-      containerH * 0.85
+      containerH * 0.88
     );
     targetFontSize = Math.max(targetFontSize, minFontSize);
 
@@ -244,7 +244,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
       <h1
         ref={titleRef}
         className={`text-pressure-title ${className} ${
-          flex ? 'flex justify-between flex-nowrap' : ''
+          flex ? 'flex justify-between flex-nowrap w-full' : ''
         } ${stroke ? 'stroke' : ''} uppercase text-center whitespace-nowrap`}
         style={{
           fontFamily: fontFamily.includes(',') ? fontFamily : `'${fontFamily}', system-ui, sans-serif`,
