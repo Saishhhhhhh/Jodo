@@ -49,7 +49,7 @@ const TextPressure: React.FC<TextPressureProps> = ({
   fontUrl = 'https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wdth,wght@8..144,-10..0,25..151,100..1000&display=swap',
   width = true,
   weight = true,
-  italic = true,
+  italic = false,
   alpha = false,
   flex = true,
   stroke = false,
