@@ -158,7 +158,7 @@ export default function Navbar() {
                   key={label}
                   href={url}
                   className="text-[14px] font-semibold text-gray-800 hover:text-terracotta transition-colors whitespace-nowrap"
-                  style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
                 >
                   {label}
                 </Link>

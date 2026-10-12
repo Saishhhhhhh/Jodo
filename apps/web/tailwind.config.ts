@@ -21,11 +21,11 @@ const config: Config = {
         cream: "#FAF6F1",
       },
       fontFamily: {
-        sans: ["var(--font-dm-sans)", "'DM Sans'", "var(--font-plus-jakarta-sans)", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
-        dmsans: ["var(--font-dm-sans)", "'DM Sans'", "sans-serif"],
-        menu: ["var(--font-dm-sans)", "'DM Sans'", "var(--font-plus-jakarta-sans)", "'Plus Jakarta Sans'", "system-ui", "sans-serif"],
-        heading: ["var(--font-syne)", "'Syne'", "var(--font-dm-sans)", "'DM Sans'", "system-ui", "sans-serif"],
-        serif: ["var(--font-dm-sans)", "'DM Sans'", "sans-serif"],
+        sans: ["'DM Sans'", "var(--font-dm-sans)", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        dmsans: ["'DM Sans'", "var(--font-dm-sans)", "sans-serif"],
+        menu: ["'DM Sans'", "var(--font-dm-sans)", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "Roboto", "sans-serif"],
+        heading: ["'Syne'", "var(--font-syne)", "'DM Sans'", "system-ui", "sans-serif"],
+        serif: ["'DM Sans'", "var(--font-dm-sans)", "sans-serif"],
         mono: ["'Space Grotesk'", "monospace"],
       },
       fontSize: {

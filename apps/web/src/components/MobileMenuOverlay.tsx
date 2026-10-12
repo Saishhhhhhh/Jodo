@@ -62,7 +62,7 @@ export default function MobileMenuOverlay({ isOpen, onClose, menuItems }: Mobile
                     >
                       <span 
                         className="font-menu text-[16px] font-semibold text-gray-900 group-hover:text-terracotta transition-colors"
-                        style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}
+                        style={{ fontFamily: "'DM Sans', sans-serif" }}
                       >
                         {item.label}
                       </span>
