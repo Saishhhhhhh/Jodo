@@ -106,14 +106,14 @@ export default function ContactPage() {
             <div className="flex flex-col gap-1.5 text-[15px] md:text-base">
               <p className="text-gray-600">
                 <span className="font-semibold text-[#1C1A17]">General:</span>{' '}
-                <a href="mailto:kaverivalve51@gmail.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
-                  kaverivalve51@gmail.com
+                <a href="mailto:hello@jodoshop.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
+                  hello@jodoshop.com
                 </a>
               </p>
               <p className="text-gray-600">
                 <span className="font-semibold text-[#1C1A17]">Support:</span>{' '}
-                <a href="mailto:kaverivalve51@gmail.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
-                  kaverivalve51@gmail.com
+                <a href="mailto:support@jodoshop.com" className="hover:text-terracotta transition-colors underline-offset-2 hover:underline">
+                  support@jodoshop.com
                 </a>
               </p>
             </div>
@@ -273,7 +273,7 @@ export default function ContactPage() {
             className="w-full h-[400px] lg:h-full rounded-[40px] overflow-hidden relative shadow-[0_2px_20px_rgba(0,0,0,0.03)] border border-gray-100 group"
           >
             <iframe 
-              src="https://maps.google.com/maps?q=Mumbai,%20Maharashtra&t=m&z=12&output=embed&iwloc=near" 
+              src="https://maps.google.com/maps?q=Andheri%20West,%20Mumbai,%20Maharashtra%20400053&t=m&z=14&output=embed&iwloc=near" 
               width="100%" 
               height="100%" 
               style={{ border: 0 }} 
@@ -310,7 +310,7 @@ export default function ContactPage() {
               Visit our Mumbai experience centre, assemble a piece yourself and see how JODO comes together. No sales pressure just the joy of it.
             </p>
             <a 
-              href="https://maps.google.com/maps?q=Mumbai,%20Maharashtra"
+              href="https://maps.google.com/maps?q=Andheri%20West,%20Mumbai,%20Maharashtra%20400053"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white text-[#1C1A17] rounded-full px-8 py-3.5 md:px-10 md:py-4 text-base md:text-lg font-bold hover:bg-terracotta hover:text-white transition-all duration-300 shadow-xl flex items-center gap-2 active:scale-95"
