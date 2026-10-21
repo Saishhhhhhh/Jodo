@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { Puzzle, ShieldCheck, Award, Recycle } from 'lucide-react';
+import { Puzzle, ShieldCheck, Scan, Recycle } from 'lucide-react';
 
 import TextPressure from '@/components/TextPressure';
 
@@ -51,9 +51,9 @@ const WHY_CHOOSE_CARDS = [
   },
   {
     num: "03",
-    title: "Built on Trust, not fine print",
-    desc: "Tool-free is not a trade-off against good design and good design should be accessible to all. Furniture should earn trust through clarity, not hide behind colours and fine print; that's our purpose at JODO",
-    Icon: Award
+    title: "Augmented Reality – Trial room for your furniture",
+    desc: "You wouldn’t buy a shirt without trying it on. So why buy a bed without knowing it fits? JODO’s AR view puts every piece in your room at true scale. Point your phone at the corner where the wardrobe would go, and see it standing there: real dimensions, real finish, real proportions. Happy? Add to Cart",
+    Icon: Scan
   },
   {
     num: "04",
