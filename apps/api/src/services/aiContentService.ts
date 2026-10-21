@@ -919,4 +919,54 @@ export class AiContentService {
       ]
     };
   }
+
+  /**
+   * AI-powered intent detection and lead qualification for incoming Meta (Instagram / Facebook) DMs.
+   */
+  static async detectLeadIntent(message: string, source: string): Promise<{
+    isLead: boolean;
+    interestLevel: 'High' | 'Medium' | 'Low';
+    productRequirement: string;
+  }> {
+    const clients = getOrderedClients();
+    if (clients.length === 0) {
+      return { isLead: true, interestLevel: 'Medium', productRequirement: message.slice(0, 120) };
+    }
+
+    const prompt = `Analyze the following incoming direct message from a user on ${source} and determine if they show purchasing intent, inquiries, or interest in furniture/home decor.
+Message: "${message}"
+
+Reply with ONLY a valid JSON object:
+{
+  "isLead": true,
+  "interestLevel": "High" | "Medium" | "Low",
+  "productRequirement": "brief 1-sentence summary of what item/service they are asking about"
+}`;
+
+    for (const client of clients) {
+      try {
+        const completion = await client.chat.completions.create({
+          model: env.OPENAI_MODEL || 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You are an AI lead qualification bot for Jodo Furniture. You output JSON only.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.2,
+          response_format: { type: 'json_object' }
+        });
+        const raw = completion.choices[0]?.message?.content || '{}';
+        const parsed = JSON.parse(raw);
+        return {
+          isLead: typeof parsed.isLead === 'boolean' ? parsed.isLead : true,
+          interestLevel: ['High', 'Medium', 'Low'].includes(parsed.interestLevel) ? parsed.interestLevel : 'Medium',
+          productRequirement: parsed.productRequirement || message.slice(0, 100)
+        };
+      } catch (err) {
+        console.warn('[AiContentService] Lead intent detection key rotation trial failed:', err);
+      }
+    }
+
+    return { isLead: true, interestLevel: 'Medium', productRequirement: message.slice(0, 100) };
+  }
 }
+

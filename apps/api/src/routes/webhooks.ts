@@ -21,83 +21,85 @@ router.get('/meta', (req, res) => {
   }
 });
 
-// Meta Webhook Receiving Messages (Instagram DMs)
+// Meta Webhook Receiving Messages (Instagram DMs & Facebook Messenger)
 router.post('/meta', async (req, res, next) => {
   try {
     const body = req.body;
 
     if (body.object === 'instagram' || body.object === 'page') {
-      const store = await Store.findOne();
-      if (!store) return sendError(res, 'Store not found', 404);
+      let store = await Store.findOne();
+      if (!store) {
+        const tenant = await Tenant.findOne();
+        if (tenant) {
+          store = await Store.create({
+            tenantId: tenant._id,
+            name: 'Jodo Flagship Store',
+            slug: 'default-store',
+            domain: 'jodo.store',
+          });
+        }
+      }
 
-      for (const entry of body.entry) {
+      if (!store) {
+        console.error('Meta webhook: No store or tenant found to link incoming lead');
+        return res.status(200).send('EVENT_RECEIVED');
+      }
+
+      for (const entry of (body.entry || [])) {
         if (!entry.messaging) continue;
 
         for (const webhook_event of entry.messaging) {
-          const senderId = webhook_event.sender.id;
-          const message = webhook_event.message?.text;
+          // Ignore echo events (messages sent by the page/account itself)
+          if (webhook_event.message?.is_echo) continue;
+
+          const senderId = webhook_event.sender?.id;
+          const message =
+            webhook_event.message?.text ||
+            (webhook_event.message?.attachments ? '[User sent photo/attachment]' : webhook_event.postback?.title || '');
           const source = body.object === 'instagram' ? 'Instagram' : 'Facebook';
 
-          if (message) {
-            // AI intent detection
-            const aiPrompt = `Analyze the following message from a ${source} user and determine if they show purchasing intent for furniture/home decor. 
-            Message: "${message}"
-            Reply with a JSON object { "isLead": true/false, "interestLevel": "High" | "Medium" | "Low", "productRequirement": "brief summary of what they want if applicable" }`;
-            
+          if (message && senderId) {
+            // AI intent detection using rotating API keys
             let isLead = true;
             let interestLevel: 'High' | 'Medium' | 'Low' = 'Medium';
             let productRequirement = '';
 
             try {
-              const { env } = require('../config/env');
-              const { default: OpenAI } = require('openai');
-              const aiKey = process.env.OPENAI_API_KEY || env.OPENAI_API_KEY_1;
-              
-              if (aiKey) {
-                const openai = new OpenAI({ apiKey: aiKey });
-                const completion = await openai.chat.completions.create({
-                  model: env.OPENAI_MODEL || 'gpt-4o-mini',
-                  messages: [
-                    { role: 'system', content: 'You are an intent detection bot for Jodo Furniture. You return JSON.' },
-                    { role: 'user', content: aiPrompt }
-                  ],
-                  temperature: 0.2,
-                  response_format: { type: 'json_object' }
-                });
-                
-                const raw = completion.choices[0]?.message?.content || '{}';
-                const parsed = JSON.parse(raw);
-                isLead = parsed.isLead ?? true;
-                interestLevel = parsed.interestLevel || 'Medium';
-                productRequirement = parsed.productRequirement || '';
-              }
+              const detected = await AiContentService.detectLeadIntent(message, source);
+              isLead = detected.isLead;
+              interestLevel = detected.interestLevel;
+              productRequirement = detected.productRequirement;
             } catch (aiErr) {
-              console.error('AI Intent analysis failed, defaulting to lead capture', aiErr);
+              console.error('AI Intent analysis fallback triggered:', aiErr);
+              productRequirement = message.slice(0, 100);
             }
 
             if (isLead) {
+              const displaySender = senderId.length > 8 ? senderId.slice(-6) : senderId;
               await Lead.create({
                 tenantId: store.tenantId,
                 storeId: store._id,
-                name: `${source} User (${senderId})`,
+                name: `${source} User (${displaySender})`,
                 source: source,
                 status: 'New',
                 interestLevel: interestLevel,
                 followUpPriority: interestLevel === 'High' ? 'High' : 'Medium',
                 productRequirement: productRequirement,
-                notes: `Original Message: "${message}"`,
+                notes: `Original Message: "${message}"\nSender Platform ID: ${senderId}`,
               });
+              console.log(`[Meta Webhook] Successfully captured ${source} lead from sender ${senderId}`);
             }
           }
         }
       }
-      return sendSuccess(res, null, 'EVENT_RECEIVED');
+      return res.status(200).send('EVENT_RECEIVED');
     }
 
     return res.sendStatus(404);
   } catch (error) {
     console.error('Meta webhook error:', error);
-    next(error);
+    // Return 200 to acknowledge Meta delivery so the webhook isn't disabled by Meta
+    return res.status(200).send('EVENT_RECEIVED');
   }
 });
 
