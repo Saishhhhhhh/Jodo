@@ -41,8 +41,8 @@ export default function FeaturesBar() {
               }`}
             >
               {/* Soft Circular Icon Box */}
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm text-terracotta group-hover:scale-110 group-hover:bg-terracotta group-hover:text-white transition-all duration-300">
-                <Icon className="w-4 h-4" strokeWidth={2} />
+              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm text-terracotta group-hover:scale-110 group-hover:bg-terracotta group-hover:text-white transition-all duration-300">
+                <Icon className="w-6 h-6" strokeWidth={2.2} />
               </div>
               
               <h3 
