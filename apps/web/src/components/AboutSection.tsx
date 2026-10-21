@@ -22,12 +22,15 @@ export default function AboutSection() {
           </div>
 
           {/* Main Headline */}
-          <h2 className="text-[#1C1A17] font-bold mb-3 md:mb-8 tracking-tight leading-[1.15] text-3xl md:text-5xl lg:text-6xl">
-            Furniture that feels different from the moment you <span className="text-terracotta italic font-light" style={{ fontFamily: "'DM Sans', sans-serif" }}>open the box.</span>
+          <h2 className="text-[#1C1A17] font-bold mb-4 md:mb-6 tracking-tight leading-[1.18] text-2xl sm:text-3xl md:text-4xl lg:text-[46px]">
+            JODO means join, coming together –{' '}
+            <span className="text-terracotta font-medium block mt-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              of pieces, of homes and lives
+            </span>
           </h2>
           
-          <p className="text-gray-600 text-base md:text-xl leading-relaxed mb-5 md:mb-10 max-w-[500px]">
-            In India, furniture has always come with a carpenter. JODO changes that. Our pieces click together without tools — like a puzzle you solve with someone you love. No waiting. No stress. Just the quiet satisfaction of making something yours, together.
+          <p className="text-gray-600 text-sm sm:text-base md:text-[16px] lg:text-[17px] leading-relaxed mb-6 md:mb-10 max-w-[540px]">
+            In India, furniture has traditionally come with a carpenter or more recently with a long manual of never ending instructions, 11pm YouTube tutorials and some missing screws or tools! We at JODO said “Screw you” quite literally and engineered custom connectors to make furniture that slides together just as easily as it comes apart. Pack it, move it, rebuild it, repeat! The carpenter can enjoy a little tea break here because our pieces assemble in minutes. We have designed it and built it for Indians, Indian homes and the Indian way of living.
           </p>
 
           <div className="flex flex-row items-center gap-2 md:gap-6 w-full sm:w-auto">
