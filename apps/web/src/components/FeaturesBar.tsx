@@ -33,10 +33,12 @@ export default function FeaturesBar() {
     <section className="w-full py-0 bg-white">
       <div className="max-w-[1400px] mx-auto px-5 md:px-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 md:gap-4 lg:gap-5">
-          {features.map(({ Icon, title, description }) => (
+          {features.map(({ Icon, title, description }, idx) => (
             <div
               key={title}
-              className="bg-[#FAF9F7] p-5 md:p-6 rounded-[20px] flex flex-col items-start transition-all duration-300 hover:bg-[#F0EEEA] group h-full"
+              className={`bg-[#FAF9F7] p-5 md:p-6 rounded-[20px] flex flex-col items-start transition-all duration-300 hover:bg-[#F0EEEA] group h-full ${
+                idx === 4 ? 'sm:col-span-2 lg:col-span-1' : ''
+              }`}
             >
               {/* Soft Circular Icon Box */}
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm text-terracotta group-hover:scale-110 group-hover:bg-terracotta group-hover:text-white transition-all duration-300">
