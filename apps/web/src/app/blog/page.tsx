@@ -9,12 +9,28 @@ import {
   ArrowUpRight,
   Sparkles,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 
-import { FALLBACK_BLOGS, type BlogPostItem as BlogPost } from '@/data/blogFallback';
+interface BlogPost {
+  _id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  author: string;
+  authorRole?: string;
+  coverImage: string;
+  readTime: string;
+  featured?: boolean;
+  publishedAt: string;
+  tags?: string[];
+}
 
 export default function BlogPage() {
-  const [blogs, setBlogs] = useState<BlogPost[]>(FALLBACK_BLOGS);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All Stories');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -25,12 +41,14 @@ export default function BlogPage() {
         const res = await fetch(`${apiUrl}/api/storefront/blogs`);
         if (res.ok) {
           const data = await res.json();
-          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          if (data.success && Array.isArray(data.data)) {
             setBlogs(data.data);
           }
         }
-      } catch {
-        // Fallback to FALLBACK_BLOGS
+      } catch (err) {
+        console.error('Failed to load blogs:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -73,8 +91,24 @@ export default function BlogPage() {
         </div>
       </section>
 
-      {/* ── 2. FEATURED STORY (max-w-[1440px] matching Navbar) ── */}
-      {featuredPost && activeCategory === 'All Stories' && (
+      {/* ── 2. FEATURED STORY / LOADING / EMPTY STATE (max-w-[1440px] matching Navbar) ── */}
+      {loading ? (
+        <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 py-16 flex flex-col items-center justify-center text-[#8E867E] gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-terracotta" />
+          <p className="text-sm font-medium">Loading stories from The Jodo Journal...</p>
+        </section>
+      ) : blogs.length === 0 ? (
+        <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
+          <div className="text-center py-16 px-6 bg-[#FAF7F2] rounded-[24px] border border-[#E5DDD2]">
+            <p className="font-heading text-lg font-bold text-[#1C1A17] mb-2">
+              No stories published yet.
+            </p>
+            <p className="text-sm text-[#666666] max-w-md mx-auto">
+              Check back soon for new design essays and woodworking stories from JODO.
+            </p>
+          </div>
+        </section>
+      ) : featuredPost && activeCategory === 'All Stories' && (
         <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
           <div className="bg-[#FAF9F7] rounded-[28px] md:rounded-[36px] overflow-hidden border border-[#ECE6DE] shadow-sm hover:shadow-xl transition-all duration-500 group">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">

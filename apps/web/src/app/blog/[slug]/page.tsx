@@ -16,7 +16,20 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { FALLBACK_BLOGS, type BlogPostItem as BlogPost } from '@/data/blogFallback';
+interface BlogPost {
+  _id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  author: string;
+  authorRole?: string;
+  coverImage: string;
+  readTime: string;
+  publishedAt: string;
+  tags?: string[];
+}
 
 // Inline markdown helper for bold and italic text
 function renderInlineMarkdown(text: string): React.ReactNode {
@@ -60,17 +73,13 @@ export default function BlogPostPage() {
           const data = await res.json();
           if (data.success && data.data) {
             setPost(data.data);
-            return;
           }
         }
       } catch (err) {
         console.error('Failed to load blog post:', err);
+      } finally {
+        setLoading(false);
       }
-      const fallback = FALLBACK_BLOGS.find((b) => b.slug === slug);
-      if (fallback) {
-        setPost(fallback);
-      }
-      setLoading(false);
     };
 
     fetchPost();
