@@ -99,15 +99,16 @@ export const SofaScene: React.FC = () => {
       const currentAspect = Math.max(0.4, canvas.clientWidth / Math.max(1, canvas.clientHeight));
       const zoomT = THREE.MathUtils.smoothstep(prog, 0, 1);
       if (currentAspect < 1) {
-        // Mobile portrait: keep entire exploded/assembled sofa cleanly below COMING SOON
-        const zDist = THREE.MathUtils.lerp((7.8 / currentAspect) * 0.72, (6.6 / currentAspect) * 0.72, zoomT);
-        const lookY = THREE.MathUtils.lerp(0.32, 0.22, zoomT);
-        return { x: 0.25, y: 0.64, z: zDist, lookY };
+        // Mobile portrait: comfortable scale & centered vertically (no excessive empty space void)
+        const zDist = THREE.MathUtils.lerp((5.1 / currentAspect) * 0.74, (4.4 / currentAspect) * 0.74, zoomT);
+        const yPos = THREE.MathUtils.lerp(0.46, 0.36, zoomT);
+        const lookY = THREE.MathUtils.lerp(0.06, -0.01, zoomT);
+        return { x: 0.18, y: yPos, z: zDist, lookY };
       }
-      // Desktop three-quarter studio framing: push sofa comfortably below single-line COMING SOON
-      const zDist = THREE.MathUtils.lerp(5.75, 4.65, zoomT);
-      const yPos = THREE.MathUtils.lerp(0.84, 0.66, zoomT);
-      const lookY = THREE.MathUtils.lerp(0.32, 0.22, zoomT);
+      // Desktop three-quarter studio framing: perfectly balanced below single-line COMING SOON
+      const zDist = THREE.MathUtils.lerp(5.35, 4.45, zoomT);
+      const yPos = THREE.MathUtils.lerp(0.72, 0.54, zoomT);
+      const lookY = THREE.MathUtils.lerp(0.18, 0.09, zoomT);
       return { x: 0.36, y: yPos, z: zDist, lookY };
     };
 
@@ -163,7 +164,7 @@ export const SofaScene: React.FC = () => {
 
     const shadowReceiver = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
-      new THREE.ShadowMaterial({ opacity: 0.16, color: new THREE.Color('#2A1A10') })
+      new THREE.ShadowMaterial({ opacity: 0.03, color: new THREE.Color('#2A1A10') })
     );
     shadowReceiver.rotation.x = -Math.PI / 2;
     shadowReceiver.position.y = floorY;
@@ -759,15 +760,15 @@ export const SofaScene: React.FC = () => {
           />
         </div>
 
-        {/* 2. LARGE TERRACOTTA-ORANGE COMING SOON HEADLINE (Single line) */}
+        {/* 2. LARGE TERRACOTTA-ORANGE COMING SOON HEADLINE */}
         <div
           style={{
             position: 'absolute',
-            top: 'clamp(94px, 14.5vh, 144px)',
+            top: 'clamp(68px, 9.5vh, 110px)',
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '96%',
-            maxWidth: '1440px',
+            width: '92%',
+            maxWidth: '1280px',
             textAlign: 'center',
             pointerEvents: 'none',
             zIndex: 30,
@@ -778,16 +779,22 @@ export const SofaScene: React.FC = () => {
               color: '#DA4E26',
               fontFamily: "var(--font-syne), 'Syne', sans-serif",
               fontWeight: 800,
-              fontSize: 'clamp(2.1rem, 7.5vw, 6.2rem)',
-              letterSpacing: 'clamp(0.08em, 1.4vw, 0.2em)',
-              lineHeight: 1,
+              letterSpacing: '-0.015em',
               margin: 0,
-              whiteSpace: 'nowrap',
               textTransform: 'uppercase',
               userSelect: 'none',
             }}
           >
-            COMING SOON
+            {/* Desktop (md+): single line COMING SOON with natural kerning (no artificial gaps) */}
+            <span className="hidden md:inline whitespace-nowrap text-[clamp(2.4rem,5.2vw,4.6rem)] leading-none">
+              COMING SOON
+            </span>
+
+            {/* Mobile (< md): 2 stacked lines - COMING on top, SOON below */}
+            <span className="flex flex-col items-center md:hidden text-[clamp(2.1rem,10.5vw,3.2rem)] leading-[0.92]">
+              <span>COMING</span>
+              <span>SOON</span>
+            </span>
           </h1>
         </div>
 
