@@ -41,6 +41,7 @@ next-env.d.ts
 
 # agents
 .agents
+graphify-out/
 
 # archives & portable binaries
 *.zip

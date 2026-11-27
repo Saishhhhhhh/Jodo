@@ -1,43 +1,11 @@
-export const dynamic = 'force-dynamic';
-import HeroSection from "@/components/HeroSection";
-import AboutSection from "@/components/AboutSection";
-import FeaturesBar from "@/components/FeaturesBar";
-import CollectionsSection from "@/components/CollectionsSection";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import PuzzleSection from "@/components/PuzzleSection";
-import VideoSection from "@/components/VideoSection";
+import ComingSoonPage from "@/components/coming-soon/ComingSoonPage";
 
 export const metadata = {
-  title: "Jodo Home | Crafting Comfort, Shaping Style",
-  description: "Discover premium furniture and home decor. From modern minimalist to timeless classics to transform any space into a place you'll love.",
-  verification: {
-    google: "B2BvJ82mzIspAqj6NdRprEyOVcVu41bDFnN8gPsQEQI",
-  },
+  title: "JODO | Furniture, Coming Soon — The Joy of Together",
+  description:
+    "JODO was created for real life, furniture that adapts to your home, not the other way around. No screws. No drilling. No mess. Coming soon.",
 };
 
-export default function HomePage() {
-  return (
-    <div className="flex flex-col gap-12 md:gap-[70px] pb-12 md:pb-[70px]">
-      {/* Hero */}
-      <HeroSection />
-
-      {/* About / Mission */}
-      <AboutSection />
-
-      {/* Features Bar: Free Shipping, Custom Design, Refund */}
-      <FeaturesBar />
-
-      {/* Featured Products */}
-      <FeaturedProducts />
-
-      {/* Scroll Puzzle Animation */}
-      <PuzzleSection />
-
-      {/* New Collection + Room Categories */}
-      <CollectionsSection />
-
-      {/* Full-width Video Section */}
-      <VideoSection />
-    </div>
-  );
+export default function RootComingSoonPage() {
+  return <ComingSoonPage />;
 }

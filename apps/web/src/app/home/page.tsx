@@ -8,11 +8,14 @@ import PuzzleSection from "@/components/PuzzleSection";
 import VideoSection from "@/components/VideoSection";
 
 export const metadata = {
-  title: "Jodo Home | Storefront & Catalog",
+  title: "Jodo Home | Crafting Comfort, Shaping Style",
   description: "Discover premium furniture and home decor. From modern minimalist to timeless classics to transform any space into a place you'll love.",
+  verification: {
+    google: "B2BvJ82mzIspAqj6NdRprEyOVcVu41bDFnN8gPsQEQI",
+  },
 };
 
-export default function StorefrontHomePage() {
+export default function HomePage() {
   return (
     <div className="flex flex-col gap-12 md:gap-[70px] pb-12 md:pb-[70px]">
       {/* Hero */}

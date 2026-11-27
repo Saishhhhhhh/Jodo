@@ -7,7 +7,7 @@ import Footer from './Footer';
 
 export default function StoreLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isComingSoon = pathname === '/coming-soon';
+  const isComingSoon = pathname === '/' || pathname === '/coming-soon';
 
   // Prevent caret browsing from placing a blinking cursor on static text clicks
   React.useEffect(() => {
