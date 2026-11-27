@@ -721,6 +721,7 @@ export const SofaScene: React.FC = () => {
         width: '100%',
         height: '360vh',
         touchAction: 'pan-y',
+        backgroundColor: '#FAF5ED',
       }}
     >
       {/* Pinned Fullscreen Warm Cream Studio Viewport */}
@@ -730,7 +731,8 @@ export const SofaScene: React.FC = () => {
           top: 0,
           left: 0,
           width: '100%',
-          height: '100vh',
+          height: '100dvh',
+          minHeight: '100vh',
           overflow: 'hidden',
           background:
             'radial-gradient(ellipse at 50% 48%, #FAF5ED 0%, #F4ECE0 58%, #EDE2D2 100%)',

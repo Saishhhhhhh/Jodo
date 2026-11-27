@@ -39,10 +39,10 @@ export default function StoreLayoutWrapper({ children }: { children: React.React
 
   // Clean storefront navigation & footer with no top bar
   return (
-    <>
+    <div className="w-full relative pb-16 md:pb-0">
       <Navbar />
       <main className="min-h-screen">{children}</main>
       <Footer />
-    </>
+    </div>
   );
 }

@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Syne:wght@400..800&family=Plus+Jakarta+Sans:wght@300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
       </head>
-      <body className={`w-full relative pb-16 md:pb-0 ${dmSans.variable} ${syne.variable} ${plusJakartaSans.variable} ${dmSans.className} font-sans`}>
+      <body className={`w-full relative ${dmSans.variable} ${syne.variable} ${plusJakartaSans.variable} ${dmSans.className} font-sans bg-[#FAF5ED]`}>
         <Script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"

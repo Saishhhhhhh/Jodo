@@ -22,9 +22,9 @@ const SofaScene = dynamic(
 
 export default function ComingSoonPage() {
   return (
-    <div className="relative w-full min-h-screen bg-[#F5EFE6] text-[#24211E]">
+    <div className="relative w-full min-h-screen bg-[#FAF5ED] text-[#24211E]">
       {/* Main Single Scroll Assembly & Coming Soon Experience */}
-      <main className="relative w-full">
+      <main className="relative w-full bg-[#FAF5ED]">
         <SofaScene />
       </main>
     </div>
