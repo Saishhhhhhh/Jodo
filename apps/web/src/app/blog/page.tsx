@@ -37,8 +37,7 @@ export default function BlogPage() {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-        const res = await fetch(`${apiUrl}/api/storefront/blogs`);
+        const res = await fetch('/api/storefront/blogs', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.data)) {
