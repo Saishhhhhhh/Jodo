@@ -239,128 +239,90 @@ const INITIAL_FAQS = [
 
 const INITIAL_BLOGS = [
   {
-    title: 'The Art of Slow Furniture: Why Intentional Craftsmanship Matters',
-    slug: 'art-of-slow-furniture',
-    excerpt: 'In an era of flat-pack disposable decor, we explore why sustainably harvested timber, traditional mortise joints, and thoughtful proportion create heirlooms that outlast fleeting trends.',
-    content: `In an age dominated by disposable consumerism, the rhythm of home living often falls victim to speed. At Jodo, we believe the furniture you surround yourself with should be designed for decades, not seasons.
+    title: 'The Intelligence Behind a Joint: How Traditional Joinery Is Inspiring Modern Furniture Design',
+    slug: 'the-intelligence-behind-a-joint',
+    excerpt:
+      'For centuries, craftspeople have engineered interlocking wooden joints that stand the test of time. Discover how traditional wood joinery is inspiring JODO’s modern, tool-free, screw-free furniture design.',
+    content: `Furniture design today involves more than choosing the right wood, finish, or shape. The way individual pieces connect matters too. For centuries, craftspeople have engineered joints in wooden components that have stood the test of time, proving how the right joinery influences furniture function and appearance.
 
-### The Problem with Disposable Furniture
-Mass-produced furniture relies heavily on compressed particle boards, toxic adhesives, and plastic veneers that begin to degrade within months. Beyond the environmental strain of landfill-bound goods, such pieces lack the tactile warmth and emotional permanence that a well-crafted home deserves.
+As lifestyles evolve, people are looking for practical, adaptable furniture that is easier to put together. Traditional joinery offers a useful starting point for JODO’s innovation in the tool-free assembly space.
 
-### The Philosophy of Slow Making
-Slow furniture begins with intentional material selection. We source our European White Oak and Teak from responsibly managed forests, allowing the wood to properly kiln-dry and acclimate before shaping. Traditional joinery:like mortise-and-tenon and dovetail joints:allows timber to expand and contract naturally through changing climates without losing structural rigidity.
+## What Is Traditional Wood Joinery and How Does It Work?
 
-### Aging with Dignity
-Unlike synthetic laminates that chip irreversibly, solid hardwoods develop a rich patina over the years. A ding or scratch isn't a flaw; it becomes part of the family narrative, easily refinished with a swipe of beeswax. Investing in slow furniture is an investment in peace of mind.`,
+Traditional wood joinery techniques are methods of connecting two or more pieces of wood to create a stable structure through carefully shaped edges, slots, grooves, and interlocking forms instead of using modern-day tools.
+
+Common examples include mortise-and-tenon, dovetail, and tongue-and-groove joints. Each has a different design and purpose. It is known to be the oldest form of joinery technique with its roots primarily in India, Japan, and China.
+
+The underlying idea is simple: the shape and fit of a connection matter. Good joinery depends on accuracy, the intended use of the furniture, and the properties of the material. It shows how furniture design intelligence can lie in details that are not immediately visible.
+
+## How Traditional Joinery Techniques Hold Furniture Together Without Screws
+
+The geometry of the pieces helps guide how they fit and how the connection behaves during use. Depending on the joint and application, the design may also use adhesive, wedges, or other supporting elements.
+
+This is why furniture joinery techniques are more than simply joining two pieces. The dimensions, direction of the grain, fit, and intended load all influence how a joint performs. A connection designed for a drawer, for example, may have different requirements from one used in a table frame.
+
+No single joint is right for every application; the choice depends on the design and the job the connection needs to do.
+
+## From Traditional Wood Joinery to Modern Tool-Free Furniture Design
+
+Traditional joinery demonstrates how considered connections can shape furniture. Modern designers continue to explore this principle, using contemporary materials, manufacturing methods, and product engineering to create furniture that fits today's needs.
+
+People move, rearrange rooms, and adapt spaces for work, study, and everyday living. Furniture that is designed for convenience with clear, intuitive connectors can make assembly and reconfiguration feel more approachable.
+
+For JODO, this wider shift towards screw-free, tool-free thinking is part of a more modern conversation about how the future of furniture should fit into everyday life.
+
+## How Modern Tool-Free Furniture Is Redefining the Way We Assemble Furniture
+
+Modern furniture design is increasingly looking at the entire ownership experience, not just the finished product. Assembly is one part of that experience: clear instructions, zero tools, and thoughtfully designed components and connections that handle daily wear and tear.
+
+Beyond appearance and dimensions, homeowners can now consider how a product comes together, whether assembly suits their needs, and how it may fit into a changing home. These are useful questions to ask when exploring modern furniture options.
+
+## Explore a Smarter Approach to Modern Furniture with JODO Furniture
+
+Traditional craftspeople paid close attention to how pieces connected; JODO continues to explore that idea with new materials, engineering, and assembly approaches for people who want furniture that feels considered, functional, and tailored to their living.
+
+JODO is part of this evolving conversation, with a focus on screw-free, tool-free, and easy-to-assemble furniture. If you are exploring furniture for a home that may change with your routines, space, or needs, look beyond the finish and ask how the design works around your lifestyle by discovering JODO's approach to building smarter homes.
+
+## Frequently Asked Questions
+
+### 1. What is traditional wood joinery in furniture making?
+
+Traditional wood joinery is a woodworking technique used to connect two or more pieces of wood through carefully shaped joints, grooves, or interlocking sections. Common examples include mortise-and-tenon, dovetail, and tongue-and-groove joints.
+
+### 2. How does traditional joinery hold furniture together without screws?
+
+Traditional joinery uses precisely shaped wooden sections that fit together to create a connection which tightens under pressure over a period of time. Depending on the joint, the design may also use adhesives, wedges, or other supporting elements to achieve the required fit and stability.
+
+### 3. What is tool-free furniture, and how does it work?
+
+Tool-free furniture is designed to make assembly simpler by reducing or eliminating the need for separate tools. Its components connect through purpose-designed fittings or connector mechanisms.
+
+### 4. Is screw-free furniture suitable for modern homes?
+
+Yes. Screw-free furniture is the need of the hour for modern living where convenience, clean design, and flexible living spaces matter. The right choice depends on the furniture's intended use, materials, construction, and design.
+
+### 5. How is traditional joinery influencing modern furniture design?
+
+Traditional joinery inspires modern furniture designers to think carefully about how individual components connect. This thinking reflects in JODO’s design approach towards tool-free and screw-free furniture, where the furniture is built around the connector system and not as an afterthought.`,
     category: 'Craft & Material',
-    author: 'Aarav Mehta',
-    authorRole: 'Head of Furniture Design',
+    author: 'Jodo Editorial',
+    authorRole: 'Design & Craft Studio',
     coverImage: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80',
-    readTime: '6 min read',
+    readTime: '5 min read',
     featured: true,
     status: 'published',
-    publishedAt: new Date('2026-10-01'),
-    tags: ['Craftsmanship', 'Solid Wood', 'Slow Living']
+    publishedAt: new Date(),
+    tags: [
+      'Tool-free furniture',
+      'Traditional wood joinery',
+      'Furniture joinery techniques',
+      'No-screw furniture',
+      'Modern furniture design',
+      'Tool-free flatpack furniture',
+      'Furniture without tools',
+      'Screw-free furniture India',
+    ],
   },
-  {
-    title: 'How to Master Warm Minimalism in Contemporary Indian Homes',
-    slug: 'warm-minimalism-guide',
-    excerpt: 'Combining organic textures, linen draping, earthy terracotta accents, and soft architectural curves to evoke peaceful spaces.',
-    content: `Minimalism often gets mischaracterized as cold, sterile, and clinical. But when infused with tactile textures and warm earth tones, minimalism becomes deeply soothing and grounding.
-
-### Grounding the Palette
-Start with gentle neutral backdrops: warm off-whites, limestone taupe, and soft sand. Layer in accents of raw terracotta and brass hardware to mirror Indian architectural heritage while keeping the visual silhouette clean and uncluttered.
-
-### Embracing Natural Imperfection
-Incorporate furniture pieces that celebrate raw grain patterns and hand-loomed linens. Instead of cluttered shelving, curate single focal objects:a hand-turned wooden vase or a sculpted stoneware lamp:that allow negative space to breathe.`,
-    category: 'Design & Interiors',
-    author: 'Sunaina Rao',
-    authorRole: 'Interior Stylist',
-    coverImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min read',
-    featured: false,
-    status: 'published',
-    publishedAt: new Date('2026-09-25'),
-    tags: ['Minimalism', 'Interior Styling', 'Color Palette']
-  },
-  {
-    title: 'A Craftsman’s Guide to Caring for Teak & White Oak Furniture',
-    slug: 'solid-wood-maintenance',
-    excerpt: 'Seasonal humidity changes, natural oils, and preventative techniques to keep your wooden tables and credenzas glowing across decades.',
-    content: `Solid timber is an organic material that breathes with its environment. Understanding its seasonal rhythm is the secret to lifetime longevity.
-
-### Managing Humidity and Light
-Direct, intense sunlight over prolonged periods can dry out natural wood oils. Position heavy solid wood tables slightly away from direct sunbeam paths or use sheer curtains. During monsoon months, ensure adequate airflow to prevent moisture buildup.
-
-### Routine Cleaning & Nourishment
-Avoid harsh ammoniated sprays or bleach wipes. A soft, barely damp microfiber cloth followed immediately by a dry towel is all you need for daily maintenance. Twice a year, massage a dollop of food-safe beeswax along the wood grain to restore deep nourishment.`,
-    category: 'Care & Longevity',
-    author: 'Vikram Joshi',
-    authorRole: 'Master Carpenter',
-    coverImage: 'https://images.unsplash.com/photo-1599696848652-f0ff23bc911f?auto=format&fit=crop&w=800&q=80',
-    readTime: '5 min read',
-    featured: false,
-    status: 'published',
-    publishedAt: new Date('2026-09-18'),
-    tags: ['Wood Care', 'Maintenance', 'Teak']
-  },
-  {
-    title: 'Proportion, Light & Seating: Curating an Open Living Room',
-    slug: 'curating-the-perfect-living-room',
-    excerpt: 'How spatial flow, conversational seating layouts, and low-profile sofas make compact apartments feel grand yet deeply intimate.',
-    content: `The living room is where hospitality meets quiet contemplation. Designing it requires striking harmony between clear walkways, conversational proximity, and visual sightlines.
-
-### The Power of Low-Profile Silhouettes
-High-backed sofas can visually truncate an open-plan room. Choosing low-slung, architectural seating keeps sightlines open, allowing natural daylight to bounce seamlessly from room to room.
-
-### Floating Furniture Away from Walls
-Resist the urge to push every seating piece flush against the wall. Floating a sofa by even 10 inches onto an expansive wool rug creates a cozy island that naturally defines the living sanctuary.`,
-    category: 'Living Well',
-    author: 'Aarav Mehta',
-    authorRole: 'Head of Furniture Design',
-    coverImage: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80',
-    readTime: '5 min read',
-    featured: false,
-    status: 'published',
-    publishedAt: new Date('2026-09-10'),
-    tags: ['Living Room', 'Space Planning', 'Furniture Layout']
-  },
-  {
-    title: 'Virtual Space Planning: Designing Your Room with Web AR',
-    slug: 'augmented-reality-interior-design',
-    excerpt: 'Eliminate guesswork before you invest. Step-by-step guidance on testing scale, clearances, and color harmony using our 3D AR tools.',
-    content: `One of the most persistent anxieties when purchasing furniture online is spatial uncertainty: "Will this dining table overpower my nook?" or "Will this armchair block the balcony entrance?"
-
-### 100% True-to-Scale Projection
-Jodo's WebAR engine uses your mobile camera and lidar/depth sensors to measure real floor planes. The 3D model appears in true dimensions:accurate down to millimeters:so you can physically walk around it, check clearance around corners, and ensure natural light isn't obstructed.`,
-    category: 'Design & Interiors',
-    author: 'Sunaina Rao',
-    authorRole: 'Interior Stylist',
-    coverImage: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min read',
-    featured: false,
-    status: 'published',
-    publishedAt: new Date('2026-09-02'),
-    tags: ['AR', 'Technology', 'Room Design']
-  },
-  {
-    title: 'Tactile Comfort: The Science Behind Breathable OEKO-TEX Fabrics',
-    slug: 'sustainable-textiles-upholstery',
-    excerpt: 'Exploring natural fibres, spill-resistant weaves, and high-abrasion resilience that endure daily family living without compromising softness.',
-    content: `A sofa is only as welcoming as its touch. When selecting upholstery fabrics, we look beyond aesthetic colors to examine breathability, Martindale rub counts, and chemical safety certifications.
-
-### What OEKO-TEX Means for Your Home
-OEKO-TEX Standard 100 certification verifies that every thread and dye is completely free of harmful volatile organic compounds (VOCs), formaldehyde, and heavy metals. This ensures safe, hypoallergenic living for infants and pets alike.`,
-    category: 'Craft & Material',
-    author: 'Vikram Joshi',
-    authorRole: 'Master Carpenter',
-    coverImage: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min read',
-    featured: false,
-    status: 'published',
-    publishedAt: new Date('2026-08-28'),
-    tags: ['Fabrics', 'Sustainability', 'OEKO-TEX']
-  }
 ];
 
 async function seedFaqAndBlog() {

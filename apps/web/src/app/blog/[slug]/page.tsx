@@ -16,20 +16,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-interface BlogPost {
-  _id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  author: string;
-  authorRole?: string;
-  coverImage: string;
-  readTime: string;
-  publishedAt: string;
-  tags?: string[];
-}
+import { FALLBACK_BLOGS, type BlogPostItem as BlogPost } from '@/data/blogFallback';
 
 // Inline markdown helper for bold and italic text
 function renderInlineMarkdown(text: string): React.ReactNode {
@@ -73,13 +60,17 @@ export default function BlogPostPage() {
           const data = await res.json();
           if (data.success && data.data) {
             setPost(data.data);
+            return;
           }
         }
       } catch (err) {
         console.error('Failed to load blog post:', err);
-      } finally {
-        setLoading(false);
       }
+      const fallback = FALLBACK_BLOGS.find((b) => b.slug === slug);
+      if (fallback) {
+        setPost(fallback);
+      }
+      setLoading(false);
     };
 
     fetchPost();
@@ -128,8 +119,8 @@ export default function BlogPostPage() {
   return (
     <article className="min-h-screen bg-white font-sans text-[#1C1A17] pb-16">
       {/* ── TOP BREADCRUMB / ACTION BAR ── */}
-      <div className="px-4 lg:px-6 py-3 border-b border-[#ECE6DE]">
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+      <div className="px-4 lg:px-8 py-3 border-b border-[#ECE6DE]">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between">
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-sm font-bold text-[#57524C] hover:text-terracotta transition-colors group"
@@ -150,7 +141,7 @@ export default function BlogPostPage() {
       </div>
 
       {/* ── ARTICLE HEADER ── */}
-      <header className="max-w-[960px] mx-auto px-5 sm:px-8 pt-10 md:pt-14 pb-8">
+      <header className="w-full max-w-[920px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 pb-8">
         <div className="flex items-center gap-3 text-xs text-[#8E867E] font-medium mb-4 flex-wrap">
           <span className="px-3 py-1 rounded-full bg-terracotta/10 text-terracotta font-bold uppercase tracking-wider">
             {post.category}
@@ -193,8 +184,8 @@ export default function BlogPostPage() {
       </header>
 
       {/* ── HERO IMAGE ── */}
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <div className="relative aspect-[16/9] w-full rounded-[24px] md:rounded-[36px] overflow-hidden shadow-lg border border-[#ECE6DE]">
+      <div className="w-full max-w-[920px] mx-auto px-4 sm:px-6 lg:px-8 mb-10 md:mb-12">
+        <div className="relative aspect-[16/9] w-full rounded-[24px] md:rounded-[32px] overflow-hidden shadow-lg border border-[#ECE6DE]">
           <Image
             src={post.coverImage}
             alt={post.title}
@@ -207,7 +198,7 @@ export default function BlogPostPage() {
       </div>
 
       {/* ── ARTICLE BODY CONTENT ── */}
-      <div className="max-w-[780px] mx-auto px-5 sm:px-8 pb-16">
+      <div className="w-full max-w-[920px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="space-y-6 text-base sm:text-lg leading-[1.8] text-[#3D3A36]">
           {paragraphs.map((p, i) => {
             if (p.startsWith('### ')) {

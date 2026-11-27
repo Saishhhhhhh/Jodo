@@ -11,126 +11,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
-interface BlogPost {
-  _id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  author: string;
-  authorRole?: string;
-  coverImage: string;
-  readTime: string;
-  featured?: boolean;
-  publishedAt: string;
-  tags?: string[];
-}
-
-const FALLBACK_BLOGS: BlogPost[] = [
-  {
-    _id: 'b-1',
-    slug: 'art-of-slow-furniture',
-    title: 'The Art of Slow Furniture: Why Intentional Craftsmanship Matters',
-    excerpt:
-      'In an era of disposable decor, we explore why sustainably harvested timber, traditional mortise joints, and thoughtful proportion create heirlooms that outlast fleeting trends.',
-    content: '',
-    category: 'Craft & Material',
-    author: 'Aarav Mehta',
-    authorRole: 'Head of Furniture Design',
-    coverImage:
-      'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80',
-    readTime: '6 min read',
-    featured: true,
-    publishedAt: '2026-10-01',
-    tags: ['Craftsmanship', 'Solid Wood', 'Slow Living'],
-  },
-  {
-    _id: 'b-2',
-    slug: 'warm-minimalism-guide',
-    title: 'How to Master Warm Minimalism in Contemporary Indian Homes',
-    excerpt:
-      'Combining organic textures, linen draping, earthy terracotta accents, and soft architectural curves to evoke peaceful, breathing spaces.',
-    content: '',
-    category: 'Design & Interiors',
-    author: 'Sunaina Rao',
-    authorRole: 'Interior Stylist',
-    coverImage:
-      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min read',
-    featured: false,
-    publishedAt: '2026-09-25',
-    tags: ['Minimalism', 'Interior Styling', 'Color Palette'],
-  },
-  {
-    _id: 'b-3',
-    slug: 'solid-wood-maintenance',
-    title: 'A Craftsman’s Guide to Caring for Teak & White Oak Furniture',
-    excerpt:
-      'Seasonal humidity changes, natural oils, and preventative techniques to keep your wooden tables and credenzas glowing across decades.',
-    content: '',
-    category: 'Care & Longevity',
-    author: 'Vikram Joshi',
-    authorRole: 'Master Carpenter',
-    coverImage:
-      'https://images.unsplash.com/photo-1599696848652-f0ff23bc911f?auto=format&fit=crop&w=800&q=80',
-    readTime: '5 min read',
-    featured: false,
-    publishedAt: '2026-09-18',
-    tags: ['Wood Care', 'Maintenance', 'Teak'],
-  },
-  {
-    _id: 'b-4',
-    slug: 'curating-the-perfect-living-room',
-    title: 'Proportion, Light & Seating: Curating an Open Living Room',
-    excerpt:
-      'How spatial flow, conversational seating layouts, and low-profile furniture make compact apartments feel grand yet deeply intimate.',
-    content: '',
-    category: 'Living Well',
-    author: 'Aarav Mehta',
-    authorRole: 'Head of Furniture Design',
-    coverImage:
-      'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=800&q=80',
-    readTime: '5 min read',
-    featured: false,
-    publishedAt: '2026-09-10',
-    tags: ['Living Room', 'Space Planning', 'Furniture Layout'],
-  },
-  {
-    _id: 'b-5',
-    slug: 'augmented-reality-interior-design',
-    title: 'Virtual Space Planning: Designing Your Room with Web AR',
-    excerpt:
-      'Eliminate guesswork before you invest. Step-by-step guidance on testing scale, clearances, and color harmony using our 3D AR tools.',
-    content: '',
-    category: 'Design & Interiors',
-    author: 'Sunaina Rao',
-    authorRole: 'Interior Stylist',
-    coverImage:
-      'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min read',
-    featured: false,
-    publishedAt: '2026-09-02',
-    tags: ['AR', 'Technology', 'Room Design'],
-  },
-  {
-    _id: 'b-6',
-    slug: 'sustainable-textiles-upholstery',
-    title: 'Tactile Comfort: The Science Behind Breathable OEKO-TEX Fabrics',
-    excerpt:
-      'Exploring natural fibres, spill-resistant weaves, and high-abrasion resilience that endure daily family living without compromising softness.',
-    content: '',
-    category: 'Craft & Material',
-    author: 'Vikram Joshi',
-    authorRole: 'Master Carpenter',
-    coverImage:
-      'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
-    readTime: '4 min read',
-    featured: false,
-    publishedAt: '2026-08-28',
-    tags: ['Fabrics', 'Sustainability', 'OEKO-TEX'],
-  },
-];
+import { FALLBACK_BLOGS, type BlogPostItem as BlogPost } from '@/data/blogFallback';
 
 export default function BlogPage() {
   const [blogs, setBlogs] = useState<BlogPost[]>(FALLBACK_BLOGS);
@@ -265,8 +146,9 @@ export default function BlogPage() {
         </section>
       )}
 
-      {/* ── 3. JOURNAL ARTICLES GRID SECTION (max-w-[1440px] matching Navbar) ── */}
-      <main className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
+      {/* ── 3. JOURNAL ARTICLES GRID SECTION (shown when multiple blogs exist) ── */}
+      {blogs.length > 1 && (
+        <main className="w-full max-w-[1440px] mx-auto px-4 lg:px-8">
         {/* Category Tabs */}
         <div className="border-b border-[#ECE6DE] mb-10 md:mb-12 overflow-x-auto hide-scrollbar">
           <div className="flex items-center gap-6 md:gap-8 justify-start md:justify-center whitespace-nowrap min-w-max pb-3 px-1">
@@ -407,6 +289,7 @@ export default function BlogPage() {
           </div>
         )}
       </main>
+      )}
 
       {/* ── 4. NEWSLETTER DISPATCH (max-w-[1440px] matching Navbar) ── */}
       <section className="w-full max-w-[1440px] mx-auto px-4 lg:px-8 mt-12 md:mt-16">
