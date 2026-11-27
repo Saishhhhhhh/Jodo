@@ -25,7 +25,7 @@ export default function VideoSection() {
           {/* Centered Content */}
           <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 w-full h-[450px] md:h-[600px]">
             {/* Logo - Centered White Treatment */}
-            <div className="relative w-[240px] sm:w-[320px] md:w-[420px] lg:w-[480px] h-[105px] sm:h-[140px] md:h-[185px] lg:h-[210px]">
+            <div className="relative w-[240px] sm:w-[320px] md:w-[420px] lg:w-[480px] h-[95px] sm:h-[126px] md:h-[166px] lg:h-[190px]">
               <Image 
                 src="/logo.png"
                 alt="Jodo"
