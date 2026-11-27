@@ -100,14 +100,14 @@ export const SofaScene: React.FC = () => {
       const zoomT = THREE.MathUtils.smoothstep(prog, 0, 1);
       if (currentAspect < 1) {
         // Mobile portrait: keep entire exploded/assembled sofa cleanly below COMING SOON
-        const zDist = THREE.MathUtils.lerp((7.6 / currentAspect) * 0.72, (6.4 / currentAspect) * 0.72, zoomT);
-        const lookY = THREE.MathUtils.lerp(0.24, 0.14, zoomT);
-        return { x: 0.25, y: 0.58, z: zDist, lookY };
+        const zDist = THREE.MathUtils.lerp((7.8 / currentAspect) * 0.72, (6.6 / currentAspect) * 0.72, zoomT);
+        const lookY = THREE.MathUtils.lerp(0.32, 0.22, zoomT);
+        return { x: 0.25, y: 0.64, z: zDist, lookY };
       }
       // Desktop three-quarter studio framing: push sofa comfortably below single-line COMING SOON
       const zDist = THREE.MathUtils.lerp(5.75, 4.65, zoomT);
-      const yPos = THREE.MathUtils.lerp(0.76, 0.58, zoomT);
-      const lookY = THREE.MathUtils.lerp(0.22, 0.13, zoomT);
+      const yPos = THREE.MathUtils.lerp(0.84, 0.66, zoomT);
+      const lookY = THREE.MathUtils.lerp(0.32, 0.22, zoomT);
       return { x: 0.36, y: yPos, z: zDist, lookY };
     };
 
@@ -228,12 +228,12 @@ export const SofaScene: React.FC = () => {
       });
     };
 
-    // --- A. 4 Tapered Wooden Legs with Champagne-Bronze Ferrules ---
+    // --- A. 4 Sleek Champagne-Bronze Tapered Spindle Legs ---
     const createLeg = () => {
       const legGroup = new THREE.Group();
-      // Tapered wooden shaft (height 0.175)
+      // Champagne-bronze tapered spindle shaft (height 0.175)
       const shaftGeo = new THREE.CylinderGeometry(0.036, 0.02, 0.16, 28);
-      const shaft = new THREE.Mesh(shaftGeo, woodMat);
+      const shaft = new THREE.Mesh(shaftGeo, bronzeMat);
       shaft.position.y = 0;
       legGroup.add(shaft);
 
@@ -431,6 +431,23 @@ export const SofaScene: React.FC = () => {
       const armGeo = createSculptedBolsterArmrest(0.42, 0.46, 0.96, side);
       const armMesh = new THREE.Mesh(armGeo, velvet.main);
       g.add(armMesh);
+
+      // Signature illuminated warm ambient accent along inner armrest curve (matching reference)
+      const innerX = side === 'left' ? 0.17 : -0.17;
+      const glowCurve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(innerX, -0.1, 0.22),
+        new THREE.Vector3(innerX, 0.19, 0.08),
+        new THREE.Vector3(innerX, 0.12, -0.28)
+      );
+      const tubeGeo = new THREE.TubeGeometry(glowCurve, 24, 0.008, 8, false);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#FFBE76'),
+        transparent: true,
+        opacity: 0.88,
+      });
+      const glowMesh = new THREE.Mesh(tubeGeo, glowMat);
+      g.add(glowMesh);
+
       return g;
     };
 
@@ -746,11 +763,11 @@ export const SofaScene: React.FC = () => {
         <div
           style={{
             position: 'absolute',
-            top: 'clamp(64px, 8.5vh, 92px)',
+            top: 'clamp(94px, 14.5vh, 144px)',
             left: '50%',
             transform: 'translateX(-50%)',
             width: '96%',
-            maxWidth: '1320px',
+            maxWidth: '1440px',
             textAlign: 'center',
             pointerEvents: 'none',
             zIndex: 30,
@@ -759,10 +776,10 @@ export const SofaScene: React.FC = () => {
           <h1
             style={{
               color: '#DA4E26',
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "var(--font-syne), 'Syne', sans-serif",
               fontWeight: 800,
-              fontSize: 'clamp(1.6rem, 5.6vw, 4.5rem)',
-              letterSpacing: '0.12em',
+              fontSize: 'clamp(2.1rem, 7.5vw, 6.2rem)',
+              letterSpacing: 'clamp(0.08em, 1.4vw, 0.2em)',
               lineHeight: 1,
               margin: 0,
               whiteSpace: 'nowrap',

@@ -5,9 +5,9 @@ import * as THREE from 'three';
  * subtle micro-fiber grain and natural tonal depth (never washed out).
  */
 export function createVelvetDiffuseTexture(
-  baseHex = '#9E3110',
-  darkHex = '#6E1E07',
-  lightHex = '#BD4119'
+  baseHex = '#B23A18',
+  darkHex = '#701E08',
+  lightHex = '#CF4D22'
 ): THREE.CanvasTexture {
   const size = 512;
   const canvas = document.createElement('canvas');
@@ -101,45 +101,45 @@ export interface VelvetMaterialSet {
  * Low envMapIntensity keeps studio environment reflections from washing out the color.
  */
 export function createTerracottaVelvetMaterials(): VelvetMaterialSet {
-  const diffuse = createVelvetDiffuseTexture('#9E3110', '#6E1E07', '#BD4119');
+  const diffuse = createVelvetDiffuseTexture('#B23A18', '#701E08', '#CF4D22');
   const micro = createVelvetMicroTexture();
 
   const main = new THREE.MeshPhysicalMaterial({
     map: diffuse,
     bumpMap: micro,
-    bumpScale: 0.004,
+    bumpScale: 0.0035,
     roughnessMap: micro,
-    roughness: 0.88,
+    roughness: 0.86,
     metalness: 0.0,
-    sheen: 0.55,
-    sheenRoughness: 0.48,
-    sheenColor: new THREE.Color('#D95A2B'),
-    envMapIntensity: 0.26,
+    sheen: 0.62,
+    sheenRoughness: 0.44,
+    sheenColor: new THREE.Color('#E06734'),
+    envMapIntensity: 0.28,
     vertexColors: true,
   });
 
   // Slightly deeper velvet for tailored seams
   const piping = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#7C2309'),
+    color: new THREE.Color('#85250A'),
     bumpMap: micro,
     bumpScale: 0.003,
-    roughness: 0.84,
+    roughness: 0.82,
     metalness: 0.0,
-    sheen: 0.45,
-    sheenRoughness: 0.5,
-    sheenColor: new THREE.Color('#C44A20'),
-    envMapIntensity: 0.24,
+    sheen: 0.5,
+    sheenRoughness: 0.48,
+    sheenColor: new THREE.Color('#CF5024'),
+    envMapIntensity: 0.26,
   });
 
   // Deep shaded terracotta for inner seat deck / under-cushion shadow areas
   const crease = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#5A1805'),
-    roughness: 0.95,
+    color: new THREE.Color('#5E1906'),
+    roughness: 0.94,
     metalness: 0.0,
-    sheen: 0.2,
-    sheenRoughness: 0.75,
-    sheenColor: new THREE.Color('#963112'),
-    envMapIntensity: 0.15,
+    sheen: 0.25,
+    sheenRoughness: 0.72,
+    sheenColor: new THREE.Color('#A23514'),
+    envMapIntensity: 0.18,
   });
 
   return { main, piping, crease };
@@ -150,10 +150,10 @@ export function createTerracottaVelvetMaterials(): VelvetMaterialSet {
  */
 export function createChampagneBronzeMaterial(): THREE.MeshStandardMaterial {
   return new THREE.MeshStandardMaterial({
-    color: new THREE.Color('#C4985E'),
-    metalness: 0.86,
-    roughness: 0.24,
-    envMapIntensity: 1.25,
+    color: new THREE.Color('#CCA368'),
+    metalness: 0.88,
+    roughness: 0.22,
+    envMapIntensity: 1.35,
   });
 }
 

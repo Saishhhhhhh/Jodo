@@ -10,10 +10,10 @@ export function createSculptedSeatCushion(
   depth: number,
   side: 'left' | 'right'
 ): THREE.BufferGeometry {
-  const bevel = Math.min(height * 0.34, 0.082);
+  const bevel = Math.min(height * 0.38, 0.096);
   const hw = width * 0.5 - bevel;
   const hd = depth * 0.5 - bevel;
-  const r = 0.095;
+  const r = 0.11;
 
   const shape = new THREE.Shape();
   shape.moveTo(-hw + r, -hd);
@@ -30,9 +30,9 @@ export function createSculptedSeatCushion(
     depth: Math.max(0.02, height - bevel * 2),
     bevelEnabled: true,
     bevelThickness: bevel,
-    bevelSize: bevel * 0.92,
-    bevelSegments: 14,
-    curveSegments: 24,
+    bevelSize: bevel * 0.94,
+    bevelSegments: 16,
+    curveSegments: 28,
   });
 
   geo.rotateX(Math.PI / 2);
@@ -57,16 +57,16 @@ export function createSculptedSeatCushion(
     // Organic plush top pillow crown (flat-ish underside so it sits flush on plinth)
     const crown = Math.cos(nx * Math.PI * 0.48) * Math.cos(nz * Math.PI * 0.48);
     if (ny > 0) {
-      y += crown * 0.042 * Math.pow(ny, 0.75);
+      y += crown * 0.048 * Math.pow(ny, 0.72);
     } else {
       y *= 0.92;
     }
 
     // Subtle mid-height plumpness & waterfall front softness
     const midBand = Math.cos(ny * Math.PI * 0.5);
-    z += nz * 0.014 * midBand;
-    if (nz > 0.35 && ny > 0.1) {
-      z += 0.012 * Math.sin(nz * Math.PI * 0.5) * Math.sin(ny * Math.PI * 0.5);
+    z += nz * 0.016 * midBand;
+    if (nz > 0.35 && ny > 0.08) {
+      z += 0.015 * Math.sin(nz * Math.PI * 0.5) * Math.sin(ny * Math.PI * 0.5);
     }
 
     pos.setXYZ(i, x, y, z);
@@ -74,13 +74,13 @@ export function createSculptedSeatCushion(
     // Analytical Ambient Occlusion
     let ao = 1.0;
     if (ny < -0.15) {
-      ao *= THREE.MathUtils.lerp(1.0, 0.42, Math.pow((-ny - 0.15) / 0.85, 1.2));
+      ao *= THREE.MathUtils.lerp(1.0, 0.45, Math.pow((-ny - 0.15) / 0.85, 1.2));
     }
     if (nz < -0.3) {
-      ao *= THREE.MathUtils.lerp(1.0, 0.55, (-nz - 0.3) / 0.7);
+      ao *= THREE.MathUtils.lerp(1.0, 0.58, (-nz - 0.3) / 0.7);
     }
     if (nx * innerSign > 0.55) {
-      ao *= THREE.MathUtils.lerp(1.0, 0.65, (nx * innerSign - 0.55) / 0.45);
+      ao *= THREE.MathUtils.lerp(1.0, 0.68, (nx * innerSign - 0.55) / 0.45);
     }
 
     colors[i * 3] = ao;
@@ -103,28 +103,28 @@ export function createSculptedBackrestCushion(
   depth: number,
   side: 'left' | 'right'
 ): THREE.BufferGeometry {
-  const bevel = Math.min(depth * 0.35, 0.085);
+  const bevel = Math.min(depth * 0.38, 0.096);
   const hw = width * 0.5 - bevel;
   const hh = height * 0.5 - bevel;
-  const archLift = 0.032;
+  const archLift = 0.046;
 
   // Front-facing silhouette: flat-ish bottom, softly tapered sides, arched rounded top
   const shape = new THREE.Shape();
-  shape.moveTo(-hw * 0.96, -hh + 0.04);
-  shape.quadraticCurveTo(-hw, -hh, -hw * 0.86, -hh);
-  shape.lineTo(hw * 0.86, -hh);
-  shape.quadraticCurveTo(hw, -hh, hw * 0.96, -hh + 0.04);
-  shape.bezierCurveTo(hw * 1.02, hh * 0.15, hw * 0.96, hh * 0.82, hw * 0.65, hh);
-  shape.quadraticCurveTo(0, hh + archLift, -hw * 0.65, hh);
-  shape.bezierCurveTo(-hw * 0.96, hh * 0.82, -hw * 1.02, hh * 0.15, -hw * 0.96, -hh + 0.04);
+  shape.moveTo(-hw * 0.94, -hh + 0.04);
+  shape.quadraticCurveTo(-hw, -hh, -hw * 0.84, -hh);
+  shape.lineTo(hw * 0.84, -hh);
+  shape.quadraticCurveTo(hw, -hh, hw * 0.94, -hh + 0.04);
+  shape.bezierCurveTo(hw * 1.04, hh * 0.15, hw * 0.97, hh * 0.82, hw * 0.62, hh);
+  shape.quadraticCurveTo(0, hh + archLift, -hw * 0.62, hh);
+  shape.bezierCurveTo(-hw * 0.97, hh * 0.82, -hw * 1.04, hh * 0.15, -hw * 0.94, -hh + 0.04);
 
   const geo = new THREE.ExtrudeGeometry(shape, {
     depth: Math.max(0.02, depth - bevel * 2),
     bevelEnabled: true,
     bevelThickness: bevel,
-    bevelSize: bevel * 0.88,
-    bevelSegments: 14,
-    curveSegments: 26,
+    bevelSize: bevel * 0.92,
+    bevelSegments: 16,
+    curveSegments: 28,
   });
 
   geo.center();
@@ -149,12 +149,12 @@ export function createSculptedBackrestCushion(
     const swell =
       Math.cos(nx * Math.PI * 0.46) * Math.cos((ny + 0.1) * Math.PI * 0.44);
     if (nz > 0) {
-      z += Math.max(0, swell) * 0.055 * Math.pow(nz, 0.8);
+      z += Math.max(0, swell) * 0.065 * Math.pow(nz, 0.75);
     }
 
     // Subtle organic taper at very top
     if (ny > 0.2) {
-      z *= 1 - (ny - 0.2) * 0.14;
+      z *= 1 - (ny - 0.2) * 0.12;
     }
 
     pos.setXYZ(i, x, y, z);
@@ -162,13 +162,13 @@ export function createSculptedBackrestCushion(
     // Analytical AO
     let ao = 1.0;
     if (ny < -0.25) {
-      ao *= THREE.MathUtils.lerp(1.0, 0.4, (-ny - 0.25) / 0.75);
+      ao *= THREE.MathUtils.lerp(1.0, 0.45, (-ny - 0.25) / 0.75);
     }
     if (nz < -0.1) {
-      ao *= THREE.MathUtils.lerp(1.0, 0.65, (-nz - 0.1) / 0.9);
+      ao *= THREE.MathUtils.lerp(1.0, 0.68, (-nz - 0.1) / 0.9);
     }
     if (nx * innerSign > 0.55) {
-      ao *= THREE.MathUtils.lerp(1.0, 0.68, (nx * innerSign - 0.55) / 0.45);
+      ao *= THREE.MathUtils.lerp(1.0, 0.72, (nx * innerSign - 0.55) / 0.45);
     }
 
     colors[i * 3] = ao;
@@ -191,23 +191,23 @@ export function createSculptedBolsterArmrest(
   depth: number,
   side: 'left' | 'right'
 ): THREE.BufferGeometry {
-  const bevel = Math.min(width * 0.28, 0.1);
+  const bevel = Math.min(width * 0.32, 0.115);
   const hw = width * 0.5 - bevel;
   const hh = height * 0.5 - bevel;
 
   // Cross-section in XY plane: flat-ish tucked base, generous rounded outer & top curve
   const shape = new THREE.Shape();
-  shape.moveTo(-hw * 0.78, -hh);
-  shape.lineTo(hw * 0.78, -hh);
-  shape.bezierCurveTo(hw * 1.05, -hh * 0.4, hw * 1.06, hh * 0.6, hw * 0.58, hh);
-  shape.quadraticCurveTo(0, hh + 0.03, -hw * 0.58, hh);
-  shape.bezierCurveTo(-hw * 1.06, hh * 0.6, -hw * 1.05, -hh * 0.4, -hw * 0.78, -hh);
+  shape.moveTo(-hw * 0.74, -hh);
+  shape.lineTo(hw * 0.74, -hh);
+  shape.bezierCurveTo(hw * 1.08, -hh * 0.4, hw * 1.08, hh * 0.6, hw * 0.54, hh);
+  shape.quadraticCurveTo(0, hh + 0.038, -hw * 0.54, hh);
+  shape.bezierCurveTo(-hw * 1.08, hh * 0.6, -hw * 1.08, -hh * 0.4, -hw * 0.74, -hh);
 
   const geo = new THREE.ExtrudeGeometry(shape, {
     depth: Math.max(0.05, depth - bevel * 2),
     bevelEnabled: true,
     bevelThickness: bevel,
-    bevelSize: bevel * 0.85,
+    bevelSize: bevel * 0.88,
     bevelSegments: 16,
     curveSegments: 28,
   });
